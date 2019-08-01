@@ -15,7 +15,7 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.android.tvleanback">
+    package="org.mythtv.leanfront">
 
     <permission
         android:name="${applicationId}.ACCESS_VIDEO_DATA"
@@ -38,17 +38,17 @@
 
     <application
         android:allowBackup="false"
-        android:banner="@drawable/videos_by_google_banner"
-        android:icon="@drawable/app_icon_quantum"
+        android:banner="@drawable/mythtv_320x180_icon"
+        android:icon="@drawable/mythtv_256x266_icon"
         android:label="@string/app_name"
-        android:logo="@drawable/videos_by_google_banner"
+        android:logo="@drawable/mythtv_256x266_icon"
         android:theme="@style/Theme.Leanback"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".ui.MainActivity"
-            android:icon="@drawable/videos_by_google_banner"
+            android:name="org.mythtv.leanfront.ui.MainActivity"
+            android:icon="@drawable/mythtv_256x266_icon"
             android:label="@string/app_name"
-            android:logo="@drawable/videos_by_google_banner"
+            android:logo="@drawable/mythtv_256x266_icon"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback.Browse">
             <intent-filter>
@@ -58,7 +58,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".mobile.MobileWelcomeActivity">
+        <activity android:name="org.mythtv.leanfront.mobile.MobileWelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -69,7 +69,7 @@
         <meta-data android:name="android.app.default_searchable"
             android:value=".ui.VideoDetailsActivity" />
         <activity
-            android:name=".ui.VideoDetailsActivity"
+            android:name="org.mythtv.leanfront.ui.VideoDetailsActivity"
             android:exported="true"
             android:theme="@style/Theme.Leanback.Details">
 
@@ -85,23 +85,23 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".ui.PlaybackActivity"
+            android:name="org.mythtv.leanfront.ui.PlaybackActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
             android:launchMode="singleTask"
             android:resizeableActivity="true" />
         <activity
-            android:name=".ui.VerticalGridActivity"
+            android:name="org.mythtv.leanfront.ui.VerticalGridActivity"
             android:exported="true"
-            android:parentActivityName=".ui.MainActivity"
+            android:parentActivityName="org.mythtv.leanfront.ui.MainActivity"
             android:theme="@style/Theme.Leanback.VerticalGrid" />
-        <activity android:name=".ui.SearchActivity" />
+        <activity android:name="org.mythtv.leanfront.ui.SearchActivity" />
         <activity
-            android:name=".ui.GuidedStepActivity"
+            android:name="org.mythtv.leanfront.ui.GuidedStepActivity"
             android:theme="@style/Theme.Example.Leanback.GuidedStep" />
 
         <!-- Provides search suggestions for keywords against video metadata. -->
         <provider
-            android:name=".data.VideoProvider"
+            android:name="org.mythtv.leanfront.data.VideoProvider"
             android:authorities="${packageName}"
             android:permission="${applicationId}.ACCESS_VIDEO_DATA"
             android:exported="true">
@@ -111,7 +111,7 @@
         </provider>
 
         <receiver
-            android:name=".recommendation.RecommendationReceiver"
+            android:name="org.mythtv.leanfront.recommendation.RecommendationReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -120,22 +120,22 @@
         </receiver>
 
         <service
-            android:name=".data.FetchVideoService"
+            android:name="org.mythtv.leanfront.data.FetchVideoService"
             android:exported="false" />
         <service
-            android:name=".recommendation.UpdateRecommendationsService"
+            android:name="org.mythtv.leanfront.recommendation.UpdateRecommendationsService"
             android:enabled="true" />
 
-        <activity android:name=".ui.OnboardingActivity"
+        <activity android:name="org.mythtv.leanfront.ui.OnboardingActivity"
             android:enabled="true"
             android:exported="true"
             android:theme="@style/Theme.Leanback.Onboarding" />
-        <activity android:name=".ui.SettingsActivity"
+        <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
             android:exported="true"
             android:theme="@style/LeanbackPreferences"
             />
         <activity
-            android:name=".ui.AuthenticationActivity"
+            android:name="org.mythtv.leanfront.ui.AuthenticationActivity"
             android:theme="@style/Theme.Example.Leanback.GuidedStep" />
     </application>
 

@@ -42,6 +42,7 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.MythDataSource;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
@@ -52,8 +53,8 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
@@ -179,14 +180,13 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
-        MediaSource mediaSource =
-                new ExtractorMediaSource(
-                        mediaSourceUri,
-                        new DefaultDataSourceFactory(getActivity(), userAgent),
-                        new DefaultExtractorsFactory(),
-                        null,
-                        null);
-
+/*        ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
+                (new DefaultDataSourceFactory(getActivity(), userAgent),
+                        new DefaultExtractorsFactory()); */
+        ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
+                (new MythDataSource.Factory(getActivity(), userAgent),
+                        new DefaultExtractorsFactory());
+        MediaSource mediaSource = pmf.createMediaSource(mediaSourceUri);
         mPlayer.prepare(mediaSource);
     }
 

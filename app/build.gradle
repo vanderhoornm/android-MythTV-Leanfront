@@ -28,12 +28,12 @@ dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.recommendation:recommendation:1.0.0'
     implementation 'androidx.leanback:leanback-preference:1.0.0'
-    implementation 'androidx.annotation:annotation:1.0.1'
+    implementation 'androidx.annotation:annotation:1.1.0'
 
     implementation 'com.github.bumptech.glide:glide:4.3.1'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.6.1'
-    implementation 'com.google.android.exoplayer:extension-leanback:2.6.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.10.3'
+    implementation 'com.google.android.exoplayer:extension-leanback:2.10.3'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.robolectric:robolectric:3.8'

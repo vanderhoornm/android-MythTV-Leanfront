@@ -38,8 +38,10 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         }
         else {
             usingMyth = false;
-            DefaultDataSourceFactory defFact = new DefaultDataSourceFactory(context, userAgent);
-            defSrc = defFact.createDataSource();
+            if (defSrc == null) {
+                DefaultDataSourceFactory defFact = new DefaultDataSourceFactory(context, userAgent);
+                defSrc = defFact.createDataSource();
+            }
             return defSrc.open(dataSpec);
         }
         // TODO: Implement myth code
@@ -61,7 +63,6 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         return uri;
     }
 
-
     public void close()
             throws IOException{
         if (!usingMyth) {
@@ -71,7 +72,6 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         // TODO: Implement myth code
         return;
     }
-
 
     public static class Factory implements DataSource.Factory {
 

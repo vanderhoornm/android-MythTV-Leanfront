@@ -32,6 +32,8 @@ public class MythDataSource extends BaseDataSource implements DataSource {
     MythSocket transferSock;
     int recorderNum;
     long fileSize;
+    DataSpec dataSpec;
+    boolean isTransferStarted;
 
     //TODO: Get these from settings
     static final int port = 6543;
@@ -40,7 +42,6 @@ public class MythDataSource extends BaseDataSource implements DataSource {
     static final String MYTH_PROTO_TOKEN = "BuzzOff";
     static final String MYTH_PROTO_VERSION = "91";
     static final String timeout = "2000";
-    static final int blocksize = 327680;
 
     MythDataSource(Context context,String userAgent){
         super(true);
@@ -50,7 +51,9 @@ public class MythDataSource extends BaseDataSource implements DataSource {
 
     public long open(DataSpec dataSpec)
             throws IOException{
+        this.dataSpec = dataSpec;
         uri = dataSpec.uri;
+        isTransferStarted = false;
         if (uri.getScheme().equals("myth")) {
             usingMyth = true;
         }
@@ -85,6 +88,7 @@ public class MythDataSource extends BaseDataSource implements DataSource {
             throw new IOException();
         recorderNum = Integer.parseInt(resp[1]);
         fileSize = Long.parseLong(resp[2]);
+        transferInitializing(dataSpec);
         return 0;
     }
 
@@ -125,6 +129,11 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         if (!usingMyth)
             return defSrc.read(buffer,offset,readLength);
         // TODO: Implement myth code
+        if (!isTransferStarted) {
+            transferStarted(dataSpec);
+            isTransferStarted = true;
+        }
+        bytesTransferred(0);
         return 0;
     }
 
@@ -140,6 +149,11 @@ public class MythDataSource extends BaseDataSource implements DataSource {
             return;
         }
         // TODO: Implement myth code
+        if (isTransferStarted) {
+            transferEnded();
+            isTransferStarted = false;
+        }
+
         if (controlSock != null && controlSock.sock != null) {
             controlSock.sock.close();
             controlSock = null;

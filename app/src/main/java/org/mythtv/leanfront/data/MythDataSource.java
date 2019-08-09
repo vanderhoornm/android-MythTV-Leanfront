@@ -5,6 +5,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.BaseDataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
@@ -17,9 +18,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MythDataSource extends BaseDataSource implements DataSource {
 
@@ -34,6 +35,7 @@ public class MythDataSource extends BaseDataSource implements DataSource {
     long fileSize;
     DataSpec dataSpec;
     boolean isTransferStarted;
+    long filePos;
 
     //TODO: Get these from settings
     static final int port = 6543;
@@ -42,6 +44,8 @@ public class MythDataSource extends BaseDataSource implements DataSource {
     static final String MYTH_PROTO_TOKEN = "BuzzOff";
     static final String MYTH_PROTO_VERSION = "91";
     static final String timeout = "2000";
+    static final String SEEK_SET = "0";
+    private static final String TAG = "MythDataSource";
 
     MythDataSource(Context context,String userAgent){
         super(true);
@@ -54,6 +58,7 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         this.dataSpec = dataSpec;
         uri = dataSpec.uri;
         isTransferStarted = false;
+        filePos = dataSpec.absoluteStreamPosition;
         if (uri.getScheme().equals("myth")) {
             usingMyth = true;
         }
@@ -76,6 +81,12 @@ public class MythDataSource extends BaseDataSource implements DataSource {
             || ! resp[0].equals("ACCEPT")
             || ! resp[1].equals(MYTH_PROTO_VERSION))
             throw new IOException();
+        send.clear();
+        send.add("ANN Playback " + feName + " 0 ");
+        resp = sendReceiveStringList(controlSock,send);
+        if (resp.length < 1
+                || ! resp[0].equals("OK"))
+            throw new IOException();
         // Make Connection
         transferSock = new MythSocket(uri.getHost(),port);
         send.clear();
@@ -89,10 +100,29 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         recorderNum = Integer.parseInt(resp[1]);
         fileSize = Long.parseLong(resp[2]);
         transferInitializing(dataSpec);
-        return 0;
+        if (dataSpec.absoluteStreamPosition != 0){
+            send.clear();
+            send.add("QUERY_FILETRANSFER " + recorderNum);
+            send.add("SEEK");
+            send.add(String.valueOf(dataSpec.absoluteStreamPosition));
+            send.add (SEEK_SET);
+            send.add("0"); // curpos not needed for SEEK_SET
+            sendReceiveStringList(controlSock,send);
+        }
+        long length = fileSize - dataSpec.absoluteStreamPosition;
+        if (dataSpec.length != C.LENGTH_UNSET
+            && dataSpec.length < length)
+            length = dataSpec.length;
+        return length;
     }
 
     String[] sendReceiveStringList(MythSocket msock, List<String>inList)
+            throws IOException {
+        sendStringList(msock, inList);
+        return receiveStringList(msock);
+    }
+
+    void sendStringList(MythSocket msock, List<String>inList)
             throws IOException {
         StringBuilder combo = new StringBuilder();
         for (String item: inList) {
@@ -101,23 +131,27 @@ public class MythDataSource extends BaseDataSource implements DataSource {
             combo.append(item);
         }
         int leng = combo.length();
-        String lengs = Integer.toString(leng) + "        ";
+        String lengs = leng + "        ";
         combo.insert(0,lengs,0,8);
-        byte[] buff = combo.toString().getBytes("UTF-8");
+        byte[] buff = combo.toString().getBytes(StandardCharsets.UTF_8);
         msock.out.write(buff,0,leng+8);
+    }
+
+    String[] receiveStringList(MythSocket msock)
+            throws IOException {
         // read first 8 bytes of response - (length)
-        buff = new byte[8];
+        byte[] buff = new byte[8];
         int remains = 8;
         while (remains > 0) {
             remains = remains - msock.in.read(buff,8-remains, remains);
         }
-        int len = Integer.parseInt((new String(buff,"UTF-8")).trim());
+        int len = Integer.parseInt((new String(buff, StandardCharsets.UTF_8)).trim());
         buff = new byte[len];
         remains = len;
         while (remains > 0) {
             remains = remains - msock.in.read(buff,len-remains, remains);
         }
-        String resp = new String(buff,"UTF-8");
+        String resp = new String(buff, StandardCharsets.UTF_8);
         String[] ret = resp.split("\\[\\]:\\[\\]");
         return ret;
     }
@@ -126,15 +160,40 @@ public class MythDataSource extends BaseDataSource implements DataSource {
              int offset,
              int readLength)
             throws IOException{
-        if (!usingMyth)
-            return defSrc.read(buffer,offset,readLength);
+        int length;
+        if (!usingMyth) {
+            length = defSrc.read(buffer, offset, readLength);
+            filePos += length;
+            return length;
+        }
         // TODO: Implement myth code
         if (!isTransferStarted) {
             transferStarted(dataSpec);
             isTransferStarted = true;
         }
-        bytesTransferred(0);
-        return 0;
+        controlSock.reset();
+        transferSock.reset();
+        List<String> send = new ArrayList<String>();
+        send.add("QUERY_FILETRANSFER " + recorderNum);
+        send.add("REQUEST_BLOCK");
+        send.add(String.valueOf(readLength));
+        sendStringList(controlSock,send);
+
+        length = readLength;
+        int remains = length;
+        while (remains > 0) {
+            remains = remains - transferSock.in.read(buffer,offset+length-remains, remains);
+            if (controlSock.in.available() > 8) {
+                String[] resp = receiveStringList(controlSock);
+                if (resp.length < 1)
+                    throw new IOException();
+                length = Integer.parseInt(resp[0]);
+                remains = remains - readLength + length;
+            }
+        }
+        bytesTransferred(length);
+        filePos += length;
+        return length;
     }
 
     @Nullable
@@ -196,5 +255,17 @@ public void disconnect(){
             in = sock.getInputStream();
             out = sock.getOutputStream();
         }
+        void reset() throws IOException {
+            int leng = in.available();
+            while (leng > 0) {
+                in.skip(leng);
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                }
+                leng = in.available();
+            }
+        }
+
     }
 }

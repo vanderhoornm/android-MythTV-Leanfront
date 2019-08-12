@@ -2,12 +2,30 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:title="@string/pref_title_settings">
-        <SwitchPreference
-            android:title="@string/pref_title_recommendations"
-            android:defaultValue="true"
-            android:key="@string/pref_key_recommendations" />
+        <EditTextPreference
+            android:defaultValue="Android"
+            android:key="pref_hostname"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_hostname" />
+        <EditTextPreference
+            android:inputType="number"
+            android:key="pref_backend"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_backend" />
+        <EditTextPreference
+            android:defaultValue="6543"
+            android:inputType="number"
+            android:key="pref_myth_port"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_myth_port" />
+        <EditTextPreference
+            android:defaultValue="6544"
+            android:key="pref_http_port"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_http_port" />
     </PreferenceCategory>
-    <Preference
-        android:key="@string/pref_key_login"
-        android:title="@string/pref_title_login" />
 </PreferenceScreen>

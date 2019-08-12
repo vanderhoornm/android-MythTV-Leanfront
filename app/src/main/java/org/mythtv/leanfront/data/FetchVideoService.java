@@ -19,7 +19,10 @@ package org.mythtv.leanfront.data;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
+
+import androidx.preference.PreferenceManager;
 
 import org.mythtv.leanfront.R;
 
@@ -45,10 +48,12 @@ public class FetchVideoService extends IntentService {
     @Override
     protected void onHandleIntent(Intent workIntent) {
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
 
         try {
+            String catalogUrl = "http://" + prefs.getString("pref_backend",null)+"/android-tv/android_tv_videos_new.json";
             List<ContentValues> contentValuesList =
-                    builder.fetch(getResources().getString(R.string.catalog_url));
+                    builder.fetch(catalogUrl);
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,

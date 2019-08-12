@@ -1,9 +1,11 @@
 package org.mythtv.leanfront.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.BaseDataSource;
@@ -12,6 +14,8 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.TransferListener;
+
+import org.mythtv.leanfront.ui.MainActivity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,9 +41,10 @@ public class MythDataSource extends BaseDataSource implements DataSource {
     boolean isTransferStarted;
     long filePos;
 
+    // From settings
+    int port = 6543;
+    String hostName = "android";
     //TODO: Get these from settings
-    static final int port = 6543;
-    static final String feName = "android";
 
     static final String MYTH_PROTO_TOKEN = "BuzzOff";
     static final String MYTH_PROTO_VERSION = "91";
@@ -59,6 +64,9 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         uri = dataSpec.uri;
         isTransferStarted = false;
         filePos = dataSpec.absoluteStreamPosition;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (MainActivity.getContext());
+        port =  Integer.parseInt(prefs.getString("pref_myth_port","6543"));
+        hostName = prefs.getString("pref_hostname","android");
         if (uri.getScheme().equals("myth")) {
             usingMyth = true;
         }
@@ -82,7 +90,7 @@ public class MythDataSource extends BaseDataSource implements DataSource {
             || ! resp[1].equals(MYTH_PROTO_VERSION))
             throw new IOException();
         send.clear();
-        send.add("ANN Playback " + feName + " 0 ");
+        send.add("ANN Playback " + hostName + " 0 ");
         resp = sendReceiveStringList(controlSock,send);
         if (resp.length < 1
                 || ! resp[0].equals("OK"))
@@ -90,7 +98,7 @@ public class MythDataSource extends BaseDataSource implements DataSource {
         // Make Connection
         transferSock = new MythSocket(uri.getHost(),port);
         send.clear();
-        send.add("ANN FileTransfer " + feName + " 0 1 " + timeout);
+        send.add("ANN FileTransfer " + hostName + " 0 1 " + timeout);
         send.add(uri.getPath());
         send.add(""); // group name, empty string for default
         resp = sendReceiveStringList(transferSock,send);

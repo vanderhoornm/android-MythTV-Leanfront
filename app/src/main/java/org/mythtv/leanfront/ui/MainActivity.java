@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,9 +28,15 @@ import org.mythtv.leanfront.R;
  * MainActivity class that loads MainFragment.
  */
 public class MainActivity extends LeanbackActivity {
+
+    static Context context;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        context = this;
+    }
+    static public Context getContext(){
+        return context;
     }
 }

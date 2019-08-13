@@ -22,6 +22,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
+import androidx.core.app.ActivityOptionsCompat;
+
 import org.mythtv.leanfront.R;
 
 /*
@@ -35,6 +37,12 @@ public class MainActivity extends LeanbackActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         context = this;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if(sharedPreferences.getString("pref_backend",null) == null) {
+            // This is the first time running the app, let's go to onboarding
+            startActivity(new Intent(this, SettingsActivity.class));
+        }
+
     }
     static public Context getContext(){
         return context;

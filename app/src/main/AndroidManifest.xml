@@ -43,7 +43,8 @@
         android:label="@string/app_name"
         android:logo="@drawable/mythtv_256x266_icon"
         android:theme="@style/Theme.Leanback"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        android:usesCleartextTraffic="true">
         <activity
             android:name="org.mythtv.leanfront.ui.MainActivity"
             android:icon="@drawable/mythtv_256x266_icon"

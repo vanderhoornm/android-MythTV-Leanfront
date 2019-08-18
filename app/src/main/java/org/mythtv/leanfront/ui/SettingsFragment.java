@@ -24,6 +24,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.FetchVideoService;
 
 public class SettingsFragment extends LeanbackSettingsFragment
         implements DialogPreference.TargetFragment {
@@ -87,5 +88,13 @@ public class SettingsFragment extends LeanbackSettingsFragment
             }
             return super.onPreferenceTreeClick(preference);
         }
+        @Override
+        public void onDestroy() {
+            // Start an Intent to fetch the videos.
+            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+            getActivity().startService(serviceIntent);
+            super.onDestroy();
+        }
+
     }
 }

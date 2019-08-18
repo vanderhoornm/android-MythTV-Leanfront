@@ -17,8 +17,11 @@
 package org.mythtv.leanfront.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import androidx.preference.PreferenceManager;
 
 import org.mythtv.leanfront.data.VideoContract.VideoEntry;
 
@@ -40,6 +43,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create a table to hold videos.
+        // Changed all from NOT NULL to NULL
         final String SQL_CREATE_VIDEO_TABLE = "CREATE TABLE " + VideoEntry.TABLE_NAME + " (" +
                 VideoEntry._ID + " INTEGER PRIMARY KEY," +
                 VideoEntry.COLUMN_CATEGORY + " TEXT NOT NULL, " +
@@ -60,7 +64,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                 VideoEntry.COLUMN_RATING_SCORE + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_PRODUCTION_YEAR + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_DURATION + " TEXT NOT NULL, " +
-                VideoEntry.COLUMN_ACTION + " TEXT NOT NULL " +
+                VideoEntry.COLUMN_ACTION + " TEXT NOT NULL" +
                 " );";
 
         // Do the creating of the databases.

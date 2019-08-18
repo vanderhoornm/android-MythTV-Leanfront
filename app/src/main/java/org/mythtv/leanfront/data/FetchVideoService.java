@@ -20,6 +20,7 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
@@ -27,6 +28,7 @@ import androidx.preference.PreferenceManager;
 import org.mythtv.leanfront.R;
 
 import org.json.JSONException;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,18 +49,45 @@ public class FetchVideoService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
+/*
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
+        try {
+            // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
+            String backend = prefs.getString("pref_backend", null);
+            String port = prefs.getString("pref_http_port", "6544");
+            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
+            XmlNode xml = XmlNode.fetch(catalogUrl);
+
+        } catch (IOException | XmlPullParserException e) {
+            Log.e(TAG, "Error occurred in downloading video list");
+            e.printStackTrace();
+        }
+    }
+*/
+
+
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
 
         try {
-            String catalogUrl = "http://" + prefs.getString("pref_backend",null)+"/android-tv/android_tv_videos_new.json";
+//            String catalogUrl = "http://" + prefs.getString("pref_backend",null)+"/android-tv/android_tv_videos_new.json";
+            // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
+            String backend = prefs.getString("pref_backend", null);
+            // TODO: Handle backend == null
+            String port = prefs.getString("pref_http_port", "6544");
+            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
+//            catalogUrl = catalogUrl + "?TitleRegEx=Judge%20Judy";
             List<ContentValues> contentValuesList =
                     builder.fetch(catalogUrl);
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+            VideoDbHelper dbh = new VideoDbHelper(this);
+            SQLiteDatabase db = dbh.getWritableDatabase();
+            db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+            db.close();
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);
-        } catch (IOException | JSONException e) {
+        } catch (IOException | JSONException | XmlPullParserException e) {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }

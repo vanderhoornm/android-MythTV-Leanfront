@@ -76,7 +76,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int NO_NOTIFICATION = -1;
-    private static final int ACTION_WATCH_TRAILER = 1;
+    private static final int ACTION_PLAY = 1;
     private static final int ACTION_RENT = 2;
     private static final int ACTION_BUY = 3;
 
@@ -202,7 +202,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         detailsPresenter.setOnActionClickedListener(new OnActionClickedListener() {
             @Override
             public void onActionClicked(Action action) {
-                if (action.getId() == ACTION_WATCH_TRAILER) {
+                if (action.getId() == ACTION_PLAY) {
                     Intent intent = new Intent(getActivity(), PlaybackActivity.class);
                     intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
                     startActivity(intent);
@@ -344,13 +344,13 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         SparseArrayObjectAdapter adapter = new SparseArrayObjectAdapter();
 
-        adapter.set(ACTION_WATCH_TRAILER, new Action(ACTION_WATCH_TRAILER, getResources()
-                .getString(R.string.watch_trailer_1),
-                getResources().getString(R.string.watch_trailer_2)));
-        adapter.set(ACTION_RENT, new Action(ACTION_RENT, getResources().getString(R.string.rent_1),
-                getResources().getString(R.string.rent_2)));
-        adapter.set(ACTION_BUY, new Action(ACTION_BUY, getResources().getString(R.string.buy_1),
-                getResources().getString(R.string.buy_2)));
+        adapter.set(ACTION_PLAY, new Action(ACTION_PLAY, getResources()
+                .getString(R.string.play_1),
+                getResources().getString(R.string.play_2)));
+//        adapter.set(ACTION_RENT, new Action(ACTION_RENT, getResources().getString(R.string.rent_1),
+//                getResources().getString(R.string.rent_2)));
+//        adapter.set(ACTION_BUY, new Action(ACTION_BUY, getResources().getString(R.string.buy_1),
+//                getResources().getString(R.string.buy_2)));
         row.setActionsAdapter(adapter);
 
         mAdapter.add(row);

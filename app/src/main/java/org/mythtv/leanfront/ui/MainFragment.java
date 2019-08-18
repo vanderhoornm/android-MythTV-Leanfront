@@ -84,6 +84,8 @@ public class MainFragment extends BrowseSupportFragment
     // Maps a Loader Id to its CursorObjectAdapter.
     private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
 
+    private boolean loadDone = false;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -296,10 +298,13 @@ public class MainFragment extends BrowseSupportFragment
                 // The CursorAdapter contains a Cursor pointing to all videos.
                 mVideoCursorAdapters.get(loaderId).changeCursor(data);
             }
-        } else {
+        }
+//        else {
+        if (!loadDone) {
             // Start an Intent to fetch the videos.
             Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
             getActivity().startService(serviceIntent);
+            loadDone = true;
         }
     }
 

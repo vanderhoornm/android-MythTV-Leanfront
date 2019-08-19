@@ -218,7 +218,7 @@ public class MainFragment extends BrowseSupportFragment
                     // Only categories
                     null, // No selection clause
                     null, // No selection arguments
-                    null  // Default sort order
+                    VideoContract.VideoEntry.COLUMN_CATEGORY + " collate nocase" // Default sort order
             );
         } else {
             // Assume it is for a video.
@@ -231,23 +231,23 @@ public class MainFragment extends BrowseSupportFragment
                     null, // Projection to return - null means return all fields
                     VideoContract.VideoEntry.COLUMN_CATEGORY + " = ?", // Selection clause
                     new String[]{category},  // Select based on the category id.
-                    null // Default sort order
+                    VideoContract.VideoEntry.COLUMN_AIRDATE+","+VideoContract.VideoEntry.COLUMN_STARTTIME // Sort order
             );
         }
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data != null && data.moveToFirst()) {
+        if (data != null) {
             final int loaderId = loader.getId();
-
+            boolean cursorHasData = data.moveToFirst();
             if (loaderId == CATEGORY_LOADER) {
 
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
 
                 // Iterate through each category entry and add it to the ArrayAdapter.
-                while (!data.isAfterLast()) {
+                while (cursorHasData && !data.isAfterLast()) {
 
                     int categoryIndex =
                             data.getColumnIndex(VideoContract.VideoEntry.COLUMN_CATEGORY);
@@ -285,9 +285,10 @@ public class MainFragment extends BrowseSupportFragment
                 HeaderItem gridHeader = new HeaderItem(getString(R.string.more_samples));
                 GridItemPresenter gridPresenter = new GridItemPresenter(this);
                 ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(gridPresenter);
-                gridRowAdapter.add(getString(R.string.grid_view));
-                gridRowAdapter.add(getString(R.string.guidedstep_first_title));
-                gridRowAdapter.add(getString(R.string.error_fragment));
+                if (cursorHasData)
+                    gridRowAdapter.add(getString(R.string.grid_view));
+//                gridRowAdapter.add(getString(R.string.guidedstep_first_title));
+//                gridRowAdapter.add(getString(R.string.error_fragment));
                 gridRowAdapter.add(getString(R.string.personal_settings));
                 ListRow row = new ListRow(gridHeader, gridRowAdapter);
                 mCategoryRowAdapter.add(row);
@@ -299,6 +300,11 @@ public class MainFragment extends BrowseSupportFragment
                 mVideoCursorAdapters.get(loaderId).changeCursor(data);
             }
         }
+//        else {
+//            // Every time we have to re-get the category loader, we must re-create the sidebar.
+//            mCategoryRowAdapter.clear();
+//
+//        }
 //        else {
         if (!loadDone) {
             // Start an Intent to fetch the videos.

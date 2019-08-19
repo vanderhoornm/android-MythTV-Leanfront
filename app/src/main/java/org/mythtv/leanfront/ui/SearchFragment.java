@@ -183,8 +183,8 @@ public class SearchFragment extends SearchSupportFragment
                 getActivity(),
                 VideoContract.VideoEntry.CONTENT_URI,
                 null, // Return all fields.
-                VideoContract.VideoEntry.COLUMN_NAME + " LIKE ? OR " +
-                        VideoContract.VideoEntry.COLUMN_DESC + " LIKE ?",
+                VideoContract.VideoEntry.COLUMN_TITLE + " LIKE ? OR " +
+                        VideoContract.VideoEntry.COLUMN_SUBTITLE + " LIKE ?",
                 new String[]{"%" + query + "%", "%" + query + "%"},
                 null // Default sort order
         );

@@ -47,14 +47,15 @@ public final class VideoContract {
         // Name of the video table.
         public static final String TABLE_NAME = "video";
 
-        // Column with the foreign key into the category table.
-        public static final String COLUMN_CATEGORY = "category";
-
-        // Name of the video.
-        public static final String COLUMN_NAME = SearchManager.SUGGEST_COLUMN_TEXT_1;
+        // Column for category = title
+        public static final String COLUMN_CATEGORY = SearchManager.SUGGEST_COLUMN_TEXT_1;;
+        public static final String COLUMN_TITLE = SearchManager.SUGGEST_COLUMN_TEXT_1;;
 
         // Description of the video.
-        public static final String COLUMN_DESC = SearchManager.SUGGEST_COLUMN_TEXT_2;
+        public static final String COLUMN_DESC = "description";
+
+        // Description of the video.
+        public static final String COLUMN_SUBTITLE = SearchManager.SUGGEST_COLUMN_TEXT_2;
 
         // The url to the video content.
         public static final String COLUMN_VIDEO_URL = "video_url";
@@ -72,34 +73,40 @@ public final class VideoContract {
         public static final String COLUMN_CONTENT_TYPE = SearchManager.SUGGEST_COLUMN_CONTENT_TYPE;
 
         // Whether the video is live or not.
-        public static final String COLUMN_IS_LIVE = SearchManager.SUGGEST_COLUMN_IS_LIVE;
+//        public static final String COLUMN_IS_LIVE = SearchManager.SUGGEST_COLUMN_IS_LIVE;
 
         // The width of the video.
-        public static final String COLUMN_VIDEO_WIDTH = SearchManager.SUGGEST_COLUMN_VIDEO_WIDTH;
+//        public static final String COLUMN_VIDEO_WIDTH = SearchManager.SUGGEST_COLUMN_VIDEO_WIDTH;
 
         // The height of the video.
-        public static final String COLUMN_VIDEO_HEIGHT = SearchManager.SUGGEST_COLUMN_VIDEO_HEIGHT;
+//        public static final String COLUMN_VIDEO_HEIGHT = SearchManager.SUGGEST_COLUMN_VIDEO_HEIGHT;
 
         // The audio channel configuration.
-        public static final String COLUMN_AUDIO_CHANNEL_CONFIG = SearchManager.SUGGEST_COLUMN_AUDIO_CHANNEL_CONFIG;
+//        public static final String COLUMN_AUDIO_CHANNEL_CONFIG = SearchManager.SUGGEST_COLUMN_AUDIO_CHANNEL_CONFIG;
 
         // The purchase price of the video.
-        public static final String COLUMN_PURCHASE_PRICE = SearchManager.SUGGEST_COLUMN_PURCHASE_PRICE;
+//        public static final String COLUMN_PURCHASE_PRICE = SearchManager.SUGGEST_COLUMN_PURCHASE_PRICE;
 
         // The rental price of the video.
-        public static final String COLUMN_RENTAL_PRICE = SearchManager.SUGGEST_COLUMN_RENTAL_PRICE;
+//        public static final String COLUMN_RENTAL_PRICE = SearchManager.SUGGEST_COLUMN_RENTAL_PRICE;
 
         // The rating style of the video.
-        public static final String COLUMN_RATING_STYLE = SearchManager.SUGGEST_COLUMN_RATING_STYLE;
+//        public static final String COLUMN_RATING_STYLE = SearchManager.SUGGEST_COLUMN_RATING_STYLE;
 
         // The score of the rating.
-        public static final String COLUMN_RATING_SCORE = SearchManager.SUGGEST_COLUMN_RATING_SCORE;
+//        public static final String COLUMN_RATING_SCORE = SearchManager.SUGGEST_COLUMN_RATING_SCORE;
 
         // The year the video was produced.
         public static final String COLUMN_PRODUCTION_YEAR = SearchManager.SUGGEST_COLUMN_PRODUCTION_YEAR;
 
         // The duration of the video.
         public static final String COLUMN_DURATION = SearchManager.SUGGEST_COLUMN_DURATION;
+
+        // The original air date string yyyy-mm-dd
+        public static final String COLUMN_AIRDATE  = "airdate";
+
+        // The start time string format 2018-08-13T20:30:00Z
+        public static final String COLUMN_STARTTIME  = "starttime";
 
         // The action intent for the result.
         public static final String COLUMN_ACTION = SearchManager.SUGGEST_COLUMN_INTENT_ACTION;

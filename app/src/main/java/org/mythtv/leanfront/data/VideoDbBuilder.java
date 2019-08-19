@@ -68,6 +68,8 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ARTTYPE = "Type";
     public static final String XMLTAG_ARTURL = "URL";
     public static final String XMLTAG_SUBTITLE = "SubTitle";
+    public static final String XMLTAG_STARTTIME = "StartTime";
+    public static final String XMLTAG_AIRDATE = "Airdate";
 
     private static final String TAG = "VideoDbBuilder";
 
@@ -100,6 +102,7 @@ public class VideoDbBuilder {
      * @param jsonObj The JSON object of videos
      * @throws JSONException if the JSON object is invalid
      */
+/*
     public List<ContentValues> buildMedia(JSONObject jsonObj) throws JSONException {
 
         JSONArray categoryArray = jsonObj.getJSONArray(TAG_GOOGLE_VIDEOS);
@@ -139,32 +142,32 @@ public class VideoDbBuilder {
 
                 // Fixed defaults.
                 videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
-                videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
                 videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, 2014);
                 videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, 0);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
-                        Rating.RATING_5_STARS);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
+//                        Rating.RATING_5_STARS);
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
                 if (mContext != null) {
-                    videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
-                            mContext.getResources().getString(R.string.buy_2));
-                    videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
-                            mContext.getResources().getString(R.string.rent_2));
+//                    videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
+//                            mContext.getResources().getString(R.string.buy_2));
+//                    videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
+//                            mContext.getResources().getString(R.string.rent_2));
                     videoValues.put(VideoContract.VideoEntry.COLUMN_ACTION,
                             mContext.getResources().getString(R.string.global_search));
                 }
 
                 // TODO: Get these dimensions.
-                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
 
                 videosToInsert.add(videoValues);
             }
         }
         return videosToInsert;
     }
-
+*/
     /**
      * Takes the contents of an XML object and populates the database
      * @param xmlFull The XML object of videos
@@ -178,8 +181,12 @@ public class VideoDbBuilder {
         String baseUrl = "http://" + backend + ":" + port;
         String baseVideoUrl = baseUrl + "/Content/GetFile?StorageGroup=";
         String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.movie;
-        for (int i = 0; ; i++) {
-            XmlNode programNode = xmlFull.getNode(XMLTAGS_PROGRAM,i);
+        XmlNode programNode = null;
+        for (;;) {
+            if (programNode == null)
+                programNode = xmlFull.getNode(XMLTAGS_PROGRAM,0);
+            else
+                programNode = programNode.getNextSibling();
             if (programNode == null)
                 break;
             XmlNode recordingNode = programNode.getNode(XMLTAG_RECORDING);
@@ -194,8 +201,12 @@ public class VideoDbBuilder {
             String videoUrl = baseVideoUrl + storageGroup + "&FileName=/" + filename;
             String coverArtUrl = null;
             String fanArtUrl = null;
-            for (int i2 = 0 ; ; i2++) {
-                XmlNode artInfoNode = programNode.getNode(XMLTAGS_ARTINFO,i2);
+            XmlNode artInfoNode = null;
+            for (;;) {
+                if (artInfoNode == null)
+                    artInfoNode = programNode.getNode(XMLTAGS_ARTINFO,0);
+                else
+                    artInfoNode = artInfoNode.getNextSibling();
                 if (artInfoNode == null)
                     break;
                 String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
@@ -206,8 +217,16 @@ public class VideoDbBuilder {
                     fanArtUrl = artUrl;
             }
             String channel = programNode.getString(XMLTAGS_CHANNELNAME);
+            String airdate = programNode.getString(XMLTAG_AIRDATE);
+            String starttime = programNode.getString(XMLTAG_STARTTIME);
+            String prodYear = null;
+            if (airdate != null)
+                prodYear = airdate.substring(0,4);
+            else if (starttime != null)
+                starttime = starttime.substring(0,4);
+            // card image video + .png
+            String cardImageURL = videoUrl + ".png";
 
-            ContentValues videoValues = new ContentValues();
             if (title == null || title.length() == 0)
                 title = "X";
             if (subtitle == null || subtitle.length() == 0)
@@ -215,42 +234,47 @@ public class VideoDbBuilder {
             if (description == null || description.length() == 0)
                 description = "X";
             if (videoUrl == null || videoUrl.length() == 0)
-                videoUrl = "X" + i;
+                videoUrl = "X";
             if (coverArtUrl == null || coverArtUrl.length() == 0)
                 coverArtUrl = defaultImage;
             if (fanArtUrl == null || fanArtUrl.length() == 0)
                 fanArtUrl = defaultImage;
             if (channel == null || channel.length() == 0)
                 channel = "X";
-            videoValues.put(VideoContract.VideoEntry.COLUMN_CATEGORY, title);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_NAME, title+": "+subtitle);
+
+            ContentValues videoValues = new ContentValues();
+            videoValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, coverArtUrl);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_STUDIO, channel);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_AIRDATE, airdate);
+
+            videoValues.put(VideoContract.VideoEntry.COLUMN_STARTTIME, starttime);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, prodYear);
 
             // TODO: Sort these out
             videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
-            videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
-            videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, 2014);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
             videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, 0);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
-                    Rating.RATING_5_STARS);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
+//                    Rating.RATING_5_STARS);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
             if (mContext != null) {
-                videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
-                        mContext.getResources().getString(R.string.buy_2));
-                videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
-                        mContext.getResources().getString(R.string.rent_2));
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
+//                        mContext.getResources().getString(R.string.buy_2));
+//                videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
+//                        mContext.getResources().getString(R.string.rent_2));
                 videoValues.put(VideoContract.VideoEntry.COLUMN_ACTION,
                         mContext.getResources().getString(R.string.global_search));
             }
 
             // TODO: Get these dimensions.
-            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
+//            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
 
             videosToInsert.add(videoValues);
         }

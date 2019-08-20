@@ -77,8 +77,7 @@ public class FetchVideoService extends IntentService {
             String port = prefs.getString("pref_http_port", "6544");
             String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
 //            catalogUrl = catalogUrl + "?TitleRegEx=Judge%20Judy";
-            List<ContentValues> contentValuesList =
-                    builder.fetch(catalogUrl);
+            List<ContentValues> contentValuesList = builder.fetch(catalogUrl);
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
             VideoDbHelper dbh = new VideoDbHelper(this);

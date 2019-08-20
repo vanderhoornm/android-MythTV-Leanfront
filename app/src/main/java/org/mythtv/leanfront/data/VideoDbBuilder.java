@@ -38,6 +38,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -64,6 +66,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_TITLE = "Title";
     public static final String XMLTAG_DESCRIPTION = "Description";
     public static final String XMLTAG_STORAGEGROUP = "StorageGroup";
+    public static final String XMLTAG_RECGROUP = "RecGroup";
     public static final String XMLTAG_FILENAME = "FileName";
     public static final String XMLTAG_ARTTYPE = "Type";
     public static final String XMLTAG_ARTURL = "URL";
@@ -172,8 +175,8 @@ public class VideoDbBuilder {
      * Takes the contents of an XML object and populates the database
      * @param xmlFull The XML object of videos
      */
-    public List<ContentValues> buildMedia(XmlNode xmlFull) {
-
+    public List<ContentValues> buildMedia(XmlNode xmlFull) throws IOException, XmlPullParserException {
+        HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (mContext);
         String backend = prefs.getString("pref_backend", null);
@@ -190,6 +193,9 @@ public class VideoDbBuilder {
             if (programNode == null)
                 break;
             XmlNode recordingNode = programNode.getNode(XMLTAG_RECORDING);
+            String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
+            if ("Deleted".equals(recGroup))
+                continue;
 //            String categoryName = programNode.getString(XMLTAG_CATEGORY);
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
@@ -197,8 +203,21 @@ public class VideoDbBuilder {
                 subtitle = title;
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
-            String filename = recordingNode.getString(XMLTAG_FILENAME);
-            String videoUrl = baseVideoUrl + storageGroup + "&FileName=/" + filename;
+            if (!filesOnServer.containsKey(storageGroup)) {
+                String url = baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
+                XmlNode fileData = fetchXML(url);
+                HashSet<String> sgFiles = new HashSet<>();
+                filesOnServer.put(storageGroup,sgFiles);
+                XmlNode fileNode = fileData.getNode("String",0);
+                while (fileNode != null) {
+                    String fileName = fileNode.getString();
+                    if (fileName != null)
+                        sgFiles.add(fileName);
+                    fileNode = fileNode.getNextSibling();
+                }
+            }
+            String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
+            String videoUrl = baseVideoUrl + storageGroup + "&FileName=/" + videoFileName;
             String coverArtUrl = null;
             String fanArtUrl = null;
             XmlNode artInfoNode = null;
@@ -223,9 +242,18 @@ public class VideoDbBuilder {
             if (airdate != null)
                 prodYear = airdate.substring(0,4);
             else if (starttime != null)
-                starttime = starttime.substring(0,4);
+                prodYear = starttime.substring(0,4);
             // card image video + .png
-            String cardImageURL = videoUrl + ".png";
+            HashSet<String> sgFiles = filesOnServer.get(storageGroup);
+            String cardImageFile = videoFileName + ".png";
+            boolean fileExists = false;
+            if (sgFiles != null)
+                fileExists = sgFiles.contains(cardImageFile);
+            String cardImageURL;
+            if (fileExists)
+                cardImageURL = videoUrl + ".png";
+            else
+                cardImageURL = defaultImage;
 
             if (title == null || title.length() == 0)
                 title = "X";

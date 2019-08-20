@@ -83,9 +83,13 @@ public class CardPresenter extends Presenter {
             int height = res.getDimensionPixelSize(R.dimen.card_height);
             cardView.setMainImageDimensions(width, height);
 
+            RequestOptions options = new RequestOptions()
+                    .centerCrop()
+                    .error(mDefaultCardImage);
+
             Glide.with(cardView.getContext())
                     .load(video.cardImageUrl)
-                    .apply(RequestOptions.errorOf(mDefaultCardImage))
+                    .apply(options)
                     .into(cardView.getMainImageView());
         }
     }

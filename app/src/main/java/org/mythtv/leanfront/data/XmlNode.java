@@ -8,7 +8,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -18,8 +17,6 @@ public class XmlNode {
     private String name;
     private HashMap<String, XmlNode> childMap = new HashMap<String, XmlNode>();
     private String text = null;
-    // In case we want to support multi text strings
-    // ArrayList<String> textList = new ArrayList<String>();
     private XmlNode nextSibling;
 
     public static XmlNode parseStream(InputStream in) throws XmlPullParserException, IOException {
@@ -56,8 +53,6 @@ public class XmlNode {
                 }
             } else if (eventType == XmlPullParser.TEXT) {
                 ret.text = parser.getText();
-                // In case we want to support multi text strings
-                // ret.textList.add(parser.getText());
             }
         }
         return ret;
@@ -108,4 +103,5 @@ public class XmlNode {
         return getString(tags, 0);
     }
 
+    public String getString() { return text; }
 }

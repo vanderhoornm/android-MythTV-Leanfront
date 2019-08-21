@@ -1,24 +1,66 @@
-# Android TV Leanback Support Library sample - Videos by Google
+# leanfront: MythTV Experimental Android TV frontend
 
-[![Join the chat at https://gitter.im/googlesamples/androidtv-Leanback](https://badges.gitter.im/googlesamples/androidtv-Leanback.svg)](https://gitter.im/googlesamples/androidtv-Leanback?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-This sample is a Videos By Google app, designed to run on an Android TV device (such as the Nexus Player), which demonstrates how to use the Leanback Support library which enables you to easily develop beautiful Android TV apps with a user-friendly UI that complies with the UX guidelines of Android TV.
+This is based on a clone of the sample Videos By Google app, designed to run on an Android TV device (such as the Shield or Amazon Fire Stick). It uses the Leanback Support library which enables you to easily develop beautiful Android TV apps with a user-friendly UI that complies with the UX guidelines of Android TV.
 
 
-## Getting Started
+## Features
 
-- Clone this repo:
+4K video plays successfully at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
 
-```sh
-git clone https://github.com/googlesamples/androidtv-Leanback.git
-```
+This application is is a state of development, but parts are working. It still contains some "google videos" icons and banners and the user interface needs improvement.
 
+Currently it will play recordings from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. There is no support yet for recording groups. All recordings in all groups are shown together in the user interface.
+
+This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend. Note that the settings ask for the myth protocol port but the application currently is not using it.
+
+Voice search within the application is supported.
+
+## Restrictions
+
+- Playback with the shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so works on a monitor without AC3 support. You must select surroud sound or auto in the shield audio setup.
+
+## To Do List
+
+Planned additions and fixes.
+
+- Prevent backend shutdown, except if frontend minimized. Currently the backend could shut down in the middle of playback.
+- Use service call to get preview image. Currently it is going direct to the image.
+- Use bookmarks to stop and continue playback. Currently it always starts at the beginning and does not save the position on exit.
+- Allow delete after watching.
+- Recording groups support needed.
+- Videos need to be supported (only recordings are currently shown).
+- Periodically refresh program list. If recordings change while the app is running it does not know about the changes.
+- LiveTV and in progress recordings. I don't know if we can support these.
+- Subtitles.
+- Clean up icons and images.
+- Clean up unused code.
+- Improve settings page.
+- Do we need grid view? Currently it is there but maybe not useful.
+- Sort out license. The sample app uses apache license.
+- When exiting playback the display is not focused on the recording just played. It jumps to the top of the list.
+- Better error handling, for example if the backend is down or cannot be contacted.
+- Anamorphic content is not showing correctly.
+- Allow search from android home screen.
+- Allow recommendations from android home screen.
+
+## Building
+
+- If you do not want to build this yourself, there is a package at https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/
 - Open the project in [Android Studio][studio].
-- Compile and deploy to your Android TV device (such as a Nexus Player).
+- Compile and deploy to your Android TV device (such as a Shield or Amazon fire stick). 
+- It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 or AC3 playback, so you need to play an h264 or h265 recording with non-ac3 audio.
 
-Need more information about getting started with Android TV? Check the [official docs][getting-started].
+## Running
 
-## Explore the sample
+Start up the app. There is an entry on the main screen called "Other" with an entry called "settings". There you need to enter the backend ip address. Only the backend ip address and backend port are currently used. Other entries here are for future use or may be removed.
+
+Make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
+
+Note that when you exit the settings sidebar it refreshes the list of recordings. This is also a way to refresh the list until we add automatic refresh.
+
+Make sure you select surround sound or auto in the audio setup.
+
+## Features of the sample
 
 - Choose a layout
   - Videos grouped by [category][mainfragment] (See BrowseFragment in [screenshots][screenshots])

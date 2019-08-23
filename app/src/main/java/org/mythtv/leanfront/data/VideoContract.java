@@ -72,30 +72,6 @@ public final class VideoContract {
         // The content type of the video.
         public static final String COLUMN_CONTENT_TYPE = SearchManager.SUGGEST_COLUMN_CONTENT_TYPE;
 
-        // Whether the video is live or not.
-//        public static final String COLUMN_IS_LIVE = SearchManager.SUGGEST_COLUMN_IS_LIVE;
-
-        // The width of the video.
-//        public static final String COLUMN_VIDEO_WIDTH = SearchManager.SUGGEST_COLUMN_VIDEO_WIDTH;
-
-        // The height of the video.
-//        public static final String COLUMN_VIDEO_HEIGHT = SearchManager.SUGGEST_COLUMN_VIDEO_HEIGHT;
-
-        // The audio channel configuration.
-//        public static final String COLUMN_AUDIO_CHANNEL_CONFIG = SearchManager.SUGGEST_COLUMN_AUDIO_CHANNEL_CONFIG;
-
-        // The purchase price of the video.
-//        public static final String COLUMN_PURCHASE_PRICE = SearchManager.SUGGEST_COLUMN_PURCHASE_PRICE;
-
-        // The rental price of the video.
-//        public static final String COLUMN_RENTAL_PRICE = SearchManager.SUGGEST_COLUMN_RENTAL_PRICE;
-
-        // The rating style of the video.
-//        public static final String COLUMN_RATING_STYLE = SearchManager.SUGGEST_COLUMN_RATING_STYLE;
-
-        // The score of the rating.
-//        public static final String COLUMN_RATING_SCORE = SearchManager.SUGGEST_COLUMN_RATING_SCORE;
-
         // The year the video was produced.
         public static final String COLUMN_PRODUCTION_YEAR = SearchManager.SUGGEST_COLUMN_PRODUCTION_YEAR;
 
@@ -107,6 +83,12 @@ public final class VideoContract {
 
         // The start time string format 2018-08-13T20:30:00Z
         public static final String COLUMN_STARTTIME  = "starttime";
+        // MythTV values
+        public static final String COLUMN_RECORDEDID = "recordedid";
+        public static final String COLUMN_STORAGEGROUP = "storagegroup";
+        public static final String COLUMN_RECGROUP = "recgroup";
+        public static final String COLUMN_SEASON = "season";
+        public static final String COLUMN_EPISODE = "episode";
 
         // The action intent for the result.
         public static final String COLUMN_ACTION = SearchManager.SUGGEST_COLUMN_INTENT_ACTION;

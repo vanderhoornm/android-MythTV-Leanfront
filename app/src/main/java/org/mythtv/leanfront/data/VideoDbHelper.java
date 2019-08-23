@@ -31,7 +31,7 @@ import org.mythtv.leanfront.data.VideoContract.VideoEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -53,19 +53,16 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                 VideoEntry.COLUMN_STUDIO + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_CARD_IMG + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_CONTENT_TYPE + " TEXT NOT NULL, " +
-//                VideoEntry.COLUMN_IS_LIVE + " INTEGER DEFAULT 0, " +
-//                VideoEntry.COLUMN_VIDEO_WIDTH + " INTEGER NOT NULL, " +
-//                VideoEntry.COLUMN_VIDEO_HEIGHT + " INTEGER NOT NULL, " +
-//                VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG + " TEXT NOT NULL, " +
-//                VideoEntry.COLUMN_PURCHASE_PRICE + " TEXT NOT NULL, " +
-//                VideoEntry.COLUMN_RENTAL_PRICE + " TEXT NOT NULL, " +
-//                VideoEntry.COLUMN_RATING_STYLE + " TEXT NOT NULL, " +
-//                VideoEntry.COLUMN_RATING_SCORE + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_PRODUCTION_YEAR + " TEXT, " +
                 VideoEntry.COLUMN_DURATION + " TEXT NOT NULL, " +
                 VideoEntry.COLUMN_ACTION + " TEXT NOT NULL," +
                 VideoEntry.COLUMN_AIRDATE + " TEXT," +
-                VideoEntry.COLUMN_STARTTIME + " TEXT" +
+                VideoEntry.COLUMN_STARTTIME + " TEXT," +
+                VideoEntry.COLUMN_RECORDEDID + " TEXT," +
+                VideoEntry.COLUMN_STORAGEGROUP + " TEXT," +
+                VideoEntry.COLUMN_RECGROUP + " TEXT," +
+                VideoEntry.COLUMN_SEASON + " TEXT," +
+                VideoEntry.COLUMN_EPISODE + " TEXT" +
                 " );";
 
         // Do the creating of the databases.

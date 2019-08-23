@@ -8,6 +8,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 
 
@@ -53,6 +55,36 @@ public class XmlNode {
                 }
             } else if (eventType == XmlPullParser.TEXT) {
                 ret.text = parser.getText();
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Fetch XML object from a given URL.
+     *
+     * @return the XmlNode representation of the response
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
+    public static XmlNode fetch(String urlString) throws XmlPullParserException, IOException {
+        XmlNode ret = null;
+        URL url = null;
+        HttpURLConnection urlConnection = null;
+        InputStream is = null;
+        try {
+            url = new URL(urlString);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            is = urlConnection.getInputStream();
+            ret = XmlNode.parseStream(is);
+        } finally {
+            urlConnection.disconnect();
+            if (null != is) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "XML feed closed", e);
+                }
             }
         }
         return ret;

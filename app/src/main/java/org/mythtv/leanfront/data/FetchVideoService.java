@@ -49,34 +49,15 @@ public class FetchVideoService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
-/*
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
-        try {
-            // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-            String backend = prefs.getString("pref_backend", null);
-            String port = prefs.getString("pref_http_port", "6544");
-            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
-            XmlNode xml = XmlNode.fetch(catalogUrl);
-
-        } catch (IOException | XmlPullParserException e) {
-            Log.e(TAG, "Error occurred in downloading video list");
-            e.printStackTrace();
-        }
-    }
-*/
-
 
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
 
         try {
-//            String catalogUrl = "http://" + prefs.getString("pref_backend",null)+"/android-tv/android_tv_videos_new.json";
             // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
             String backend = prefs.getString("pref_backend", null);
-            // TODO: Handle backend == null
             String port = prefs.getString("pref_http_port", "6544");
             String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
-//            catalogUrl = catalogUrl + "?TitleRegEx=Judge%20Judy";
             List<ContentValues> contentValuesList = builder.fetch(catalogUrl);
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
@@ -86,7 +67,7 @@ public class FetchVideoService extends IntentService {
             db.close();
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);
-        } catch (IOException | JSONException | XmlPullParserException e) {
+        } catch (IOException | XmlPullParserException e) {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }

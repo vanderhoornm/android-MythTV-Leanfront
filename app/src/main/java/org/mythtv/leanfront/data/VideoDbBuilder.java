@@ -18,25 +18,15 @@ package org.mythtv.leanfront.data;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.media.Rating;
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 
-import android.util.Log;
 
 import org.mythtv.leanfront.R;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,8 +43,6 @@ public class VideoDbBuilder {
     public static final String TAG_STUDIO = "studio";
     public static final String TAG_SOURCES = "sources";
     public static final String TAG_DESCRIPTION = "description";
-    public static final String TAG_CARD_THUMB = "card";
-    public static final String TAG_BACKGROUND = "background";
     public static final String TAG_TITLE = "title";
 
     private static final String[] XMLTAGS_PROGRAM = {"Programs","Program"};
@@ -62,11 +50,13 @@ public class VideoDbBuilder {
     private static final String[] XMLTAGS_CHANNELNAME = {"Channel","ChannelName"};
 
     public static final String XMLTAG_RECORDING = "Recording";
-    public static final String XMLTAG_CATEGORY = "Category";
     public static final String XMLTAG_TITLE = "Title";
     public static final String XMLTAG_DESCRIPTION = "Description";
     public static final String XMLTAG_STORAGEGROUP = "StorageGroup";
     public static final String XMLTAG_RECGROUP = "RecGroup";
+    public static final String XMLTAG_RECORDEDID = "RecordedId";
+    public static final String XMLTAG_SEASON = "Season";
+    public static final String XMLTAG_EPISODE = "Episode";
     public static final String XMLTAG_FILENAME = "FileName";
     public static final String XMLTAG_ARTTYPE = "Type";
     public static final String XMLTAG_ARTURL = "URL";
@@ -90,87 +80,16 @@ public class VideoDbBuilder {
     }
 
     /**
-     * Fetches JSON data representing videos from a server and populates that in a database
+     * Fetches data representing videos from a server and populates that in a database
      * @param url The location of the video list
      */
-    public @NonNull List<ContentValues> fetch(String url)
-            throws IOException, JSONException, XmlPullParserException {
-        // JSONObject videoData = fetchJSON(url);
-        XmlNode videoData = fetchXML(url);
+    public @NonNull
+    List<ContentValues> fetch(String url)
+            throws IOException, XmlPullParserException {
+        XmlNode videoData = XmlNode.fetch(url);
         return buildMedia(videoData);
     }
 
-    /**
-     * Takes the contents of a JSON object and populates the database
-     * @param jsonObj The JSON object of videos
-     * @throws JSONException if the JSON object is invalid
-     */
-/*
-    public List<ContentValues> buildMedia(JSONObject jsonObj) throws JSONException {
-
-        JSONArray categoryArray = jsonObj.getJSONArray(TAG_GOOGLE_VIDEOS);
-        List<ContentValues> videosToInsert = new ArrayList<>();
-
-        for (int i = 0; i < categoryArray.length(); i++) {
-            JSONArray videoArray;
-
-            JSONObject category = categoryArray.getJSONObject(i);
-            String categoryName = category.getString(TAG_CATEGORY);
-            videoArray = category.getJSONArray(TAG_MEDIA);
-
-            for (int j = 0; j < videoArray.length(); j++) {
-                JSONObject video = videoArray.getJSONObject(j);
-
-                // If there are no URLs, skip this video entry.
-                JSONArray urls = video.optJSONArray(TAG_SOURCES);
-                if (urls == null || urls.length() == 0) {
-                    continue;
-                }
-
-                String title = video.optString(TAG_TITLE);
-                String description = video.optString(TAG_DESCRIPTION);
-                String videoUrl = (String) urls.get(0); // Get the first video only.
-                String bgImageUrl = video.optString(TAG_BACKGROUND);
-                String cardImageUrl = video.optString(TAG_CARD_THUMB);
-                String studio = video.optString(TAG_STUDIO);
-
-                ContentValues videoValues = new ContentValues();
-                videoValues.put(VideoContract.VideoEntry.COLUMN_CATEGORY, categoryName);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_NAME, title);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageUrl);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, bgImageUrl);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_STUDIO, studio);
-
-                // Fixed defaults.
-                videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
-                videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, 2014);
-                videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, 0);
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
-//                        Rating.RATING_5_STARS);
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
-                if (mContext != null) {
-//                    videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
-//                            mContext.getResources().getString(R.string.buy_2));
-//                    videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
-//                            mContext.getResources().getString(R.string.rent_2));
-                    videoValues.put(VideoContract.VideoEntry.COLUMN_ACTION,
-                            mContext.getResources().getString(R.string.global_search));
-                }
-
-                // TODO: Get these dimensions.
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
-
-                videosToInsert.add(videoValues);
-            }
-        }
-        return videosToInsert;
-    }
-*/
     /**
      * Takes the contents of an XML object and populates the database
      * @param xmlFull The XML object of videos
@@ -196,7 +115,6 @@ public class VideoDbBuilder {
             String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
             if ("Deleted".equals(recGroup))
                 continue;
-//            String categoryName = programNode.getString(XMLTAG_CATEGORY);
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
             if (subtitle == null || subtitle.length()==0)
@@ -205,7 +123,7 @@ public class VideoDbBuilder {
             String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
             if (!filesOnServer.containsKey(storageGroup)) {
                 String url = baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
-                XmlNode fileData = fetchXML(url);
+                XmlNode fileData = XmlNode.fetch(url);
                 HashSet<String> sgFiles = new HashSet<>();
                 filesOnServer.put(storageGroup,sgFiles);
                 XmlNode fileNode = fileData.getNode("String",0);
@@ -255,20 +173,24 @@ public class VideoDbBuilder {
             else
                 cardImageURL = defaultImage;
 
+            String recordedid = recordingNode.getString(XMLTAG_RECORDEDID);
+            String season = recordingNode.getString(XMLTAG_SEASON);
+            String episode = recordingNode.getString(XMLTAG_EPISODE);
+
             if (title == null || title.length() == 0)
-                title = "X";
+                title = " ";
             if (subtitle == null || subtitle.length() == 0)
-                subtitle = "X";
+                subtitle = " ";
             if (description == null || description.length() == 0)
-                description = "X";
+                description = " ";
             if (videoUrl == null || videoUrl.length() == 0)
-                videoUrl = "X";
+                videoUrl = defaultImage;
             if (coverArtUrl == null || coverArtUrl.length() == 0)
                 coverArtUrl = defaultImage;
             if (fanArtUrl == null || fanArtUrl.length() == 0)
                 fanArtUrl = defaultImage;
             if (channel == null || channel.length() == 0)
-                channel = "X";
+                channel = " ";
 
             ContentValues videoValues = new ContentValues();
             videoValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
@@ -282,94 +204,23 @@ public class VideoDbBuilder {
 
             videoValues.put(VideoContract.VideoEntry.COLUMN_STARTTIME, starttime);
             videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, prodYear);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_RECORDEDID, recordedid);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_STORAGEGROUP, storageGroup);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_RECGROUP, recGroup);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_SEASON, season);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_EPISODE, episode);
 
             // TODO: Sort these out
             videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_IS_LIVE, false);
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_AUDIO_CHANNEL_CONFIG, "2.0");
             videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, 0);
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_STYLE,
-//                    Rating.RATING_5_STARS);
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_RATING_SCORE, 3.5f);
             if (mContext != null) {
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_PURCHASE_PRICE,
-//                        mContext.getResources().getString(R.string.buy_2));
-//                videoValues.put(VideoContract.VideoEntry.COLUMN_RENTAL_PRICE,
-//                        mContext.getResources().getString(R.string.rent_2));
                 videoValues.put(VideoContract.VideoEntry.COLUMN_ACTION,
                         mContext.getResources().getString(R.string.global_search));
             }
 
-            // TODO: Get these dimensions.
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_WIDTH, 1280);
-//            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_HEIGHT, 720);
-
             videosToInsert.add(videoValues);
         }
         return videosToInsert;
-    }
-
-    /**
-     * Fetch JSON object from a given URL.
-     *
-     * @return the JSONObject representation of the response
-     * @throws JSONException
-     * @throws IOException
-     */
-    private JSONObject fetchJSON(String urlString) throws JSONException, IOException {
-        BufferedReader reader = null;
-        java.net.URL url = new java.net.URL(urlString);
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        try {
-            reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(),
-                    "utf-8"));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-            String json = sb.toString();
-            return new JSONObject(json);
-        } finally {
-            urlConnection.disconnect();
-            if (null != reader) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "JSON feed closed", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Fetch XML object from a given URL.
-     *
-     * @return the JSONObject representation of the response
-     * @throws XmlPullParserException
-     * @throws IOException
-     */
-    private XmlNode fetchXML(String urlString) throws XmlPullParserException, IOException {
-        XmlNode ret = null;
-        URL url = null;
-        HttpURLConnection urlConnection = null;
-        InputStream is = null;
-        try {
-            url = new URL(urlString);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            is = urlConnection.getInputStream();
-            ret = XmlNode.parseStream(is);
-        } finally {
-            urlConnection.disconnect();
-            if (null != is) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "XML feed closed", e);
-                }
-            }
-        }
-        return ret;
     }
 
 }

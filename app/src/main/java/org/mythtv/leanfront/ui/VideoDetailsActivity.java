@@ -27,6 +27,7 @@ public class VideoDetailsActivity extends LeanbackActivity {
     public static final String SHARED_ELEMENT_NAME = "hero";
     public static final String VIDEO = "Video";
     public static final String NOTIFICATION_ID = "NotificationId";
+    public static final String BOOKMARK = "bookmark";
 
     /**
      * Called when the activity is first created.

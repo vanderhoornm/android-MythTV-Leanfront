@@ -33,6 +33,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.List;
 
+import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
+
 /**
  * FetchVideoService is responsible for fetching the videos from the Internet and inserting the
  * results into a local SQLite database.
@@ -55,9 +57,10 @@ public class FetchVideoService extends IntentService {
 
         try {
             // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-            String backend = prefs.getString("pref_backend", null);
-            String port = prefs.getString("pref_http_port", "6544");
-            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
+//            String backend = prefs.getString("pref_backend", null);
+//            String port = prefs.getString("pref_http_port", "6544");
+//            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
+            String catalogUrl = mythApiUrl("/Dvr/GetRecordedList");
             List<ContentValues> contentValuesList = builder.fetch(catalogUrl);
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);

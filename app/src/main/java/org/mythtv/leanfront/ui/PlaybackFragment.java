@@ -84,12 +84,14 @@ public class PlaybackFragment extends VideoSupportFragment {
     private Playlist mPlaylist;
     private VideoLoaderCallbacks mVideoLoaderCallbacks;
     private CursorObjectAdapter mVideoCursorAdapter;
+    private long bookmark = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
+        bookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
         mPlaylist = new Playlist();
 
         mVideoLoaderCallbacks = new VideoLoaderCallbacks(mPlaylist);
@@ -175,6 +177,8 @@ public class PlaybackFragment extends VideoSupportFragment {
         mPlayerGlue.setTitle(video.title);
         mPlayerGlue.setSubtitle(video.description);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
+        if (bookmark > 0)
+            mPlayerGlue.seekTo(bookmark);
         mPlayerGlue.play();
     }
 

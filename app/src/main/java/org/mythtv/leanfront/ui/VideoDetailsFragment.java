@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
@@ -63,10 +64,16 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.DetailsDescriptionPresenter;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+
+import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
 
 /*
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
@@ -77,6 +84,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     private static final int NO_NOTIFICATION = -1;
     private static final int ACTION_PLAY = 1;
+    private static final int ACTION_RESUME = 2;
     private static final int ACTION_RENT = 2;
     private static final int ACTION_BUY = 3;
 
@@ -95,6 +103,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private CursorObjectAdapter mVideoCursorAdapter;
     private FullWidthDetailsOverviewSharedElementHelper mHelper;
     private final VideoCursorMapper mVideoCursorMapper = new VideoCursorMapper();
+    private long mBookmark = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,17 +116,27 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mSelectedVideo = (Video) getActivity().getIntent()
                 .getParcelableExtra(VideoDetailsActivity.VIDEO);
 
-        if (mSelectedVideo != null || !hasGlobalSearchIntent()) {
+        if (savedInstanceState != null)
+            mBookmark = savedInstanceState.getLong("mBookmark");
+
+        if (mSelectedVideo != null) {
+//            if (mSelectedVideo != null || !hasGlobalSearchIntent()) {
             removeNotification(getActivity().getIntent()
                     .getIntExtra(VideoDetailsActivity.NOTIFICATION_ID, NO_NOTIFICATION));
             setupAdapter();
-            setupDetailsOverviewRow();
-            setupMovieListRow();
-            updateBackground(mSelectedVideo.bgImageUrl);
+            new AsyncGetBookmark().execute();
+//            setupDetailsOverviewRow();
+//            setupMovieListRow();
+//            updateBackground(mSelectedVideo.bgImageUrl);
 
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(new ItemViewClickedListener());
         }
+    }
+
+    public void onSaveInstanceState (Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong("mBookmark", mBookmark);
     }
 
     private void removeNotification(int notificationId) {
@@ -202,9 +221,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         detailsPresenter.setOnActionClickedListener(new OnActionClickedListener() {
             @Override
             public void onActionClicked(Action action) {
-                if (action.getId() == ACTION_PLAY) {
+                long id = action.getId();
+                long bookmark = 0;
+                if (id == ACTION_RESUME)
+                    bookmark = mBookmark;
+                if (id == ACTION_PLAY || id == ACTION_RESUME) {
                     Intent intent = new Intent(getActivity(), PlaybackActivity.class);
                     intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
+                    intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
                     startActivity(intent);
                 } else {
                     Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
@@ -262,9 +286,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     mSelectedVideo = (Video) mVideoCursorMapper.convert(cursor);
 
                     setupAdapter();
-                    setupDetailsOverviewRow();
-                    setupMovieListRow();
-                    updateBackground(mSelectedVideo.bgImageUrl);
+                    new AsyncGetBookmark().execute();
+//                    setupDetailsOverviewRow();
+//                    setupMovieListRow();
+//                    updateBackground(mSelectedVideo.bgImageUrl);
 
                     // When a Related Video item is clicked.
                     setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -343,8 +368,23 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 });
 
         SparseArrayObjectAdapter adapter = new SparseArrayObjectAdapter();
-
-        adapter.set(ACTION_PLAY, new Action(ACTION_PLAY, getResources()
+//        mBookmark = 0;
+//        try {
+//            String bkmrkUrl = mythApiUrl(
+//                    "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="+mSelectedVideo.recordedid);
+//                XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl,null);
+//                mBookmark = Long.parseLong(bkmrkData.getString());
+//                if (mBookmark > 24*60*60*1000 || mBookmark < 0)
+//                    mBookmark = 0;
+//        } catch (IOException | XmlPullParserException e) {
+//            mBookmark = 0;
+//        }
+        int i = 0;
+        if (mBookmark > 0)
+            adapter.set(++i, new Action(ACTION_RESUME, getResources()
+                .getString(R.string.resume_1),
+                getResources().getString(R.string.resume_2)));
+        adapter.set(++i, new Action(ACTION_PLAY, getResources()
                 .getString(R.string.play_1),
                 getResources().getString(R.string.play_2)));
 //        adapter.set(ACTION_RENT, new Action(ACTION_RENT, getResources().getString(R.string.rent_1),
@@ -388,4 +428,30 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             }
         }
     }
+
+    private class AsyncGetBookmark extends AsyncTask<Void, Void, Void> {
+
+        protected Void doInBackground(Void ... dummy) {
+            mBookmark = 0;
+            try {
+                String bkmrkUrl = mythApiUrl(
+                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="+mSelectedVideo.recordedid);
+                XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl,null);
+                mBookmark = Long.parseLong(bkmrkData.getString());
+                if (mBookmark > 24*60*60*1000 || mBookmark < 0)
+                    mBookmark = 0;
+            } catch (IOException | XmlPullParserException e) {
+                mBookmark = 0;
+            }
+            return null;
+        }
+
+        protected void onPostExecute(Void result) {
+            setupDetailsOverviewRow();
+            setupMovieListRow();
+            updateBackground(mSelectedVideo.bgImageUrl);
+        }
+
+    }
+
 }

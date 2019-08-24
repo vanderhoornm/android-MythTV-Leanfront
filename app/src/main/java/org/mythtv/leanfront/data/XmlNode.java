@@ -1,8 +1,13 @@
 package org.mythtv.leanfront.data;
 
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
+import androidx.preference.PreferenceManager;
+
+import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -67,14 +72,18 @@ public class XmlNode {
      * @throws XmlPullParserException
      * @throws IOException
      */
-    public static XmlNode fetch(String urlString) throws XmlPullParserException, IOException {
+    public static XmlNode fetch(String urlString, String requestMethod)
+            throws XmlPullParserException, IOException {
         XmlNode ret = null;
         URL url = null;
         HttpURLConnection urlConnection = null;
         InputStream is = null;
+        if (requestMethod == null)
         try {
             url = new URL(urlString);
             urlConnection = (HttpURLConnection) url.openConnection();
+            if (requestMethod != null)
+                urlConnection.setRequestMethod(requestMethod);
             is = urlConnection.getInputStream();
             ret = XmlNode.parseStream(is);
         } finally {
@@ -136,4 +145,16 @@ public class XmlNode {
     }
 
     public String getString() { return text; }
+
+    public static String mythApiUrl(String params) throws IOException, XmlPullParserException {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (MainActivity.getContext());
+        String backend = prefs.getString("pref_backend", null);
+        String port = prefs.getString("pref_http_port", "6544");
+        String url = "http://" + backend + ":" + port;
+        if (params != null)
+            url = url + params;
+        return url;
+    }
+
+
 }

@@ -17,10 +17,7 @@ package org.mythtv.leanfront.data;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
-
 
 import org.mythtv.leanfront.R;
 
@@ -32,8 +29,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
+
 /**
- * The VideoDbBuilder is used to grab a JSON file from a server and parse the data
+ * The VideoDbBuilder is used to grab a XML file from a server and parse the data
  * to be placed into a local database
  */
 public class VideoDbBuilder {
@@ -86,7 +85,7 @@ public class VideoDbBuilder {
     public @NonNull
     List<ContentValues> fetch(String url)
             throws IOException, XmlPullParserException {
-        XmlNode videoData = XmlNode.fetch(url);
+        XmlNode videoData = XmlNode.fetch(url,null);
         return buildMedia(videoData);
     }
 
@@ -97,11 +96,11 @@ public class VideoDbBuilder {
     public List<ContentValues> buildMedia(XmlNode xmlFull) throws IOException, XmlPullParserException {
         HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (mContext);
-        String backend = prefs.getString("pref_backend", null);
-        String port = prefs.getString("pref_http_port", "6544");
-        String baseUrl = "http://" + backend + ":" + port;
-        String baseVideoUrl = baseUrl + "/Content/GetFile?StorageGroup=";
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (mContext);
+//        String backend = prefs.getString("pref_backend", null);
+//        String port = prefs.getString("pref_http_port", "6544");
+//        String baseUrl = "http://" + backend + ":" + port;
+        String baseUrl = mythApiUrl(null);
         String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.movie;
         XmlNode programNode = null;
         for (;;) {
@@ -122,8 +121,8 @@ public class VideoDbBuilder {
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
             if (!filesOnServer.containsKey(storageGroup)) {
-                String url = baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
-                XmlNode fileData = XmlNode.fetch(url);
+                String url =  baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
+                XmlNode fileData = XmlNode.fetch(url,null);
                 HashSet<String> sgFiles = new HashSet<>();
                 filesOnServer.put(storageGroup,sgFiles);
                 XmlNode fileNode = fileData.getNode("String",0);
@@ -135,7 +134,8 @@ public class VideoDbBuilder {
                 }
             }
             String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
-            String videoUrl = baseVideoUrl + storageGroup + "&FileName=/" + videoFileName;
+            String videoUrl = baseUrl +  "/Content/GetFile?StorageGroup="
+                    + storageGroup + "&FileName=/" + videoFileName;
             String coverArtUrl = null;
             String fanArtUrl = null;
             XmlNode artInfoNode = null;

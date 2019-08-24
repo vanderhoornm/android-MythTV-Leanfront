@@ -179,4 +179,5 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             getPlayerAdapter().seekTo(newPosition);
         }
     }
+
 }

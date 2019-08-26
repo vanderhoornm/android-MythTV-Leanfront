@@ -88,7 +88,7 @@ public class CardPresenter extends Presenter {
                     .error(mDefaultCardImage);
 
             Glide.with(cardView.getContext())
-                    .load(video.cardImageUrl)
+                    .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))
                     .apply(options)
                     .into(cardView.getMainImageView());
         }

@@ -78,10 +78,10 @@ public class XmlNode {
         URL url = null;
         HttpURLConnection urlConnection = null;
         InputStream is = null;
-        if (requestMethod == null)
         try {
             url = new URL(urlString);
             urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.addRequestProperty("Cache-Control", "no-cache");
             if (requestMethod != null)
                 urlConnection.setRequestMethod(requestMethod);
             is = urlConnection.getInputStream();

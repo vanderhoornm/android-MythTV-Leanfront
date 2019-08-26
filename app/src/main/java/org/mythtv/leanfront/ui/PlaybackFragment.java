@@ -20,6 +20,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -44,11 +45,14 @@ import androidx.loader.content.Loader;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.MythDataSource;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
+import org.xmlpull.v1.XmlPullParserException;
+
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
@@ -64,6 +68,9 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.io.IOException;
+
+import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
 import static org.mythtv.leanfront.ui.PlaybackFragment.VideoLoaderCallbacks.RELATED_VIDEOS_LOADER;
 
 /**
@@ -84,14 +91,14 @@ public class PlaybackFragment extends VideoSupportFragment {
     private Playlist mPlaylist;
     private VideoLoaderCallbacks mVideoLoaderCallbacks;
     private CursorObjectAdapter mVideoCursorAdapter;
-    private long bookmark = 0;
+    private long mBookmark = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
-        bookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
+        mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
         mPlaylist = new Playlist();
 
         mVideoLoaderCallbacks = new VideoLoaderCallbacks(mPlaylist);
@@ -130,6 +137,15 @@ public class PlaybackFragment extends VideoSupportFragment {
         if (mPlayerGlue != null && mPlayerGlue.isPlaying()) {
             mPlayerGlue.pause();
         }
+
+        long pos = mPlayerGlue.getCurrentPosition();
+        long leng = mPlayerGlue.getDuration();
+        if (pos > 5000 && pos < (leng-5000))
+            mBookmark = pos;
+        else
+            mBookmark = 0;
+        new AsyncSetBookmark().execute();
+
         if (Util.SDK_INT <= 23) {
             releasePlayer();
         }
@@ -177,8 +193,8 @@ public class PlaybackFragment extends VideoSupportFragment {
         mPlayerGlue.setTitle(video.title);
         mPlayerGlue.setSubtitle(video.description);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
-        if (bookmark > 0)
-            mPlayerGlue.seekTo(bookmark);
+        if (mBookmark > 0)
+            mPlayerGlue.seekTo(mBookmark);
         mPlayerGlue.play();
     }
 
@@ -348,4 +364,19 @@ public class PlaybackFragment extends VideoSupportFragment {
             play(mPlaylist.next());
         }
     }
+    private class AsyncSetBookmark extends AsyncTask<Void, Void, Void> {
+
+        protected Void doInBackground(Void ... dummy) {
+            try {
+                String bkmrkUrl = mythApiUrl(
+            "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                    + mVideo.recordedid + "&Offset=" + mBookmark);
+                XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl,"POST");
+            } catch (IOException | XmlPullParserException e) {
+            }
+            return null;
+        }
+
+    }
+
 }

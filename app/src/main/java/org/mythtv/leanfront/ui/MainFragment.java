@@ -80,6 +80,8 @@ public class MainFragment extends BrowseSupportFragment
     private BackgroundManager mBackgroundManager;
     private LoaderManager mLoaderManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
+    private CursorObjectAdapter videoCursorAdapter;
+
 
     // Maps a Loader Id to its CursorObjectAdapter.
     private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
@@ -210,30 +212,43 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == CATEGORY_LOADER) {
-            return new CursorLoader(
-                    getContext(),
-                    VideoContract.VideoEntry.CONTENT_URI, // Table to query
-                    new String[]{"DISTINCT " + VideoContract.VideoEntry.COLUMN_CATEGORY},
-                    // Only categories
-                    null, // No selection clause
-                    null, // No selection arguments
-                    VideoContract.VideoEntry.COLUMN_CATEGORY + " collate nocase" // Default sort order
-            );
-        } else {
-            // Assume it is for a video.
-            String category = args.getString(VideoContract.VideoEntry.COLUMN_CATEGORY);
-
-            // This just creates a CursorLoader that gets all videos.
-            return new CursorLoader(
-                    getContext(),
-                    VideoContract.VideoEntry.CONTENT_URI, // Table to query
-                    null, // Projection to return - null means return all fields
-                    VideoContract.VideoEntry.COLUMN_CATEGORY + " = ?", // Selection clause
-                    new String[]{category},  // Select based on the category id.
-                    VideoContract.VideoEntry.COLUMN_AIRDATE+","+VideoContract.VideoEntry.COLUMN_STARTTIME // Sort order
-            );
-        }
+//        if (id == CATEGORY_LOADER) {
+//            return new CursorLoader(
+//                    getContext(),
+//                    VideoContract.VideoEntry.CONTENT_URI, // Table to query
+//                    new String[]{"DISTINCT " + VideoContract.VideoEntry.COLUMN_CATEGORY},
+//                    // Only categories
+//                    null, // No selection clause
+//                    null, // No selection arguments
+//                    VideoContract.VideoEntry.COLUMN_CATEGORY + " collate nocase" // Default sort order
+//            );
+//        } else {
+//            // Assume it is for a video.
+//            String category = args.getString(VideoContract.VideoEntry.COLUMN_CATEGORY);
+//
+//            // This just creates a CursorLoader that gets all videos.
+//            return new CursorLoader(
+//                    getContext(),
+//                    VideoContract.VideoEntry.CONTENT_URI, // Table to query
+//                    null, // Projection to return - null means return all fields
+//                    VideoContract.VideoEntry.COLUMN_CATEGORY + " = ?", // Selection clause
+//                    new String[]{category},  // Select based on the category id.
+//                    VideoContract.VideoEntry.COLUMN_AIRDATE+","+VideoContract.VideoEntry.COLUMN_STARTTIME // Sort order
+//            );
+        Loader ret = new CursorLoader(
+                getContext(),
+                VideoContract.VideoEntry.CONTENT_URI, // Table to query
+                null, // Projection to return - null means return all fields
+                null, // Selection clause
+                null,  // Select based on the category id.
+                VideoContract.VideoEntry.COLUMN_CATEGORY + ","
+                        +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
+                        +VideoContract.VideoEntry.COLUMN_STARTTIME);
+        // Map video results from the database to Video objects.
+        videoCursorAdapter =
+                new CursorObjectAdapter(new CardPresenter());
+        videoCursorAdapter.setMapper(new VideoCursorMapper());
+        return ret;
     }
 
     @Override
@@ -241,10 +256,12 @@ public class MainFragment extends BrowseSupportFragment
         if (data != null) {
             final int loaderId = loader.getId();
             boolean cursorHasData = data.moveToFirst();
+            String currentCategory = null;
             if (loaderId == CATEGORY_LOADER) {
-
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
+                ArrayObjectAdapter objectAdapter = null;
+                videoCursorAdapter.changeCursor(data);
 
                 // Iterate through each category entry and add it to the ArrayAdapter.
                 while (cursorHasData && !data.isAfterLast()) {
@@ -252,33 +269,51 @@ public class MainFragment extends BrowseSupportFragment
                     int categoryIndex =
                             data.getColumnIndex(VideoContract.VideoEntry.COLUMN_CATEGORY);
                     String category = data.getString(categoryIndex);
-
-                    // Create header for this category.
-                    HeaderItem header = new HeaderItem(category);
-
-                    int videoLoaderId = category.hashCode(); // Create unique int from category.
-                    CursorObjectAdapter existingAdapter = mVideoCursorAdapters.get(videoLoaderId);
-                    if (existingAdapter == null) {
+                    if (!category.equals(currentCategory)) {
+                        // Finish off prior row
+                        if (objectAdapter != null) {
+                            // Create header for this category.
+                            HeaderItem header = new HeaderItem(currentCategory);
+                            ListRow row = new ListRow(header, objectAdapter);
+                            mCategoryRowAdapter.add(row);
+                        }
+                        objectAdapter = new ArrayObjectAdapter(new CardPresenter());
+                        currentCategory = category;
+                        // Create header for this category.
+//                        HeaderItem header = new HeaderItem(category);
+//                    int videoLoaderId = category.hashCode(); // Create unique int from category.
+//                    CursorObjectAdapter existingAdapter = mVideoCursorAdapters.get(videoLoaderId);
+//                    if (existingAdapter == null) {
 
                         // Map video results from the database to Video objects.
-                        CursorObjectAdapter videoCursorAdapter =
-                                new CursorObjectAdapter(new CardPresenter());
-                        videoCursorAdapter.setMapper(new VideoCursorMapper());
-                        mVideoCursorAdapters.put(videoLoaderId, videoCursorAdapter);
+//                        CursorObjectAdapter videoCursorAdapter =
+//                                new CursorObjectAdapter(new CardPresenter());
+//                        videoCursorAdapter.setMapper(new VideoCursorMapper());
+//                        mVideoCursorAdapters.put(videoLoaderId, videoCursorAdapter);
 
-                        ListRow row = new ListRow(header, videoCursorAdapter);
-                        mCategoryRowAdapter.add(row);
-
-                        // Start loading the videos from the database for a particular category.
-                        Bundle args = new Bundle();
-                        args.putString(VideoContract.VideoEntry.COLUMN_CATEGORY, category);
-                        mLoaderManager.initLoader(videoLoaderId, args, this);
-                    } else {
-                        ListRow row = new ListRow(header, existingAdapter);
-                        mCategoryRowAdapter.add(row);
+//                        ListRow row = new ListRow(header, videoCursorAdapter);
+//                        mCategoryRowAdapter.add(row);
                     }
+                    objectAdapter.add(videoCursorAdapter.get(data.getPosition()));
+//                    videoCursorAdapter.changeCursor(data);
+
+//                        // Start loading the videos from the database for a particular category.
+//                        Bundle args = new Bundle();
+//                        args.putString(VideoContract.VideoEntry.COLUMN_CATEGORY, category);
+//                        mLoaderManager.initLoader(videoLoaderId, args, this);
+//                    } else {
+//                        ListRow row = new ListRow(header, existingAdapter);
+//                        mCategoryRowAdapter.add(row);
+//                    }
 
                     data.moveToNext();
+                }
+                // Finish off prior row
+                if (objectAdapter != null) {
+                    // Create header for this category.
+                    HeaderItem header = new HeaderItem(currentCategory);
+                    ListRow row = new ListRow(header, objectAdapter);
+                    mCategoryRowAdapter.add(row);
                 }
 
                 // Create a row for this special case with more samples.
@@ -295,10 +330,11 @@ public class MainFragment extends BrowseSupportFragment
 
                 startEntranceTransition(); // TODO: Move startEntranceTransition to after all
                 // cursors have loaded.
-            } else {
-                // The CursorAdapter contains a Cursor pointing to all videos.
-                mVideoCursorAdapters.get(loaderId).changeCursor(data);
             }
+//            else {
+//                // The CursorAdapter contains a Cursor pointing to all videos.
+//                mVideoCursorAdapters.get(loaderId).changeCursor(data);
+//            }
         }
 //        else {
 //            // Every time we have to re-get the category loader, we must re-create the sidebar.

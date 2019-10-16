@@ -101,7 +101,7 @@ public class VideoDbBuilder {
 //        String port = prefs.getString("pref_http_port", "6544");
 //        String baseUrl = "http://" + backend + ":" + port;
         String baseUrl = mythApiUrl(null);
-        String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.movie;
+        String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.background;
         XmlNode programNode = null;
         for (;;) {
             if (programNode == null)

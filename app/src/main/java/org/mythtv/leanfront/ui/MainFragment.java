@@ -24,6 +24,9 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -81,6 +84,8 @@ public class MainFragment extends BrowseSupportFragment
     private LoaderManager mLoaderManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
     private CursorObjectAdapter videoCursorAdapter;
+    private int mSelectedRow = -1;
+    private int mSelectedItem = -1;
 
 
     // Maps a Loader Id to its CursorObjectAdapter.
@@ -126,6 +131,32 @@ public class MainFragment extends BrowseSupportFragment
         mHandler.removeCallbacks(mBackgroundTask);
         mBackgroundManager = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // failed attempt to make back button smoother
+//        if (isVisible()) {
+//            FragmentTransaction ft = getFragmentManager().beginTransaction();
+//            ft.hide(this);
+//            ft.commit();
+//        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mSelectedRow != -1 && mSelectedItem != -1) {
+            getRowsSupportFragment().setSelectedPosition(mSelectedRow, false,
+                    new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
+        }
+        // failed attempt to make back button smoother
+//        if (isHidden()) {
+//            FragmentTransaction ft = getFragmentManager().beginTransaction();
+//            ft.show(this);
+//            ft.commit();
+//        }
     }
 
     @Override
@@ -275,6 +306,7 @@ public class MainFragment extends BrowseSupportFragment
                             // Create header for this category.
                             HeaderItem header = new HeaderItem(currentCategory);
                             ListRow row = new ListRow(header, objectAdapter);
+                            row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
                         }
                         objectAdapter = new ArrayObjectAdapter(new CardPresenter());
@@ -374,6 +406,12 @@ public class MainFragment extends BrowseSupportFragment
         @Override
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                 RowPresenter.ViewHolder rowViewHolder, Row row) {
+
+            mSelectedRow = getSelectedPosition();
+            ListRowPresenter.ViewHolder selectedRow
+                    = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+                    .getRowViewHolder(mSelectedRow);
+            mSelectedItem = selectedRow.getSelectedPosition();
 
             if (item instanceof Video) {
                 Video video = (Video) item;

@@ -27,5 +27,11 @@
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/pref_title_http_port" />
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/pref_bookmark_labels"
+            android:entryValues="@array/pref_bookmark_values"
+            android:key="pref_bookmark"
+            android:title="Bookmark Strategy" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -126,4 +126,7 @@
     <string name="pref_title_myth_port">MythTV Backend Port</string>
     <string name="pref_title_http_port">MythTV Backend Status Port</string>
     <string name="pref_title_hostname">Frontend Host Name</string>
+    <string name="pref_bookmark_mythtv">MythTV based</string>
+    <string name="pref_bookmark_local">Locally Saved</string>
+    <string name="pref_bookmark_auto">MythTV or Local</string>
 </resources>

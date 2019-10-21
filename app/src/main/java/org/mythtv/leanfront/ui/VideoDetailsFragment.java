@@ -20,8 +20,10 @@ import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -52,6 +54,8 @@ import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
+
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,6 +70,7 @@ import com.bumptech.glide.request.transition.Transition;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
@@ -76,6 +81,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 
 import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
+
 
 /*
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
@@ -424,13 +430,65 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         protected Void doInBackground(Void ... dummy) {
             mBookmark = 0;
             try {
-                String bkmrkUrl = mythApiUrl(
-                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="+mSelectedVideo.recordedid);
-                XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl,null);
-                mBookmark = Long.parseLong(bkmrkData.getString());
-                // sanity check bookmark - between 0 and 24 hrs.
-                if (mBookmark > 24*60*60*1000 || mBookmark < 0)
+                Context context = MainActivity.getContext();
+                SharedPreferences sharedPreferences
+                        = PreferenceManager.getDefaultSharedPreferences(context);
+                String pref = sharedPreferences.getString("pref_bookmark","auto");
+                if ("auto".equals(pref) || "mythtv".equals(pref)) {
+                    // look for a mythtv bookmark
+                    String bkmrkUrl = mythApiUrl(
+                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
+                                + mSelectedVideo.recordedid);
+                    XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl, null);
+                    mBookmark = Long.parseLong(bkmrkData.getString());
+                    // sanity check bookmark - between 0 and 24 hrs.
+                    // note -1 means a bookmark but no seek table
+                    // older version of service returns garbage value when there is
+                    // no seek table.
+                    if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
+                        mBookmark = -1;
+                }
+                if (mBookmark <= 0 && "auto".equals(pref)
+                    || "local".equals(pref)) {
+                    // default to none
                     mBookmark = 0;
+                    // Look for a local bookmark
+                    VideoDbHelper dbh = new VideoDbHelper(context);
+                    SQLiteDatabase db = dbh.getReadableDatabase();
+
+                    // Define a projection that specifies which columns from the database
+                    // you will actually use after this query.
+                    String[] projection = {
+                        VideoContract.StatusEntry._ID,
+                        VideoContract.StatusEntry.COLUMN_VIDEO_URL,
+                        VideoContract.StatusEntry.COLUMN_LAST_USED,
+                        VideoContract.StatusEntry.COLUMN_BOOKMARK
+                    };
+
+                    // Filter results
+                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                    String[] selectionArgs = { mSelectedVideo.videoUrl };
+
+                    Cursor cursor = db.query(
+                        VideoContract.StatusEntry.TABLE_NAME,   // The table to query
+                        projection,             // The array of columns to return (pass null to get all)
+                        selection,              // The columns for the WHERE clause
+                        selectionArgs,          // The values for the WHERE clause
+                        null,                   // don't group the rows
+                        null,                   // don't filter by row groups
+                        null               // The sort order
+                    );
+
+                    // We expect one or zero results, never more than one.
+                    if (cursor.moveToNext()) {
+                        int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
+                        if (colno >= 0) {
+                            mBookmark = cursor.getLong(colno);
+                        }
+                    }
+                    cursor.close();
+                    db.close();
+                }
 
             } catch (IOException | XmlPullParserException e) {
                 mBookmark = 0;

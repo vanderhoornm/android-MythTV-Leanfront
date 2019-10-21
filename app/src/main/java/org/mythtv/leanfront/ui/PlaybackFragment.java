@@ -17,12 +17,17 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.TargetApi;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -45,6 +50,7 @@ import androidx.loader.content.Loader;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.MythDataSource;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
@@ -54,6 +60,7 @@ import org.mythtv.leanfront.presenter.CardPresenter;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -69,6 +76,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
 import static org.mythtv.leanfront.ui.PlaybackFragment.VideoLoaderCallbacks.RELATED_VIDEOS_LOADER;
@@ -196,6 +204,7 @@ public class PlaybackFragment extends VideoSupportFragment {
         if (mBookmark > 0)
             mPlayerGlue.seekTo(mBookmark);
         mPlayerGlue.play();
+        Format videoFormat = mPlayer.getVideoFormat();
     }
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
@@ -368,10 +377,51 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         protected Void doInBackground(Void ... dummy) {
             try {
-                String bkmrkUrl = mythApiUrl(
-            "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                    + mVideo.recordedid + "&Offset=" + mBookmark);
-                XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl,"POST");
+                String result = null;
+                Context context = MainActivity.getContext();
+                SharedPreferences sharedPreferences
+                        = PreferenceManager.getDefaultSharedPreferences(context);
+                String pref = sharedPreferences.getString("pref_bookmark","auto");
+                if ("auto".equals(pref) || "mythtv".equals(pref)) {
+                    // store a mythtv bookmark
+                    String bkmrkUrl = mythApiUrl(
+                            "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                                    + mVideo.recordedid + "&Offset=" + mBookmark);
+                    XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl, "POST");
+                    result = bkmrkData.getString();
+                }
+                if (!"true".equals(result) && !"mythtv".equals(pref)) {
+                    // Use local bookmark
+
+                    // Gets the data repository in write mode
+                    VideoDbHelper dbh = new VideoDbHelper(context);
+                    SQLiteDatabase db = dbh.getWritableDatabase();
+
+                    // Create a new map of values, where column names are the keys
+                    ContentValues values = new ContentValues();
+                    Date now = new Date();
+                    values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
+                    values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mBookmark);
+
+                    // First try an update
+                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                    String[] selectionArgs = { mVideo.videoUrl };
+
+                    int count = db.update(
+                            VideoContract.StatusEntry.TABLE_NAME,
+                            values,
+                            selection,
+                            selectionArgs);
+
+                    if (count == 0) {
+                        // Try an insert instead
+                        values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
+                        // Insert the new row, returning the primary key value of the new row
+                        long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
+                                null, values);
+                    }
+                    db.close();
+                }
             } catch (IOException | XmlPullParserException e) {
             }
             return null;

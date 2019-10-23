@@ -52,6 +52,7 @@ import org.mythtv.leanfront.data.MythDataSource;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
+import org.mythtv.leanfront.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
@@ -60,9 +61,7 @@ import org.mythtv.leanfront.presenter.CardPresenter;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -72,7 +71,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.IOException;
@@ -204,7 +202,6 @@ public class PlaybackFragment extends VideoSupportFragment {
         if (mBookmark > 0)
             mPlayerGlue.seekTo(mBookmark);
         mPlayerGlue.play();
-        Format videoFormat = mPlayer.getVideoFormat();
     }
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {

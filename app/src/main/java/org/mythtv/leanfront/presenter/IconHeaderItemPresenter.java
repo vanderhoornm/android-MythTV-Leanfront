@@ -17,11 +17,16 @@
 package org.mythtv.leanfront.presenter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
+
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +34,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.ui.LeanbackActivity;
+import org.mythtv.leanfront.ui.MainActivity;
+import org.mythtv.leanfront.ui.MyHeaderItem;
+import org.mythtv.leanfront.ui.SettingsActivity;
 
 public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
@@ -49,13 +58,20 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object item) {
-        HeaderItem headerItem = ((ListRow) item).getHeaderItem();
+        MyHeaderItem headerItem = (MyHeaderItem) ((ListRow) item).getHeaderItem();
         View rootView = viewHolder.view;
         rootView.setFocusable(true);
 
-//        ImageView iconView = (ImageView) rootView.findViewById(R.id.header_icon);
-//        Drawable icon = rootView.getResources().getDrawable(R.drawable.android_header, null);
-//        iconView.setImageDrawable(icon);
+        ImageView iconView = rootView.findViewById(R.id.header_icon);
+        Drawable icon;
+        if (headerItem.getItemType() == MyHeaderItem.ITEMTYPE_SETTINGS) {
+            icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
+            MyListener listener = new MyListener();
+            setOnClickListener(viewHolder,listener);
+        }
+        else
+            icon = rootView.getResources().getDrawable(R.drawable.perm_group_voicemail, null);
+        iconView.setImageDrawable(icon);
 
         TextView label = (TextView) rootView.findViewById(R.id.header_label);
         label.setText(headerItem.getName());
@@ -72,5 +88,17 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
     protected void onSelectLevelChanged(RowHeaderPresenter.ViewHolder holder) {
         holder.view.setAlpha(mUnselectedAlpha + holder.getSelectLevel() *
                 (1.0f - mUnselectedAlpha));
+    }
+
+    private class MyListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            Context context = MainActivity.getContext();
+            Intent intent = new Intent(context, SettingsActivity.class);
+            Bundle bundle =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation((LeanbackActivity)context)
+                            .toBundle();
+            context.startActivity(intent, bundle);
+        }
     }
 }

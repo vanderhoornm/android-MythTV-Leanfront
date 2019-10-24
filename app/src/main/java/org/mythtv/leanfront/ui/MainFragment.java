@@ -304,7 +304,8 @@ public class MainFragment extends BrowseSupportFragment
                         // Finish off prior row
                         if (objectAdapter != null) {
                             // Create header for this category.
-                            HeaderItem header = new HeaderItem(currentCategory);
+                            MyHeaderItem header = new MyHeaderItem(currentCategory,
+                                    MyHeaderItem.ITEMTYPE_GROUP);
                             ListRow row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
@@ -343,20 +344,22 @@ public class MainFragment extends BrowseSupportFragment
                 // Finish off prior row
                 if (objectAdapter != null) {
                     // Create header for this category.
-                    HeaderItem header = new HeaderItem(currentCategory);
+                    MyHeaderItem header = new MyHeaderItem(currentCategory,
+                            MyHeaderItem.ITEMTYPE_GROUP);
                     ListRow row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
                 }
 
                 // Create a row for this special case with more samples.
-                HeaderItem gridHeader = new HeaderItem(getString(R.string.more_samples));
+                MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
+                        MyHeaderItem.ITEMTYPE_SETTINGS);
                 GridItemPresenter gridPresenter = new GridItemPresenter(this);
                 ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(gridPresenter);
-                if (cursorHasData)
-                    gridRowAdapter.add(getString(R.string.grid_view));
+//                if (cursorHasData)
+//                    gridRowAdapter.add(getString(R.string.grid_view));
 //                gridRowAdapter.add(getString(R.string.guidedstep_first_title));
 //                gridRowAdapter.add(getString(R.string.error_fragment));
-                gridRowAdapter.add(getString(R.string.personal_settings));
+//                gridRowAdapter.add(getString(R.string.personal_settings));
                 ListRow row = new ListRow(gridHeader, gridRowAdapter);
                 mCategoryRowAdapter.add(row);
 

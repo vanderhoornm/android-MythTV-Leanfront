@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 import androidx.core.app.ActivityOptionsCompat;
-import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
@@ -36,7 +35,8 @@ import android.widget.TextView;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.ui.LeanbackActivity;
 import org.mythtv.leanfront.ui.MainActivity;
-import org.mythtv.leanfront.ui.MyHeaderItem;
+import org.mythtv.leanfront.ui.MainFragment;
+import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.ui.SettingsActivity;
 
 public class IconHeaderItemPresenter extends RowHeaderPresenter {
@@ -64,7 +64,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
         ImageView iconView = rootView.findViewById(R.id.header_icon);
         Drawable icon;
-        if (headerItem.getItemType() == MyHeaderItem.ITEMTYPE_SETTINGS) {
+        if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS) {
             icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
             MyListener listener = new MyListener();
             setOnClickListener(viewHolder,listener);

@@ -27,26 +27,28 @@ import org.mythtv.leanfront.data.VideoContract;
 public final class VideoCursorMapper extends CursorMapper {
 
     private static int idIndex;
+    private static int titleIndex;
     private static int nameIndex;
     private static int descIndex;
     private static int videoUrlIndex;
     private static int bgImageUrlIndex;
     private static int cardImageUrlIndex;
     private static int studioIndex;
-    private static int categoryIndex;
     private static int recordedidIndex;
+    private static int recGroupIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
         idIndex = cursor.getColumnIndex(VideoContract.VideoEntry._ID);
+        titleIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
         nameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         descIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DESC);
         videoUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEO_URL);
         bgImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL);
         cardImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CARD_IMG);
         studioIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STUDIO);
-        categoryIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CATEGORY);
         recordedidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECORDEDID);
+        recGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
     }
 
     @Override
@@ -54,26 +56,28 @@ public final class VideoCursorMapper extends CursorMapper {
 
         // Get the values of the video.
         long id = cursor.getLong(idIndex);
-        String category = cursor.getString(categoryIndex);
-        String title = cursor.getString(nameIndex);
+        String title = cursor.getString(titleIndex);
+        String subtitle = cursor.getString(nameIndex);
         String desc = cursor.getString(descIndex);
         String videoUrl = cursor.getString(videoUrlIndex);
         String bgImageUrl = cursor.getString(bgImageUrlIndex);
         String cardImageUrl = cursor.getString(cardImageUrlIndex);
         String studio = cursor.getString(studioIndex);
         String recordedid = cursor.getString(recordedidIndex);
+        String recGroup = cursor.getString(recGroupIndex);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
                 .id(id)
                 .title(title)
-                .category(category)
+                .subtitle(subtitle)
                 .description(desc)
                 .videoUrl(videoUrl)
                 .bgImageUrl(bgImageUrl)
                 .cardImageUrl(cardImageUrl)
                 .studio(studio)
                 .recordedid(recordedid)
+                .recGroup(recGroup)
                 .build();
     }
 }

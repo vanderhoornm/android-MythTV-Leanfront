@@ -25,16 +25,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.CursorObjectAdapter;
-import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.Presenter;
@@ -42,6 +40,7 @@ import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.leanback.widget.TitleViewAdapter;
 import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
@@ -57,15 +56,14 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.FetchVideoService;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.model.ListItem;
+import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.GridItemPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
 import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /*
  * Main class to show BrowseFragment with header and rows of videos
@@ -86,12 +84,36 @@ public class MainFragment extends BrowseSupportFragment
     private CursorObjectAdapter videoCursorAdapter;
     private int mSelectedRow = -1;
     private int mSelectedItem = -1;
-
+    private int mType;
+    public static final String KEY_TYPE = "LEANFRONT_TYPE";
+    // Type applicable to main screen
+    public static final int TYPE_TOPLEVEL = 1;
+    // Types applicable to main screen or row
+    public static final int TYPE_RECGROUP = 2;
+    // Types applicable to main screen row, or cell
+    public static final int TYPE_VIDEODIR = 3;
+    // Types applicable to row or cell
+    public static final int TYPE_SHOW = 4;
+    // Types applicable to cell
+    public static final int TYPE_EPISODE = 5;
+    public static final int TYPE_VIDEO = 6;
+    // Special row type
+    public static final int TYPE_SETTINGS = 20;
+    public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
+    public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
+    public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
+    // mBase is the current recgroup or directory being displayed.
+    private String mBaseName;
+    private String mSelectedRowName;
+    private int mSelectedRowType;
+    private String mSelectedItemName;
+    private int mSelectedItemType;
 
     // Maps a Loader Id to its CursorObjectAdapter.
-    private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
+//    private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
 
-    private boolean loadDone = false;
+    private boolean mFetchStarted = false;
+    private boolean mLoadStarted = false;
 
     @Override
     public void onAttach(Context context) {
@@ -99,11 +121,29 @@ public class MainFragment extends BrowseSupportFragment
 
         // Create a list to contain all the CursorObjectAdapters.
         // Each adapter is used to render a specific row of videos in the MainFragment.
-        mVideoCursorAdapters = new HashMap<>();
+//        mVideoCursorAdapters = new HashMap<>();
 
         // Start loading the categories from the database.
         mLoaderManager = LoaderManager.getInstance(this);
         mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
+        mLoadStarted = true;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Intent intent = getActivity().getIntent();
+        mType = intent.getIntExtra(KEY_TYPE,TYPE_TOPLEVEL);
+        if (mType != TYPE_TOPLEVEL) {
+            mBaseName = intent.getStringExtra(KEY_BASENAME);
+        }
+        if (savedInstanceState != null) {
+            mSelectedRowName = savedInstanceState.getString(KEY_ROWNAME);
+            mSelectedItemName = savedInstanceState.getString(KEY_ITEMNAME);
+        }
+        // TESTING TESTING 2 LINES
+        mType = TYPE_RECGROUP;
+        mBaseName = "All";
     }
 
     @Override
@@ -147,16 +187,30 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onResume() {
         super.onResume();
-        if (mSelectedRow != -1 && mSelectedItem != -1) {
-            getRowsSupportFragment().setSelectedPosition(mSelectedRow, false,
-                    new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
-        }
-        // failed attempt to make back button smoother
-//        if (isHidden()) {
-//            FragmentTransaction ft = getFragmentManager().beginTransaction();
-//            ft.show(this);
-//            ft.commit();
+//        if (mSelectedRow != -1 && mSelectedItem != -1) {
+//            getRowsSupportFragment().setSelectedPosition(mSelectedRow, false,
+//                    new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
 //        }
+        startBackgroundTimer();
+    }
+
+    @Override
+    public void onPause() {
+        mSelectedRow = getSelectedPosition();
+        ListRow selectedRow = (ListRow)mCategoryRowAdapter.get(mSelectedRow);
+        ListItem headerItem = (ListItem)selectedRow.getHeaderItem();
+        mSelectedRowName = headerItem.getName();
+        mSelectedRowType = headerItem.getItemType();
+        ListRowPresenter.ViewHolder selectedViewHolder
+                = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+                .getRowViewHolder(mSelectedRow);
+        mSelectedItem = selectedViewHolder.getSelectedPosition();
+        if (mSelectedItem >= 0) {
+            ObjectAdapter itemAdapter = selectedRow.getAdapter();
+            mSelectedItemName = ((ListItem) itemAdapter.get(mSelectedItem)).getName();
+            mSelectedItemType = ((ListItem) itemAdapter.get(mSelectedItem)).getItemType();
+        }
+        super.onPause();
     }
 
     @Override
@@ -175,9 +229,12 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     private void setupUIElements() {
-        setBadgeDrawable(
-                getActivity().getResources().getDrawable(R.drawable.mythtv_320x180_icon, null));
-        setTitle(getString(R.string.browse_title)); // Badge, when set, takes precedent over title
+        if (mType == TYPE_TOPLEVEL)
+            setBadgeDrawable(
+                    getActivity().getResources().getDrawable(R.drawable.mythtv_320x180_icon, null));
+//        setTitle(getString(R.string.browse_title)); // Badge, when set, takes precedent over title
+        setTitle(mBaseName);
+        showTitle(TitleViewAdapter.FULL_VIEW_VISIBLE);
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
 
@@ -272,7 +329,7 @@ public class MainFragment extends BrowseSupportFragment
                 null, // Projection to return - null means return all fields
                 null, // Selection clause
                 null,  // Select based on the category id.
-                VideoContract.VideoEntry.COLUMN_CATEGORY + ","
+                VideoContract.VideoEntry.COLUMN_TITLE + ","
                         +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
                         +VideoContract.VideoEntry.COLUMN_STARTTIME);
         // Map video results from the database to Video objects.
@@ -284,7 +341,7 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data != null) {
+        if (data != null && mLoadStarted) {
             final int loaderId = loader.getId();
             boolean cursorHasData = data.moveToFirst();
             String currentCategory = null;
@@ -297,15 +354,28 @@ public class MainFragment extends BrowseSupportFragment
                 // Iterate through each category entry and add it to the ArrayAdapter.
                 while (cursorHasData && !data.isAfterLast()) {
 
-                    int categoryIndex =
-                            data.getColumnIndex(VideoContract.VideoEntry.COLUMN_CATEGORY);
+                    int categoryIndex = -1;
+                    if (mType == TYPE_RECGROUP) {
+                        categoryIndex =
+                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+                        if (!"All".equals(mBaseName)) {
+                            int recgroupIndex =
+                                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+                            String recgroup = data.getString(recgroupIndex);
+                            if (!mBaseName.equals(recgroup)) {
+                                data.moveToNext();
+                                continue;
+                            }
+                        }
+                    }
                     String category = data.getString(categoryIndex);
+
                     if (!category.equals(currentCategory)) {
                         // Finish off prior row
                         if (objectAdapter != null) {
                             // Create header for this category.
                             MyHeaderItem header = new MyHeaderItem(currentCategory,
-                                    MyHeaderItem.ITEMTYPE_GROUP);
+                                    TYPE_SHOW);
                             ListRow row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
@@ -345,14 +415,14 @@ public class MainFragment extends BrowseSupportFragment
                 if (objectAdapter != null) {
                     // Create header for this category.
                     MyHeaderItem header = new MyHeaderItem(currentCategory,
-                            MyHeaderItem.ITEMTYPE_GROUP);
+                            TYPE_RECGROUP);
                     ListRow row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
                 }
 
                 // Create a row for this special case with more samples.
                 MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
-                        MyHeaderItem.ITEMTYPE_SETTINGS);
+                        TYPE_SETTINGS);
                 GridItemPresenter gridPresenter = new GridItemPresenter(this);
                 ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(gridPresenter);
 //                if (cursorHasData)
@@ -365,6 +435,7 @@ public class MainFragment extends BrowseSupportFragment
 
                 startEntranceTransition(); // TODO: Move startEntranceTransition to after all
                 // cursors have loaded.
+                mLoadStarted = false;
             }
 //            else {
 //                // The CursorAdapter contains a Cursor pointing to all videos.
@@ -377,22 +448,24 @@ public class MainFragment extends BrowseSupportFragment
 //
 //        }
 //        else {
-        if (!loadDone) {
+        if (!mFetchStarted) {
             // Start an Intent to fetch the videos.
             Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
             getActivity().startService(serviceIntent);
-            loadDone = true;
+            mFetchStarted = true;
+            mLoadStarted = false;
         }
+
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         int loaderId = loader.getId();
-        if (loaderId != CATEGORY_LOADER) {
-            mVideoCursorAdapters.get(loaderId).changeCursor(null);
-        } else {
+//        if (loaderId != CATEGORY_LOADER) {
+//            mVideoCursorAdapters.get(loaderId).changeCursor(null);
+//        } else {
+        if (loaderId == CATEGORY_LOADER)
             mCategoryRowAdapter.clear();
-        }
     }
 
     private class UpdateBackgroundTask implements Runnable {
@@ -410,11 +483,11 @@ public class MainFragment extends BrowseSupportFragment
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                 RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            mSelectedRow = getSelectedPosition();
-            ListRowPresenter.ViewHolder selectedRow
-                    = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
-                    .getRowViewHolder(mSelectedRow);
-            mSelectedItem = selectedRow.getSelectedPosition();
+//            mSelectedRow = getSelectedPosition();
+//            ListRowPresenter.ViewHolder selectedRow
+//                    = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+//                    .getRowViewHolder(mSelectedRow);
+//            mSelectedItem = selectedRow.getSelectedPosition();
 
             if (item instanceof Video) {
                 Video video = (Video) item;

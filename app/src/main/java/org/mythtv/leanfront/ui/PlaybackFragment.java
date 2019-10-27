@@ -111,7 +111,7 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         // Loads the playlist.
         Bundle args = new Bundle();
-        args.putString(VideoContract.VideoEntry.COLUMN_CATEGORY, mVideo.category);
+        args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
         getLoaderManager()
                 .initLoader(VideoLoaderCallbacks.QUEUE_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
@@ -247,7 +247,7 @@ public class PlaybackFragment extends VideoSupportFragment {
         videoCursorAdapter.setMapper(new VideoCursorMapper());
 
         Bundle args = new Bundle();
-        args.putString(VideoContract.VideoEntry.COLUMN_CATEGORY, mVideo.category);
+        args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
         getLoaderManager().initLoader(RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
         return videoCursorAdapter;
@@ -312,12 +312,12 @@ public class PlaybackFragment extends VideoSupportFragment {
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             // When loading related videos or videos for the playlist, query by category.
-            String category = args.getString(VideoContract.VideoEntry.COLUMN_CATEGORY);
+            String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
             return new CursorLoader(
                     getActivity(),
                     VideoContract.VideoEntry.CONTENT_URI,
                     null,
-                    VideoContract.VideoEntry.COLUMN_CATEGORY + " = ?",
+                    VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
                     new String[] {category},
                     null);
         }

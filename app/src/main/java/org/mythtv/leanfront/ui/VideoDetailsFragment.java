@@ -263,12 +263,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case RELATED_VIDEO_LOADER: {
-                String category = args.getString(VideoContract.VideoEntry.COLUMN_CATEGORY);
+                String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
-                        VideoContract.VideoEntry.COLUMN_CATEGORY + " = ?",
+                        VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
                         new String[]{category},
                         null
                 );
@@ -394,10 +394,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         String subcategories[] = {getString(R.string.related_movies)};
 
         // Generating related video list.
-        String category = mSelectedVideo.category;
+        String category = mSelectedVideo.title;
 
         Bundle args = new Bundle();
-        args.putString(VideoContract.VideoEntry.COLUMN_CATEGORY, category);
+        args.putString(VideoContract.VideoEntry.COLUMN_TITLE, category);
         getLoaderManager().initLoader(RELATED_VIDEO_LOADER, args, this);
 
         HeaderItem header = new HeaderItem(0, subcategories[0]);

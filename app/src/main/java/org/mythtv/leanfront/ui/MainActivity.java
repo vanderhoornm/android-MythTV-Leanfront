@@ -31,12 +31,13 @@ import org.mythtv.leanfront.R;
  */
 public class MainActivity extends LeanbackActivity {
 
-    static Context context;
+    static Context context = null;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        context = this;
+        if (context == null)
+            context = this;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if(sharedPreferences.getString("pref_backend",null) == null) {
             // This is the first time running the app, let's go to onboarding

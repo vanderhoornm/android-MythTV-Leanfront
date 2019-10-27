@@ -36,6 +36,7 @@ public final class Video implements Parcelable, ListItem {
     public final String studio;
     public final String recordedid;
     public final String recGroup;
+    public int type;
 
     private Video(
             final long id,
@@ -125,6 +126,8 @@ public final class Video implements Parcelable, ListItem {
 
     @Override
     public int getItemType() {
+        if (type != 0)
+            return type;
         return recGroup == null || "".equals(recGroup)
                 ? MainFragment.TYPE_VIDEO : MainFragment.TYPE_EPISODE;
     }

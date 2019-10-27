@@ -93,7 +93,7 @@ public class MainFragment extends BrowseSupportFragment
     // Types applicable to main screen row, or cell
     public static final int TYPE_VIDEODIR = 3;
     // Types applicable to row or cell
-    public static final int TYPE_SHOW = 4;
+    public static final int TYPE_SERIES = 4;
     // Types applicable to cell
     public static final int TYPE_EPISODE = 5;
     public static final int TYPE_VIDEO = 6;
@@ -118,15 +118,6 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
-        // Create a list to contain all the CursorObjectAdapters.
-        // Each adapter is used to render a specific row of videos in the MainFragment.
-//        mVideoCursorAdapters = new HashMap<>();
-
-        // Start loading the categories from the database.
-        mLoaderManager = LoaderManager.getInstance(this);
-        mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
-        mLoadStarted = true;
     }
 
     @Override
@@ -142,8 +133,12 @@ public class MainFragment extends BrowseSupportFragment
             mSelectedItemName = savedInstanceState.getString(KEY_ITEMNAME);
         }
         // TESTING TESTING 2 LINES
-        mType = TYPE_RECGROUP;
-        mBaseName = "All";
+//        mType = TYPE_RECGROUP;
+//        mBaseName = "All";
+        // Start loading the categories from the database.
+        mLoaderManager = LoaderManager.getInstance(this);
+        mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
+        mLoadStarted = true;
     }
 
     @Override
@@ -323,15 +318,20 @@ public class MainFragment extends BrowseSupportFragment
 //                    new String[]{category},  // Select based on the category id.
 //                    VideoContract.VideoEntry.COLUMN_AIRDATE+","+VideoContract.VideoEntry.COLUMN_STARTTIME // Sort order
 //            );
+        String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
+                +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
+                +VideoContract.VideoEntry.COLUMN_STARTTIME;
+
+        if (mType == TYPE_TOPLEVEL)
+            orderby = VideoContract.VideoEntry.COLUMN_RECGROUP + "," + orderby;
+
         Loader ret = new CursorLoader(
                 getContext(),
                 VideoContract.VideoEntry.CONTENT_URI, // Table to query
                 null, // Projection to return - null means return all fields
                 null, // Selection clause
                 null,  // Select based on the category id.
-                VideoContract.VideoEntry.COLUMN_TITLE + ","
-                        +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
-                        +VideoContract.VideoEntry.COLUMN_STARTTIME);
+                orderby);
         // Map video results from the database to Video objects.
         videoCursorAdapter =
                 new CursorObjectAdapter(new CardPresenter());
@@ -345,6 +345,7 @@ public class MainFragment extends BrowseSupportFragment
             final int loaderId = loader.getId();
             boolean cursorHasData = data.moveToFirst();
             String currentCategory = null;
+            String currentItem = null;
             if (loaderId == CATEGORY_LOADER) {
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
@@ -355,6 +356,10 @@ public class MainFragment extends BrowseSupportFragment
                 while (cursorHasData && !data.isAfterLast()) {
 
                     int categoryIndex = -1;
+                    int itemType = -1;
+                    int rowType = -1;
+                    // For Rec Group type, only use recordings from that recording group.
+                    // categories are titles.
                     if (mType == TYPE_RECGROUP) {
                         categoryIndex =
                                 data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
@@ -367,6 +372,25 @@ public class MainFragment extends BrowseSupportFragment
                                 continue;
                             }
                         }
+                        rowType = TYPE_SERIES;
+                        itemType = TYPE_EPISODE;
+                    }
+
+                    // For Top Level type, only use 1 recording from each title
+                    // categories are recgroups
+                    if (mType == TYPE_TOPLEVEL) {
+                        categoryIndex =
+                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+                        int titleIndex =
+                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+                        String title = data.getString(titleIndex);
+                        if (title.equals(currentItem)) {
+                            data.moveToNext();
+                            continue;
+                        }
+                        currentItem = title;
+                        rowType = TYPE_RECGROUP;
+                        itemType = TYPE_SERIES;
                     }
                     String category = data.getString(categoryIndex);
 
@@ -375,7 +399,7 @@ public class MainFragment extends BrowseSupportFragment
                         if (objectAdapter != null) {
                             // Create header for this category.
                             MyHeaderItem header = new MyHeaderItem(currentCategory,
-                                    TYPE_SHOW);
+                                    rowType);
                             ListRow row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
@@ -397,7 +421,9 @@ public class MainFragment extends BrowseSupportFragment
 //                        ListRow row = new ListRow(header, videoCursorAdapter);
 //                        mCategoryRowAdapter.add(row);
                     }
-                    objectAdapter.add(videoCursorAdapter.get(data.getPosition()));
+                    Video video = (Video) videoCursorAdapter.get(data.getPosition());
+                    video.type = itemType;
+                    objectAdapter.add(video);
 //                    videoCursorAdapter.changeCursor(data);
 
 //                        // Start loading the videos from the database for a particular category.

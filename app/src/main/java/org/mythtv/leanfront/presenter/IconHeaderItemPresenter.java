@@ -39,9 +39,12 @@ import org.mythtv.leanfront.ui.MainFragment;
 import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.ui.SettingsActivity;
 
+;
+
 public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
     private float mUnselectedAlpha;
+    private MyHeaderItem headerItem;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup) {
@@ -58,7 +61,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object item) {
-        MyHeaderItem headerItem = (MyHeaderItem) ((ListRow) item).getHeaderItem();
+        headerItem = (MyHeaderItem) ((ListRow) item).getHeaderItem();
         View rootView = viewHolder.view;
         rootView.setFocusable(true);
 
@@ -66,11 +69,11 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         Drawable icon;
         if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS) {
             icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
-            MyListener listener = new MyListener();
-            setOnClickListener(viewHolder,listener);
         }
         else
             icon = rootView.getResources().getDrawable(R.drawable.perm_group_voicemail, null);
+        MyListener listener = new MyListener();
+        setOnClickListener(viewHolder,listener);
         iconView.setImageDrawable(icon);
 
         TextView label = (TextView) rootView.findViewById(R.id.header_label);
@@ -94,7 +97,16 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         @Override
         public void onClick(View v) {
             Context context = MainActivity.getContext();
-            Intent intent = new Intent(context, SettingsActivity.class);
+            Intent intent;
+            if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
+                intent = new Intent(context, SettingsActivity.class);
+            else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP) {
+                intent = new Intent(context, MainActivity.class);
+                intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+            }
+            else
+                return;
             Bundle bundle =
                     ActivityOptionsCompat.makeSceneTransitionAnimation((LeanbackActivity)context)
                             .toBundle();

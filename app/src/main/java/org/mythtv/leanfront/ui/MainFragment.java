@@ -136,7 +136,7 @@ public class MainFragment extends BrowseSupportFragment
 //        }
         // TESTING TESTING 2 LINES
 //        mType = TYPE_RECGROUP;
-//        mBaseName = "All";
+//        mBaseName = "All\t";
         // Start loading the categories from the database.
         mLoaderManager = LoaderManager.getInstance(this);
         mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
@@ -230,6 +230,11 @@ public class MainFragment extends BrowseSupportFragment
             setBadgeDrawable(
                     getActivity().getResources().getDrawable(R.drawable.mythtv_320x180_icon, null));
 //        setTitle(getString(R.string.browse_title)); // Badge, when set, takes precedent over title
+//        String title;
+//        if ("~All~".equals(mBaseName))
+//            title = "All\t";
+//        else
+//            title = mBaseName;
         setTitle(mBaseName);
         showTitle(TitleViewAdapter.FULL_VIEW_VISIBLE);
         setHeadersState(HEADERS_ENABLED);
@@ -350,11 +355,24 @@ public class MainFragment extends BrowseSupportFragment
             String currentItem = null;
             int selectedRow = -1;
             int selectedItem = -1;
+            int allRow = -1;
             if (loaderId == CATEGORY_LOADER) {
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
                 ArrayObjectAdapter objectAdapter = null;
+                ArrayObjectAdapter allObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
+
+                // Create row for "All\t"
+                if (mType == TYPE_TOPLEVEL) {
+                    MyHeaderItem header = new MyHeaderItem(getString(R.string.all_plus_tab),
+                            TYPE_RECGROUP);
+                    allObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
+                    ListRow row = new ListRow(header, allObjectAdapter);
+                    row.setContentDescription(getString(R.string.all_plus_tab));
+                    mCategoryRowAdapter.add(row);
+                    allRow = mCategoryRowAdapter.size() - 1;
+                }
 
                 // Iterate through each category entry and add it to the ArrayAdapter.
                 while (cursorHasData && !data.isAfterLast()) {
@@ -367,7 +385,7 @@ public class MainFragment extends BrowseSupportFragment
                     if (mType == TYPE_RECGROUP) {
                         categoryIndex =
                                 data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
-                        if (!"All".equals(mBaseName)) {
+                        if (!getString(R.string.all_plus_tab).equals(mBaseName)) {
                             int recgroupIndex =
                                     data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
                             String recgroup = data.getString(recgroupIndex);
@@ -430,6 +448,8 @@ public class MainFragment extends BrowseSupportFragment
                     Video video = (Video) videoCursorAdapter.get(data.getPosition());
                     video.type = itemType;
                     objectAdapter.add(video);
+                    if (allObjectAdapter != null)
+                        allObjectAdapter.add(video);
 //                    videoCursorAdapter.changeCursor(data);
 
 //                        // Start loading the videos from the database for a particular category.
@@ -457,8 +477,8 @@ public class MainFragment extends BrowseSupportFragment
                 // Create a row for this special case with more samples.
                 MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
                         TYPE_SETTINGS);
-                GridItemPresenter gridPresenter = new GridItemPresenter(this);
-                ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(gridPresenter);
+                CardPresenter presenter = new CardPresenter();
+                ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(presenter);
 //                if (cursorHasData)
 //                    gridRowAdapter.add(getString(R.string.grid_view));
 //                gridRowAdapter.add(getString(R.string.guidedstep_first_title));

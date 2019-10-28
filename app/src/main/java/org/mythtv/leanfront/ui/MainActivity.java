@@ -21,8 +21,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
 
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.fragment.app.Fragment;
 
 import org.mythtv.leanfront.R;
 
@@ -32,6 +34,7 @@ import org.mythtv.leanfront.R;
 public class MainActivity extends LeanbackActivity {
 
     static Context context = null;
+    MainFragment mainFragment = null;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +46,12 @@ public class MainActivity extends LeanbackActivity {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
         }
+        Fragment fragment =
+                getSupportFragmentManager().findFragmentByTag("main");
+        if (fragment instanceof MainFragment) {
+            mainFragment = (MainFragment) fragment;
+        }
+
 
     }
     static public Context getContext(){

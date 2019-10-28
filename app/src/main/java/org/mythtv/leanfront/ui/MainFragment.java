@@ -127,11 +127,13 @@ public class MainFragment extends BrowseSupportFragment
         mType = intent.getIntExtra(KEY_TYPE,TYPE_TOPLEVEL);
         if (mType != TYPE_TOPLEVEL) {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
+            mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
+//            mSelectedItemName = null;
         }
-        if (savedInstanceState != null) {
-            mSelectedRowName = savedInstanceState.getString(KEY_ROWNAME);
-            mSelectedItemName = savedInstanceState.getString(KEY_ITEMNAME);
-        }
+//        if (savedInstanceState != null) {
+//            mSelectedRowName = savedInstanceState.getString(KEY_ROWNAME);
+//            mSelectedItemName = savedInstanceState.getString(KEY_ITEMNAME);
+//        }
         // TESTING TESTING 2 LINES
 //        mType = TYPE_RECGROUP;
 //        mBaseName = "All";
@@ -346,6 +348,8 @@ public class MainFragment extends BrowseSupportFragment
             boolean cursorHasData = data.moveToFirst();
             String currentCategory = null;
             String currentItem = null;
+            int selectedRow = -1;
+            int selectedItem = -1;
             if (loaderId == CATEGORY_LOADER) {
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
@@ -403,6 +407,8 @@ public class MainFragment extends BrowseSupportFragment
                             ListRow row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
+                            if (selectedRow == -1 && currentCategory.equals(mSelectedRowName))
+                                selectedRow = mCategoryRowAdapter.size() - 1;
                         }
                         objectAdapter = new ArrayObjectAdapter(new CardPresenter());
                         currentCategory = category;
@@ -444,6 +450,8 @@ public class MainFragment extends BrowseSupportFragment
                             TYPE_RECGROUP);
                     ListRow row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
+                    if (selectedRow == -1 && currentCategory.equals(mSelectedRowName))
+                        selectedRow = mCategoryRowAdapter.size() - 1;
                 }
 
                 // Create a row for this special case with more samples.
@@ -458,6 +466,14 @@ public class MainFragment extends BrowseSupportFragment
 //                gridRowAdapter.add(getString(R.string.personal_settings));
                 ListRow row = new ListRow(gridHeader, gridRowAdapter);
                 mCategoryRowAdapter.add(row);
+
+//                if (mSelectedRow != -1 && mSelectedItem != -1) {
+//                    getRowsSupportFragment().setSelectedPosition(mSelectedRow, false,
+//                            new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
+//                }
+
+                if (selectedRow > -1)
+                    setSelectedPosition(selectedRow);
 
                 startEntranceTransition(); // TODO: Move startEntranceTransition to after all
                 // cursors have loaded.
@@ -515,44 +531,70 @@ public class MainFragment extends BrowseSupportFragment
 //                    .getRowViewHolder(mSelectedRow);
 //            mSelectedItem = selectedRow.getSelectedPosition();
 
-            if (item instanceof Video) {
-                Video video = (Video) item;
-                Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+//            if (item instanceof Video) {
+            ListItem li = (ListItem) item;
+            int liType = li.getItemType();
+            Context context = getActivity();
+            Bundle bundle;
+            switch (liType) {
+                case TYPE_EPISODE:
+                case TYPE_VIDEO:
+                    Video video = (Video) item;
+                    Intent intent = new Intent(context, VideoDetailsActivity.class);
+                    intent.putExtra(VideoDetailsActivity.VIDEO, video);
 
-                Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        getActivity(),
-                        ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                        VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
-                getActivity().startActivity(intent, bundle);
-            } else if (item instanceof String) {
-                if (((String) item).contains(getString(R.string.grid_view))) {
-                    Intent intent = new Intent(getActivity(), VerticalGridActivity.class);
-                    Bundle bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
+                    bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                            getActivity(),
+                            ((ImageCardView) itemViewHolder.view).getMainImageView(),
+                            VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
+                    getActivity().startActivity(intent, bundle);
+                    break;
+                case TYPE_SERIES:
+                    MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
+                    if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
+                        intent = new Intent(context, SettingsActivity.class);
+                    else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP) {
+                        intent = new Intent(context, MainActivity.class);
+                        intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                        intent.putExtra(KEY_BASENAME,headerItem.getName());
+                        intent.putExtra(KEY_ROWNAME,((Video)li).title);
+                    }
+                    else
+                        return;
+                    bundle =
+                            ActivityOptionsCompat.makeSceneTransitionAnimation((LeanbackActivity)context)
                                     .toBundle();
-                    startActivity(intent, bundle);
-                } else if (((String) item).contains(getString(R.string.guidedstep_first_title))) {
-                    Intent intent = new Intent(getActivity(), GuidedStepActivity.class);
-                    Bundle bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
-                                    .toBundle();
-                    startActivity(intent, bundle);
-                } else if (((String) item).contains(getString(R.string.error_fragment))) {
-                    BrowseErrorFragment errorFragment = new BrowseErrorFragment();
-                    getFragmentManager().beginTransaction().replace(R.id.main_frame, errorFragment)
-                            .addToBackStack(null).commit();
-                } else if(((String) item).contains(getString(R.string.personal_settings))) {
-                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
-                    Bundle bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
-                                    .toBundle();
-                    startActivity(intent, bundle);
-                } else {
-                    Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT)
-                            .show();
-                }
+                    context.startActivity(intent, bundle);
+                    break;
             }
+//            } else if (item instanceof String) {
+//                if (((String) item).contains(getString(R.string.grid_view))) {
+//                    Intent intent = new Intent(getActivity(), VerticalGridActivity.class);
+//                    Bundle bundle =
+//                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
+//                                    .toBundle();
+//                    startActivity(intent, bundle);
+//                } else if (((String) item).contains(getString(R.string.guidedstep_first_title))) {
+//                    Intent intent = new Intent(getActivity(), GuidedStepActivity.class);
+//                    Bundle bundle =
+//                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
+//                                    .toBundle();
+//                    startActivity(intent, bundle);
+//                } else if (((String) item).contains(getString(R.string.error_fragment))) {
+//                    BrowseErrorFragment errorFragment = new BrowseErrorFragment();
+//                    getFragmentManager().beginTransaction().replace(R.id.main_frame, errorFragment)
+//                            .addToBackStack(null).commit();
+//                } else if(((String) item).contains(getString(R.string.personal_settings))) {
+//                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
+//                    Bundle bundle =
+//                            ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity())
+//                                    .toBundle();
+//                    startActivity(intent, bundle);
+//                } else {
+//                    Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT)
+//                            .show();
+//                }
+//            }
         }
     }
 

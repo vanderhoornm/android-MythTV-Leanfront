@@ -32,6 +32,22 @@
             android:entries="@array/pref_bookmark_labels"
             android:entryValues="@array/pref_bookmark_values"
             android:key="pref_bookmark"
-            android:title="Bookmark Strategy" />
+            android:title="@string/pref_title_bookmark_strategy" />
+        <EditTextPreference
+            android:defaultValue="60"
+            android:inputType="number"
+            android:key="pref_skip_fwd"
+            android:numeric="integer"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_skip_fwd" />
+        <EditTextPreference
+            android:defaultValue="20"
+            android:inputType="number"
+            android:key="pref_skip_back"
+            android:numeric="integer"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_skip_back" />
     </PreferenceCategory>
 </PreferenceScreen>

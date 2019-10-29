@@ -130,4 +130,7 @@
     <string name="pref_bookmark_local">Locally Saved</string>
     <string name="pref_bookmark_auto">MythTV or Local</string>
     <string name="all_plus_tab">All&#9;</string>
+    <string name="pref_title_bookmark_strategy">Bookmark Strategy</string>
+    <string name="pref_title_skip_fwd">Skip Forward Sec</string>
+    <string name="pref_title_skip_back">Skip Back Sec</string>
 </resources>

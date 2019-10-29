@@ -193,20 +193,20 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onPause() {
-        mSelectedRow = getSelectedPosition();
-        ListRow selectedRow = (ListRow)mCategoryRowAdapter.get(mSelectedRow);
-        ListItem headerItem = (ListItem)selectedRow.getHeaderItem();
-        mSelectedRowName = headerItem.getName();
-        mSelectedRowType = headerItem.getItemType();
-        ListRowPresenter.ViewHolder selectedViewHolder
-                = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
-                .getRowViewHolder(mSelectedRow);
-        mSelectedItem = selectedViewHolder.getSelectedPosition();
-        if (mSelectedItem >= 0) {
-            ObjectAdapter itemAdapter = selectedRow.getAdapter();
-            mSelectedItemName = ((ListItem) itemAdapter.get(mSelectedItem)).getName();
-            mSelectedItemType = ((ListItem) itemAdapter.get(mSelectedItem)).getItemType();
-        }
+//        mSelectedRow = getSelectedPosition();
+//        ListRow selectedRow = (ListRow)mCategoryRowAdapter.get(mSelectedRow);
+//        ListItem headerItem = (ListItem)selectedRow.getHeaderItem();
+//        mSelectedRowName = headerItem.getName();
+//        mSelectedRowType = headerItem.getItemType();
+//        ListRowPresenter.ViewHolder selectedViewHolder
+//                = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+//                .getRowViewHolder(mSelectedRow);
+//        mSelectedItem = selectedViewHolder.getSelectedPosition();
+//        if (mSelectedItem >= 0) {
+//            ObjectAdapter itemAdapter = selectedRow.getAdapter();
+//            mSelectedItemName = ((ListItem) itemAdapter.get(mSelectedItem)).getName();
+//            mSelectedItemType = ((ListItem) itemAdapter.get(mSelectedItem)).getItemType();
+//        }
         super.onPause();
     }
 

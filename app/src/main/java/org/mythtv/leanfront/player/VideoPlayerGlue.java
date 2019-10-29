@@ -17,6 +17,9 @@
 package org.mythtv.leanfront.player;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -67,6 +70,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.SkipNextAction mSkipNextAction;
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
+    private int mSkipFwd = 60000;
+    private int mSkipBack = 20000;
 
     public VideoPlayerGlue(
             Context context,
@@ -86,6 +91,13 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mThumbsDownAction = new PlaybackControlsRow.ThumbsDownAction(context);
         mThumbsDownAction.setIndex(PlaybackControlsRow.ThumbsDownAction.INDEX_OUTLINE);
         mRepeatAction = new PlaybackControlsRow.RepeatAction(context);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        try {
+            mSkipFwd = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_fwd", "60"));
+            mSkipBack = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_back", "20"));
+        } catch (NumberFormatException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -167,7 +179,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     /** Skips backwards 10 seconds. */
     public void rewind() {
-        long newPosition = getCurrentPosition() - TEN_SECONDS;
+        long newPosition = getCurrentPosition() - mSkipBack;
         newPosition = (newPosition < 0) ? 0 : newPosition;
         getPlayerAdapter().seekTo(newPosition);
     }
@@ -175,7 +187,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     /** Skips forward 10 seconds. */
     public void fastForward() {
         if (getDuration() > -1) {
-            long newPosition = getCurrentPosition() + TEN_SECONDS;
+            long newPosition = getCurrentPosition() + mSkipFwd;
             newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
             getPlayerAdapter().seekTo(newPosition);
         }

@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -33,12 +34,13 @@ import org.mythtv.leanfront.R;
  */
 public class MainActivity extends LeanbackActivity {
 
-    static Context context = null;
+    static MainActivity context = null;
     MainFragment mainFragment = null;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
         if (context == null)
             context = this;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -51,10 +53,19 @@ public class MainActivity extends LeanbackActivity {
         if (fragment instanceof MainFragment) {
             mainFragment = (MainFragment) fragment;
         }
-
-
     }
-    static public Context getContext(){
+    static public MainActivity getContext(){
         return context;
     }
+
+    public MainFragment getMainFragment(){
+        return mainFragment;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        context = null;
+    }
+
 }

@@ -28,6 +28,7 @@ import androidx.preference.PreferenceManager;
 import org.mythtv.leanfront.R;
 
 import org.json.JSONException;
+import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -73,6 +74,16 @@ public class FetchVideoService extends IntentService {
         } catch (IOException | XmlPullParserException e) {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
+        }
+        MainActivity main = MainActivity.getContext();
+        if (main != null) {
+            main.runOnUiThread(new Runnable() {
+                public void run() {
+                    MainActivity main = MainActivity.getContext();
+                    if (main != null)
+                        main.getMainFragment().startLoader();
+                }
+            });
         }
     }
 }

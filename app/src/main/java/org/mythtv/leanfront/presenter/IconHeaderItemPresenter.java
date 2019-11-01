@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.presenter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -96,7 +97,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
     private class MyListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Context context = MainActivity.getContext();
+            Context context = v.getContext();
             Intent intent;
             if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
                 intent = new Intent(context, SettingsActivity.class);
@@ -108,7 +109,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             else
                 return;
             Bundle bundle =
-                    ActivityOptionsCompat.makeSceneTransitionAnimation((LeanbackActivity)context)
+                    ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
                             .toBundle();
             context.startActivity(intent, bundle);
         }

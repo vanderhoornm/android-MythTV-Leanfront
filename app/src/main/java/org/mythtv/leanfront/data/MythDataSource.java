@@ -26,6 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+// This uses the myth api to read files.
+// It is currently unused as we are using http to read recording files
+
 public class MythDataSource extends BaseDataSource implements DataSource {
 
     DefaultDataSource defSrc;

@@ -76,8 +76,7 @@ import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
-import static org.mythtv.leanfront.ui.PlaybackFragment.VideoLoaderCallbacks.RELATED_VIDEOS_LOADER;
+
 
 /**
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
@@ -248,7 +247,7 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
-        getLoaderManager().initLoader(RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
+        getLoaderManager().initLoader(VideoLoaderCallbacks.RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
         return videoCursorAdapter;
     }
@@ -381,7 +380,7 @@ public class PlaybackFragment extends VideoSupportFragment {
                 String pref = sharedPreferences.getString("pref_bookmark","auto");
                 if ("auto".equals(pref) || "mythtv".equals(pref)) {
                     // store a mythtv bookmark
-                    String bkmrkUrl = mythApiUrl(
+                    String bkmrkUrl = XmlNode.mythApiUrl(
                             "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
                                     + mVideo.recordedid + "&Offset=" + mBookmark);
                     XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl, "POST");
@@ -420,6 +419,7 @@ public class PlaybackFragment extends VideoSupportFragment {
                     db.close();
                 }
             } catch (IOException | XmlPullParserException e) {
+                e.printStackTrace();
             }
             return null;
         }

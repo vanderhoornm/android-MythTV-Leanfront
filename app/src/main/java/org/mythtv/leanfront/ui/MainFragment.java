@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -41,6 +42,9 @@ import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.widget.TitleViewAdapter;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
@@ -56,6 +60,7 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.FetchVideoService;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.ListItem;
 import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.model.Video;
@@ -64,6 +69,15 @@ import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.GridItemPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
 import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /*
  * Main class to show BrowseFragment with header and rows of videos
@@ -105,15 +119,13 @@ public class MainFragment extends BrowseSupportFragment
     // mBase is the current recgroup or directory being displayed.
     private String mBaseName;
     private String mSelectedRowName;
-    private int mSelectedRowType;
-    private String mSelectedItemName;
-    private int mSelectedItemType;
 
     // Maps a Loader Id to its CursorObjectAdapter.
 //    private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
-
-    private boolean mFetchStarted = false;
     private boolean mLoadStarted = false;
+
+    private static ScheduledExecutorService executor = null;
+    private KeepMythAwake mythTask = new KeepMythAwake();
 
     @Override
     public void onAttach(Context context) {
@@ -125,9 +137,12 @@ public class MainFragment extends BrowseSupportFragment
         super.onCreate(savedInstanceState);
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE,TYPE_TOPLEVEL);
-        if (mType != TYPE_TOPLEVEL) {
+        if (mType == TYPE_TOPLEVEL) {
+            startFetch();
+        } else {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
+            startLoader();
 //            mSelectedItemName = null;
         }
 //        if (savedInstanceState != null) {
@@ -138,9 +153,23 @@ public class MainFragment extends BrowseSupportFragment
 //        mType = TYPE_RECGROUP;
 //        mBaseName = "All\t";
         // Start loading the categories from the database.
-        mLoaderManager = LoaderManager.getInstance(this);
-        mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
-        mLoadStarted = true;
+    }
+
+
+    public void startFetch() {
+        // Start an Intent to fetch the videos.
+        Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+        getActivity().startService(serviceIntent);
+//        mFetchStarted = true;
+//        mLoadStarted = false;
+    }
+
+    public void startLoader() {
+        if (!mLoadStarted) {
+            mLoaderManager = LoaderManager.getInstance(this);
+            mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
+            mLoadStarted = true;
+        }
     }
 
     @Override
@@ -167,18 +196,15 @@ public class MainFragment extends BrowseSupportFragment
     public void onDestroy() {
         mHandler.removeCallbacks(mBackgroundTask);
         mBackgroundManager = null;
+        if (executor != null)
+            executor.shutdownNow();
+        executor = null;
         super.onDestroy();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        // failed attempt to make back button smoother
-//        if (isVisible()) {
-//            FragmentTransaction ft = getFragmentManager().beginTransaction();
-//            ft.hide(this);
-//            ft.commit();
-//        }
     }
 
     @Override
@@ -189,6 +215,10 @@ public class MainFragment extends BrowseSupportFragment
 //                    new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
 //        }
         startBackgroundTimer();
+        if (executor == null) {
+            executor = Executors.newScheduledThreadPool(1);
+            executor.scheduleAtFixedRate(mythTask,0,240, TimeUnit.SECONDS);
+        }
     }
 
     @Override
@@ -348,6 +378,9 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        // the mLoadStarted check is needed becuase for some reason onLoadFinished
+        // gets called every time the screen goes intio the BG and this causes
+        // the current slection and focus to be lost.
         if (data != null && mLoadStarted) {
             final int loaderId = loader.getId();
             boolean cursorHasData = data.moveToFirst();
@@ -497,12 +530,13 @@ public class MainFragment extends BrowseSupportFragment
 
                 startEntranceTransition(); // TODO: Move startEntranceTransition to after all
                 // cursors have loaded.
-                mLoadStarted = false;
+//                mLoadStarted = false;
             }
 //            else {
 //                // The CursorAdapter contains a Cursor pointing to all videos.
 //                mVideoCursorAdapters.get(loaderId).changeCursor(data);
 //            }
+            mLoadStarted = false;
         }
 //        else {
 //            // Every time we have to re-get the category loader, we must re-create the sidebar.
@@ -510,13 +544,13 @@ public class MainFragment extends BrowseSupportFragment
 //
 //        }
 //        else {
-        if (!mFetchStarted) {
-            // Start an Intent to fetch the videos.
-            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
-            getActivity().startService(serviceIntent);
-            mFetchStarted = true;
-            mLoadStarted = false;
-        }
+//        if (!mFetchStarted) {
+//            // Start an Intent to fetch the videos.
+//            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+//            getActivity().startService(serviceIntent);
+//            mFetchStarted = true;
+//            mLoadStarted = false;
+//        }
 
     }
 
@@ -554,7 +588,7 @@ public class MainFragment extends BrowseSupportFragment
 //            if (item instanceof Video) {
             ListItem li = (ListItem) item;
             int liType = li.getItemType();
-            Context context = getActivity();
+            Activity context = getActivity();
             Bundle bundle;
             switch (liType) {
                 case TYPE_EPISODE:
@@ -564,7 +598,7 @@ public class MainFragment extends BrowseSupportFragment
                     intent.putExtra(VideoDetailsActivity.VIDEO, video);
 
                     bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            getActivity(),
+                            (Activity)context,
                             ((ImageCardView) itemViewHolder.view).getMainImageView(),
                             VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
                     getActivity().startActivity(intent, bundle);
@@ -582,7 +616,7 @@ public class MainFragment extends BrowseSupportFragment
                     else
                         return;
                     bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation((LeanbackActivity)context)
+                            ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
                                     .toBundle();
                     context.startActivity(intent, bundle);
                     break;
@@ -629,4 +663,88 @@ public class MainFragment extends BrowseSupportFragment
 
         }
     }
+
+    private static class KeepMythAwake implements Runnable{
+        boolean mVersionMessageShown = false;
+        @Override
+        public void run() {
+            boolean connection = false;
+            boolean connectionfail = false;
+            while (!connection) {
+                int toastMsg = 0;
+                int toastLeng = 0;
+                try {
+                    if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
+                            == Lifecycle.State.CREATED) {
+                        // process is now in the background
+                        // leave the executor running but skip keepalive while in BG
+                        //                    executor.shutdownNow();
+                        //                    executor = null;
+                        return;
+                    }
+                    String result = null;
+                    String url = XmlNode.mythApiUrl(
+                            "/Myth/DelayShutdown");
+                    XmlNode bkmrkData = XmlNode.fetch(url, "POST");
+                    result = bkmrkData.getString();
+                    connection = true;
+                } catch (SocketException e) {
+                    toastMsg = R.string.msg_no_connection;
+                    toastLeng = Toast.LENGTH_LONG;
+                    connectionfail = true;
+                } catch (FileNotFoundException e) {
+                    if (!mVersionMessageShown) {
+                        if (!mVersionMessageShown) {
+                            toastMsg = R.string.msg_no_delayshutdown;
+                            toastLeng = Toast.LENGTH_LONG;
+                            mVersionMessageShown = true;
+                        }
+                        connection = true;
+                    }
+                } catch (IOException | XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+                if (toastMsg != 0) {
+                    Activity activity = MainActivity.getContext();
+                    if (activity == null)
+                        return;
+                    ToastShower toastShower = new ToastShower(activity, toastMsg, toastLeng);
+                    activity.runOnUiThread(toastShower);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e2) {
+                    }
+                }
+            }
+            if (connectionfail) {
+                Activity activity = MainActivity.getContext();
+                if (activity == null)
+                    return;
+                activity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        MainActivity.getContext().getMainFragment().startFetch();
+                    }
+                });
+            }
+        }
+    }
+    private static class ToastShower implements Runnable {
+
+        private Activity activity;
+        private int toastMsg;
+        private int toastLeng;
+
+        public ToastShower(Activity activity, int toastMsg, int toastLeng) {
+            this.activity = activity;
+            this.toastMsg = toastMsg;
+            this.toastLeng = toastLeng;
+        }
+        public void run() {
+            // show toast here
+            Toast.makeText(activity,
+                    activity.getString(toastMsg), toastLeng)
+                    .show();
+        }
+    }
+
 }

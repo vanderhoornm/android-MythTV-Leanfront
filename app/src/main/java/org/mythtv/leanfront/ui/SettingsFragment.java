@@ -91,10 +91,12 @@ public class SettingsFragment extends LeanbackSettingsFragment
         @Override
         public void onDestroy() {
             // Start an Intent to fetch the videos.
-            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
-            getActivity().startService(serviceIntent);
+//            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+//            getActivity().startService(serviceIntent);
+            MainActivity main = MainActivity.getContext();
+            if (main != null)
+                main.getMainFragment().startLoader();
             super.onDestroy();
         }
-
     }
 }

@@ -147,7 +147,8 @@ public class XmlNode {
     public String getString() { return text; }
 
     public static String mythApiUrl(String params) throws IOException, XmlPullParserException {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (MainActivity.getContext());
+        MainActivity main = MainActivity.getContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (main);
         String backend = prefs.getString("pref_backend", null);
         String port = prefs.getString("pref_http_port", "6544");
         String url = "http://" + backend + ":" + port;

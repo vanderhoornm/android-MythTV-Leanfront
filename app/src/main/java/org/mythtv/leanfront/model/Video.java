@@ -23,7 +23,7 @@ import android.os.Parcelable;
 import org.mythtv.leanfront.ui.MainFragment;
 
 /**
- * Video is an immutable object that holds the various metadata associated with a single video.
+ * Video is an object that holds the various metadata associated with a single video.
  */
 public final class Video implements Parcelable, ListItem {
     public final long id;
@@ -35,7 +35,7 @@ public final class Video implements Parcelable, ListItem {
     public final String videoUrl;
     public final String studio;
     public final String recordedid;
-    public final String recGroup;
+    public String recGroup;
     public int type;
 
     private Video(

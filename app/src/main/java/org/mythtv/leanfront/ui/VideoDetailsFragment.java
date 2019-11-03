@@ -80,8 +80,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
-
 
 /*
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
@@ -93,11 +91,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private static final int NO_NOTIFICATION = -1;
     private static final int ACTION_PLAY = 1;
     private static final int ACTION_RESUME = 2;
-    private static final int ACTION_RENT = 2;
-    private static final int ACTION_BUY = 3;
+    private static final int ACTION_DELETE = 3;
+    private static final int ACTION_UNDELETE = 4;
+    private static final int ACTION_REFRESH = 5;
 
     // ID for loader that loads related videos.
     private static final int RELATED_VIDEO_LOADER = 1;
+
+    // Parsing results of GetRecorded
+    private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
 
     // ID for loader that loads the video from global search.
     private int mGlobalSearchVideoId = 2;
@@ -135,7 +137,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             setupDetailsOverviewRow();
             setupMovieListRow();
             updateBackground(mSelectedVideo.bgImageUrl);
-            new AsyncGetBookmark().execute();
+            new AsyncBackendCall().execute(ACTION_REFRESH);
 
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -229,17 +231,25 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         detailsPresenter.setOnActionClickedListener(new OnActionClickedListener() {
             @Override
             public void onActionClicked(Action action) {
-                long id = action.getId();
+                int id = (int) action.getId();
                 long bookmark = 0;
-                if (id == ACTION_RESUME)
-                    bookmark = mBookmark;
-                if (id == ACTION_PLAY || id == ACTION_RESUME) {
-                    Intent intent = new Intent(getActivity(), PlaybackActivity.class);
-                    intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
-                    intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
-                    startActivityForResult(intent, ACTION_PLAY);
-                } else {
-                    Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
+                switch (id) {
+                    case ACTION_RESUME:
+                        bookmark = mBookmark;
+                    case ACTION_PLAY:
+                        Intent intent = new Intent(getActivity(), PlaybackActivity.class);
+                        intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
+                        intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
+                        startActivityForResult(intent, ACTION_PLAY);
+                        break;
+                    case ACTION_DELETE:
+                        new AsyncBackendCall().execute(ACTION_DELETE, ACTION_REFRESH);
+                        break;
+                    case ACTION_UNDELETE:
+                        new AsyncBackendCall().execute(ACTION_UNDELETE, ACTION_REFRESH);
+                        break;
+                    default:
+                        Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -256,7 +266,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                   int resultCode,
                                   Intent intent) {
         if (requestCode == ACTION_PLAY)
-            new AsyncGetBookmark().execute();
+            new AsyncBackendCall().execute(ACTION_REFRESH);
     }
 
     @Override
@@ -305,7 +315,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     setupDetailsOverviewRow();
                     setupMovieListRow();
                     updateBackground(mSelectedVideo.bgImageUrl);
-                    new AsyncGetBookmark().execute();
+                    new AsyncBackendCall().execute(ACTION_REFRESH);
 
                     // When a Related Video item is clicked.
                     setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -425,73 +435,112 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
 
-    private class AsyncGetBookmark extends AsyncTask<Void, Void, Void> {
+    private class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
-        protected Void doInBackground(Void ... dummy) {
-            mBookmark = 0;
-            try {
-                Context context = MainActivity.getContext();
-                SharedPreferences sharedPreferences
-                        = PreferenceManager.getDefaultSharedPreferences(context);
-                String pref = sharedPreferences.getString("pref_bookmark","auto");
-                if ("auto".equals(pref) || "mythtv".equals(pref)) {
-                    // look for a mythtv bookmark
-                    String bkmrkUrl = mythApiUrl(
-                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
-                                + mSelectedVideo.recordedid);
-                    XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl, null);
-                    mBookmark = Long.parseLong(bkmrkData.getString());
-                    // sanity check bookmark - between 0 and 24 hrs.
-                    // note -1 means a bookmark but no seek table
-                    // older version of service returns garbage value when there is
-                    // no seek table.
-                    if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
-                        mBookmark = -1;
-                }
-                if (mBookmark <= 0 && "auto".equals(pref)
-                    || "local".equals(pref)) {
-                    // default to none
-                    mBookmark = 0;
-                    // Look for a local bookmark
-                    VideoDbHelper dbh = new VideoDbHelper(context);
-                    SQLiteDatabase db = dbh.getReadableDatabase();
+        protected Void doInBackground(Integer ... tasks) {
+            for (int count = 0; count < tasks.length; count++) {
+                int task = tasks[count];
+                switch (task) {
+                    case ACTION_REFRESH:
+                        mBookmark = 0;
+                        try {
+                            Context context = MainActivity.getContext();
+                            SharedPreferences sharedPreferences
+                                    = PreferenceManager.getDefaultSharedPreferences(context);
+                            String pref = sharedPreferences.getString("pref_bookmark", "auto");
+                            if ("auto".equals(pref) || "mythtv".equals(pref)) {
+                                // look for a mythtv bookmark
+                                String url = XmlNode.mythApiUrl(
+                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mSelectedVideo.recordedid);
+                                XmlNode bkmrkData = XmlNode.fetch(url, null);
+                                mBookmark = Long.parseLong(bkmrkData.getString());
+                                // sanity check bookmark - between 0 and 24 hrs.
+                                // note -1 means a bookmark but no seek table
+                                // older version of service returns garbage value when there is
+                                // no seek table.
+                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
+                                    mBookmark = -1;
+                            }
+                            if (mBookmark <= 0 && "auto".equals(pref)
+                                    || "local".equals(pref)) {
+                                // default to none
+                                mBookmark = 0;
+                                // Look for a local bookmark
+                                VideoDbHelper dbh = new VideoDbHelper(context);
+                                SQLiteDatabase db = dbh.getReadableDatabase();
 
-                    // Define a projection that specifies which columns from the database
-                    // you will actually use after this query.
-                    String[] projection = {
-                        VideoContract.StatusEntry._ID,
-                        VideoContract.StatusEntry.COLUMN_VIDEO_URL,
-                        VideoContract.StatusEntry.COLUMN_LAST_USED,
-                        VideoContract.StatusEntry.COLUMN_BOOKMARK
-                    };
+                                // Define a projection that specifies which columns from the database
+                                // you will actually use after this query.
+                                String[] projection = {
+                                        VideoContract.StatusEntry._ID,
+                                        VideoContract.StatusEntry.COLUMN_VIDEO_URL,
+                                        VideoContract.StatusEntry.COLUMN_LAST_USED,
+                                        VideoContract.StatusEntry.COLUMN_BOOKMARK
+                                };
 
-                    // Filter results
-                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                    String[] selectionArgs = { mSelectedVideo.videoUrl };
+                                // Filter results
+                                String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                                String[] selectionArgs = {mSelectedVideo.videoUrl};
 
-                    Cursor cursor = db.query(
-                        VideoContract.StatusEntry.TABLE_NAME,   // The table to query
-                        projection,             // The array of columns to return (pass null to get all)
-                        selection,              // The columns for the WHERE clause
-                        selectionArgs,          // The values for the WHERE clause
-                        null,                   // don't group the rows
-                        null,                   // don't filter by row groups
-                        null               // The sort order
-                    );
+                                Cursor cursor = db.query(
+                                        VideoContract.StatusEntry.TABLE_NAME,   // The table to query
+                                        projection,             // The array of columns to return (pass null to get all)
+                                        selection,              // The columns for the WHERE clause
+                                        selectionArgs,          // The values for the WHERE clause
+                                        null,                   // don't group the rows
+                                        null,                   // don't filter by row groups
+                                        null               // The sort order
+                                );
 
-                    // We expect one or zero results, never more than one.
-                    if (cursor.moveToNext()) {
-                        int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
-                        if (colno >= 0) {
-                            mBookmark = cursor.getLong(colno);
+                                // We expect one or zero results, never more than one.
+                                if (cursor.moveToNext()) {
+                                    int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
+                                    if (colno >= 0) {
+                                        mBookmark = cursor.getLong(colno);
+                                    }
+                                }
+                                cursor.close();
+                                db.close();
+
+                            }
+                            // Find out rec group
+                            String url = XmlNode.mythApiUrl(
+                                    "/Dvr/GetRecorded?RecordedId="
+                                            + mSelectedVideo.recordedid);
+                            XmlNode recorded = XmlNode.fetch(url, null);
+                            mSelectedVideo.recGroup = recorded.getString(XMLTAGS_RECGROUP);
+
+                        } catch (IOException | XmlPullParserException e) {
+                            mBookmark = 0;
+                            e.printStackTrace();
                         }
-                    }
-                    cursor.close();
-                    db.close();
+                        break;
+                    case ACTION_DELETE:
+                        // Delete recording
+                        try {
+                            String url = XmlNode.mythApiUrl(
+                                    "/Dvr/DeleteRecording?RecordedId="
+                                            + mSelectedVideo.recordedid);
+                            XmlNode result = XmlNode.fetch(url, "POST");
+                        } catch (IOException | XmlPullParserException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case ACTION_UNDELETE:
+                        // UnDelete recording
+                        try {
+                            String url = XmlNode.mythApiUrl(
+                                    "/Dvr/UnDeleteRecording?RecordedId="
+                                            + mSelectedVideo.recordedid);
+                            XmlNode result = XmlNode.fetch(url, "POST");
+                        } catch (IOException | XmlPullParserException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    default:
+                        break;
                 }
-
-            } catch (IOException | XmlPullParserException e) {
-                mBookmark = 0;
             }
             return null;
         }
@@ -506,6 +555,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             mActionsAdapter.set(++i, new Action(ACTION_PLAY, getResources()
                     .getString(R.string.play_1),
                     getResources().getString(R.string.play_2)));
+            if ("Deleted".equals(mSelectedVideo.recGroup))
+                mActionsAdapter.set(++i, new Action(ACTION_UNDELETE, getResources()
+                        .getString(R.string.undelete_1),
+                        getResources().getString(R.string.undelete_2)));
+            else
+                mActionsAdapter.set(++i, new Action(ACTION_DELETE, getResources()
+                        .getString(R.string.delete_1),
+                        getResources().getString(R.string.delete_2)));
         }
 
     }

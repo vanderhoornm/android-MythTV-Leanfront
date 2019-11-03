@@ -413,15 +413,31 @@ public class MainFragment extends BrowseSupportFragment
                     int categoryIndex = -1;
                     int itemType = -1;
                     int rowType = -1;
+
+                    int recgroupIndex =
+                            data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+                    String recgroup = data.getString(recgroupIndex);
+                      // To prevent showing deleted uncomment this
+//                    if ("Deleted".equals(recgroup)) {
+//                        data.moveToNext();
+//                        continue;
+//                    }
+
                     // For Rec Group type, only use recordings from that recording group.
                     // categories are titles.
                     if (mType == TYPE_RECGROUP) {
                         categoryIndex =
                                 data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
-                        if (!getString(R.string.all_plus_tab).equals(mBaseName)) {
-                            int recgroupIndex =
-                                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
-                            String recgroup = data.getString(recgroupIndex);
+                        if (getString(R.string.all_plus_tab).equals(mBaseName)) {
+                            // Do not mix deleted episodes in the All group
+                            if ("Deleted".equals(recgroup)) {
+                                data.moveToNext();
+                                continue;
+                            }
+                        } else {
+//                            int recgroupIndex =
+//                                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+//                            String recgroup = data.getString(recgroupIndex);
                             if (!mBaseName.equals(recgroup)) {
                                 data.moveToNext();
                                 continue;

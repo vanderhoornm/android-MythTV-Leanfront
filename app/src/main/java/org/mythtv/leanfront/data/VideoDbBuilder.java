@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
-
 /**
  * The VideoDbBuilder is used to grab a XML file from a server and parse the data
  * to be placed into a local database
@@ -100,7 +98,7 @@ public class VideoDbBuilder {
 //        String backend = prefs.getString("pref_backend", null);
 //        String port = prefs.getString("pref_http_port", "6544");
 //        String baseUrl = "http://" + backend + ":" + port;
-        String baseUrl = mythApiUrl(null);
+        String baseUrl = XmlNode.mythApiUrl(null);
         String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.background;
         XmlNode programNode = null;
         for (;;) {
@@ -112,8 +110,8 @@ public class VideoDbBuilder {
                 break;
             XmlNode recordingNode = programNode.getNode(XMLTAG_RECORDING);
             String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
-            if ("Deleted".equals(recGroup))
-                continue;
+//            if ("Deleted".equals(recGroup))
+//                continue;
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
             if (subtitle == null || subtitle.length()==0)

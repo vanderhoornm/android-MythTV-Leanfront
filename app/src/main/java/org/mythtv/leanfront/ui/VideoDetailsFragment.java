@@ -440,6 +440,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         protected Void doInBackground(Integer ... tasks) {
             for (int count = 0; count < tasks.length; count++) {
                 int task = tasks[count];
+                MainActivity main = MainActivity.getContext();
                 switch (task) {
                     case ACTION_REFRESH:
                         mBookmark = 0;
@@ -523,6 +524,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                     "/Dvr/DeleteRecording?RecordedId="
                                             + mSelectedVideo.recordedid);
                             XmlNode result = XmlNode.fetch(url, "POST");
+                            if (main != null)
+                                main.getMainFragment().startFetch();
                         } catch (IOException | XmlPullParserException e) {
                             e.printStackTrace();
                         }
@@ -534,6 +537,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                     "/Dvr/UnDeleteRecording?RecordedId="
                                             + mSelectedVideo.recordedid);
                             XmlNode result = XmlNode.fetch(url, "POST");
+                            if (main != null)
+                                main.getMainFragment().startFetch();
                         } catch (IOException | XmlPullParserException e) {
                             e.printStackTrace();
                         }

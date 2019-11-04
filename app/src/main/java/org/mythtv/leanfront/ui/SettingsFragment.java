@@ -95,7 +95,7 @@ public class SettingsFragment extends LeanbackSettingsFragment
 //            getActivity().startService(serviceIntent);
             MainActivity main = MainActivity.getContext();
             if (main != null)
-                main.getMainFragment().startLoader();
+                main.getMainFragment().startFetch();
             super.onDestroy();
         }
     }

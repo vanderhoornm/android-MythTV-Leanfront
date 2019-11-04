@@ -125,7 +125,9 @@ public class MainFragment extends BrowseSupportFragment
     private boolean mLoadStarted = false;
 
     private static ScheduledExecutorService executor = null;
-    private KeepMythAwake mythTask = new KeepMythAwake();
+    private MythTask mythTask = new MythTask();
+    private long mLastLoadTime = 0;
+    public static long mLoadNeededTime = System.currentTimeMillis();
 
     @Override
     public void onAttach(Context context) {
@@ -136,15 +138,14 @@ public class MainFragment extends BrowseSupportFragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getActivity().getIntent();
-        mType = intent.getIntExtra(KEY_TYPE,TYPE_TOPLEVEL);
-        if (mType == TYPE_TOPLEVEL) {
-            startFetch();
-        } else {
+        mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
+        if (mType != TYPE_TOPLEVEL) {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
             startLoader();
-//            mSelectedItemName = null;
+            //            mSelectedItemName = null;
         }
+
 //        if (savedInstanceState != null) {
 //            mSelectedRowName = savedInstanceState.getString(KEY_ROWNAME);
 //            mSelectedItemName = savedInstanceState.getString(KEY_ITEMNAME);
@@ -156,6 +157,7 @@ public class MainFragment extends BrowseSupportFragment
     }
 
 
+    // Fetch video list from MythTV into local database
     public void startFetch() {
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
@@ -164,11 +166,16 @@ public class MainFragment extends BrowseSupportFragment
 //        mLoadStarted = false;
     }
 
+    // Load user interface from local database.
     public void startLoader() {
         if (!mLoadStarted) {
-            mLoaderManager = LoaderManager.getInstance(this);
-            mLoaderManager.initLoader(CATEGORY_LOADER, null, this);
-            mLoadStarted = true;
+            Lifecycle.State state = getLifecycle().getCurrentState();
+            if (state == Lifecycle.State.STARTED
+               || state == Lifecycle.State.RESUMED) {
+                mLoaderManager = LoaderManager.getInstance(this);
+                mLoaderManager.restartLoader(CATEGORY_LOADER, null, this);
+                mLoadStarted = true;
+            }
         }
     }
 
@@ -205,6 +212,10 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onStart() {
         super.onStart();
+        Lifecycle.State state = ProcessLifecycleOwner.get().getLifecycle().getCurrentState();
+        if (mType == TYPE_TOPLEVEL && state == Lifecycle.State.CREATED) {
+            startFetch();
+        }
     }
 
     @Override
@@ -219,6 +230,8 @@ public class MainFragment extends BrowseSupportFragment
             executor = Executors.newScheduledThreadPool(1);
             executor.scheduleAtFixedRate(mythTask,0,240, TimeUnit.SECONDS);
         }
+        if (mLastLoadTime < mLoadNeededTime)
+            startLoader();
     }
 
     @Override
@@ -553,6 +566,7 @@ public class MainFragment extends BrowseSupportFragment
 //                mVideoCursorAdapters.get(loaderId).changeCursor(data);
 //            }
             mLoadStarted = false;
+            mLastLoadTime = System.currentTimeMillis();
         }
 //        else {
 //            // Every time we have to re-get the category loader, we must re-create the sidebar.
@@ -680,7 +694,7 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
-    private static class KeepMythAwake implements Runnable{
+    private static class MythTask implements Runnable{
         boolean mVersionMessageShown = false;
         @Override
         public void run() {
@@ -701,6 +715,8 @@ public class MainFragment extends BrowseSupportFragment
                     String result = null;
                     String url = XmlNode.mythApiUrl(
                             "/Myth/DelayShutdown");
+                    if (url == null)
+                        return;
                     XmlNode bkmrkData = XmlNode.fetch(url, "POST");
                     result = bkmrkData.getString();
                     connection = true;

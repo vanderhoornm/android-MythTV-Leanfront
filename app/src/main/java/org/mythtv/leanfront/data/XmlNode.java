@@ -148,6 +148,8 @@ public class XmlNode {
 
     public static String mythApiUrl(String params) throws IOException, XmlPullParserException {
         MainActivity main = MainActivity.getContext();
+        if (main == null)
+            return null;
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (main);
         String backend = prefs.getString("pref_backend", null);
         String port = prefs.getString("pref_http_port", "6544");

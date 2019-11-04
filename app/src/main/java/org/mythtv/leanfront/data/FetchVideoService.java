@@ -29,6 +29,7 @@ import org.mythtv.leanfront.R;
 
 import org.json.JSONException;
 import org.mythtv.leanfront.ui.MainActivity;
+import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -54,36 +55,30 @@ public class FetchVideoService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
 
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
 
         try {
             // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
 //            String backend = prefs.getString("pref_backend", null);
 //            String port = prefs.getString("pref_http_port", "6544");
 //            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
-            String catalogUrl = mythApiUrl("/Dvr/GetRecordedList");
-            List<ContentValues> contentValuesList = builder.fetch(catalogUrl);
-            ContentValues[] downloadedVideoContentValues =
-                    contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-            VideoDbHelper dbh = new VideoDbHelper(this);
-            SQLiteDatabase db = dbh.getWritableDatabase();
-            db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-            db.close();
-            getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                    downloadedVideoContentValues);
+            String url = mythApiUrl("/Dvr/GetRecordedList");
+            if (url != null) {
+                List<ContentValues> contentValuesList = builder.fetch(url);
+                ContentValues[] downloadedVideoContentValues =
+                        contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                VideoDbHelper dbh = new VideoDbHelper(this);
+                SQLiteDatabase db = dbh.getWritableDatabase();
+                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+                db.close();
+                getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                        downloadedVideoContentValues);
+            }
         } catch (IOException | XmlPullParserException e) {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }
-        MainActivity main = MainActivity.getContext();
-        if (main != null) {
-            main.runOnUiThread(new Runnable() {
-                public void run() {
-                    MainActivity main = MainActivity.getContext();
-                    if (main != null)
-                        main.getMainFragment().startLoader();
-                }
-            });
-        }
+
+        MainFragment.mLoadNeededTime = System.currentTimeMillis();
     }
 }

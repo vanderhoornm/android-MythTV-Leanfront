@@ -28,6 +28,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
+import android.view.View;
 
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -266,6 +268,14 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     public void fastForward() {
         mPlayerGlue.fastForward();
+    }
+
+    public void jumpForward() {
+        mPlayerGlue.jumpForward();
+    }
+
+    public void jumpBack() {
+        mPlayerGlue.jumpBack();
     }
 
     /** Opens the video details page when a related video has been clicked. */

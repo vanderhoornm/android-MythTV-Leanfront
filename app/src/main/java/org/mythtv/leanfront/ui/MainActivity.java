@@ -68,6 +68,11 @@ public class MainActivity extends LeanbackActivity {
         context = null;
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
     static public void startMainLoader() {
         MainActivity main = getContext();
         if (main != null) {

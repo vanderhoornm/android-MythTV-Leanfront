@@ -63,13 +63,14 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     private final OnActionClickedListener mActionListener;
 
-    private PlaybackControlsRow.RepeatAction mRepeatAction;
-    private PlaybackControlsRow.ThumbsUpAction mThumbsUpAction;
-    private PlaybackControlsRow.ThumbsDownAction mThumbsDownAction;
+//    private PlaybackControlsRow.RepeatAction mRepeatAction;
+//    private PlaybackControlsRow.ThumbsUpAction mThumbsUpAction;
+//    private PlaybackControlsRow.ThumbsDownAction mThumbsDownAction;
     private PlaybackControlsRow.SkipPreviousAction mSkipPreviousAction;
     private PlaybackControlsRow.SkipNextAction mSkipNextAction;
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
+    private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
     private int mSkipFwd = 60000;
     private int mSkipBack = 20000;
 
@@ -86,11 +87,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mFastForwardAction = new PlaybackControlsRow.FastForwardAction(context);
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
 
-        mThumbsUpAction = new PlaybackControlsRow.ThumbsUpAction(context);
-        mThumbsUpAction.setIndex(PlaybackControlsRow.ThumbsUpAction.INDEX_OUTLINE);
-        mThumbsDownAction = new PlaybackControlsRow.ThumbsDownAction(context);
-        mThumbsDownAction.setIndex(PlaybackControlsRow.ThumbsDownAction.INDEX_OUTLINE);
-        mRepeatAction = new PlaybackControlsRow.RepeatAction(context);
+//        mThumbsUpAction = new PlaybackControlsRow.ThumbsUpAction(context);
+//        mThumbsUpAction.setIndex(PlaybackControlsRow.ThumbsUpAction.INDEX_OUTLINE);
+//        mThumbsDownAction = new PlaybackControlsRow.ThumbsDownAction(context);
+//        mThumbsDownAction.setIndex(PlaybackControlsRow.ThumbsDownAction.INDEX_OUTLINE);
+//        mRepeatAction = new PlaybackControlsRow.RepeatAction(context);
+        mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         try {
             mSkipFwd = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_fwd", "60"));
@@ -116,9 +118,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     protected void onCreateSecondaryActions(ArrayObjectAdapter adapter) {
         super.onCreateSecondaryActions(adapter);
-        adapter.add(mThumbsDownAction);
-        adapter.add(mThumbsUpAction);
-        adapter.add(mRepeatAction);
+//        adapter.add(mThumbsDownAction);
+//        adapter.add(mThumbsUpAction);
+//        adapter.add(mRepeatAction);
+        adapter.add(mClosedCaptioningAction);
     }
 
     @Override
@@ -135,9 +138,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         return action == mRewindAction
                 || action == mFastForwardAction
-                || action == mThumbsDownAction
-                || action == mThumbsUpAction
-                || action == mRepeatAction;
+//                || action == mThumbsDownAction
+//                || action == mThumbsUpAction
+//                || action == mRepeatAction;
+                || action == mClosedCaptioningAction;
     }
 
     private void dispatchAction(Action action) {
@@ -193,4 +197,19 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         }
     }
 
+    /** Jumps backwards 5 min. */
+    public void jumpBack() {
+        long newPosition = getCurrentPosition() - 5*60*1000;
+        newPosition = (newPosition < 0) ? 0 : newPosition;
+        getPlayerAdapter().seekTo(newPosition);
+    }
+
+    /** Jumps forward 5 min. */
+    public void jumpForward() {
+        if (getDuration() > -1) {
+            long newPosition = getCurrentPosition() + 5*60*1000;
+            newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
+            getPlayerAdapter().seekTo(newPosition);
+        }
+    }
 }

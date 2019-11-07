@@ -446,6 +446,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         mBookmark = 0;
                         try {
                             Context context = MainActivity.getContext();
+                            if (context == null)
+                                return null;
                             SharedPreferences sharedPreferences
                                     = PreferenceManager.getDefaultSharedPreferences(context);
                             String pref = sharedPreferences.getString("pref_bookmark", "auto");

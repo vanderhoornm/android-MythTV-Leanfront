@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
@@ -35,6 +36,8 @@ public class PlaybackActivity extends LeanbackActivity {
     private static final float GAMEPAD_TRIGGER_INTENSITY_OFF = 0.45f;
     private boolean gamepadTriggerPressed = false;
     private PlaybackFragment mPlaybackFragment;
+//    private long mArrowFFRewTime = 0;
+    private boolean mArrowFFRew = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,4 +90,72 @@ public class PlaybackActivity extends LeanbackActivity {
         }
         return super.onGenericMotionEvent(event);
     }
+
+    @SuppressLint("RestrictedApi")
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event){
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keycode = event.getKeyCode();
+            if (keycode == KeyEvent.KEYCODE_DPAD_CENTER && mArrowFFRew) {
+                mArrowFFRew = false;
+                return true;
+            }
+
+            if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                mPlaybackFragment.showControlsOverlay(true);
+                mPlaybackFragment.fastForward();
+                return true;
+            }
+            if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                    mArrowFFRew = true;
+                }
+                if (mArrowFFRew) {
+                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.fastForward();
+                    return true;
+                }
+            }
+
+            if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
+                mPlaybackFragment.showControlsOverlay(true);
+                mPlaybackFragment.rewind();
+                return true;
+            }
+            if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                    mArrowFFRew = true;
+                }
+                if (mArrowFFRew) {
+                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.rewind();
+                    return true;
+                }
+            }
+
+            if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                    mArrowFFRew = true;
+                }
+                if (mArrowFFRew) {
+                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.jumpBack();
+                    return true;
+                }
+            }
+
+            if (keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                    mArrowFFRew = true;
+                }
+                if (mArrowFFRew) {
+                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.jumpForward();
+                    return true;
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
 }

@@ -278,6 +278,15 @@ public class PlaybackFragment extends VideoSupportFragment {
         mPlayerGlue.jumpBack();
     }
 
+
+    @Override
+    // Overridden because the default tickle disables the fade timer.
+    public void tickle() {
+        setControlsOverlayAutoHideEnabled(false);
+        showControlsOverlay(true);
+        setControlsOverlayAutoHideEnabled(true);
+    }
+
     /** Opens the video details page when a related video has been clicked. */
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override

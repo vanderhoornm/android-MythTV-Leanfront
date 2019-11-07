@@ -102,7 +102,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.showControlsOverlay(true);
+                mPlaybackFragment.tickle();
                 mPlaybackFragment.fastForward();
                 return true;
             }
@@ -111,14 +111,14 @@ public class PlaybackActivity extends LeanbackActivity {
                     mArrowFFRew = true;
                 }
                 if (mArrowFFRew) {
-                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.tickle();
                     mPlaybackFragment.fastForward();
                     return true;
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.showControlsOverlay(true);
+                mPlaybackFragment.tickle();
                 mPlaybackFragment.rewind();
                 return true;
             }
@@ -127,7 +127,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     mArrowFFRew = true;
                 }
                 if (mArrowFFRew) {
-                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.tickle();
                     mPlaybackFragment.rewind();
                     return true;
                 }
@@ -138,7 +138,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     mArrowFFRew = true;
                 }
                 if (mArrowFFRew) {
-                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.tickle();
                     mPlaybackFragment.jumpBack();
                     return true;
                 }
@@ -149,7 +149,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     mArrowFFRew = true;
                 }
                 if (mArrowFFRew) {
-                    mPlaybackFragment.showControlsOverlay(true);
+                    mPlaybackFragment.tickle();
                     mPlaybackFragment.jumpForward();
                     return true;
                 }

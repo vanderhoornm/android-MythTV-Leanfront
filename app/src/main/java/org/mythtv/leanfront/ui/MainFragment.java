@@ -594,6 +594,10 @@ public class MainFragment extends BrowseSupportFragment
             mCategoryRowAdapter.clear();
     }
 
+    public int getType() {
+        return mType;
+    }
+
     private class UpdateBackgroundTask implements Runnable {
 
         @Override

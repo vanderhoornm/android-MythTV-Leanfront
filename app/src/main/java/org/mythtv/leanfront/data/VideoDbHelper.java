@@ -30,7 +30,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -46,7 +46,8 @@ public class VideoDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 0) {
+        if (oldVersion != newVersion) {
+            // On any upgrade just recreate this table
             db.execSQL("DROP TABLE IF EXISTS " + VideoEntry.TABLE_NAME);
             // Create a table to hold videos.
             // This table gets deleted and recreated periodically
@@ -57,7 +58,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_VIDEO_URL + " TEXT NOT NULL, " +
                     VideoEntry.COLUMN_DESC + " TEXT NOT NULL, " +
                     VideoEntry.COLUMN_BG_IMAGE_URL + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_STUDIO + " TEXT NOT NULL, " +
+                    VideoEntry.COLUMN_CHANNEL + " TEXT NOT NULL, " +
                     VideoEntry.COLUMN_CARD_IMG + " TEXT NOT NULL, " +
                     VideoEntry.COLUMN_CONTENT_TYPE + " TEXT NOT NULL, " +
                     VideoEntry.COLUMN_PRODUCTION_YEAR + " TEXT, " +
@@ -69,12 +70,15 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_STORAGEGROUP + " TEXT," +
                     VideoEntry.COLUMN_RECGROUP + " TEXT," +
                     VideoEntry.COLUMN_SEASON + " TEXT," +
-                    VideoEntry.COLUMN_EPISODE + " TEXT" +
+                    VideoEntry.COLUMN_EPISODE + " TEXT," +
+                    VideoEntry.COLUMN_PROGFLAGS + " TEXT" +
                     " );";
 
             // Do the creating of the table.
             db.execSQL(SQL_CREATE_VIDEO_TABLE);
-
+        }
+        // This table needs to be preserved. Use alter rather than recreating
+        if (oldVersion == 0) {
             db.execSQL("DROP TABLE IF EXISTS " + StatusEntry.TABLE_NAME);
             // videostatus table keeps bookmarks even when video table is reloaded.
             // LAST_USED column is datetime, used to delete entries older than a month.

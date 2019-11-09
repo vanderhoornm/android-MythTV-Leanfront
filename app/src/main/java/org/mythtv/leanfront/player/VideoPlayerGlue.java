@@ -53,12 +53,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     /** Listens for when skip to next and previous actions have been dispatched. */
     public interface OnActionClickedListener {
-
         /** Skip to the previous item in the queue. */
         void onPrevious();
-
         /** Skip to the next item in the queue. */
         void onNext();
+        void onPlayCompleted();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -211,5 +210,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
             getPlayerAdapter().seekTo(newPosition);
         }
+    }
+
+    @Override
+    protected void onPlayCompleted() {
+        mActionListener.onPlayCompleted();
+        super.onPlayCompleted();
     }
 }

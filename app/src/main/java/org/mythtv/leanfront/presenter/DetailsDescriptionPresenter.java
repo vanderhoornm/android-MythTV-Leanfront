@@ -20,6 +20,10 @@ import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
 import org.mythtv.leanfront.model.Video;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
 
     @Override
@@ -28,8 +32,43 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
 
         if (video != null) {
             viewHolder.getTitle().setText(video.title);
-            viewHolder.getSubtitle().setText(video.studio);
-            viewHolder.getBody().setText(video.description);
+            StringBuilder subtitle = new StringBuilder();
+            // possible characters for watched - "👁" "⏿" "👀"
+            int progflags = Integer.parseInt(video.progflags);
+            if ((progflags & video.FL_WATCHED) != 0)
+                subtitle.append("\uD83D\uDC41");
+            if (video.season != null && video.season.compareTo("0") > 0) {
+                subtitle.append('S').append(video.season).append('E').append(video.episode)
+                        .append(' ');
+            }
+            subtitle.append(video.subtitle);
+            viewHolder.getSubtitle().setText(subtitle);
+            StringBuilder description = new StringBuilder();
+
+            // 2018-05-23T00:00:00Z
+            try {
+                // Date Recorded
+                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+                Date date = dbFormat.parse(video.starttime);
+                DateFormat outFormat = DateFormat.getDateInstance();
+                String recDate = outFormat.format(date);
+                description.append(recDate);
+                // Length of recording
+                long duration = Long.parseLong(video.duration, 10);
+                duration = duration / 60000;
+                description.append(", " + duration + " minutes");
+                // Original Air date
+                dbFormat = new SimpleDateFormat("yyyy-MM-dd");
+                date = dbFormat.parse(video.airdate);
+                String origDate = outFormat.format(date);
+                if (!origDate.equals(recDate))
+                    description.append("   [" + outFormat.format(date) + "]");
+                description.append('\n');
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            description.append(video.description);
+            viewHolder.getBody().setText(description);
         }
     }
 }

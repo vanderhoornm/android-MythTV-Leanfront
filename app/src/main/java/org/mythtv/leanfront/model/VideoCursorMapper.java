@@ -33,9 +33,16 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int videoUrlIndex;
     private static int bgImageUrlIndex;
     private static int cardImageUrlIndex;
-    private static int studioIndex;
+    private static int channelIndex;
     private static int recordedidIndex;
     private static int recGroupIndex;
+    private static int seasonIndex;
+    private static int episodeIndex;
+    private static int airdateIndex;
+    private static int starttimeIndex;
+    private static int durationIndex;
+    private static int prodyearIndex;
+    private static int progflagsIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
@@ -46,9 +53,16 @@ public final class VideoCursorMapper extends CursorMapper {
         videoUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEO_URL);
         bgImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL);
         cardImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CARD_IMG);
-        studioIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STUDIO);
+        channelIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNEL);
         recordedidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECORDEDID);
         recGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+        seasonIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SEASON);
+        episodeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_EPISODE);
+        airdateIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
+        starttimeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
+        durationIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DURATION);
+        prodyearIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR);
+        progflagsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PROGFLAGS);
     }
 
     @Override
@@ -62,9 +76,17 @@ public final class VideoCursorMapper extends CursorMapper {
         String videoUrl = cursor.getString(videoUrlIndex);
         String bgImageUrl = cursor.getString(bgImageUrlIndex);
         String cardImageUrl = cursor.getString(cardImageUrlIndex);
-        String studio = cursor.getString(studioIndex);
+        String channel = cursor.getString(channelIndex);
         String recordedid = cursor.getString(recordedidIndex);
         String recGroup = cursor.getString(recGroupIndex);
+
+        String season = cursor.getString(seasonIndex);
+        String episode = cursor.getString(episodeIndex);
+        String airdate = cursor.getString(airdateIndex);
+        String starttime = cursor.getString(starttimeIndex);
+        String duration = cursor.getString(durationIndex);
+        String prodyear = cursor.getString(prodyearIndex);
+        String progflags = cursor.getString(progflagsIndex);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
@@ -75,9 +97,16 @@ public final class VideoCursorMapper extends CursorMapper {
                 .videoUrl(videoUrl)
                 .bgImageUrl(bgImageUrl)
                 .cardImageUrl(cardImageUrl)
-                .studio(studio)
+                .channel(channel)
                 .recordedid(recordedid)
                 .recGroup(recGroup)
+                .season(season)
+                .episode(episode)
+                .airdate(airdate)
+                .starttime(starttime)
+                .duration(duration)
+                .prodyear(prodyear)
+                .progflags(progflags)
                 .build();
     }
 }

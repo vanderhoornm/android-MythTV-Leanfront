@@ -24,24 +24,22 @@ import org.mythtv.leanfront.R;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * The VideoDbBuilder is used to grab a XML file from a server and parse the data
  * to be placed into a local database
  */
 public class VideoDbBuilder {
-    public static final String TAG_MEDIA = "videos";
-    public static final String TAG_GOOGLE_VIDEOS = "googlevideos";
-    public static final String TAG_CATEGORY = "category";
-    public static final String TAG_STUDIO = "studio";
-    public static final String TAG_SOURCES = "sources";
-    public static final String TAG_DESCRIPTION = "description";
-    public static final String TAG_TITLE = "title";
-
     private static final String[] XMLTAGS_PROGRAM = {"Programs","Program"};
     private static final String[] XMLTAGS_ARTINFO = {"Artwork","ArtworkInfos","ArtworkInfo"};
     private static final String[] XMLTAGS_CHANNELNAME = {"Channel","ChannelName"};
@@ -60,6 +58,9 @@ public class VideoDbBuilder {
     public static final String XMLTAG_SUBTITLE = "SubTitle";
     public static final String XMLTAG_STARTTIME = "StartTime";
     public static final String XMLTAG_AIRDATE = "Airdate";
+    public static final String XMLTAG_STARTTS = "StartTs";
+    public static final String XMLTAG_ENDTS = "EndTs";
+    public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
 
     private static final String TAG = "VideoDbBuilder";
 
@@ -114,8 +115,8 @@ public class VideoDbBuilder {
 //                continue;
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
-            if (subtitle == null || subtitle.length()==0)
-                subtitle = title;
+//            if (subtitle == null || subtitle.length()==0)
+//                subtitle = title;
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
             if (!filesOnServer.containsKey(storageGroup)) {
@@ -154,6 +155,19 @@ public class VideoDbBuilder {
             String channel = programNode.getString(XMLTAGS_CHANNELNAME);
             String airdate = programNode.getString(XMLTAG_AIRDATE);
             String starttime = programNode.getString(XMLTAG_STARTTIME);
+
+            // 2018-05-23T00:00:00Z
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+            String startTS = recordingNode.getString(XMLTAG_STARTTS);
+            String endTS = recordingNode.getString(XMLTAG_ENDTS);
+            long duration = 0;
+            try {
+                Date dateStart = format.parse(startTS);
+                Date dateEnd = format.parse(endTS);
+                duration = (dateEnd.getTime() - dateStart.getTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
             String prodYear = null;
             if (airdate != null)
                 prodYear = airdate.substring(0,4);
@@ -172,8 +186,9 @@ public class VideoDbBuilder {
                 cardImageURL = defaultImage;
 
             String recordedid = recordingNode.getString(XMLTAG_RECORDEDID);
-            String season = recordingNode.getString(XMLTAG_SEASON);
-            String episode = recordingNode.getString(XMLTAG_EPISODE);
+            String season = programNode.getString(XMLTAG_SEASON);
+            String episode = programNode.getString(XMLTAG_EPISODE);
+            String progflags = programNode.getString(XMLTAG_PROGFLAGS);
 
             if (title == null || title.length() == 0)
                 title = " ";
@@ -197,7 +212,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_STUDIO, channel);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channel);
             videoValues.put(VideoContract.VideoEntry.COLUMN_AIRDATE, airdate);
 
             videoValues.put(VideoContract.VideoEntry.COLUMN_STARTTIME, starttime);
@@ -210,11 +225,12 @@ public class VideoDbBuilder {
 
             // TODO: Sort these out
             videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
-            videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, 0);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, duration);
             if (mContext != null) {
                 videoValues.put(VideoContract.VideoEntry.COLUMN_ACTION,
                         mContext.getResources().getString(R.string.global_search));
             }
+            videoValues.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, progflags);
 
             videosToInsert.add(videoValues);
         }

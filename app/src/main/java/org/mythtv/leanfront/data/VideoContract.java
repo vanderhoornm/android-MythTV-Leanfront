@@ -49,15 +49,15 @@ public final class VideoContract {
         public static final String COLUMN_VIDEO_URL = "video_url";
         // The url to the background image.
         public static final String COLUMN_BG_IMAGE_URL = "bg_image_url";
-        // The studio name.
-        public static final String COLUMN_STUDIO = "studio";
+        // The channel name.
+        public static final String COLUMN_CHANNEL = "channel";
         // The card image for the video.
         public static final String COLUMN_CARD_IMG = SearchManager.SUGGEST_COLUMN_RESULT_CARD_IMAGE;
         // The content type of the video.
         public static final String COLUMN_CONTENT_TYPE = SearchManager.SUGGEST_COLUMN_CONTENT_TYPE;
         // The year the video was produced.
         public static final String COLUMN_PRODUCTION_YEAR = SearchManager.SUGGEST_COLUMN_PRODUCTION_YEAR;
-        // The duration of the video.
+        // The duration of the video in milliseconds
         public static final String COLUMN_DURATION = SearchManager.SUGGEST_COLUMN_DURATION;
         // The original air date string yyyy-mm-dd
         public static final String COLUMN_AIRDATE  = "airdate";
@@ -76,6 +76,8 @@ public final class VideoContract {
         public static Uri buildVideoUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+        // see libmyth/programtypes.h for list of values.
+        public static final String COLUMN_PROGFLAGS = "progflags";
     } // end of VideoEntry
 
         /* Inner class that defines the status table */

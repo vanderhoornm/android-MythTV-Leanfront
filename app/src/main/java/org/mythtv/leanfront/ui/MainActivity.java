@@ -86,4 +86,10 @@ public class MainActivity extends LeanbackActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+//        if (mainFragment.getType() == MainFragment.TYPE_TOPLEVEL)
+//            System.exit(0);
+    }
 }

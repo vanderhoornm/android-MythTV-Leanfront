@@ -33,10 +33,19 @@ public final class Video implements Parcelable, ListItem {
     public final String bgImageUrl;
     public final String cardImageUrl;
     public final String videoUrl;
-    public final String studio;
+    public final String channel;
     public final String recordedid;
     public String recGroup;
     public int type;
+    public final String season;
+    public final String episode;
+    public final String airdate;
+    public final String starttime;
+    public final String duration;
+    public final String prodyear;
+    public String progflags;
+    // From MythTV libmyth/programtypes.h
+    public static final int FL_WATCHED = 0x00000200;
 
     private Video(
             final long id,
@@ -46,9 +55,16 @@ public final class Video implements Parcelable, ListItem {
             final String videoUrl,
             final String bgImageUrl,
             final String cardImageUrl,
-            final String studio,
+            final String channel,
             final String recordedid,
-            final String recGroup) {
+            final String recGroup,
+            final String season,
+            final String episode,
+            final String airdate,
+            final String starttime,
+            final String duration,
+            final String prodyear,
+            final String progflags) {
         this.id = id;
         this.title = title;
         this.subtitle = subtitle;
@@ -56,9 +72,16 @@ public final class Video implements Parcelable, ListItem {
         this.videoUrl = videoUrl;
         this.bgImageUrl = bgImageUrl;
         this.cardImageUrl = cardImageUrl;
-        this.studio = studio;
+        this.channel = channel;
         this.recordedid = recordedid;
         this.recGroup = recGroup;
+        this.season = season;
+        this.episode = episode;
+        this.airdate = airdate;
+        this.starttime = starttime;
+        this.duration = duration;
+        this.prodyear = prodyear;
+        this.progflags = progflags;
     }
 
     protected Video(Parcel in) {
@@ -69,9 +92,16 @@ public final class Video implements Parcelable, ListItem {
         bgImageUrl = in.readString();
         cardImageUrl = in.readString();
         videoUrl = in.readString();
-        studio = in.readString();
+        channel = in.readString();
         recordedid = in.readString();
         recGroup = in.readString();
+        season = in.readString();
+        episode = in.readString();
+        airdate = in.readString();
+        starttime = in.readString();
+        duration = in.readString();
+        prodyear = in.readString();
+        progflags = in.readString();
     }
 
     public static final Creator<Video> CREATOR = new Creator<Video>() {
@@ -104,9 +134,16 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(bgImageUrl);
         dest.writeString(cardImageUrl);
         dest.writeString(videoUrl);
-        dest.writeString(studio);
+        dest.writeString(channel);
         dest.writeString(recordedid);
         dest.writeString(recGroup);
+        dest.writeString(season);
+        dest.writeString(episode);
+        dest.writeString(airdate);
+        dest.writeString(starttime);
+        dest.writeString(duration);
+        dest.writeString(prodyear);
+        dest.writeString(progflags);
     }
 
     @Override
@@ -146,9 +183,16 @@ public final class Video implements Parcelable, ListItem {
         private String bgImageUrl;
         private String cardImageUrl;
         private String videoUrl;
-        private String studio;
+        private String channel;
         private String recordedid;
         private String recGroup;
+        private String season;
+        private String episode;
+        private String airdate;
+        private String starttime;
+        private String duration;
+        private String prodyear;
+        private String progflags;
 
         public VideoBuilder id(long id) {
             this.id = id;
@@ -185,8 +229,8 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
-        public VideoBuilder studio(String studio) {
-            this.studio = studio;
+        public VideoBuilder channel(String channel) {
+            this.channel = channel;
             return this;
         }
 
@@ -197,6 +241,42 @@ public final class Video implements Parcelable, ListItem {
 
         public VideoBuilder recGroup(String recGroup) {
             this.recGroup = recGroup;
+            return this;
+        }
+
+
+        public VideoBuilder season(String season) {
+            this.season = season;
+            return this;
+        }
+
+        public VideoBuilder episode(String episode) {
+            this.episode = episode;
+            return this;
+        }
+
+        public VideoBuilder airdate(String airdate) {
+            this.airdate = airdate;
+            return this;
+        }
+
+        public VideoBuilder starttime(String starttime) {
+            this.starttime = starttime;
+            return this;
+        }
+
+        public VideoBuilder duration(String duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public VideoBuilder prodyear(String prodyear) {
+            this.prodyear = prodyear;
+            return this;
+        }
+
+        public VideoBuilder progflags(String progflags) {
+            this.progflags = progflags;
             return this;
         }
 
@@ -211,7 +291,7 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    ""
+                    "","","","","","","",""
             );
         }
 
@@ -224,9 +304,16 @@ public final class Video implements Parcelable, ListItem {
                     videoUrl,
                     bgImageUrl,
                     cardImageUrl,
-                    studio,
+                    channel,
                     recordedid,
-                    recGroup
+                    recGroup,
+                     season,
+                     episode,
+                     airdate,
+                     starttime,
+                     duration,
+                     prodyear,
+                     progflags
             );
         }
     }

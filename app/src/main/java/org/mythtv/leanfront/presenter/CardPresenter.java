@@ -74,7 +74,17 @@ public class CardPresenter extends Presenter {
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         cardView.setTitleText(video.title);
-        cardView.setContentText(video.studio);
+        StringBuilder subtitle = new StringBuilder();
+        int progflags = Integer.parseInt(video.progflags);
+        // possible characters for watched - "👁" "⏿" "👀"
+        if ((progflags & video.FL_WATCHED) != 0)
+            subtitle.append("\uD83D\uDC41");
+        if (video.season != null && video.season.compareTo("0") > 0) {
+            subtitle.append('S').append(video.season).append('E').append(video.episode)
+                    .append(' ');
+        }
+        subtitle.append(video.subtitle);
+        cardView.setContentText(subtitle);
 
         if (video.cardImageUrl != null) {
             // Set card size from dimension resources.

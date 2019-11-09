@@ -68,7 +68,7 @@ public class VideoProvider extends ContentProvider {
                 VideoContract.VideoEntry.COLUMN_DESC,
                 VideoContract.VideoEntry.COLUMN_VIDEO_URL,
                 VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL,
-                VideoContract.VideoEntry.COLUMN_STUDIO,
+                VideoContract.VideoEntry.COLUMN_CHANNEL,
                 VideoContract.VideoEntry.COLUMN_CARD_IMG,
                 VideoContract.VideoEntry.COLUMN_CONTENT_TYPE,
                 VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR,
@@ -81,6 +81,7 @@ public class VideoProvider extends ContentProvider {
                 VideoContract.VideoEntry.COLUMN_RECGROUP,
                 VideoContract.VideoEntry.COLUMN_SEASON,
                 VideoContract.VideoEntry.COLUMN_EPISODE,
+                VideoContract.VideoEntry.COLUMN_PROGFLAGS,
                 SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
         };
     }
@@ -124,7 +125,7 @@ public class VideoProvider extends ContentProvider {
         map.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL,
                 VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL);
         map.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, VideoContract.VideoEntry.COLUMN_CARD_IMG);
-        map.put(VideoContract.VideoEntry.COLUMN_STUDIO, VideoContract.VideoEntry.COLUMN_STUDIO);
+        map.put(VideoContract.VideoEntry.COLUMN_CHANNEL, VideoContract.VideoEntry.COLUMN_CHANNEL);
         map.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE,
                 VideoContract.VideoEntry.COLUMN_CONTENT_TYPE);
         map.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR,
@@ -139,6 +140,7 @@ public class VideoProvider extends ContentProvider {
         map.put(VideoContract.VideoEntry.COLUMN_RECGROUP, VideoContract.VideoEntry.COLUMN_RECGROUP);
         map.put(VideoContract.VideoEntry.COLUMN_SEASON,  VideoContract.VideoEntry.COLUMN_SEASON);
         map.put(VideoContract.VideoEntry.COLUMN_EPISODE, VideoContract.VideoEntry.COLUMN_EPISODE);
+        map.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, VideoContract.VideoEntry.COLUMN_PROGFLAGS);
 
         map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, VideoContract.VideoEntry._ID + " AS " +
                 SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID);

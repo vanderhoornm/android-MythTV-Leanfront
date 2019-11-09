@@ -100,6 +100,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
+    private static final String[] XMLTAGS_PROGRAMFLAGS = {"ProgramFlags"};
 
     // ID for loader that loads the video from global search.
     private int mGlobalSearchVideoId = 2;
@@ -513,7 +514,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                             + mSelectedVideo.recordedid);
                             XmlNode recorded = XmlNode.fetch(url, null);
                             mSelectedVideo.recGroup = recorded.getString(XMLTAGS_RECGROUP);
-
+                            mSelectedVideo.progflags = recorded.getString(XMLTAGS_PROGRAMFLAGS);
                         } catch (IOException | XmlPullParserException e) {
                             mBookmark = 0;
                             e.printStackTrace();

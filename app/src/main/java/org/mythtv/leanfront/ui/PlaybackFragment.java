@@ -99,6 +99,9 @@ public class PlaybackFragment extends VideoSupportFragment {
     private VideoLoaderCallbacks mVideoLoaderCallbacks;
     private CursorObjectAdapter mVideoCursorAdapter;
     private long mBookmark = 0;
+    private boolean mWatched = false;
+    private static final int ACTION_SET_BOOKMARK = 1;
+    private static final int ACTION_SET_WATCHED = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,6 +110,7 @@ public class PlaybackFragment extends VideoSupportFragment {
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
         mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
         mPlaylist = new Playlist();
+        mWatched = (Integer.parseInt(mVideo.progflags, 10) & Video.FL_WATCHED) != 0;
 
         mVideoLoaderCallbacks = new VideoLoaderCallbacks(mPlaylist);
 
@@ -151,7 +155,7 @@ public class PlaybackFragment extends VideoSupportFragment {
             mBookmark = pos;
         else
             mBookmark = 0;
-        new AsyncSetBookmark().execute();
+        new AsyncBackendCall().execute(ACTION_SET_BOOKMARK);
 
         if (Util.SDK_INT <= 23) {
             releasePlayer();
@@ -198,7 +202,18 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     private void play(Video video) {
         mPlayerGlue.setTitle(video.title);
-        mPlayerGlue.setSubtitle(video.description);
+
+        StringBuilder subtitle = new StringBuilder();
+        int progflags = Integer.parseInt(video.progflags);
+        // possible characters for watched - "👁" "⏿" "👀"
+        if ((progflags & video.FL_WATCHED) != 0)
+            subtitle.append("\uD83D\uDC41");
+        if (video.season != null && video.season.compareTo("0") > 0) {
+            subtitle.append('S').append(video.season).append('E').append(video.episode)
+                    .append(' ');
+        }
+        subtitle.append(video.subtitle);
+        mPlayerGlue.setSubtitle(subtitle);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
         if (mBookmark > 0)
             mPlayerGlue.seekTo(mBookmark);
@@ -276,6 +291,11 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     public void jumpBack() {
         mPlayerGlue.jumpBack();
+    }
+
+    public void markWatched(boolean watched) {
+        mWatched = watched;
+        new AsyncBackendCall().execute(ACTION_SET_WATCHED);
     }
 
 
@@ -387,58 +407,85 @@ public class PlaybackFragment extends VideoSupportFragment {
         public void onNext() {
             play(mPlaylist.next());
         }
+
+        @Override
+        public void onPlayCompleted() {
+            markWatched(true);
+        }
     }
-    private class AsyncSetBookmark extends AsyncTask<Void, Void, Void> {
+    private class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
-        protected Void doInBackground(Void ... dummy) {
-            try {
+        protected Void doInBackground(Integer ... tasks) {
+            for (int counter = 0; counter < tasks.length; counter++) {
+                int task = tasks[counter];
+                MainActivity main = MainActivity.getContext();
                 String result = null;
-                Context context = MainActivity.getContext();
-                SharedPreferences sharedPreferences
-                        = PreferenceManager.getDefaultSharedPreferences(context);
-                String pref = sharedPreferences.getString("pref_bookmark","auto");
-                if ("auto".equals(pref) || "mythtv".equals(pref)) {
-                    // store a mythtv bookmark
-                    String bkmrkUrl = XmlNode.mythApiUrl(
-                            "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                    + mVideo.recordedid + "&Offset=" + mBookmark);
-                    XmlNode bkmrkData = XmlNode.fetch(bkmrkUrl, "POST");
-                    result = bkmrkData.getString();
+                String url = null;
+                switch (task) {
+                    case ACTION_SET_BOOKMARK:
+                        try {
+                            SharedPreferences sharedPreferences
+                                    = PreferenceManager.getDefaultSharedPreferences(main);
+                            String pref = sharedPreferences.getString("pref_bookmark", "auto");
+                            if ("auto".equals(pref) || "mythtv".equals(pref)) {
+                                // store a mythtv bookmark
+                                url = XmlNode.mythApiUrl(
+                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mVideo.recordedid + "&Offset=" + mBookmark);
+                                XmlNode bkmrkData = XmlNode.fetch(url, "POST");
+                                result = bkmrkData.getString();
+                            }
+                            if (!"true".equals(result) && !"mythtv".equals(pref)) {
+                                // Use local bookmark
+
+                                // Gets the data repository in write mode
+                                VideoDbHelper dbh = new VideoDbHelper(main);
+                                SQLiteDatabase db = dbh.getWritableDatabase();
+
+                                // Create a new map of values, where column names are the keys
+                                ContentValues values = new ContentValues();
+                                Date now = new Date();
+                                values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
+                                values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mBookmark);
+
+                                // First try an update
+                                String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                                String[] selectionArgs = {mVideo.videoUrl};
+
+                                int count = db.update(
+                                        VideoContract.StatusEntry.TABLE_NAME,
+                                        values,
+                                        selection,
+                                        selectionArgs);
+
+                                if (count == 0) {
+                                    // Try an insert instead
+                                    values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
+                                    // Insert the new row, returning the primary key value of the new row
+                                    long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
+                                            null, values);
+                                }
+                                db.close();
+                            }
+                        } catch (IOException | XmlPullParserException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case ACTION_SET_WATCHED:
+                        try {
+                            // set recording watched
+                            url = XmlNode.mythApiUrl(
+                                    "/Dvr/UpdateRecordedWatchedStatus?RecordedId="
+                                            + mVideo.recordedid + "&Watched=" + mWatched);
+                            XmlNode resultData = XmlNode.fetch(url, "POST");
+                            result = resultData.getString();
+                        } catch (IOException | XmlPullParserException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                if (!"true".equals(result) && !"mythtv".equals(pref)) {
-                    // Use local bookmark
-
-                    // Gets the data repository in write mode
-                    VideoDbHelper dbh = new VideoDbHelper(context);
-                    SQLiteDatabase db = dbh.getWritableDatabase();
-
-                    // Create a new map of values, where column names are the keys
-                    ContentValues values = new ContentValues();
-                    Date now = new Date();
-                    values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
-                    values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mBookmark);
-
-                    // First try an update
-                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                    String[] selectionArgs = { mVideo.videoUrl };
-
-                    int count = db.update(
-                            VideoContract.StatusEntry.TABLE_NAME,
-                            values,
-                            selection,
-                            selectionArgs);
-
-                    if (count == 0) {
-                        // Try an insert instead
-                        values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
-                        // Insert the new row, returning the primary key value of the new row
-                        long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
-                                null, values);
-                    }
-                    db.close();
-                }
-            } catch (IOException | XmlPullParserException e) {
-                e.printStackTrace();
             }
             return null;
         }

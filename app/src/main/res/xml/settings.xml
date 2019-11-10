@@ -3,24 +3,11 @@
     <PreferenceCategory
         android:title="@string/pref_title_settings">
         <EditTextPreference
-            android:defaultValue="Android"
-            android:key="pref_hostname"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
-            android:title="@string/pref_title_hostname" />
-        <EditTextPreference
             android:inputType="number"
             android:key="pref_backend"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/pref_title_backend" />
-        <EditTextPreference
-            android:defaultValue="6543"
-            android:inputType="number"
-            android:key="pref_myth_port"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
-            android:title="@string/pref_title_myth_port" />
         <EditTextPreference
             android:defaultValue="6544"
             android:key="pref_http_port"
@@ -33,6 +20,12 @@
             android:entryValues="@array/pref_bookmark_values"
             android:key="pref_bookmark"
             android:title="@string/pref_title_bookmark_strategy" />
+        <EditTextPreference
+            android:defaultValue="30"
+            android:key="pref_fps"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_fps" />
         <EditTextPreference
             android:defaultValue="60"
             android:inputType="number"

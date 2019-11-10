@@ -427,15 +427,15 @@ public class PlaybackFragment extends VideoSupportFragment {
                             SharedPreferences sharedPreferences
                                     = PreferenceManager.getDefaultSharedPreferences(main);
                             String pref = sharedPreferences.getString("pref_bookmark", "auto");
-                            if ("auto".equals(pref) || "mythtv".equals(pref)) {
-                                // store a mythtv bookmark
-                                url = XmlNode.mythApiUrl(
-                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mVideo.recordedid + "&Offset=" + mBookmark);
-                                XmlNode bkmrkData = XmlNode.fetch(url, "POST");
-                                result = bkmrkData.getString();
+                            String fpsStr = sharedPreferences.getString("pref_fps", "30");
+                            int fps = 30;
+                            try {
+                                fps = Integer.parseInt(fpsStr,10);
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                                fps = 30;
                             }
-                            if (!"true".equals(result) && !"mythtv".equals(pref)) {
+                            if ("local".equals(pref)) {
                                 // Use local bookmark
 
                                 // Gets the data repository in write mode
@@ -467,6 +467,23 @@ public class PlaybackFragment extends VideoSupportFragment {
                                 }
                                 db.close();
                             }
+                            else {
+                                // store a mythtv bookmark
+                                url = XmlNode.mythApiUrl(
+                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mVideo.recordedid + "&Offset=" + mBookmark);
+                                XmlNode bkmrkData = XmlNode.fetch(url, "POST");
+                                result = bkmrkData.getString();
+                                if ("false".equals(result)) {
+                                    // store a mythtv position bookmark (in case there is no seek table)
+                                    long posBkmark = mBookmark * fps / 1000;
+                                    url = XmlNode.mythApiUrl(
+                                            "/Dvr/SetSavedBookmark?RecordedId="
+                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                    bkmrkData = XmlNode.fetch(url, "POST");
+                                    result = bkmrkData.getString();
+                                }
+                            }
                         } catch (IOException | XmlPullParserException e) {
                             e.printStackTrace();
                         }
@@ -479,6 +496,8 @@ public class PlaybackFragment extends VideoSupportFragment {
                                             + mVideo.recordedid + "&Watched=" + mWatched);
                             XmlNode resultData = XmlNode.fetch(url, "POST");
                             result = resultData.getString();
+                            if (main != null)
+                                main.getMainFragment().startFetch();
                         } catch (IOException | XmlPullParserException e) {
                             e.printStackTrace();
                         }

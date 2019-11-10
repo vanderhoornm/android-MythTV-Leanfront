@@ -114,8 +114,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private CursorObjectAdapter mVideoCursorAdapter;
     private FullWidthDetailsOverviewSharedElementHelper mHelper;
     private final VideoCursorMapper mVideoCursorMapper = new VideoCursorMapper();
-    private long mBookmark = -1;
+    // Bookmark is in millisedonds
+    private long mBookmark = 0;
     private SparseArrayObjectAdapter mActionsAdapter = null;
+    private DetailsOverviewRow mDetailsOverviewRow = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -374,7 +376,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     private void setupDetailsOverviewRow() {
-        final DetailsOverviewRow row = new DetailsOverviewRow(mSelectedVideo);
+        mDetailsOverviewRow = new DetailsOverviewRow(mSelectedVideo);
 
         RequestOptions options = new RequestOptions()
                 .error(R.drawable.default_background)
@@ -390,15 +392,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     public void onResourceReady(
                             Bitmap resource,
                             Transition<? super Bitmap> transition) {
-                        row.setImageBitmap(getActivity(), resource);
+                        mDetailsOverviewRow.setImageBitmap(getActivity(), resource);
                         startEntranceTransition();
                     }
                 });
 
         mActionsAdapter = new SparseArrayObjectAdapter();
-        row.setActionsAdapter(mActionsAdapter);
+        mDetailsOverviewRow.setActionsAdapter(mActionsAdapter);
 
-        mAdapter.add(row);
+        mAdapter.add(mDetailsOverviewRow);
     }
 
     private void setupMovieListRow() {
@@ -451,23 +453,16 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 return null;
                             SharedPreferences sharedPreferences
                                     = PreferenceManager.getDefaultSharedPreferences(context);
-                            String pref = sharedPreferences.getString("pref_bookmark", "auto");
-                            if ("auto".equals(pref) || "mythtv".equals(pref)) {
-                                // look for a mythtv bookmark
-                                String url = XmlNode.mythApiUrl(
-                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mSelectedVideo.recordedid);
-                                XmlNode bkmrkData = XmlNode.fetch(url, null);
-                                mBookmark = Long.parseLong(bkmrkData.getString());
-                                // sanity check bookmark - between 0 and 24 hrs.
-                                // note -1 means a bookmark but no seek table
-                                // older version of service returns garbage value when there is
-                                // no seek table.
-                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
-                                    mBookmark = -1;
+                            String pref = sharedPreferences.getString("pref_bookmark", "mythtv");
+                            String fpsStr = sharedPreferences.getString("pref_fps", "30");
+                            int fps = 30;
+                            try {
+                                fps = Integer.parseInt(fpsStr,10);
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                                fps = 30;
                             }
-                            if (mBookmark <= 0 && "auto".equals(pref)
-                                    || "local".equals(pref)) {
+                            if ("local".equals(pref)) {
                                 // default to none
                                 mBookmark = 0;
                                 // Look for a local bookmark
@@ -507,6 +502,40 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 cursor.close();
                                 db.close();
 
+                            }
+                            else {
+                                // look for a mythtv bookmark
+                                String url = XmlNode.mythApiUrl(
+                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mSelectedVideo.recordedid);
+                                XmlNode bkmrkData = XmlNode.fetch(url, null);
+                                try {
+                                    mBookmark = Long.parseLong(bkmrkData.getString());
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    mBookmark = -1;
+                                }
+                                // sanity check bookmark - between 0 and 24 hrs.
+                                // note -1 means a bookmark but no seek table
+                                // older version of service returns garbage value when there is
+                                // no seek table.
+                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
+                                    mBookmark = -1;
+                                if (mBookmark == -1) {
+                                    // look for a position bookmark (for recording with no seek table)
+                                    url = XmlNode.mythApiUrl(
+                                            "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
+                                                    + mSelectedVideo.recordedid);
+                                    bkmrkData = XmlNode.fetch(url, null);
+                                    long pos = 0;
+                                    try {
+                                        pos = Long.parseLong(bkmrkData.getString());
+                                    } catch (NumberFormatException e) {
+                                        e.printStackTrace();
+                                        pos=0;
+                                    }
+                                    mBookmark = pos * 1000 / fps;
+                                }
                             }
                             // Find out rec group
                             String url = XmlNode.mythApiUrl(

@@ -6,8 +6,8 @@ android {
         applicationId "org.mythtv.leanfront"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 34
-        versionName "v0-34-gadd3a3c"
+        versionCode 37
+        versionName "v0-37-g2a15374"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

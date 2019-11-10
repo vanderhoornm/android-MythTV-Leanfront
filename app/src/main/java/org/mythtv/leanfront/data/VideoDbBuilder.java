@@ -157,13 +157,13 @@ public class VideoDbBuilder {
             String starttime = programNode.getString(XMLTAG_STARTTIME);
 
             // 2018-05-23T00:00:00Z
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
             String startTS = recordingNode.getString(XMLTAG_STARTTS);
             String endTS = recordingNode.getString(XMLTAG_ENDTS);
             long duration = 0;
             try {
-                Date dateStart = format.parse(startTS);
-                Date dateEnd = format.parse(endTS);
+                Date dateStart = format.parse(startTS+"+0000");
+                Date dateEnd = format.parse(endTS+"+0000");
                 duration = (dateEnd.getTime() - dateStart.getTime());
             } catch (ParseException e) {
                 e.printStackTrace();

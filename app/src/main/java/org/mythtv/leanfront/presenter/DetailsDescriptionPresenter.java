@@ -48,8 +48,8 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             // 2018-05-23T00:00:00Z
             try {
                 // Date Recorded
-                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
-                Date date = dbFormat.parse(video.starttime);
+                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                Date date = dbFormat.parse(video.starttime+"+0000");
                 DateFormat outFormat = DateFormat.getDateInstance();
                 String recDate = outFormat.format(date);
                 description.append(recDate);

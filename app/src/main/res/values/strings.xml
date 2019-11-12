@@ -137,4 +137,5 @@
     <string name="pref_title_skip_back">Skip Back Sec</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
+    <string name="all_title">All</string>
 </resources>

@@ -41,6 +41,7 @@ import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.leanback.widget.SparseArrayObjectAdapter;
 import androidx.leanback.widget.TitleViewAdapter;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -75,6 +76,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -111,6 +115,8 @@ public class MainFragment extends BrowseSupportFragment
     // Types applicable to cell
     public static final int TYPE_EPISODE = 5;
     public static final int TYPE_VIDEO = 6;
+    public static final int TYPE_TOP_ALL = 7;
+    public static final int TYPE_RECGROUP_ALL = 8;
     // Special row type
     public static final int TYPE_SETTINGS = 20;
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
@@ -396,26 +402,47 @@ public class MainFragment extends BrowseSupportFragment
         // the current slection and focus to be lost.
         if (data != null && mLoadStarted) {
             final int loaderId = loader.getId();
+            int recgroupIndex =
+                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+            int titleIndex =
+                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+            int airdateIndex =
+                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
+            int starttimeIndex =
+                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
+            SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
             boolean cursorHasData = data.moveToFirst();
             String currentCategory = null;
             String currentItem = null;
             int selectedRow = -1;
             int selectedItem = -1;
             int allRow = -1;
+            int position = 0;
             if (loaderId == CATEGORY_LOADER) {
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
                 ArrayObjectAdapter objectAdapter = null;
-                ArrayObjectAdapter allObjectAdapter = null;
+                SparseArrayObjectAdapter allObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
 
                 // Create row for "All\t"
+                int allType = TYPE_RECGROUP_ALL;
+                String allTitle = null;
                 if (mType == TYPE_TOPLEVEL) {
-                    MyHeaderItem header = new MyHeaderItem(getString(R.string.all_plus_tab),
-                            TYPE_RECGROUP);
-                    allObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
+                    allTitle = getString(R.string.all_title) + "\t";
+                    allType = TYPE_TOP_ALL;
+                }
+                if (mType == TYPE_RECGROUP) {
+                    allTitle = mBaseName + "\t";
+                    allType = TYPE_RECGROUP_ALL;
+                }
+                if (mType == TYPE_TOPLEVEL || mType == TYPE_RECGROUP) {
+                    MyHeaderItem header = new MyHeaderItem(allTitle,
+                            allType);
+                    allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
                     ListRow row = new ListRow(header, allObjectAdapter);
-                    row.setContentDescription(getString(R.string.all_plus_tab));
+                    row.setContentDescription(allTitle);
                     mCategoryRowAdapter.add(row);
                     allRow = mCategoryRowAdapter.size() - 1;
                 }
@@ -427,8 +454,6 @@ public class MainFragment extends BrowseSupportFragment
                     int itemType = -1;
                     int rowType = -1;
 
-                    int recgroupIndex =
-                            data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
                     String recgroup = data.getString(recgroupIndex);
                       // To prevent showing deleted uncomment this
 //                    if ("Deleted".equals(recgroup)) {
@@ -439,9 +464,9 @@ public class MainFragment extends BrowseSupportFragment
                     // For Rec Group type, only use recordings from that recording group.
                     // categories are titles.
                     if (mType == TYPE_RECGROUP) {
-                        categoryIndex =
-                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
-                        if (getString(R.string.all_plus_tab).equals(mBaseName)) {
+                        categoryIndex = titleIndex;
+//                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+                        if ((getString(R.string.all_title) + "\t").equals(mBaseName)) {
                             // Do not mix deleted episodes in the All group
                             if ("Deleted".equals(recgroup)) {
                                 data.moveToNext();
@@ -463,10 +488,10 @@ public class MainFragment extends BrowseSupportFragment
                     // For Top Level type, only use 1 recording from each title
                     // categories are recgroups
                     if (mType == TYPE_TOPLEVEL) {
-                        categoryIndex =
-                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
-                        int titleIndex =
-                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+                        categoryIndex = recgroupIndex;
+//                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+//                        int titleIndex =
+//                                data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
                         String title = data.getString(titleIndex);
                         if (title.equals(currentItem)) {
                             data.moveToNext();
@@ -510,8 +535,26 @@ public class MainFragment extends BrowseSupportFragment
                     Video video = (Video) videoCursorAdapter.get(data.getPosition());
                     video.type = itemType;
                     objectAdapter.add(video);
-                    if (allObjectAdapter != null)
-                        allObjectAdapter.add(video);
+                    if (allObjectAdapter != null) {
+                        String dateStr = data.getString(starttimeIndex);
+                        try {
+                            Date date = dbTimeFormat.parse(dateStr);
+                            // 525960 minutes in a year
+                            // Get position as number of minutes since 1970
+                            position = (int) (date.getTime() / 60000L);
+                            // Add 70 years in case it is before 1970
+                            position += 36817200;
+                        } catch (ParseException | NullPointerException e) {
+                            e.printStackTrace();
+                            position = 0;
+                        }
+                        // Make sure we have an empty slot
+                        try {
+                            while (allObjectAdapter.get(position) != null)
+                                position++;
+                        } catch (ArrayIndexOutOfBoundsException e) { }
+                        allObjectAdapter.set(position,video);
+                    }
 //                    videoCursorAdapter.changeCursor(data);
 
 //                        // Start loading the videos from the database for a particular category.

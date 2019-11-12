@@ -101,7 +101,8 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             Intent intent;
             if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
                 intent = new Intent(context, SettingsActivity.class);
-            else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP) {
+            else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP
+                || headerItem.getItemType() == MainFragment.TYPE_TOP_ALL) {
                 intent = new Intent(context, MainActivity.class);
                 intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
                 intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());

@@ -39,7 +39,9 @@ public final class Video implements Parcelable, ListItem {
     public int type;
     public final String season;
     public final String episode;
+    // Format yyyy-mm-dd
     public final String airdate;
+    // Format yyyy-mm-ddThh:mm:ssZ
     public final String starttime;
     public final String duration;
     public final String prodyear;

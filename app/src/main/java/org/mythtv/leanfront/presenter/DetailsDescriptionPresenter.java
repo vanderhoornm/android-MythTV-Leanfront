@@ -59,10 +59,14 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 description.append(", " + duration + " minutes");
                 // Original Air date
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
-                date = dbFormat.parse(video.airdate);
-                String origDate = outFormat.format(date);
-                if (!origDate.equals(recDate))
-                    description.append("   [" + outFormat.format(date) + "]");
+                if ("01-01".equals(video.airdate.substring(5)))
+                    description.append("   [" + video.airdate.substring(0,4) + "]");
+                else {
+                    date = dbFormat.parse(video.airdate);
+                    String origDate = outFormat.format(date);
+                    if (!origDate.equals(recDate))
+                        description.append("   [" + outFormat.format(date) + "]");
+                }
                 description.append('\n');
             } catch (Exception e) {
                 e.printStackTrace();

@@ -424,9 +424,10 @@ public class PlaybackFragment extends VideoSupportFragment {
                 switch (task) {
                     case ACTION_SET_BOOKMARK:
                         try {
+                            boolean found = false;
                             SharedPreferences sharedPreferences
                                     = PreferenceManager.getDefaultSharedPreferences(main);
-                            String pref = sharedPreferences.getString("pref_bookmark", "auto");
+                            String pref = sharedPreferences.getString("pref_bookmark", "mythtv");
                             String fpsStr = sharedPreferences.getString("pref_fps", "30");
                             int fps = 30;
                             try {
@@ -435,7 +436,30 @@ public class PlaybackFragment extends VideoSupportFragment {
                                 e.printStackTrace();
                                 fps = 30;
                             }
-                            if ("local".equals(pref)) {
+                            if ("mythtv".equals(pref)) {
+                                // store a mythtv bookmark
+                                url = XmlNode.mythApiUrl(
+                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mVideo.recordedid + "&Offset=" + mBookmark);
+                                XmlNode bkmrkData = XmlNode.fetch(url, "POST");
+                                result = bkmrkData.getString();
+                                if ("true".equals(result))
+                                    found = true;
+                                else {
+                                    // store a mythtv position bookmark (in case there is no seek table)
+                                    long posBkmark = mBookmark * fps / 1000;
+                                    url = XmlNode.mythApiUrl(
+                                            "/Dvr/SetSavedBookmark?RecordedId="
+                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                    bkmrkData = XmlNode.fetch(url, "POST");
+                                    result = bkmrkData.getString();
+                                    // if this is successfull we still need to set it local as well
+                                    // so do not set found to true
+//                                    if ("true".equals(result))
+//                                        found = true;
+                                }
+                            }
+                            if ("local".equals(pref) || !found) {
                                 // Use local bookmark
 
                                 // Gets the data repository in write mode
@@ -466,23 +490,6 @@ public class PlaybackFragment extends VideoSupportFragment {
                                             null, values);
                                 }
                                 db.close();
-                            }
-                            else {
-                                // store a mythtv bookmark
-                                url = XmlNode.mythApiUrl(
-                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mVideo.recordedid + "&Offset=" + mBookmark);
-                                XmlNode bkmrkData = XmlNode.fetch(url, "POST");
-                                result = bkmrkData.getString();
-                                if ("false".equals(result)) {
-                                    // store a mythtv position bookmark (in case there is no seek table)
-                                    long posBkmark = mBookmark * fps / 1000;
-                                    url = XmlNode.mythApiUrl(
-                                            "/Dvr/SetSavedBookmark?RecordedId="
-                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
-                                    bkmrkData = XmlNode.fetch(url, "POST");
-                                    result = bkmrkData.getString();
-                                }
                             }
                         } catch (IOException | XmlPullParserException e) {
                             e.printStackTrace();

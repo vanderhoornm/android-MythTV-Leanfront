@@ -447,6 +447,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 switch (task) {
                     case ACTION_REFRESH:
                         mBookmark = 0;
+                        boolean found = false;
                         try {
                             Context context = MainActivity.getContext();
                             if (context == null)
@@ -462,7 +463,47 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 e.printStackTrace();
                                 fps = 30;
                             }
-                            if ("local".equals(pref)) {
+                            if ("mythtv".equals(pref)) {
+                                // look for a mythtv bookmark
+                                String url = XmlNode.mythApiUrl(
+                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mSelectedVideo.recordedid);
+                                XmlNode bkmrkData = XmlNode.fetch(url, null);
+                                try {
+                                    mBookmark = Long.parseLong(bkmrkData.getString());
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    mBookmark = -1;
+                                }
+                                // sanity check bookmark - between 0 and 24 hrs.
+                                // note -1 means a bookmark but no seek table
+                                // older version of service returns garbage value when there is
+                                // no seek table.
+                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
+                                    mBookmark = -1;
+                                else
+                                    found = true;
+                                if (mBookmark == -1) {
+                                    // look for a position bookmark (for recording with no seek table)
+                                    url = XmlNode.mythApiUrl(
+                                            "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
+                                                    + mSelectedVideo.recordedid);
+                                    bkmrkData = XmlNode.fetch(url, null);
+                                    long pos = 0;
+                                    try {
+                                        pos = Long.parseLong(bkmrkData.getString());
+                                        if (pos > 24 * 60 * 60 * 1000 || pos < 0)
+                                            pos = 0;
+                                        else
+                                            found = true;
+                                    } catch (NumberFormatException e) {
+                                        e.printStackTrace();
+                                        pos=0;
+                                    }
+                                    mBookmark = pos * 1000 / fps;
+                                }
+                            }
+                            if ("local".equals(pref) || !found) {
                                 // default to none
                                 mBookmark = 0;
                                 // Look for a local bookmark
@@ -502,40 +543,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 cursor.close();
                                 db.close();
 
-                            }
-                            else {
-                                // look for a mythtv bookmark
-                                String url = XmlNode.mythApiUrl(
-                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mSelectedVideo.recordedid);
-                                XmlNode bkmrkData = XmlNode.fetch(url, null);
-                                try {
-                                    mBookmark = Long.parseLong(bkmrkData.getString());
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    mBookmark = -1;
-                                }
-                                // sanity check bookmark - between 0 and 24 hrs.
-                                // note -1 means a bookmark but no seek table
-                                // older version of service returns garbage value when there is
-                                // no seek table.
-                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
-                                    mBookmark = -1;
-                                if (mBookmark == -1) {
-                                    // look for a position bookmark (for recording with no seek table)
-                                    url = XmlNode.mythApiUrl(
-                                            "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
-                                                    + mSelectedVideo.recordedid);
-                                    bkmrkData = XmlNode.fetch(url, null);
-                                    long pos = 0;
-                                    try {
-                                        pos = Long.parseLong(bkmrkData.getString());
-                                    } catch (NumberFormatException e) {
-                                        e.printStackTrace();
-                                        pos=0;
-                                    }
-                                    mBookmark = pos * 1000 / fps;
-                                }
                             }
                             // Find out rec group
                             String url = XmlNode.mythApiUrl(

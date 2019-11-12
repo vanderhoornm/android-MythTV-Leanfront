@@ -19,10 +19,12 @@ package org.mythtv.leanfront.presenter;
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
 import org.mythtv.leanfront.model.Video;
+import org.mythtv.leanfront.ui.MainActivity;
 
-import java.text.DateFormat;
+import android.text.format.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
 
@@ -50,8 +52,11 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 // Date Recorded
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                 Date date = dbFormat.parse(video.starttime+"+0000");
-                DateFormat outFormat = DateFormat.getDateInstance();
-                String recDate = outFormat.format(date);
+                long dateMS = date.getTime();
+                java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(MainActivity.getContext());
+                TimeZone tz = TimeZone.getDefault();
+                dateMS += tz.getOffset(date.getTime());
+                String recDate = outFormat.format(new Date(dateMS));
                 description.append(recDate);
                 // Length of recording
                 long duration = Long.parseLong(video.duration, 10);

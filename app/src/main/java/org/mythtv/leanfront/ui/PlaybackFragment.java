@@ -207,7 +207,8 @@ public class PlaybackFragment extends VideoSupportFragment {
         int progflags = Integer.parseInt(video.progflags);
         // possible characters for watched - "👁" "⏿" "👀"
         if ((progflags & video.FL_WATCHED) != 0)
-            subtitle.append("\uD83D\uDC41");
+//            subtitle.append("\uD83D\uDC41");
+            markWatched(false);
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
                     .append(' ');

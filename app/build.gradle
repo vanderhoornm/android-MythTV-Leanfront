@@ -1,13 +1,27 @@
 apply plugin: 'com.android.application'
 
+task gitinfo {
+    new ByteArrayOutputStream().withStream { os ->
+        exec {
+            executable = 'git'
+            args = ['describe','--dirty']
+            standardOutput = os
+        }
+        ext.describe = os.toString().trim()
+        def split = ext.describe.split("-")
+        ext.version = Integer.parseInt(split[0].substring(1)) * 1000 + Integer.parseInt(split[1])
+        println "Version Name: " + ext.describe + ", Version Code: " + ext.version
+    }
+}
+
 android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "org.mythtv.leanfront"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 37
-        versionName "v0-37-g2a15374"
+        versionCode gitinfo.ext.version
+        versionName gitinfo.ext.describe
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

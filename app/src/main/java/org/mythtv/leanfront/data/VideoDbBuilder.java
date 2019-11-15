@@ -113,6 +113,8 @@ public class VideoDbBuilder {
             String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
 //            if ("Deleted".equals(recGroup))
 //                continue;
+            if (recGroup == null || recGroup.length() == 0)
+                recGroup = "Default";
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
 //            if (subtitle == null || subtitle.length()==0)

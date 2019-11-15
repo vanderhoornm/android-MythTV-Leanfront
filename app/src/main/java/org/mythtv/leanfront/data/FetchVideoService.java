@@ -80,5 +80,7 @@ public class FetchVideoService extends IntentService {
         }
 
         MainFragment.mLoadNeededTime = System.currentTimeMillis();
+        MainFragment.mFetchTime = System.currentTimeMillis();
+        MainActivity.startMainLoader();
     }
 }

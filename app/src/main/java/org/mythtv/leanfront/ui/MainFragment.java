@@ -141,6 +141,7 @@ public class MainFragment extends BrowseSupportFragment
     private MythTask mythTask = new MythTask();
     private long mLastLoadTime = 0;
     public static long mLoadNeededTime = System.currentTimeMillis();
+    public static long mFetchTime = 0;
 
     @Override
     public void onAttach(Context context) {
@@ -226,10 +227,10 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onStart() {
         super.onStart();
-        Lifecycle.State state = ProcessLifecycleOwner.get().getLifecycle().getCurrentState();
-        if (mType == TYPE_TOPLEVEL && state == Lifecycle.State.CREATED) {
-            startFetch();
-        }
+//        Lifecycle.State state = ProcessLifecycleOwner.get().getLifecycle().getCurrentState();
+//        if (mType == TYPE_TOPLEVEL && state == Lifecycle.State.CREATED) {
+//            startFetch();
+//        }
     }
 
     @Override
@@ -244,7 +245,10 @@ public class MainFragment extends BrowseSupportFragment
             executor = Executors.newScheduledThreadPool(1);
             executor.scheduleAtFixedRate(mythTask,0,240, TimeUnit.SECONDS);
         }
-        if (mLastLoadTime < mLoadNeededTime)
+        // If it's been more than an hour, refresh
+        if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
+            startFetch();
+        else if (mLastLoadTime < mLoadNeededTime)
             startLoader();
     }
 
@@ -685,6 +689,9 @@ public class MainFragment extends BrowseSupportFragment
 
 //                mSelectedRowNum = selectedRowNum;
 //                mSelectedItemNum = selectedItemNum;
+                if (selectedRowNum == allRowNum)
+                    selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
+
 
                 SelectionSetter setter = new SelectionSetter(selectedRowNum,selectedItemNum);
 
@@ -776,16 +783,16 @@ public class MainFragment extends BrowseSupportFragment
                     break;
                 case TYPE_SERIES:
                     MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
-                    if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
-                        intent = new Intent(context, SettingsActivity.class);
-                    else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP) {
-                        intent = new Intent(context, MainActivity.class);
-                        intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
-                        intent.putExtra(KEY_BASENAME,headerItem.getName());
-                        intent.putExtra(KEY_ROWNAME,((Video)li).title);
-                    }
-                    else
-                        return;
+//                    if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
+//                        intent = new Intent(context, SettingsActivity.class);
+//                    else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP) {
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                    intent.putExtra(KEY_BASENAME,headerItem.getName());
+                    intent.putExtra(KEY_ROWNAME,((Video)li).title);
+//                    }
+//                    else
+//                        return;
                     bundle =
                             ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
                                     .toBundle();
@@ -851,6 +858,7 @@ public class MainFragment extends BrowseSupportFragment
                         // leave the executor running but skip keepalive while in BG
                         //                    executor.shutdownNow();
                         //                    executor = null;
+                        //
                         return;
                     }
                     String result = null;

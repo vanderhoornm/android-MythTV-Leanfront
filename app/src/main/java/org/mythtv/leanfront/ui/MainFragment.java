@@ -50,6 +50,8 @@ import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
+
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Toast;
@@ -100,8 +102,8 @@ public class MainFragment extends BrowseSupportFragment
     private LoaderManager mLoaderManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
     private CursorObjectAdapter videoCursorAdapter;
-    private int mSelectedRow = -1;
-    private int mSelectedItem = -1;
+//    private int mSelectedRow = -1;
+//    private int mSelectedItem = -1;
     private int mType;
     public static final String KEY_TYPE = "LEANFRONT_TYPE";
     // Type applicable to main screen
@@ -125,6 +127,11 @@ public class MainFragment extends BrowseSupportFragment
     // mBase is the current recgroup or directory being displayed.
     private String mBaseName;
     private String mSelectedRowName;
+    private int mSelectedRowType;
+    private String mSelectedItemName;
+    private int mSelectedItemType;
+//    private int mSelectedRowNum;
+//    private int mSelectedItemNum;
 
     // Maps a Loader Id to its CursorObjectAdapter.
 //    private Map<Integer, CursorObjectAdapter> mVideoCursorAdapters;
@@ -148,6 +155,7 @@ public class MainFragment extends BrowseSupportFragment
         if (mType != TYPE_TOPLEVEL) {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
+            mSelectedRowType = TYPE_SERIES;
             startLoader();
             //            mSelectedItemName = null;
         }
@@ -256,6 +264,32 @@ public class MainFragment extends BrowseSupportFragment
 //            mSelectedItemName = ((ListItem) itemAdapter.get(mSelectedItem)).getName();
 //            mSelectedItemType = ((ListItem) itemAdapter.get(mSelectedItem)).getItemType();
 //        }
+
+
+        int selectedRowNum = getSelectedPosition();
+        mSelectedRowName = null;
+        mSelectedRowType = -1;
+        int selectedItemNum = -1;
+        mSelectedItemName = null;
+        mSelectedItemType = -1;
+        if (selectedRowNum >= 0) {
+            ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
+            ListItem headerItem = (ListItem) selectedRow.getHeaderItem();
+            mSelectedRowName = headerItem.getName();
+            mSelectedRowType = headerItem.getItemType();
+            ListRowPresenter.ViewHolder selectedViewHolder
+                    = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+                    .getRowViewHolder(selectedRowNum);
+            if (selectedViewHolder != null)
+                selectedItemNum = selectedViewHolder.getSelectedPosition();
+            if (selectedItemNum >= 0) {
+                ObjectAdapter itemAdapter = selectedRow.getAdapter();
+                mSelectedItemName = ((ListItem) itemAdapter.get(selectedItemNum)).getName();
+                mSelectedItemType = ((ListItem) itemAdapter.get(selectedItemNum)).getItemType();
+            }
+        }
+
+
         super.onPause();
     }
 
@@ -401,30 +435,55 @@ public class MainFragment extends BrowseSupportFragment
         // gets called every time the screen goes intio the BG and this causes
         // the current slection and focus to be lost.
         if (data != null && mLoadStarted) {
+            mLoadStarted = false;
             final int loaderId = loader.getId();
-            int recgroupIndex =
-                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
-            int titleIndex =
-                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
-            int airdateIndex =
-                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
-            int starttimeIndex =
-                    data.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
-            SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            boolean cursorHasData = data.moveToFirst();
-            String currentCategory = null;
-            String currentItem = null;
-            int selectedRow = -1;
-            int selectedItem = -1;
-            int allRow = -1;
-            int position = 0;
             if (loaderId == CATEGORY_LOADER) {
+                int recgroupIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+                int titleIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+                int airdateIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
+                int starttimeIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
+                SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                boolean cursorHasData = data.moveToFirst();
+//                int selectedRowNum = getSelectedPosition();
+//                mSelectedRowName = null;
+//                mSelectedRowType = -1;
+//                int selectedItemNum = -1;
+//                mSelectedItemName = null;
+//                mSelectedItemType = -1;
+//                if (selectedRowNum >= 0) {
+//                    ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
+//                    ListItem headerItem = (ListItem) selectedRow.getHeaderItem();
+//                    mSelectedRowName = headerItem.getName();
+//                    mSelectedRowType = headerItem.getItemType();
+//                    ListRowPresenter.ViewHolder selectedViewHolder
+//                            = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+//                            .getRowViewHolder(mSelectedRow);
+//                    if (selectedViewHolder != null)
+//                        selectedItemNum = selectedViewHolder.getSelectedPosition();
+//                    if (selectedItemNum >= 0) {
+//                        ObjectAdapter itemAdapter = selectedRow.getAdapter();
+//                        mSelectedItemName = ((ListItem) itemAdapter.get(selectedItemNum)).getName();
+//                        mSelectedItemType = ((ListItem) itemAdapter.get(selectedItemNum)).getItemType();
+//                    }
+//                }
+                int selectedRowNum = -1;
+                int selectedItemNum = -1;
+
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
                 ArrayObjectAdapter objectAdapter = null;
                 SparseArrayObjectAdapter allObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
+
+                String currentCategory = null;
+                String currentItem = null;
+                int currentRowNum = -1;
+                int allRowNum = -1;
 
                 // Create row for "All\t"
                 int allType = TYPE_RECGROUP_ALL;
@@ -444,7 +503,10 @@ public class MainFragment extends BrowseSupportFragment
                     ListRow row = new ListRow(header, allObjectAdapter);
                     row.setContentDescription(allTitle);
                     mCategoryRowAdapter.add(row);
-                    allRow = mCategoryRowAdapter.size() - 1;
+                    allRowNum = mCategoryRowAdapter.size() - 1;
+                    if (mSelectedRowType == allType
+                        && mSelectedRowName.equals(allTitle))
+                        selectedRowNum = allRowNum;
                 }
 
                 // Iterate through each category entry and add it to the ArrayAdapter.
@@ -503,6 +565,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                     String category = data.getString(categoryIndex);
 
+                    // Change of row
                     if (!category.equals(currentCategory)) {
                         // Finish off prior row
                         if (objectAdapter != null) {
@@ -512,11 +575,13 @@ public class MainFragment extends BrowseSupportFragment
                             ListRow row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
-                            if (selectedRow == -1 && currentCategory.equals(mSelectedRowName))
-                                selectedRow = mCategoryRowAdapter.size() - 1;
                         }
+                        currentRowNum = mCategoryRowAdapter.size();
                         objectAdapter = new ArrayObjectAdapter(new CardPresenter());
                         currentCategory = category;
+                        if (mSelectedRowType == rowType
+                                && currentCategory.equals(mSelectedRowName))
+                            selectedRowNum = currentRowNum;
                         // Create header for this category.
 //                        HeaderItem header = new HeaderItem(category);
 //                    int videoLoaderId = category.hashCode(); // Create unique int from category.
@@ -535,7 +600,14 @@ public class MainFragment extends BrowseSupportFragment
                     Video video = (Video) videoCursorAdapter.get(data.getPosition());
                     video.type = itemType;
                     objectAdapter.add(video);
+                    if (selectedRowNum == currentRowNum) {
+                        if (video.getItemType() == mSelectedItemType
+                            && video.getName().equals(mSelectedItemName))
+                            selectedItemNum = objectAdapter.size() - 1;
+                    }
+
                     if (allObjectAdapter != null) {
+                        int position;
                         String dateStr = data.getString(starttimeIndex);
                         try {
                             Date date = dbTimeFormat.parse(dateStr);
@@ -550,10 +622,17 @@ public class MainFragment extends BrowseSupportFragment
                         }
                         // Make sure we have an empty slot
                         try {
-                            while (allObjectAdapter.get(position) != null)
+                            while (allObjectAdapter.lookup(position) != null)
                                 position++;
                         } catch (ArrayIndexOutOfBoundsException e) { }
+
                         allObjectAdapter.set(position,video);
+
+                        if (selectedRowNum == allRowNum) {
+                            if (video.getItemType() == mSelectedItemType
+                                    && video.getName().equals(mSelectedItemName))
+                                selectedItemNum = position;
+                        }
                     }
 //                    videoCursorAdapter.changeCursor(data);
 
@@ -575,8 +654,6 @@ public class MainFragment extends BrowseSupportFragment
                             TYPE_RECGROUP);
                     ListRow row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
-                    if (selectedRow == -1 && currentCategory.equals(mSelectedRowName))
-                        selectedRow = mCategoryRowAdapter.size() - 1;
                 }
 
                 // Create a row for this special case with more samples.
@@ -597,10 +674,27 @@ public class MainFragment extends BrowseSupportFragment
 //                            new ListRowPresenter.SelectItemViewHolderTask(mSelectedItem));
 //                }
 
-                if (selectedRow > -1)
-                    setSelectedPosition(selectedRow);
 
-                startEntranceTransition(); // TODO: Move startEntranceTransition to after all
+//                if (selectedRowNum != -1) {
+//                    if (selectedItemNum == -1)
+//                    setSelectedPosition(selectedRowNum);
+//                    else
+//                        getRowsSupportFragment().setSelectedPosition(selectedRowNum, false,
+//                            new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
+//                }
+
+//                mSelectedRowNum = selectedRowNum;
+//                mSelectedItemNum = selectedItemNum;
+
+                SelectionSetter setter = new SelectionSetter(selectedRowNum,selectedItemNum);
+
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(setter, 100);
+
+//                getActivity().runOnUiThread(setter);
+
+
+
                 // cursors have loaded.
 //                mLoadStarted = false;
             }
@@ -608,7 +702,6 @@ public class MainFragment extends BrowseSupportFragment
 //                // The CursorAdapter contains a Cursor pointing to all videos.
 //                mVideoCursorAdapters.get(loaderId).changeCursor(data);
 //            }
-            mLoadStarted = false;
             mLastLoadTime = System.currentTimeMillis();
         }
 //        else {
@@ -626,6 +719,7 @@ public class MainFragment extends BrowseSupportFragment
 //        }
 
     }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
@@ -825,5 +919,27 @@ public class MainFragment extends BrowseSupportFragment
                     .show();
         }
     }
+
+    private class SelectionSetter implements Runnable {
+
+        private int selectedRowNum;
+        private int selectedItemNum;
+
+        public SelectionSetter(int selectedRowNum, int selectedItemNum) {
+            this.selectedRowNum = selectedRowNum;
+            this.selectedItemNum = selectedItemNum;
+        }
+        public void run() {
+            if (selectedRowNum != -1) {
+                if (selectedItemNum == -1)
+                    setSelectedPosition(selectedRowNum);
+                else
+                    getRowsSupportFragment().setSelectedPosition(selectedRowNum, false,
+                            new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
+            }
+
+        }
+    }
+
 
 }

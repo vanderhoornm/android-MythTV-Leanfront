@@ -46,8 +46,8 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.9.0'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.10.6'
-    implementation 'com.google.android.exoplayer:extension-leanback:2.10.6'
+    implementation 'com.google.android.exoplayer:exoplayer:2.10.7'
+    implementation 'com.google.android.exoplayer:extension-leanback:2.10.7'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.robolectric:robolectric:3.8'

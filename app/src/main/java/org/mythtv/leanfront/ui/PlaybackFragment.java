@@ -51,7 +51,6 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
-import org.mythtv.leanfront.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
@@ -61,6 +60,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;

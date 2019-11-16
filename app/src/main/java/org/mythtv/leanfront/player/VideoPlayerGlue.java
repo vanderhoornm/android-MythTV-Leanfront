@@ -25,8 +25,7 @@ import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.PlaybackControlsRow;
 
-
-import org.mythtv.leanfront.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
+import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
 import java.util.concurrent.TimeUnit;
 

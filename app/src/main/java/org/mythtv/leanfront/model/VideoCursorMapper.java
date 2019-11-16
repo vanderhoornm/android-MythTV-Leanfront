@@ -68,6 +68,12 @@ public final class VideoCursorMapper extends CursorMapper {
     @Override
     protected Object bind(Cursor cursor) {
 
+        // One time it failed with cursor closed. I don't know why
+        // but maybe this will catch it.
+        if (cursor.isClosed())
+            return new Video.VideoBuilder()
+                    .title("ERROR - CURSOR CLOSED")
+                    .build();
         // Get the values of the video.
         long id = cursor.getLong(idIndex);
         String title = cursor.getString(titleIndex);

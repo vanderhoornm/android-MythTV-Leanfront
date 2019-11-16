@@ -46,9 +46,6 @@ import com.google.android.exoplayer2.video.VideoListener;
 /** Leanback {@code PlayerAdapter} implementation for {@link Player}. */
 public final class LeanbackPlayerAdapter extends PlayerAdapter implements Runnable {
 
-//    static {
-//        ExoPlayerLibraryInfo.registerModule("goog.exo.leanback");
-//    }
 
     private final Context context;
     private final Player player;

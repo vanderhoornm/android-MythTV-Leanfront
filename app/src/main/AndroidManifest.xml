@@ -88,15 +88,7 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
             android:launchMode="singleTask"
             android:resizeableActivity="true" />
-        <activity
-            android:name="org.mythtv.leanfront.ui.VerticalGridActivity"
-            android:exported="true"
-            android:parentActivityName="org.mythtv.leanfront.ui.MainActivity"
-            android:theme="@style/Theme.Leanback.VerticalGrid" />
         <activity android:name="org.mythtv.leanfront.ui.SearchActivity" />
-        <activity
-            android:name="org.mythtv.leanfront.ui.GuidedStepActivity"
-            android:theme="@style/Theme.Example.Leanback.GuidedStep" />
 
         <!-- Provides search suggestions for keywords against video metadata. -->
         <provider
@@ -129,9 +121,6 @@
             android:exported="true"
             android:theme="@style/LeanbackPreferences"
             />
-        <activity
-            android:name="org.mythtv.leanfront.ui.AuthenticationActivity"
-            android:theme="@style/Theme.Example.Leanback.GuidedStep" />
     </application>
 
 </manifest>

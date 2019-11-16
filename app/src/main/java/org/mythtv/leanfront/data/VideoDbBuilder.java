@@ -26,14 +26,11 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.TimeZone;
 
 /**
  * The VideoDbBuilder is used to grab a XML file from a server and parse the data
@@ -95,10 +92,6 @@ public class VideoDbBuilder {
     public List<ContentValues> buildMedia(XmlNode xmlFull) throws IOException, XmlPullParserException {
         HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
-//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (mContext);
-//        String backend = prefs.getString("pref_backend", null);
-//        String port = prefs.getString("pref_http_port", "6544");
-//        String baseUrl = "http://" + backend + ":" + port;
         String baseUrl = XmlNode.mythApiUrl(null);
         String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.background;
         XmlNode programNode = null;
@@ -111,14 +104,10 @@ public class VideoDbBuilder {
                 break;
             XmlNode recordingNode = programNode.getNode(XMLTAG_RECORDING);
             String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
-//            if ("Deleted".equals(recGroup))
-//                continue;
             if (recGroup == null || recGroup.length() == 0)
                 recGroup = "Default";
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
-//            if (subtitle == null || subtitle.length()==0)
-//                subtitle = title;
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
             if (!filesOnServer.containsKey(storageGroup)) {

@@ -5,41 +5,30 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ## Features
 
-4K video plays successfully at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
-
-This application is is a state of development, but parts are working. It still contains some "google videos" icons and banners and the user interface needs improvement.
-
-Currently it will play recordings from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. There is no support yet for recording groups. All recordings in all groups are shown together in the user interface.
-
-This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend. Note that the settings ask for the myth protocol port but the application currently is not using it.
-
-Voice search within the application is supported.
+- 4K video plays successfully at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
+- This application is is a state of development, but parts are working. It still contains some "google videos" icons and banners and the user interface needs improvement.
+- Currently it will play recordings from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
+- This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend.
+- Voice search within the application is supported.
+- With backend on master or recent MythTV V30 this frontend will prevent idle shutdown on teh backend. On older backends you need to take steps to ensure the backend does not shut down whil playback is occurring.
+- Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend. In cases where there is no seek table the system may have to store the bookmark locally. In cases where there is no seel=ktable the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of teh bookmark set here will be incorrect when viewed from mythfrontend. 
+- The "Watched" flag is set if you get to the end of the recoding during playback. To ensure it is set, press forward or down arrow to get to the end before exiting playback. The "Watched" flag is unset if you start watching again and do not get to the end.
+- There is a delete/undelete option sop that you can delete shows after watching.
 
 ## Restrictions
 
 - Playback with the shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so works on a monitor without AC3 support. You must select surround sound or auto in the shield audio setup.
+- There is no support for watching LiveTV or Recordings in progress at present.
 
 ## To Do List
 
 Planned additions and fixes.
 
-- Prevent backend shutdown, except if frontend minimized. Currently the backend could shut down in the middle of playback.
-- Use service call to get preview image. Currently it is going direct to the image.
-- Use bookmarks to stop and continue playback. Currently it always starts at the beginning and does not save the position on exit.
-- Allow delete after watching.
-- Recording groups support needed.
 - Videos need to be supported (only recordings are currently shown).
-- Periodically refresh program list. If recordings change while the app is running it does not know about the changes.
 - LiveTV and in progress recordings. I don't know if we can support these.
 - Subtitles.
-- Clean up icons and images.
-- Clean up unused code.
 - Improve settings page.
-- Do we need grid view? Currently it is there but maybe not useful.
 - Sort out license. The sample app uses apache license.
-- When exiting playback the display is not focused on the recording just played. It jumps to the top of the list.
-- Better error handling, for example if the backend is down or cannot be contacted.
-- Anamorphic content is not showing correctly.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 
@@ -52,34 +41,13 @@ Planned additions and fixes.
 
 ## Running
 
-Start up the app. There is an entry on the main screen called "Other" with an entry called "settings". There you need to enter the backend ip address. Only the backend ip address and backend port are currently used. Other entries here are for future use or may be removed.
+Start up the app. There is an entry on the main screen at the end called "settings". There you need to enter the backend ip address. There are other options available here.
 
-Make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
-
-Note that when you exit the settings sidebar it refreshes the list of recordings. This is also a way to refresh the list until we add automatic refresh.
+If using backend earlier than fixes/30 of Nov 12 2019 or Master of October 31 2019, make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
 
 Make sure you select surround sound or auto in the audio setup.
 
 ## Features of the sample
-
-- Choose a layout
-  - Videos grouped by [category][mainfragment] (See BrowseFragment in [screenshots][screenshots])
-  - Freeform [vertical grid][verticalgridfragment] of videos (See Vertical Grid Fragment in [screenshots][screenshots])
-- Customize video cards with a [Card Presenter][cardpresenter] (See Card Views in [screenshots][screenshots])
-- Display in-depth [details][detailsfragment] about your video
-- Play a video
-  - [Playback with ExoPlayer2][playbackfragment]
-  - [Add extra buttons to control playback][videoplayerglue]
-- [Display an error][errorfragment]
-- Make your app globally searchable
-  - Review searchable training [document][searchable]
-     - Creating a [content provider][videoprovider]
-     - Defining [searchable.xml][searchable.xml]
-     - Receive search intent in [manifest][manifestsearch]
-- [Search][searchfragment] within your app
-- [Onboard][onboardingfragment] new users (explain new features)
-- Customize [preference and settings][settingsfragment]
-- Add a wizard with [guided steps][guidedstep]
 
 [screenshots]: https://github.com/googlesamples/androidtv-Leanback#screenshots
 
@@ -120,10 +88,6 @@ Make sure you select surround sound or auto in the audio setup.
 - [Android TV Apps in Google Play Store][store-apps]
 
 
-## Screenshots
-
-[![Screenshot](screenshots/atv-leanback-all.png)](https://raw.githubusercontent.com/googlesamples/androidtv-Leanback/master/screenshots/atv-leanback-all.png)
-
 ## Support
 
 If you need additional help, our community might be able to help.
@@ -138,10 +102,6 @@ If you use Android Studio as recommended, the following dependencies will **auto
 - Android SDK v7 appcompat library
 - Android SDK v17 leanback support library
 - Android SDK v7 recyclerview library
-
-## Contributing
-
-We love contributions! :smile: Please follow the steps in the [CONTRIBUTING guide][contributing] to get started. If you found a bug, please file it [here][bugs].
 
 ## License
 

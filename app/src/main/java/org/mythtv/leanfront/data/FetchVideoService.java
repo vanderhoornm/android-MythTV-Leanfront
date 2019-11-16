@@ -19,15 +19,9 @@ package org.mythtv.leanfront.data;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import androidx.preference.PreferenceManager;
-
-import org.mythtv.leanfront.R;
-
-import org.json.JSONException;
 import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
@@ -55,13 +49,9 @@ public class FetchVideoService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
 
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
-//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (this);
 
         try {
             // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-//            String backend = prefs.getString("pref_backend", null);
-//            String port = prefs.getString("pref_http_port", "6544");
-//            String catalogUrl = "http://" + backend + ":" + port + "/Dvr/GetRecordedList";
             String url = mythApiUrl("/Dvr/GetRecordedList");
             if (url != null) {
                 List<ContentValues> contentValuesList = builder.fetch(url);

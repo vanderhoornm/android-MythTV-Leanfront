@@ -81,18 +81,7 @@ public class SettingsFragment extends LeanbackSettingsFragment
         }
 
         @Override
-        public boolean onPreferenceTreeClick(Preference preference) {
-            if (preference.getKey().equals(getString(R.string.pref_key_login))) {
-                // Open an AuthenticationActivity
-                startActivity(new Intent(getActivity(), AuthenticationActivity.class));
-            }
-            return super.onPreferenceTreeClick(preference);
-        }
-        @Override
         public void onDestroy() {
-            // Start an Intent to fetch the videos.
-//            Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
-//            getActivity().startService(serviceIntent);
             MainActivity main = MainActivity.getContext();
             if (main != null)
                 main.getMainFragment().startFetch();

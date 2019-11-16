@@ -68,11 +68,6 @@ public class MainActivity extends LeanbackActivity {
         context = null;
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
     static public void startMainLoader() {
         MainActivity main = getContext();
         if (main != null) {
@@ -86,10 +81,4 @@ public class MainActivity extends LeanbackActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-//        if (mainFragment.getType() == MainFragment.TYPE_TOPLEVEL)
-//            System.exit(0);
-    }
 }

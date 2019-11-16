@@ -76,7 +76,7 @@ public class UpdateRecommendationsService extends IntentService {
         int cardWidth = res.getDimensionPixelSize(R.dimen.card_width);
         int cardHeight = res.getDimensionPixelSize(R.dimen.card_height);
         ContentRecommendation.Builder builder = new ContentRecommendation.Builder()
-                .setBadgeIcon(R.drawable.videos_by_google_icon);
+                .setBadgeIcon(R.drawable.videos_icon);
 
         Cursor cursor = getContentResolver().query(
                 VideoContract.VideoEntry.CONTENT_URI,

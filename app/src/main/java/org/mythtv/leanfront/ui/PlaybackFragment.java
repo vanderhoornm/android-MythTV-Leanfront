@@ -28,8 +28,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.view.KeyEvent;
-import android.view.View;
 
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -50,7 +48,6 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.data.MythDataSource;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
@@ -73,6 +70,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.IOException;
@@ -207,7 +205,6 @@ public class PlaybackFragment extends VideoSupportFragment {
         int progflags = Integer.parseInt(video.progflags);
         // possible characters for watched - "👁" "⏿" "👀"
         if ((progflags & video.FL_WATCHED) != 0)
-//            subtitle.append("\uD83D\uDC41");
             markWatched(false);
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
@@ -223,12 +220,9 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
-/*        ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
-                (new DefaultDataSourceFactory(getActivity(), userAgent),
-                        new DefaultExtractorsFactory()); */
         ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
-                (new MythDataSource.Factory(getActivity(), userAgent),
-                        new DefaultExtractorsFactory());
+                  (new DefaultDataSourceFactory(getActivity(), userAgent),
+                   new DefaultExtractorsFactory());
         MediaSource mediaSource = pmf.createMediaSource(mediaSourceUri);
         mPlayer.prepare(mediaSource);
     }
@@ -454,10 +448,6 @@ public class PlaybackFragment extends VideoSupportFragment {
                                                     + mVideo.recordedid + "&Offset=" + posBkmark);
                                     bkmrkData = XmlNode.fetch(url, "POST");
                                     result = bkmrkData.getString();
-                                    // if this is successfull we still need to set it local as well
-                                    // so do not set found to true
-//                                    if ("true".equals(result))
-//                                        found = true;
                                 }
                             }
                             if ("local".equals(pref) || !found) {

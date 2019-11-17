@@ -150,6 +150,7 @@ public class MainFragment extends BrowseSupportFragment
 
     // Fetch video list from MythTV into local database
     public void startFetch() {
+        mFetchTime = System.currentTimeMillis();
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
         getActivity().startService(serviceIntent);
@@ -354,6 +355,8 @@ public class MainFragment extends BrowseSupportFragment
         // the current selection and focus to be lost.
         if (data != null && mLoadStarted) {
             mLoadStarted = false;
+            long lastLoadTime = System.currentTimeMillis();
+
             final int loaderId = loader.getId();
             if (loaderId == CATEGORY_LOADER) {
                 int recgroupIndex =
@@ -534,7 +537,7 @@ public class MainFragment extends BrowseSupportFragment
                 handler.postDelayed(setter, 100);
 
             }
-            mLastLoadTime = System.currentTimeMillis();
+            mLastLoadTime = lastLoadTime;
         }
     }
 

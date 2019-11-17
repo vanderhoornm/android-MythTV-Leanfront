@@ -51,26 +51,30 @@ public class FetchVideoService extends IntentService {
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
 
         try {
-            // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-            String url = mythApiUrl("/Dvr/GetRecordedList");
-            if (url != null) {
-                List<ContentValues> contentValuesList = builder.fetch(url);
-                ContentValues[] downloadedVideoContentValues =
-                        contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-                VideoDbHelper dbh = new VideoDbHelper(this);
-                SQLiteDatabase db = dbh.getWritableDatabase();
-                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-                db.close();
-                getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                        downloadedVideoContentValues);
-            }
+            long fetchTime = 0;
+            do {
+                fetchTime = System.currentTimeMillis();
+                // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
+                String url = mythApiUrl("/Dvr/GetRecordedList");
+                if (url != null) {
+                    List<ContentValues> contentValuesList = builder.fetch(url);
+                    ContentValues[] downloadedVideoContentValues =
+                            contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                    VideoDbHelper dbh = new VideoDbHelper(this);
+                    SQLiteDatabase db = dbh.getWritableDatabase();
+                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+                    db.close();
+                    getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                            downloadedVideoContentValues);
+                }
+                // Repeat if another fetch request came in while we were fetching
+            }  while(MainFragment.mFetchTime > fetchTime);
         } catch (IOException | XmlPullParserException e) {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }
 
         MainFragment.mLoadNeededTime = System.currentTimeMillis();
-        MainFragment.mFetchTime = System.currentTimeMillis();
         MainActivity.startMainLoader();
     }
 }

@@ -19,11 +19,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextureView
-        android:id="@+id/texture_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center" />
+    <!--<TextureView-->
+        <!--android:id="@+id/texture_view"-->
+        <!--android:tag="texture_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_gravity="center" />-->
 
     <fragment
         android:id="@+id/playback_controls_fragment"

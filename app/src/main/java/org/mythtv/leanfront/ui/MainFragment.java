@@ -73,7 +73,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -634,10 +633,6 @@ public class MainFragment extends BrowseSupportFragment
                     XmlNode bkmrkData = XmlNode.fetch(url, "POST");
                     result = bkmrkData.getString();
                     connection = true;
-                } catch (SocketException e) {
-                    toastMsg = R.string.msg_no_connection;
-                    toastLeng = Toast.LENGTH_LONG;
-                    connectionfail = true;
                 } catch (FileNotFoundException e) {
                     if (!mVersionMessageShown) {
                         if (!mVersionMessageShown) {
@@ -647,7 +642,11 @@ public class MainFragment extends BrowseSupportFragment
                         }
                         connection = true;
                     }
-                } catch (IOException | XmlPullParserException e) {
+                } catch (IOException e) {
+                    toastMsg = R.string.msg_no_connection;
+                    toastLeng = Toast.LENGTH_LONG;
+                    connectionfail = true;
+                } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }
                 if (toastMsg != 0) {
@@ -674,7 +673,9 @@ public class MainFragment extends BrowseSupportFragment
             }
         }
     }
-    private static class ToastShower implements Runnable {
+
+
+    static class ToastShower implements Runnable {
 
         private Activity activity;
         private int toastMsg;

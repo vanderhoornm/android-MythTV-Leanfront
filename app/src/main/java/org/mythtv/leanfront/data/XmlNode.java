@@ -1,7 +1,6 @@
 package org.mythtv.leanfront.data;
 
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
@@ -82,6 +81,8 @@ public class XmlNode {
             url = new URL(urlString);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.addRequestProperty("Cache-Control", "no-cache");
+            urlConnection.setConnectTimeout(5000);
+            urlConnection.setReadTimeout(10000);
             if (requestMethod != null)
                 urlConnection.setRequestMethod(requestMethod);
             is = urlConnection.getInputStream();

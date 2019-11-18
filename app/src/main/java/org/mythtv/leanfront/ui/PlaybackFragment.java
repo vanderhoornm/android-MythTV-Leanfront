@@ -18,7 +18,6 @@ package org.mythtv.leanfront.ui;
 
 import android.annotation.TargetApi;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -28,6 +27,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.SurfaceView;
+import android.widget.Toast;
 
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -77,7 +78,6 @@ import java.io.IOException;
 import java.util.Date;
 
 
-
 /**
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
  * VideoPlayerGlue}.
@@ -100,6 +100,14 @@ public class PlaybackFragment extends VideoSupportFragment {
     private boolean mWatched = false;
     private static final int ACTION_SET_BOOKMARK = 1;
     private static final int ACTION_SET_WATCHED = 2;
+    private static float ASPECT_VALUES[] = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
+    private int mAspectIndex = 0;
+    private float mAspect = 1.0f;
+    private static float SCALE_VALUES[] = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
+    private int mScaleIndex = 0;
+    private float mScaleX = 1.0f;
+    private float mScaleY = 1.0f;
+    private Toast mToast = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -185,6 +193,10 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
         setAdapter(mRowsAdapter);
+        // Scaling example
+//        SurfaceView view = getSurfaceView();
+//        view.setScaleX(1.3333f);
+//        view.setScaleY(1.3333f);
     }
 
     private void releasePlayer() {
@@ -294,15 +306,20 @@ public class PlaybackFragment extends VideoSupportFragment {
     }
 
 
+    public void tickle(boolean arrowFFRew) {
+        setControlsOverlayAutoHideEnabled(false);
+        showControlsOverlay(true);
+        if (arrowFFRew)
+            setControlsOverlayAutoHideEnabled(true);
+    }
+
     @Override
     // Overridden because the default tickle disables the fade timer.
     public void tickle() {
-        setControlsOverlayAutoHideEnabled(false);
-        showControlsOverlay(true);
-        setControlsOverlayAutoHideEnabled(true);
+        tickle(false);
     }
 
-    /** Opens the video details page when a related video has been clicked. */
+        /** Opens the video details page when a related video has been clicked. */
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
         public void onItemClicked(
@@ -395,17 +412,60 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         @Override
         public void onPrevious() {
-            play(mPlaylist.previous());
+            if (mPlaylist.previous() != null)
+                play(mPlaylist.previous());
         }
 
         @Override
         public void onNext() {
-            play(mPlaylist.next());
+            if (mPlaylist.next() != null)
+                play(mPlaylist.next());
         }
 
         @Override
         public void onPlayCompleted() {
             markWatched(true);
+        }
+
+        @Override
+        public void onZoom() {
+            if (++mScaleIndex >= SCALE_VALUES.length)
+                mScaleIndex = 0;
+            mScaleX = SCALE_VALUES[mScaleIndex];
+            mScaleY = SCALE_VALUES[mScaleIndex];
+            setScale();
+
+            int vertPerc = Math.round(mScaleY * 100.0f);
+            StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_zoom_size))
+                    .append(" ").append(vertPerc).append("%");
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    msg, Toast.LENGTH_LONG);
+            mToast.show();
+        }
+
+        @Override
+        public void onAspect() {
+            if (++mAspectIndex >= ASPECT_VALUES.length)
+                mAspectIndex = 0;
+            mAspect = ASPECT_VALUES[mAspectIndex];
+            setScale();
+
+            int stretchPerc = Math.round(mAspect * 100.0f);
+            StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_aspect_stretch))
+                    .append(" ").append(stretchPerc).append("%");
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    msg, Toast.LENGTH_LONG);
+            mToast.show();
+        }
+
+        private void setScale() {
+            SurfaceView view = getSurfaceView();
+            view.setScaleX(mScaleX * mAspect);
+            view.setScaleY(mScaleY);
         }
     }
     private class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {

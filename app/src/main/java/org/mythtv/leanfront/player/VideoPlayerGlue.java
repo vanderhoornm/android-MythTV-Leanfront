@@ -18,14 +18,20 @@ package org.mythtv.leanfront.player;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
+import android.util.TypedValue;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.PlaybackControlsRow;
 
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
+
+import org.mythtv.leanfront.R;
 
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +63,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         /** Skip to the next item in the queue. */
         void onNext();
         void onPlayCompleted();
+        void onZoom();
+        void onAspect();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -66,8 +74,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
+    private ZoomAction mZoomAction;
+    private AspectAction mAspectAction;
     private int mSkipFwd = 60000;
     private int mSkipBack = 20000;
+    public static final int ACTION_ZOOM = 1;
+    public static final int ACTION_ASPECT = 2;
 
     public VideoPlayerGlue(
             Context context,
@@ -81,6 +93,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mSkipNextAction = new PlaybackControlsRow.SkipNextAction(context);
         mFastForwardAction = new PlaybackControlsRow.FastForwardAction(context);
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
+        mZoomAction = new ZoomAction(context);
+        mAspectAction = new AspectAction(context);
 
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -108,7 +122,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     protected void onCreateSecondaryActions(ArrayObjectAdapter adapter) {
         super.onCreateSecondaryActions(adapter);
-        adapter.add(mClosedCaptioningAction);
+//        adapter.add(mClosedCaptioningAction);
+        adapter.add(mZoomAction);
+        adapter.add(mAspectAction);
     }
 
     @Override
@@ -125,7 +141,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         return action == mRewindAction
                 || action == mFastForwardAction
-                || action == mClosedCaptioningAction;
+//                || action == mClosedCaptioningAction
+                || action == mZoomAction
+                || action == mAspectAction;
     }
 
     private void dispatchAction(Action action) {
@@ -134,6 +152,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             rewind();
         } else if (action == mFastForwardAction) {
             fastForward();
+        } else if (action == mZoomAction) {
+            mActionListener.onZoom();
+        } else if (action == mAspectAction) {
+            mActionListener.onAspect();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();
@@ -202,4 +224,70 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mActionListener.onPlayCompleted();
         super.onPlayCompleted();
     }
+
+    static int getIconHighlightColor(Context context) {
+        TypedValue outValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(R.attr.playbackControlsIconHighlightColor,
+                outValue, true)) {
+            return outValue.data;
+        }
+        return context.getResources().getColor(R.color.lb_playback_icon_highlight_no_theme);
+    }
+
+
+    /**
+     * An action for displaying a Zoom icon.
+     */
+    public static class ZoomAction extends PlaybackControlsRow.MultiAction {
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         */
+        public ZoomAction(Context context) {
+            this(context, getIconHighlightColor(context));
+        }
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         * @param highlightColor Color for the highlighted icon state.
+         */
+        public ZoomAction(Context context, int highlightColor) {
+            super(ACTION_ZOOM);
+            Resources res = context.getResources();
+            Drawable[] drawables = new Drawable[1];
+            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_zoom_button, null);
+            setDrawables(drawables);
+        }
+    }
+
+    /**
+     * An action for displaying an Aspect icon.
+     */
+    public static class AspectAction extends PlaybackControlsRow.MultiAction {
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         */
+        public AspectAction(Context context) {
+            this(context, getIconHighlightColor(context));
+        }
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         * @param highlightColor Color for the highlighted icon state.
+         */
+        public AspectAction(Context context, int highlightColor) {
+            super(ACTION_ASPECT);
+            Resources res = context.getResources();
+            Drawable[] drawables = new Drawable[1];
+            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_aspect_button, null);
+            setDrawables(drawables);
+        }
+    }
+
+
 }

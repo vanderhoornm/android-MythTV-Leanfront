@@ -96,38 +96,46 @@ public class PlaybackActivity extends LeanbackActivity {
     public boolean dispatchKeyEvent(KeyEvent event){
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keycode = event.getKeyCode();
-            if (keycode == KeyEvent.KEYCODE_DPAD_CENTER && mArrowFFRew) {
-                mArrowFFRew = false;
-                return true;
+
+            if (keycode == KeyEvent.KEYCODE_DPAD_CENTER
+                || keycode == KeyEvent.KEYCODE_ENTER) {
+                boolean wasVisible = mPlaybackFragment.isControlsOverlayVisible();
+                mPlaybackFragment.tickle(mArrowFFRew);
+                if (mArrowFFRew)
+                    mArrowFFRew = false;
+                if (!wasVisible)
+                    return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle();
+                mPlaybackFragment.tickle(mArrowFFRew);
                 mPlaybackFragment.fastForward();
                 return true;
             }
+
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowFFRew = true;
                 }
+                mPlaybackFragment.tickle(mArrowFFRew);
                 if (mArrowFFRew) {
-                    mPlaybackFragment.tickle();
                     mPlaybackFragment.fastForward();
                     return true;
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.tickle();
+                mPlaybackFragment.tickle(mArrowFFRew);
                 mPlaybackFragment.rewind();
                 return true;
             }
+
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowFFRew = true;
                 }
+                mPlaybackFragment.tickle(mArrowFFRew);
                 if (mArrowFFRew) {
-                    mPlaybackFragment.tickle();
                     mPlaybackFragment.rewind();
                     return true;
                 }
@@ -137,8 +145,8 @@ public class PlaybackActivity extends LeanbackActivity {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowFFRew = true;
                 }
+                mPlaybackFragment.tickle(mArrowFFRew);
                 if (mArrowFFRew) {
-                    mPlaybackFragment.tickle();
                     mPlaybackFragment.jumpBack();
                     return true;
                 }
@@ -148,8 +156,8 @@ public class PlaybackActivity extends LeanbackActivity {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowFFRew = true;
                 }
+                mPlaybackFragment.tickle(mArrowFFRew);
                 if (mArrowFFRew) {
-                    mPlaybackFragment.tickle();
                     mPlaybackFragment.jumpForward();
                     return true;
                 }

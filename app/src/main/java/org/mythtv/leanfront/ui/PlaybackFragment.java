@@ -154,7 +154,13 @@ public class PlaybackFragment extends VideoSupportFragment {
         if (mPlayerGlue != null && mPlayerGlue.isPlaying()) {
             mPlayerGlue.pause();
         }
+        setBookmark();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
 
+    private void setBookmark() {
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.getDuration();
         if (pos > 5000 && pos < (leng-5000))
@@ -162,9 +168,10 @@ public class PlaybackFragment extends VideoSupportFragment {
         else
             mBookmark = 0;
         new AsyncBackendCall().execute(ACTION_SET_BOOKMARK);
-
-        if (Util.SDK_INT <= 23) {
-            releasePlayer();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -412,14 +419,26 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         @Override
         public void onPrevious() {
-            if (mPlaylist.previous() != null)
-                play(mPlaylist.previous());
+            Video v = mPlaylist.previous();
+            if (v != null) {
+                // TODO: setting bookmark on cirrent video and using it on new video
+                // As things are, the bookmark from the first video will be applied
+                // to the second, and setting the bookmark here would cause a conflict
+                mBookmark = 0;
+//                setBookmark();
+                play(v);
+            }
         }
 
         @Override
         public void onNext() {
-            if (mPlaylist.next() != null)
-                play(mPlaylist.next());
+            Video v = mPlaylist.next();
+            if (v != null) {
+                // TODO: setting bookmark on cirrent video and using it on new video
+                mBookmark = 0;
+//                setBookmark();
+                play(v);
+            }
         }
 
         @Override

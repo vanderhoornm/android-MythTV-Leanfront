@@ -18,9 +18,11 @@ package org.mythtv.leanfront.presenter;
 
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
+import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainActivity;
 
+import android.content.Context;
 import android.text.format.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,6 +36,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
 
         if (video != null) {
             viewHolder.getTitle().setText(video.title);
+            Context context = viewHolder.getBody().getContext();
             StringBuilder subtitle = new StringBuilder();
             // possible characters for watched - "👁" "⏿" "👀"
             int progflags = Integer.parseInt(video.progflags);
@@ -61,7 +64,9 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 // Length of recording
                 long duration = Long.parseLong(video.duration, 10);
                 duration = duration / 60000;
-                description.append(", " + duration + " minutes");
+                description.append(", ").append(duration).append(" ").append(context.getString(R.string.video_minutes));
+                // Channel
+                description.append("  ").append(video.channel);
                 // Original Air date
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
                 if ("01-01".equals(video.airdate.substring(5)))

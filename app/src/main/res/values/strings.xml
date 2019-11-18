@@ -94,4 +94,5 @@
     <string name="lb_playback_controls_fast_forward">Jump Fwd</string>
     <string name="playback_zoom_size">Size</string>
     <string name="playback_aspect_stretch">Stretch</string>
+    <string name="video_minutes">minutes</string>
 </resources>

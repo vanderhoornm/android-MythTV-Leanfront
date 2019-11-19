@@ -132,6 +132,8 @@ public class MainFragment extends BrowseSupportFragment
     private long mLastLoadTime = 0;
     public static long mLoadNeededTime = System.currentTimeMillis();
     public static long mFetchTime = 0;
+    // Keep track of the fragment currently showing, if any.
+    private static MainFragment mActiveFragment = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -192,15 +194,18 @@ public class MainFragment extends BrowseSupportFragment
     public void onDestroy() {
         mHandler.removeCallbacks(mBackgroundTask);
         mBackgroundManager = null;
-        if (executor != null)
-            executor.shutdownNow();
-        executor = null;
+        if (mType == TYPE_TOPLEVEL) {
+            if (executor != null)
+                executor.shutdownNow();
+            executor = null;
+        }
         super.onDestroy();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        mActiveFragment = this;
         startBackgroundTimer();
         if (executor == null) {
             executor = Executors.newScheduledThreadPool(1);
@@ -215,6 +220,7 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onPause() {
+        mActiveFragment = null;
         int selectedRowNum = getSelectedPosition();
         mSelectedRowName = null;
         mSelectedRowType = -1;
@@ -661,7 +667,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                 }
             }
-            if (connectionfail) {
+            if (connectionfail || mFetchTime < System.currentTimeMillis() - 60*60*1000) {
                 Activity activity = MainActivity.getContext();
                 if (activity == null)
                     return;

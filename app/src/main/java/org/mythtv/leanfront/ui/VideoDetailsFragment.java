@@ -277,14 +277,16 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         switch (id) {
             case RELATED_VIDEO_LOADER: {
                 String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
+                        +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
+                        +VideoContract.VideoEntry.COLUMN_STARTTIME;
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
                         VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
                         new String[]{category},
-                        null
-                );
+                        orderby);
             }
             default: {
                 // Loading video from global search.
@@ -295,8 +297,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         null,
                         VideoContract.VideoEntry._ID + " = ?",
                         new String[]{videoId},
-                        null
-                );
+                        null);
             }
         }
 

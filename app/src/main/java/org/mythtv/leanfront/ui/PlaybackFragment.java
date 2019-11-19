@@ -167,7 +167,7 @@ public class PlaybackFragment extends VideoSupportFragment {
             mBookmark = pos;
         else
             mBookmark = 0;
-        new AsyncBackendCall().execute(ACTION_SET_BOOKMARK);
+        new AsyncBackendCall(mVideo, mBookmark).execute(ACTION_SET_BOOKMARK);
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -309,7 +309,7 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     public void markWatched(boolean watched) {
         mWatched = watched;
-        new AsyncBackendCall().execute(ACTION_SET_WATCHED);
+        new AsyncBackendCall(mVideo,mBookmark).execute(ACTION_SET_WATCHED);
     }
 
 
@@ -370,13 +370,16 @@ public class PlaybackFragment extends VideoSupportFragment {
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             // When loading related videos or videos for the playlist, query by category.
             String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+            String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
+                    +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
+                    +VideoContract.VideoEntry.COLUMN_STARTTIME;
             return new CursorLoader(
                     getActivity(),
                     VideoContract.VideoEntry.CONTENT_URI,
                     null,
                     VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
                     new String[] {category},
-                    null);
+                    orderby);
         }
 
         @Override
@@ -421,12 +424,11 @@ public class PlaybackFragment extends VideoSupportFragment {
         public void onPrevious() {
             Video v = mPlaylist.previous();
             if (v != null) {
-                // TODO: setting bookmark on cirrent video and using it on new video
-                // As things are, the bookmark from the first video will be applied
-                // to the second, and setting the bookmark here would cause a conflict
+                setBookmark();
+                // TODO: Refactor so that we can resume from bookmark
                 mBookmark = 0;
-//                setBookmark();
-                play(v);
+                mVideo = v;
+                play(mVideo);
             }
         }
 
@@ -434,10 +436,10 @@ public class PlaybackFragment extends VideoSupportFragment {
         public void onNext() {
             Video v = mPlaylist.next();
             if (v != null) {
-                // TODO: setting bookmark on cirrent video and using it on new video
+                setBookmark();
                 mBookmark = 0;
-//                setBookmark();
-                play(v);
+                mVideo = v;
+                play(mVideo);
             }
         }
 
@@ -487,7 +489,16 @@ public class PlaybackFragment extends VideoSupportFragment {
             view.setScaleY(mScaleY);
         }
     }
+
     private class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
+
+        private Video mVideoA;
+        private long mBookmarkA;
+
+        public AsyncBackendCall(Video videoA, long bookmarkA) {
+            mVideoA = videoA;
+            mBookmarkA = bookmarkA;
+        }
 
         protected Void doInBackground(Integer ... tasks) {
             for (int counter = 0; counter < tasks.length; counter++) {
@@ -514,17 +525,17 @@ public class PlaybackFragment extends VideoSupportFragment {
                                 // store a mythtv bookmark
                                 url = XmlNode.mythApiUrl(
                                         "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mVideo.recordedid + "&Offset=" + mBookmark);
+                                                + mVideoA.recordedid + "&Offset=" + mBookmarkA);
                                 XmlNode bkmrkData = XmlNode.fetch(url, "POST");
                                 result = bkmrkData.getString();
                                 if ("true".equals(result))
                                     found = true;
                                 else {
                                     // store a mythtv position bookmark (in case there is no seek table)
-                                    long posBkmark = mBookmark * fps / 1000;
+                                    long posBkmark = mBookmarkA * fps / 1000;
                                     url = XmlNode.mythApiUrl(
                                             "/Dvr/SetSavedBookmark?RecordedId="
-                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                                    + mVideoA.recordedid + "&Offset=" + posBkmark);
                                     bkmrkData = XmlNode.fetch(url, "POST");
                                     result = bkmrkData.getString();
                                 }
@@ -540,11 +551,11 @@ public class PlaybackFragment extends VideoSupportFragment {
                                 ContentValues values = new ContentValues();
                                 Date now = new Date();
                                 values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
-                                values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mBookmark);
+                                values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mBookmarkA);
 
                                 // First try an update
                                 String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                                String[] selectionArgs = {mVideo.videoUrl};
+                                String[] selectionArgs = {mVideoA.videoUrl};
 
                                 int count = db.update(
                                         VideoContract.StatusEntry.TABLE_NAME,
@@ -554,7 +565,7 @@ public class PlaybackFragment extends VideoSupportFragment {
 
                                 if (count == 0) {
                                     // Try an insert instead
-                                    values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
+                                    values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideoA.videoUrl);
                                     // Insert the new row, returning the primary key value of the new row
                                     long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
                                             null, values);
@@ -570,7 +581,7 @@ public class PlaybackFragment extends VideoSupportFragment {
                             // set recording watched
                             url = XmlNode.mythApiUrl(
                                     "/Dvr/UpdateRecordedWatchedStatus?RecordedId="
-                                            + mVideo.recordedid + "&Watched=" + mWatched);
+                                            + mVideoA.recordedid + "&Watched=" + mWatched);
                             XmlNode resultData = XmlNode.fetch(url, "POST");
                             result = resultData.getString();
                             if (main != null)

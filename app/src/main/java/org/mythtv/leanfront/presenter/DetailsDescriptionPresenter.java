@@ -40,7 +40,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             StringBuilder subtitle = new StringBuilder();
             // possible characters for watched - "👁" "⏿" "👀"
             int progflags = Integer.parseInt(video.progflags);
-            if ((progflags & video.FL_WATCHED) != 0)
+            if ((progflags & Video.FL_WATCHED) != 0)
                 subtitle.append("\uD83D\uDC41");
             if (video.season != null && video.season.compareTo("0") > 0) {
                 subtitle.append('S').append(video.season).append('E').append(video.episode)

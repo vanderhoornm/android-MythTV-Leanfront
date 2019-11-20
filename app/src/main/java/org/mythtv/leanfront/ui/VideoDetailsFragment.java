@@ -19,6 +19,7 @@ package org.mythtv.leanfront.ui;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -29,6 +30,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
@@ -55,7 +58,6 @@ import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
-import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,16 +71,12 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
-import org.mythtv.leanfront.data.VideoDbHelper;
-import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.DetailsDescriptionPresenter;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 
 
 /*
@@ -86,14 +84,15 @@ import java.io.IOException;
  * It shows a detailed view of video and its metadata plus related videos.
  */
 public class VideoDetailsFragment extends DetailsSupportFragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>,
+        AsyncBackendCall.OnBackendCallListener {
 
     private static final int NO_NOTIFICATION = -1;
-    private static final int ACTION_PLAY = 1;
-    private static final int ACTION_RESUME = 2;
-    private static final int ACTION_DELETE = 3;
-    private static final int ACTION_UNDELETE = 4;
-    private static final int ACTION_REFRESH = 5;
+    public static final int ACTION_PLAY = 1;
+    public static final int ACTION_RESUME = 2;
+    public static final int ACTION_DELETE = 3;
+    public static final int ACTION_UNDELETE = 4;
+    public static final int ACTION_REFRESH = 5;
 
     // ID for loader that loads related videos.
     private static final int RELATED_VIDEO_LOADER = 1;
@@ -118,6 +117,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private long mBookmark = 0;
     private SparseArrayObjectAdapter mActionsAdapter = null;
     private DetailsOverviewRow mDetailsOverviewRow = null;
+    private boolean mWatched;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -140,7 +140,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             setupDetailsOverviewRow();
             setupMovieListRow();
             updateBackground(mSelectedVideo.bgImageUrl);
-            new AsyncBackendCall().execute(ACTION_REFRESH);
+            int progflags = Integer.parseInt(mSelectedVideo.progflags);
+            mWatched = ((progflags & Video.FL_WATCHED) != 0);
+            new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                    this).execute(AsyncBackendCall.ACTION_REFRESH);
 
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -246,10 +249,25 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         startActivityForResult(intent, ACTION_PLAY);
                         break;
                     case ACTION_DELETE:
-                        new AsyncBackendCall().execute(ACTION_DELETE, ACTION_REFRESH);
+                        // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+//                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),R.style.Theme_AppCompat_Dialog_Alert);
+//                        String[] items = {"Delete","Mark Watched"};
+//                        builder     // .setTitle("Choose Action")
+//                                .setItems(items, new DialogInterface.OnClickListener() {
+//                                    public void onClick(DialogInterface dialog, int which) {
+//                                        int i = which;
+//                                        // The 'which' argument contains the index position
+//                                        // of the selected item
+//                                    }
+//                                });
+//                        builder.show();
+//                        int j = 0;
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this).execute(ACTION_DELETE, ACTION_REFRESH);
                         break;
                     case ACTION_UNDELETE:
-                        new AsyncBackendCall().execute(ACTION_UNDELETE, ACTION_REFRESH);
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this).execute(ACTION_UNDELETE, ACTION_REFRESH);
                         break;
                     default:
                         Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
@@ -269,7 +287,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                   int resultCode,
                                   Intent intent) {
         if (requestCode == ACTION_PLAY)
-            new AsyncBackendCall().execute(ACTION_REFRESH);
+            new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                    this).execute(ACTION_REFRESH);
     }
 
     @Override
@@ -319,8 +338,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     setupDetailsOverviewRow();
                     setupMovieListRow();
                     updateBackground(mSelectedVideo.bgImageUrl);
-                    new AsyncBackendCall().execute(ACTION_REFRESH);
-
+                    new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                            this).execute(ACTION_REFRESH);
                     // When a Related Video item is clicked.
                     setOnItemViewClickedListener(new ItemViewClickedListener());
                 }
@@ -438,178 +457,29 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         }
     }
 
-
-    private class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
-
-        protected Void doInBackground(Integer ... tasks) {
-            for (int count = 0; count < tasks.length; count++) {
-                int task = tasks[count];
-                MainActivity main = MainActivity.getContext();
-                switch (task) {
-                    case ACTION_REFRESH:
-                        mBookmark = 0;
-                        boolean found = false;
-                        try {
-                            Context context = MainActivity.getContext();
-                            if (context == null)
-                                return null;
-                            SharedPreferences sharedPreferences
-                                    = PreferenceManager.getDefaultSharedPreferences(context);
-                            String pref = sharedPreferences.getString("pref_bookmark", "mythtv");
-                            String fpsStr = sharedPreferences.getString("pref_fps", "30");
-                            int fps = 30;
-                            try {
-                                fps = Integer.parseInt(fpsStr,10);
-                            } catch (NumberFormatException e) {
-                                e.printStackTrace();
-                                fps = 30;
-                            }
-                            if ("mythtv".equals(pref)) {
-                                // look for a mythtv bookmark
-                                String url = XmlNode.mythApiUrl(
-                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mSelectedVideo.recordedid);
-                                XmlNode bkmrkData = XmlNode.fetch(url, null);
-                                try {
-                                    mBookmark = Long.parseLong(bkmrkData.getString());
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    mBookmark = -1;
-                                }
-                                // sanity check bookmark - between 0 and 24 hrs.
-                                // note -1 means a bookmark but no seek table
-                                // older version of service returns garbage value when there is
-                                // no seek table.
-                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
-                                    mBookmark = -1;
-                                else
-                                    found = true;
-                                if (mBookmark == -1) {
-                                    // look for a position bookmark (for recording with no seek table)
-                                    url = XmlNode.mythApiUrl(
-                                            "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
-                                                    + mSelectedVideo.recordedid);
-                                    bkmrkData = XmlNode.fetch(url, null);
-                                    long pos = 0;
-                                    try {
-                                        pos = Long.parseLong(bkmrkData.getString());
-                                        if (pos > 24 * 60 * 60 * 1000 || pos < 0)
-                                            pos = 0;
-                                        else
-                                            found = true;
-                                    } catch (NumberFormatException e) {
-                                        e.printStackTrace();
-                                        pos=0;
-                                    }
-                                    mBookmark = pos * 1000 / fps;
-                                }
-                            }
-                            if ("local".equals(pref) || !found) {
-                                // default to none
-                                mBookmark = 0;
-                                // Look for a local bookmark
-                                VideoDbHelper dbh = new VideoDbHelper(context);
-                                SQLiteDatabase db = dbh.getReadableDatabase();
-
-                                // Define a projection that specifies which columns from the database
-                                // you will actually use after this query.
-                                String[] projection = {
-                                        VideoContract.StatusEntry._ID,
-                                        VideoContract.StatusEntry.COLUMN_VIDEO_URL,
-                                        VideoContract.StatusEntry.COLUMN_LAST_USED,
-                                        VideoContract.StatusEntry.COLUMN_BOOKMARK
-                                };
-
-                                // Filter results
-                                String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                                String[] selectionArgs = {mSelectedVideo.videoUrl};
-
-                                Cursor cursor = db.query(
-                                        VideoContract.StatusEntry.TABLE_NAME,   // The table to query
-                                        projection,             // The array of columns to return (pass null to get all)
-                                        selection,              // The columns for the WHERE clause
-                                        selectionArgs,          // The values for the WHERE clause
-                                        null,                   // don't group the rows
-                                        null,                   // don't filter by row groups
-                                        null               // The sort order
-                                );
-
-                                // We expect one or zero results, never more than one.
-                                if (cursor.moveToNext()) {
-                                    int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
-                                    if (colno >= 0) {
-                                        mBookmark = cursor.getLong(colno);
-                                    }
-                                }
-                                cursor.close();
-                                db.close();
-
-                            }
-                            // Find out rec group
-                            String url = XmlNode.mythApiUrl(
-                                    "/Dvr/GetRecorded?RecordedId="
-                                            + mSelectedVideo.recordedid);
-                            XmlNode recorded = XmlNode.fetch(url, null);
-                            mSelectedVideo.recGroup = recorded.getString(XMLTAGS_RECGROUP);
-                            mSelectedVideo.progflags = recorded.getString(XMLTAGS_PROGRAMFLAGS);
-                        } catch (IOException | XmlPullParserException e) {
-                            mBookmark = 0;
-                            e.printStackTrace();
-                        }
-                        break;
-                    case ACTION_DELETE:
-                        // Delete recording
-                        try {
-                            String url = XmlNode.mythApiUrl(
-                                    "/Dvr/DeleteRecording?RecordedId="
-                                            + mSelectedVideo.recordedid);
-                            XmlNode result = XmlNode.fetch(url, "POST");
-                            if (main != null)
-                                main.getMainFragment().startFetch();
-                        } catch (IOException | XmlPullParserException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case ACTION_UNDELETE:
-                        // UnDelete recording
-                        try {
-                            String url = XmlNode.mythApiUrl(
-                                    "/Dvr/UnDeleteRecording?RecordedId="
-                                            + mSelectedVideo.recordedid);
-                            XmlNode result = XmlNode.fetch(url, "POST");
-                            if (main != null)
-                                main.getMainFragment().startFetch();
-                        } catch (IOException | XmlPullParserException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return null;
-        }
-
-        protected void onPostExecute(Void result) {
-            int i = 0;
-            mActionsAdapter.clear();
-            if (mBookmark > 0)
-                mActionsAdapter.set(++i, new Action(ACTION_RESUME, getResources()
-                        .getString(R.string.resume_1),
-                        getResources().getString(R.string.resume_2)));
-            mActionsAdapter.set(++i, new Action(ACTION_PLAY, getResources()
-                    .getString(R.string.play_1),
-                    getResources().getString(R.string.play_2)));
-            if ("Deleted".equals(mSelectedVideo.recGroup))
-                mActionsAdapter.set(++i, new Action(ACTION_UNDELETE, getResources()
-                        .getString(R.string.undelete_1),
-                        getResources().getString(R.string.undelete_2)));
-            else
-                mActionsAdapter.set(++i, new Action(ACTION_DELETE, getResources()
-                        .getString(R.string.delete_1),
-                        getResources().getString(R.string.delete_2)));
-        }
-
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        if (taskRunner == null)
+            return;
+        mBookmark = taskRunner.getBookmark();
+        int progflags = Integer.parseInt(mSelectedVideo.progflags);
+        mWatched = ((progflags & Video.FL_WATCHED) != 0);
+        int i = 0;
+        mActionsAdapter.clear();
+        if (mBookmark > 0)
+            mActionsAdapter.set(++i, new Action(ACTION_RESUME, getResources()
+                    .getString(R.string.resume_1),
+                    getResources().getString(R.string.resume_2)));
+        mActionsAdapter.set(++i, new Action(ACTION_PLAY, getResources()
+                .getString(R.string.play_1),
+                getResources().getString(R.string.play_2)));
+        if ("Deleted".equals(mSelectedVideo.recGroup))
+            mActionsAdapter.set(++i, new Action(ACTION_UNDELETE, getResources()
+                    .getString(R.string.undelete_1),
+                    getResources().getString(R.string.undelete_2)));
+        else
+            mActionsAdapter.set(++i, new Action(ACTION_DELETE, getResources()
+                    .getString(R.string.delete_1),
+                    getResources().getString(R.string.delete_2)));
     }
-
 }

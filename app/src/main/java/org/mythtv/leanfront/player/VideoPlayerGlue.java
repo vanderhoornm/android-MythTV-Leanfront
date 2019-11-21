@@ -32,6 +32,7 @@ import androidx.leanback.widget.PlaybackControlsRow;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Video;
 
 import java.util.concurrent.TimeUnit;
 
@@ -78,8 +79,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private AspectAction mAspectAction;
     private int mSkipFwd = 60000;
     private int mSkipBack = 20000;
-    public static final int ACTION_ZOOM = 1;
-    public static final int ACTION_ASPECT = 2;
 
     public VideoPlayerGlue(
             Context context,
@@ -254,7 +253,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
          * @param highlightColor Color for the highlighted icon state.
          */
         public ZoomAction(Context context, int highlightColor) {
-            super(ACTION_ZOOM);
+            super(Video.ACTION_ZOOM);
             Resources res = context.getResources();
             Drawable[] drawables = new Drawable[1];
             drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_zoom_button, null);
@@ -281,7 +280,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
          * @param highlightColor Color for the highlighted icon state.
          */
         public AspectAction(Context context, int highlightColor) {
-            super(ACTION_ASPECT);
+            super(Video.ACTION_ASPECT);
             Resources res = context.getResources();
             Drawable[] drawables = new Drawable[1];
             drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_aspect_button, null);

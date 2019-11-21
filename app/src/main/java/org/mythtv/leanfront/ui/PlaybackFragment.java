@@ -156,7 +156,7 @@ public class PlaybackFragment extends VideoSupportFragment {
         else
             mBookmark = 0;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
-                null).execute(AsyncBackendCall.ACTION_SET_BOOKMARK);
+                null).execute(Video.ACTION_SET_BOOKMARK);
 //        new AsyncBackendCall(mVideo, mBookmark).execute(ACTION_SET_BOOKMARK);
         try {
             Thread.sleep(100);
@@ -212,9 +212,10 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         StringBuilder subtitle = new StringBuilder();
         int progflags = Integer.parseInt(video.progflags);
+        // This is to marl unwatched when play starts - does not seem a good idea.
         // possible characters for watched - "👁" "⏿" "👀"
-        if ((progflags & video.FL_WATCHED) != 0)
-            markWatched(false);
+//        if ((progflags & video.FL_WATCHED) != 0)
+//            markWatched(false);
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
                     .append(' ');
@@ -300,7 +301,7 @@ public class PlaybackFragment extends VideoSupportFragment {
     public void markWatched(boolean watched) {
         mWatched = watched;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
-                null).execute(AsyncBackendCall.ACTION_SET_WATCHED);
+                null).execute(Video.ACTION_SET_WATCHED);
 //        new AsyncBackendCall(mVideo,mBookmark).execute(ACTION_SET_WATCHED);
     }
 

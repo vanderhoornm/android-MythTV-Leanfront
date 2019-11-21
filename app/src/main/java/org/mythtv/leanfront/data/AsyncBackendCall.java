@@ -31,13 +31,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
     private static final String[] XMLTAGS_PROGRAMFLAGS = {"ProgramFlags"};
-    public static final int ACTION_DELETE = 3;
-    public static final int ACTION_UNDELETE = 4;
-    public static final int ACTION_REFRESH = 5;
-    public static final int ACTION_SET_BOOKMARK = 6;
-    public static final int ACTION_SET_WATCHED = 7;
-
-
 
     public AsyncBackendCall(Video videoA, long bookmarkA, boolean watched,
             OnBackendCallListener backendCallListener) {
@@ -61,7 +54,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             XmlNode response;
             String url;
             switch (task) {
-                case ACTION_REFRESH:
+                case Video.ACTION_REFRESH:
                     mBookmark = 0;
                     found = false;
                     try {
@@ -172,7 +165,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
-                case ACTION_DELETE:
+                case Video.ACTION_DELETE:
                     // Delete recording
                     try {
                         url = XmlNode.mythApiUrl(
@@ -185,7 +178,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
-                case ACTION_UNDELETE:
+                case Video.ACTION_UNDELETE:
                     // UnDelete recording
                     try {
                         url = XmlNode.mythApiUrl(
@@ -198,7 +191,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
-                case ACTION_SET_BOOKMARK:
+                case Video.ACTION_SET_BOOKMARK:
                     try {
                         found = false;
                         SharedPreferences sharedPreferences
@@ -267,7 +260,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
-                case ACTION_SET_WATCHED:
+                case Video.ACTION_SET_WATCHED:
                     try {
                         // set recording watched
                         url = XmlNode.mythApiUrl(
@@ -296,18 +289,18 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 //        int i = 0;
 //        mActionsAdapter.clear();
 //        if (mBookmark > 0)
-//            mActionsAdapter.set(++i, new Action(ACTION_RESUME, getResources()
+//            mActionsAdapter.set(++i, new Action(Video.ACTION_RESUME, getResources()
 //                    .getString(R.string.resume_1),
 //                    getResources().getString(R.string.resume_2)));
-//        mActionsAdapter.set(++i, new Action(ACTION_PLAY, getResources()
+//        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
 //                .getString(R.string.play_1),
 //                getResources().getString(R.string.play_2)));
 //        if ("Deleted".equals(mSelectedVideo.recGroup))
-//            mActionsAdapter.set(++i, new Action(ACTION_UNDELETE, getResources()
+//            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()
 //                    .getString(R.string.undelete_1),
 //                    getResources().getString(R.string.undelete_2)));
 //        else
-//            mActionsAdapter.set(++i, new Action(ACTION_DELETE, getResources()
+//            mActionsAdapter.set(++i, new Action(Video.ACTION_DELETE, getResources()
 //                    .getString(R.string.delete_1),
 //                    getResources().getString(R.string.delete_2)));
     }

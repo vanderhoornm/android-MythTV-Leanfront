@@ -49,6 +49,22 @@ public final class Video implements Parcelable, ListItem {
     // From MythTV libmyth/programtypes.h
     public static final int FL_WATCHED = 0x00000200;
 
+    // Actions used by multiple classes
+    public static final int ACTION_SET_BOOKMARK = 6;
+    public static final int ACTION_SET_WATCHED = 7;
+    public static final int ACTION_PLAY = 1;
+    public static final int ACTION_PLAY_FROM_BOOKMARK = 2;
+    public static final int ACTION_DELETE = 3;
+    public static final int ACTION_UNDELETE = 4;
+    public static final int ACTION_REFRESH = 5;
+    public static final int ACTION_OTHER = 6;
+    public static final int ACTION_WATCHED = 7;
+    public static final int ACTION_UNWATCHED = 8;
+    public static final int ACTION_REMOVE_BOOKMARK = 9;
+    public static final int ACTION_ZOOM = 10;
+    public static final int ACTION_ASPECT = 11;
+
+
     private Video(
             final long id,
             final String title,

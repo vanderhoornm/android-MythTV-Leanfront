@@ -95,4 +95,11 @@
     <string name="playback_zoom_size">Size</string>
     <string name="playback_aspect_stretch">Stretch</string>
     <string name="video_minutes">minutes</string>
+    <string name="button_other_1">Other</string>
+    <string name="button_other_2">Actions</string>
+    <string name="menu_undelete">Undelete</string>
+    <string name="menu_delete">Delete</string>
+    <string name="maneu_mark_unwatched">Mark as Unwatched</string>
+    <string name="menu_mark_watched">Mark as Watched</string>
+    <string name="menu_remove_bookmark">Remove Bookmark</string>
 </resources>

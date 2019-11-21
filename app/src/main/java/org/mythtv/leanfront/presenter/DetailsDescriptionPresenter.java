@@ -29,32 +29,38 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
+    private ViewHolder mViewHolder;
+    private Video mVideo;
 
     @Override
     protected void onBindDescription(ViewHolder viewHolder, Object item) {
-        Video video = (Video) item;
-
-        if (video != null) {
-            viewHolder.getTitle().setText(video.title);
-            Context context = viewHolder.getBody().getContext();
+        mVideo = (Video) item;
+        mViewHolder = viewHolder;
+        setupDescription();
+    }
+    
+    public void setupDescription() {
+        if (mVideo != null) {
+            mViewHolder.getTitle().setText(mVideo.title);
+            Context context = mViewHolder.getBody().getContext();
             StringBuilder subtitle = new StringBuilder();
             // possible characters for watched - "👁" "⏿" "👀"
-            int progflags = Integer.parseInt(video.progflags);
+            int progflags = Integer.parseInt(mVideo.progflags);
             if ((progflags & Video.FL_WATCHED) != 0)
                 subtitle.append("\uD83D\uDC41");
-            if (video.season != null && video.season.compareTo("0") > 0) {
-                subtitle.append('S').append(video.season).append('E').append(video.episode)
+            if (mVideo.season != null && mVideo.season.compareTo("0") > 0) {
+                subtitle.append('S').append(mVideo.season).append('E').append(mVideo.episode)
                         .append(' ');
             }
-            subtitle.append(video.subtitle);
-            viewHolder.getSubtitle().setText(subtitle);
+            subtitle.append(mVideo.subtitle);
+            mViewHolder.getSubtitle().setText(subtitle);
             StringBuilder description = new StringBuilder();
 
             // 2018-05-23T00:00:00Z
             try {
                 // Date Recorded
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                Date date = dbFormat.parse(video.starttime+"+0000");
+                Date date = dbFormat.parse(mVideo.starttime+"+0000");
                 long dateMS = date.getTime();
                 java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(MainActivity.getContext());
                 TimeZone tz = TimeZone.getDefault();
@@ -62,17 +68,17 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 String recDate = outFormat.format(new Date(dateMS));
                 description.append(recDate);
                 // Length of recording
-                long duration = Long.parseLong(video.duration, 10);
+                long duration = Long.parseLong(mVideo.duration, 10);
                 duration = duration / 60000;
                 description.append(", ").append(duration).append(" ").append(context.getString(R.string.video_minutes));
                 // Channel
-                description.append("  ").append(video.channel);
+                description.append("  ").append(mVideo.channel);
                 // Original Air date
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
-                if ("01-01".equals(video.airdate.substring(5)))
-                    description.append("   [" + video.airdate.substring(0,4) + "]");
+                if ("01-01".equals(mVideo.airdate.substring(5)))
+                    description.append("   [" + mVideo.airdate.substring(0,4) + "]");
                 else {
-                    date = dbFormat.parse(video.airdate);
+                    date = dbFormat.parse(mVideo.airdate);
                     String origDate = outFormat.format(date);
                     if (!origDate.equals(recDate))
                         description.append("   [" + outFormat.format(date) + "]");
@@ -81,8 +87,8 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            description.append(video.description);
-            viewHolder.getBody().setText(description);
+            description.append(mVideo.description);
+            mViewHolder.getBody().setText(description);
         }
     }
 }

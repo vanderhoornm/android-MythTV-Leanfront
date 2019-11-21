@@ -78,6 +78,8 @@ import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.DetailsDescriptionPresenter;
 
+import java.util.ArrayList;
+
 
 /*
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
@@ -88,11 +90,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         AsyncBackendCall.OnBackendCallListener {
 
     private static final int NO_NOTIFICATION = -1;
-    public static final int ACTION_PLAY = 1;
-    public static final int ACTION_RESUME = 2;
-    public static final int ACTION_DELETE = 3;
-    public static final int ACTION_UNDELETE = 4;
-    public static final int ACTION_REFRESH = 5;
 
     // ID for loader that loads related videos.
     private static final int RELATED_VIDEO_LOADER = 1;
@@ -118,6 +115,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private SparseArrayObjectAdapter mActionsAdapter = null;
     private DetailsOverviewRow mDetailsOverviewRow = null;
     private boolean mWatched;
+    private DetailsDescriptionPresenter mDetailsDescriptionPresenter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,7 +141,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             int progflags = Integer.parseInt(mSelectedVideo.progflags);
             mWatched = ((progflags & Video.FL_WATCHED) != 0);
             new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                    this).execute(AsyncBackendCall.ACTION_REFRESH);
+                    this).execute(Video.ACTION_REFRESH);
 
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -217,18 +215,19 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     private void setupAdapter() {
+        mDetailsDescriptionPresenter = new DetailsDescriptionPresenter();
         // Set detail background and style.
         FullWidthDetailsOverviewRowPresenter detailsPresenter =
-                new FullWidthDetailsOverviewRowPresenter(new DetailsDescriptionPresenter(),
+                new FullWidthDetailsOverviewRowPresenter(mDetailsDescriptionPresenter,
                         new MovieDetailsOverviewLogoPresenter());
-
+        Activity activity = getActivity();
         detailsPresenter.setBackgroundColor(
-                ContextCompat.getColor(getActivity(), R.color.selected_background));
+                ContextCompat.getColor(activity, R.color.selected_background));
         detailsPresenter.setInitialState(FullWidthDetailsOverviewRowPresenter.STATE_HALF);
 
         // Hook up transition element.
         mHelper = new FullWidthDetailsOverviewSharedElementHelper();
-        mHelper.setSharedElementEnterTransition(getActivity(),
+        mHelper.setSharedElementEnterTransition(activity,
                 VideoDetailsActivity.SHARED_ELEMENT_NAME);
         detailsPresenter.setListener(mHelper);
         detailsPresenter.setParticipatingEntranceTransition(false);
@@ -240,34 +239,81 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 int id = (int) action.getId();
                 long bookmark = 0;
                 switch (id) {
-                    case ACTION_RESUME:
+                    case Video.ACTION_PLAY_FROM_BOOKMARK:
                         bookmark = mBookmark;
-                    case ACTION_PLAY:
+                    case Video.ACTION_PLAY:
                         Intent intent = new Intent(getActivity(), PlaybackActivity.class);
                         intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
                         intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
-                        startActivityForResult(intent, ACTION_PLAY);
+                        startActivityForResult(intent, Video.ACTION_PLAY);
                         break;
-                    case ACTION_DELETE:
+                    case Video.ACTION_DELETE:
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this)
+                                .execute(Video.ACTION_DELETE, Video.ACTION_REFRESH);
+                        break;
+                    case Video.ACTION_UNDELETE:
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this)
+                                .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
+                        break;
+                    case Video.ACTION_WATCHED:
+                    case Video.ACTION_UNWATCHED:
+                        mWatched = (id == Video.ACTION_WATCHED);
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this)
+                                .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
+                        break;
+                    case Video.ACTION_REMOVE_BOOKMARK:
+                        mBookmark = 0;
+                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                                VideoDetailsFragment.this)
+                                .execute(Video.ACTION_SET_BOOKMARK, Video.ACTION_REFRESH);
+                        break;
+                    case Video.ACTION_OTHER:
+                        ArrayList<String> prompts = new ArrayList<String>();
+                        ArrayList<Action> actions = new ArrayList<Action>();
+                        int i = 0;
+                        if ("Deleted".equals(mSelectedVideo.recGroup)) {
+                            prompts.add(getString(R.string.menu_undelete));
+                            actions.add(new Action(Video.ACTION_UNDELETE));
+                        } else {
+                            prompts.add(getString(R.string.menu_delete));
+                            actions.add(new Action(Video.ACTION_DELETE));
+                        }
+
+                        if (mWatched) {
+                            prompts.add(getString(R.string.maneu_mark_unwatched));
+                            actions.add(new Action(Video.ACTION_UNWATCHED));
+                        } else {
+                            prompts.add(getString(R.string.menu_mark_watched));
+                            actions.add(new Action(Video.ACTION_WATCHED));
+                        }
+
+                        if (mBookmark > 0) {
+                            prompts.add(getString(R.string.menu_remove_bookmark));
+                            actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
+                        }
+
                         // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
-//                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),R.style.Theme_AppCompat_Dialog_Alert);
-//                        String[] items = {"Delete","Mark Watched"};
-//                        builder     // .setTitle("Choose Action")
-//                                .setItems(items, new DialogInterface.OnClickListener() {
-//                                    public void onClick(DialogInterface dialog, int which) {
-//                                        int i = which;
-//                                        // The 'which' argument contains the index position
-//                                        // of the selected item
-//                                    }
-//                                });
-//                        builder.show();
-//                        int j = 0;
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this).execute(ACTION_DELETE, ACTION_REFRESH);
-                        break;
-                    case ACTION_UNDELETE:
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this).execute(ACTION_UNDELETE, ACTION_REFRESH);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        OnActionClickedListener parent = this;
+                        builder  // If you want a title - .setTitle("Other Actions")
+                            .setTitle(mSelectedVideo.title)
+                            .setItems(prompts.toArray(new String[0]),
+                                new DialogInterface.OnClickListener() {
+                                    ArrayList<Action> mActions = actions;
+                                    OnActionClickedListener mParent = parent;
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
+                                        if (which < mActions.size()) {
+                                            parent.onActionClicked(mActions.get(which));
+                                        }
+                                    }
+                                });
+                        builder.show();
                         break;
                     default:
                         Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
@@ -286,9 +332,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public void onActivityResult (int requestCode,
                                   int resultCode,
                                   Intent intent) {
-        if (requestCode == ACTION_PLAY)
+        if (requestCode == Video.ACTION_PLAY)
             new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                    this).execute(ACTION_REFRESH);
+                    this).execute(Video.ACTION_REFRESH);
     }
 
     @Override
@@ -339,7 +385,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     setupMovieListRow();
                     updateBackground(mSelectedVideo.bgImageUrl);
                     new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                            this).execute(ACTION_REFRESH);
+                            this).execute(Video.ACTION_REFRESH);
                     // When a Related Video item is clicked.
                     setOnItemViewClickedListener(new ItemViewClickedListener());
                 }
@@ -464,22 +510,27 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mBookmark = taskRunner.getBookmark();
         int progflags = Integer.parseInt(mSelectedVideo.progflags);
         mWatched = ((progflags & Video.FL_WATCHED) != 0);
+        mDetailsDescriptionPresenter.setupDescription();
         int i = 0;
         mActionsAdapter.clear();
         if (mBookmark > 0)
-            mActionsAdapter.set(++i, new Action(ACTION_RESUME, getResources()
-                    .getString(R.string.resume_1),
-                    getResources().getString(R.string.resume_2)));
-        mActionsAdapter.set(++i, new Action(ACTION_PLAY, getResources()
-                .getString(R.string.play_1),
-                getResources().getString(R.string.play_2)));
-        if ("Deleted".equals(mSelectedVideo.recGroup))
-            mActionsAdapter.set(++i, new Action(ACTION_UNDELETE, getResources()
-                    .getString(R.string.undelete_1),
-                    getResources().getString(R.string.undelete_2)));
-        else
-            mActionsAdapter.set(++i, new Action(ACTION_DELETE, getResources()
-                    .getString(R.string.delete_1),
-                    getResources().getString(R.string.delete_2)));
+            mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
+                .getString(R.string.resume_1),
+                 getResources().getString(R.string.resume_2)));
+        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
+            .getString(R.string.play_1),
+             getResources().getString(R.string.play_2)));
+        // These add extra if needed buttons
+//        if ("Deleted".equals(mSelectedVideo.recGroup))
+//            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()
+//                 .getString(R.string.undelete_1),
+//                  getResources().getString(R.string.undelete_2)));
+//        else
+//            mActionsAdapter.set(++i, new Action(Video.ACTION_DELETE, getResources()
+//                   .getString(R.string.delete_1),
+//                    getResources().getString(R.string.delete_2)));
+        mActionsAdapter.set(++i, new Action(Video.ACTION_OTHER, getResources()
+                .getString(R.string.button_other_1),
+                getResources().getString(R.string.button_other_2)));
     }
 }

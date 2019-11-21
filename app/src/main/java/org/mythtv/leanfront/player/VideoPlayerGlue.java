@@ -22,6 +22,8 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
+import android.view.KeyEvent;
+import android.view.View;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.leanback.media.PlaybackTransportControlGlue;
@@ -222,6 +224,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     protected void onPlayCompleted() {
         mActionListener.onPlayCompleted();
         super.onPlayCompleted();
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        return super.onKey(v, keyCode, event);
     }
 
     static int getIconHighlightColor(Context context) {

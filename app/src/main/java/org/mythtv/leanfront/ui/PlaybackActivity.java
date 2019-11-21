@@ -36,8 +36,12 @@ public class PlaybackActivity extends LeanbackActivity {
     private static final float GAMEPAD_TRIGGER_INTENSITY_OFF = 0.45f;
     private boolean gamepadTriggerPressed = false;
     private PlaybackFragment mPlaybackFragment;
-//    private long mArrowFFRewTime = 0;
-    private boolean mArrowFFRew = false;
+    private int mArrowStatus = 0;
+    private static final int ARROW_NORMAL = 0;
+    // Left/right is being used for FF/REW
+    private static final int ARROW_LR_FF = 1;
+    // Up/Down is being used for FF/REW
+    private static final int ARROW_UD_FF = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,42 +104,41 @@ public class PlaybackActivity extends LeanbackActivity {
             if (keycode == KeyEvent.KEYCODE_DPAD_CENTER
                 || keycode == KeyEvent.KEYCODE_ENTER) {
                 boolean wasVisible = mPlaybackFragment.isControlsOverlayVisible();
-                mPlaybackFragment.tickle(mArrowFFRew);
-                if (mArrowFFRew)
-                    mArrowFFRew = false;
+                mArrowStatus = ARROW_NORMAL;
+                mPlaybackFragment.tickle(false);
                 if (!wasVisible)
                     return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle(mArrowFFRew);
+                mPlaybackFragment.tickle(true);
                 mPlaybackFragment.fastForward();
                 return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowFFRew = true;
+                    mArrowStatus = ARROW_LR_FF;
                 }
-                mPlaybackFragment.tickle(mArrowFFRew);
-                if (mArrowFFRew) {
+                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
+                if (mArrowStatus == ARROW_LR_FF) {
                     mPlaybackFragment.fastForward();
                     return true;
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.tickle(mArrowFFRew);
+                mPlaybackFragment.tickle(true);
                 mPlaybackFragment.rewind();
                 return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowFFRew = true;
+                    mArrowStatus = ARROW_LR_FF;
                 }
-                mPlaybackFragment.tickle(mArrowFFRew);
-                if (mArrowFFRew) {
+                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
+                if (mArrowStatus == ARROW_LR_FF) {
                     mPlaybackFragment.rewind();
                     return true;
                 }
@@ -143,10 +146,10 @@ public class PlaybackActivity extends LeanbackActivity {
 
             if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowFFRew = true;
+                    mArrowStatus = ARROW_UD_FF;
                 }
-                mPlaybackFragment.tickle(mArrowFFRew);
-                if (mArrowFFRew) {
+                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
+                if (mArrowStatus == ARROW_UD_FF) {
                     mPlaybackFragment.jumpBack();
                     return true;
                 }
@@ -154,14 +157,15 @@ public class PlaybackActivity extends LeanbackActivity {
 
             if (keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowFFRew = true;
+                    mArrowStatus = ARROW_UD_FF;
                 }
-                mPlaybackFragment.tickle(mArrowFFRew);
-                if (mArrowFFRew) {
+                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
+                if (mArrowStatus == ARROW_UD_FF) {
                     mPlaybackFragment.jumpForward();
                     return true;
                 }
             }
+            mArrowStatus = ARROW_NORMAL;
         }
         return super.dispatchKeyEvent(event);
     }

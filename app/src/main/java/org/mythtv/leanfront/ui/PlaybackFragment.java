@@ -306,10 +306,10 @@ public class PlaybackFragment extends VideoSupportFragment {
     }
 
 
-    public void tickle(boolean arrowFFRew) {
+    public void tickle(boolean autohide) {
         setControlsOverlayAutoHideEnabled(false);
         showControlsOverlay(true);
-        if (arrowFFRew)
+        if (autohide)
             setControlsOverlayAutoHideEnabled(true);
     }
 

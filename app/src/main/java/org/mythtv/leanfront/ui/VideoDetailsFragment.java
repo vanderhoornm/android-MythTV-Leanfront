@@ -31,6 +31,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
@@ -67,6 +68,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -443,9 +445,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     private void setupDetailsOverviewRow() {
         mDetailsOverviewRow = new DetailsOverviewRow(mSelectedVideo);
+        Drawable defaultImage = getResources().getDrawable(R.drawable.movie, null);
 
         RequestOptions options = new RequestOptions()
-                .error(R.drawable.default_background)
+                .error(R.drawable.movie)
+                .fallback(R.drawable.movie)
                 .dontAnimate();
 
         Glide.with(this)
@@ -453,13 +457,23 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 .load(mSelectedVideo.cardImageUrl +
                     "&time=" + String.valueOf(System.currentTimeMillis()))
                 .apply(options)
-                .into(new SimpleTarget<Bitmap>() {
+                .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(
                             Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mDetailsOverviewRow.setImageBitmap(getActivity(), resource);
                         startEntranceTransition();
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                    }
+
+                    @Override
+                    public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                        super.onLoadFailed(errorDrawable);
+                        mDetailsOverviewRow.setImageDrawable(defaultImage);
                     }
                 });
 

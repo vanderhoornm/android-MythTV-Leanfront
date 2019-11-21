@@ -82,7 +82,7 @@ public class XmlNode {
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.addRequestProperty("Cache-Control", "no-cache");
             urlConnection.setConnectTimeout(5000);
-            urlConnection.setReadTimeout(10000);
+            urlConnection.setReadTimeout(30000);
             if (requestMethod != null)
                 urlConnection.setRequestMethod(requestMethod);
             is = urlConnection.getInputStream();

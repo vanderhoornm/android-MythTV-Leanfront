@@ -72,7 +72,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             e.printStackTrace();
                             fps = 30;
                         }
-                        if ("mythtv".equals(pref)) {
+                        if ("mythtv".equals(pref)||"auto".equals(pref)) {
                             // look for a mythtv bookmark
                             url = XmlNode.mythApiUrl(
                                     "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
@@ -205,7 +205,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             e.printStackTrace();
                             fps = 30;
                         }
-                        if ("mythtv".equals(pref)) {
+                        if ("mythtv".equals(pref)||"auto".equals(pref)) {
                             // store a mythtv bookmark
                             url = XmlNode.mythApiUrl(
                                     "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="

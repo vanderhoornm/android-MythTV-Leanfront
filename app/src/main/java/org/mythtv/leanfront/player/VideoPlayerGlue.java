@@ -81,6 +81,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private AspectAction mAspectAction;
     private int mSkipFwd = 60000;
     private int mSkipBack = 20000;
+    private int mJump = 300000;
 
     public VideoPlayerGlue(
             Context context,
@@ -102,6 +103,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         try {
             mSkipFwd = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_fwd", "60"));
             mSkipBack = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_back", "20"));
+            mJump = 60000 * Integer.parseInt(sharedPreferences.getString("pref_jump", "5"));
         } catch (NumberFormatException ex) {
             ex.printStackTrace();
         }
@@ -206,7 +208,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     /** Jumps backwards 5 min. */
     public void jumpBack() {
-        long newPosition = getCurrentPosition() - 5*60*1000;
+        long newPosition = getCurrentPosition() - mJump;
         newPosition = (newPosition < 0) ? 0 : newPosition;
         getPlayerAdapter().seekTo(newPosition);
     }
@@ -214,7 +216,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     /** Jumps forward 5 min. */
     public void jumpForward() {
         if (getDuration() > -1) {
-            long newPosition = getCurrentPosition() + 5*60*1000;
+            long newPosition = getCurrentPosition() + mJump;
             newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
             getPlayerAdapter().seekTo(newPosition);
         }

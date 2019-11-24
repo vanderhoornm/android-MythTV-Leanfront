@@ -16,15 +16,18 @@
 
 package org.mythtv.leanfront.ui;
 
-import android.app.Activity;
 import android.os.Bundle;
 
-import org.mythtv.leanfront.R;
+import androidx.fragment.app.FragmentActivity;
+import androidx.leanback.app.GuidedStepSupportFragment;
 
-public class SettingsActivity extends Activity {
+
+public class SettingsActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.settings_fragment);
+
+        if(null == savedInstanceState)
+            GuidedStepSupportFragment.addAsRoot(this, new SettingsEntryFragment(), android.R.id.content);
     }
 }

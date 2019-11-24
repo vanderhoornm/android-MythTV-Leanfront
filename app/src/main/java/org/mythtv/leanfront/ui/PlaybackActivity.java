@@ -21,6 +21,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 
 import org.mythtv.leanfront.R;
 
@@ -52,6 +53,8 @@ public class PlaybackActivity extends LeanbackActivity {
         if (fragment instanceof PlaybackFragment) {
             mPlaybackFragment = (PlaybackFragment) fragment;
         }
+        // Prevent screen saver during playback
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override

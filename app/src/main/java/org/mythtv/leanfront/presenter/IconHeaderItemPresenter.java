@@ -19,6 +19,7 @@ package org.mythtv.leanfront.presenter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 import androidx.core.app.ActivityOptionsCompat;
@@ -72,13 +73,14 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
         }
         else
-            icon = rootView.getResources().getDrawable(R.drawable.perm_group_voicemail, null);
+            icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
         MyListener listener = new MyListener();
         setOnClickListener(viewHolder,listener);
         iconView.setImageDrawable(icon);
 
         TextView label = (TextView) rootView.findViewById(R.id.header_label);
         label.setText(headerItem.getName());
+        label.setTextColor(rootView.getResources().getColor(R.color.header_text));
     }
 
     @Override

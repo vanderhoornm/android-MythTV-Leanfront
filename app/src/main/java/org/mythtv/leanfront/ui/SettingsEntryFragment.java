@@ -207,4 +207,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         mEditor.apply();
         return false;
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        MainActivity.getContext().getMainFragment().startFetch();
+    }
 }

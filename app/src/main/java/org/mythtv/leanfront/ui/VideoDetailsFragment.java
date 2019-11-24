@@ -252,7 +252,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     case Video.ACTION_DELETE:
                         new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
                                 VideoDetailsFragment.this)
-                                .execute(Video.ACTION_DELETE, Video.ACTION_REFRESH);
+                                .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
                         break;
                     case Video.ACTION_UNDELETE:
                         new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,

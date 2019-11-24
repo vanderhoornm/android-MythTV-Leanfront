@@ -167,6 +167,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
                 case Video.ACTION_DELETE:
                     // Delete recording
+                    // If already deleted do not delete again.
+                    if ("Deleted".equals(mVideo.recGroup))
+                        break;
                     try {
                         url = XmlNode.mythApiUrl(
                                 "/Dvr/DeleteRecording?RecordedId="
@@ -286,23 +289,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
         if (mBackendCallListener != null)
             mBackendCallListener.onPostExecute(this);
-//        int i = 0;
-//        mActionsAdapter.clear();
-//        if (mBookmark > 0)
-//            mActionsAdapter.set(++i, new Action(Video.ACTION_RESUME, getResources()
-//                    .getString(R.string.resume_1),
-//                    getResources().getString(R.string.resume_2)));
-//        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
-//                .getString(R.string.play_1),
-//                getResources().getString(R.string.play_2)));
-//        if ("Deleted".equals(mSelectedVideo.recGroup))
-//            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()
-//                    .getString(R.string.undelete_1),
-//                    getResources().getString(R.string.undelete_2)));
-//        else
-//            mActionsAdapter.set(++i, new Action(Video.ACTION_DELETE, getResources()
-//                    .getString(R.string.delete_1),
-//                    getResources().getString(R.string.delete_2)));
     }
 
 }

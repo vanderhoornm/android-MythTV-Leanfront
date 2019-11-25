@@ -65,7 +65,8 @@ public class MainActivity extends LeanbackActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        context = null;
+        if (context == this)
+            context = null;
     }
 
     static public void startMainLoader() {

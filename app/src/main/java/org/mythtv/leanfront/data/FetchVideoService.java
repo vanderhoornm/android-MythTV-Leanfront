@@ -54,18 +54,27 @@ public class FetchVideoService extends IntentService {
             long fetchTime = 0;
             do {
                 fetchTime = System.currentTimeMillis();
+
+                VideoDbHelper dbh = new VideoDbHelper(this);
+                SQLiteDatabase db = dbh.getWritableDatabase();
+                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+                db.close();
+
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-                String url = mythApiUrl("/Dvr/GetRecordedList");
-                if (url != null) {
-                    List<ContentValues> contentValuesList = builder.fetch(url);
-                    ContentValues[] downloadedVideoContentValues =
-                            contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-                    VideoDbHelper dbh = new VideoDbHelper(this);
-                    SQLiteDatabase db = dbh.getWritableDatabase();
-                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-                    db.close();
-                    getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                            downloadedVideoContentValues);
+                // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
+                String[] urls = {
+                        mythApiUrl("/Dvr/GetRecordedList"),
+                        mythApiUrl("/Video/GetVideoList")};
+                for (int i = 0; i < urls.length; i++) {
+                    String url = urls[i];
+                    if (url != null) {
+                        // This call expects rec ordings top be 0 and videos to be 1
+                        List<ContentValues> contentValuesList = builder.fetch(url, i);
+                        ContentValues[] downloadedVideoContentValues =
+                                contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                        getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                                downloadedVideoContentValues);
+                    }
                 }
                 // Repeat if another fetch request came in while we were fetching
             }  while(MainFragment.mFetchTime > fetchTime);

@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 
 import org.mythtv.leanfront.R;
 
+import org.mythtv.leanfront.model.Video;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -59,6 +60,14 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ENDTS = "EndTs";
     public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
 
+    // Specific to video list
+    private static final String[] XMLTAGS_VIDEO = {"VideoMetadataInfos","VideoMetadataInfo"};
+    public static final String XMLTAG_RELEASEDATE = "ReleaseDate";
+    public static final String XMLTAG_ID = "Id";
+    public static final String XMLTAG_WATCHED = "Watched";
+    public static final String VALUE_WATCHED = (new Integer(Video.FL_WATCHED)).toString();
+
+
     private static final String TAG = "VideoDbBuilder";
 
     private Context mContext;
@@ -79,50 +88,101 @@ public class VideoDbBuilder {
      * @param url The location of the video list
      */
     public @NonNull
-    List<ContentValues> fetch(String url)
+    List<ContentValues> fetch(String url, int phase)
             throws IOException, XmlPullParserException {
         XmlNode videoData = XmlNode.fetch(url,null);
-        return buildMedia(videoData);
+        return buildMedia(videoData, phase);
     }
 
     /**
      * Takes the contents of an XML object and populates the database
      * @param xmlFull The XML object of videos
+     * @param phase 0 for recordings, 1 for videos
      */
-    public List<ContentValues> buildMedia(XmlNode xmlFull) throws IOException, XmlPullParserException {
+    public List<ContentValues> buildMedia(XmlNode xmlFull, int phase) throws IOException, XmlPullParserException {
         HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
         String baseUrl = XmlNode.mythApiUrl(null);
         String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.background;
+        String [] tagsProgram;
+        String tagRecordedId;
+        if (phase == 0) {  //Recordings
+            tagsProgram = XMLTAGS_PROGRAM;
+            tagRecordedId = XMLTAG_RECORDEDID;
+        }
+        else {  //Videos
+            tagsProgram = XMLTAGS_VIDEO;
+            tagRecordedId = XMLTAG_ID;
+        }
         XmlNode programNode = null;
         for (;;) {
             if (programNode == null)
-                programNode = xmlFull.getNode(XMLTAGS_PROGRAM,0);
+                programNode = xmlFull.getNode(tagsProgram,0);
             else
                 programNode = programNode.getNextSibling();
             if (programNode == null)
                 break;
-            XmlNode recordingNode = programNode.getNode(XMLTAG_RECORDING);
-            String recGroup = recordingNode.getString(XMLTAG_RECGROUP);
-            if (recGroup == null || recGroup.length() == 0)
-                recGroup = "Default";
+            XmlNode recordingNode;
+            String recGroup;
+            String storageGroup;
+            String channel;
+            String airdate;
+            String starttime;
+            long duration = 0;
+            String progflags;
+            if (phase == 0) { // Recordings
+                recordingNode = programNode.getNode(XMLTAG_RECORDING);
+                recGroup = recordingNode.getString(XMLTAG_RECGROUP);
+                if (recGroup == null || recGroup.length() == 0)
+                    recGroup = "Default";
+                storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
+                if (!filesOnServer.containsKey(storageGroup)) {
+                    String url =  baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
+                    XmlNode fileData = XmlNode.fetch(url,null);
+                    HashSet<String> sgFiles = new HashSet<>();
+                    filesOnServer.put(storageGroup,sgFiles);
+                    XmlNode fileNode = fileData.getNode("String",0);
+                    while (fileNode != null) {
+                        String fileName = fileNode.getString();
+                        if (fileName != null)
+                            sgFiles.add(fileName);
+                        fileNode = fileNode.getNextSibling();
+                    }
+                }
+                channel = programNode.getString(XMLTAGS_CHANNELNAME);
+                airdate = programNode.getString(XMLTAG_AIRDATE);
+                starttime = programNode.getString(XMLTAG_STARTTIME);
+                // 2018-05-23T00:00:00Z
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                String startTS = recordingNode.getString(XMLTAG_STARTTS);
+                String endTS = recordingNode.getString(XMLTAG_ENDTS);
+                try {
+                    Date dateStart = format.parse(startTS+"+0000");
+                    Date dateEnd = format.parse(endTS+"+0000");
+                    duration = (dateEnd.getTime() - dateStart.getTime());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                progflags = programNode.getString(XMLTAG_PROGFLAGS);
+            }
+            else { // Videos
+                recordingNode = programNode;
+                recGroup = null;
+                storageGroup = "Videos";
+                channel = null;
+                airdate = programNode.getString(XMLTAG_RELEASEDATE);
+                if (airdate != null && airdate.length() > 10)
+                    airdate = programNode.getString(XMLTAG_RELEASEDATE).substring(0,10);
+                starttime = null;
+                String watched = programNode.getString(XMLTAG_WATCHED);
+                if ("true".equals(watched))
+                    progflags = VALUE_WATCHED;
+                else
+                    progflags = "0";
+            }
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
             String description = programNode.getString(XMLTAG_DESCRIPTION);
-            String storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
-            if (!filesOnServer.containsKey(storageGroup)) {
-                String url =  baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
-                XmlNode fileData = XmlNode.fetch(url,null);
-                HashSet<String> sgFiles = new HashSet<>();
-                filesOnServer.put(storageGroup,sgFiles);
-                XmlNode fileNode = fileData.getNode("String",0);
-                while (fileNode != null) {
-                    String fileName = fileNode.getString();
-                    if (fileName != null)
-                        sgFiles.add(fileName);
-                    fileNode = fileNode.getNextSibling();
-                }
-            }
             String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
             String videoUrl = baseUrl +  "/Content/GetFile?StorageGroup="
                     + storageGroup + "&FileName=/" + videoFileName;
@@ -143,43 +203,32 @@ public class VideoDbBuilder {
                 else if ("fanart".equals(artType))
                     fanArtUrl = artUrl;
             }
-            String channel = programNode.getString(XMLTAGS_CHANNELNAME);
-            String airdate = programNode.getString(XMLTAG_AIRDATE);
-            String starttime = programNode.getString(XMLTAG_STARTTIME);
 
-            // 2018-05-23T00:00:00Z
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
-            String startTS = recordingNode.getString(XMLTAG_STARTTS);
-            String endTS = recordingNode.getString(XMLTAG_ENDTS);
-            long duration = 0;
-            try {
-                Date dateStart = format.parse(startTS+"+0000");
-                Date dateEnd = format.parse(endTS+"+0000");
-                duration = (dateEnd.getTime() - dateStart.getTime());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
             String prodYear = null;
             if (airdate != null)
                 prodYear = airdate.substring(0,4);
             else if (starttime != null)
                 prodYear = starttime.substring(0,4);
-            // card image video + .png
-            HashSet<String> sgFiles = filesOnServer.get(storageGroup);
-            String cardImageFile = videoFileName + ".png";
-            boolean fileExists = false;
-            if (sgFiles != null)
-                fileExists = sgFiles.contains(cardImageFile);
-            String cardImageURL;
-            if (fileExists)
-                cardImageURL = videoUrl + ".png";
-            else
-                cardImageURL = defaultImage;
 
-            String recordedid = recordingNode.getString(XMLTAG_RECORDEDID);
+            String cardImageURL;
+            if (phase==0) { // Recordings
+                // card image video + .png
+                HashSet<String> sgFiles = filesOnServer.get(storageGroup);
+                String cardImageFile = videoFileName + ".png";
+                boolean fileExists = false;
+                if (sgFiles != null)
+                    fileExists = sgFiles.contains(cardImageFile);
+                if (fileExists)
+                    cardImageURL = videoUrl + ".png";
+                else
+                    cardImageURL = defaultImage;
+            }
+            else {
+                cardImageURL = defaultImage;
+            }
+            String recordedid = recordingNode.getString(tagRecordedId);
             String season = programNode.getString(XMLTAG_SEASON);
             String episode = programNode.getString(XMLTAG_EPISODE);
-            String progflags = programNode.getString(XMLTAG_PROGFLAGS);
 
             if (title == null || title.length() == 0)
                 title = " ";
@@ -201,6 +250,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, videoFileName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channel);
@@ -214,7 +264,6 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_SEASON, season);
             videoValues.put(VideoContract.VideoEntry.COLUMN_EPISODE, episode);
 
-            // TODO: Sort these out
             videoValues.put(VideoContract.VideoEntry.COLUMN_CONTENT_TYPE, "video/mp4");
             videoValues.put(VideoContract.VideoEntry.COLUMN_DURATION, duration);
             if (mContext != null) {

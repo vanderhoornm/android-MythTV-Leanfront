@@ -47,6 +47,8 @@ public final class VideoContract {
         public static final String COLUMN_SUBTITLE = SearchManager.SUGGEST_COLUMN_TEXT_2;
         // The url to the video content.
         public static final String COLUMN_VIDEO_URL = "video_url";
+        // Directory name of video file, applies only to Videos storage group
+        public static final String COLUMN_FILENAME = "filename";
         // The url to the background image.
         public static final String COLUMN_BG_IMAGE_URL = "bg_image_url";
         // The channel name.
@@ -63,8 +65,9 @@ public final class VideoContract {
         public static final String COLUMN_AIRDATE  = "airdate";
         // The start time string format 2018-08-13T20:30:00Z
         public static final String COLUMN_STARTTIME  = "starttime";
-        // MythTV values
+        // This contains recordedid or video id
         public static final String COLUMN_RECORDEDID = "recordedid";
+        // Storage Group "Videos' for Videos
         public static final String COLUMN_STORAGEGROUP = "storagegroup";
         // Empty Recgroup indicates a video file instead of a recording.
         public static final String COLUMN_RECGROUP = "recgroup";

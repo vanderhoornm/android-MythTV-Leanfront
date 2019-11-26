@@ -47,6 +47,7 @@ public final class Video implements Parcelable, ListItem {
     public final String prodyear;
     public String progflags;
     // From MythTV libmyth/programtypes.h
+    // This flag is also set for videos as needed.
     public static final int FL_WATCHED = 0x00000200;
 
     // Actions used by multiple classes

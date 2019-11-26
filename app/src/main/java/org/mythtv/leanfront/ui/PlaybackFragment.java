@@ -157,7 +157,6 @@ public class PlaybackFragment extends VideoSupportFragment {
             mBookmark = 0;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
                 null).execute(Video.ACTION_SET_BOOKMARK);
-//        new AsyncBackendCall(mVideo, mBookmark).execute(ACTION_SET_BOOKMARK);
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -190,10 +189,6 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
         setAdapter(mRowsAdapter);
-        // Scaling example
-//        SurfaceView view = getSurfaceView();
-//        view.setScaleX(1.3333f);
-//        view.setScaleY(1.3333f);
     }
 
     private void releasePlayer() {
@@ -302,7 +297,6 @@ public class PlaybackFragment extends VideoSupportFragment {
         mWatched = watched;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
                 null).execute(Video.ACTION_SET_WATCHED);
-//        new AsyncBackendCall(mVideo,mBookmark).execute(ACTION_SET_WATCHED);
     }
 
 

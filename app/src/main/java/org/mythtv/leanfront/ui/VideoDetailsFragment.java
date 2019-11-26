@@ -275,13 +275,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     case Video.ACTION_OTHER:
                         ArrayList<String> prompts = new ArrayList<String>();
                         ArrayList<Action> actions = new ArrayList<Action>();
-                        int i = 0;
-                        if ("Deleted".equals(mSelectedVideo.recGroup)) {
-                            prompts.add(getString(R.string.menu_undelete));
-                            actions.add(new Action(Video.ACTION_UNDELETE));
-                        } else {
-                            prompts.add(getString(R.string.menu_delete));
-                            actions.add(new Action(Video.ACTION_DELETE));
+                        if (mSelectedVideo.recGroup != null) {
+                            if ("Deleted".equals(mSelectedVideo.recGroup)) {
+                                prompts.add(getString(R.string.menu_undelete));
+                                actions.add(new Action(Video.ACTION_UNDELETE));
+                            } else {
+                                prompts.add(getString(R.string.menu_delete));
+                                actions.add(new Action(Video.ACTION_DELETE));
+                            }
                         }
 
                         if (mWatched) {
@@ -445,11 +446,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     private void setupDetailsOverviewRow() {
         mDetailsOverviewRow = new DetailsOverviewRow(mSelectedVideo);
-        Drawable defaultImage = getResources().getDrawable(R.drawable.movie, null);
+        Drawable defaultImage = getResources().getDrawable(R.drawable.ic_movie, null);
 
         RequestOptions options = new RequestOptions()
-                .error(R.drawable.movie)
-                .fallback(R.drawable.movie)
+                .error(R.drawable.ic_movie)
+                .fallback(R.drawable.ic_movie)
                 .dontAnimate();
 
         Glide.with(this)

@@ -114,6 +114,7 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_VIDEO = 6;
     public static final int TYPE_TOP_ALL = 7;
     public static final int TYPE_RECGROUP_ALL = 8;
+    public static final int TYPE_VIDEODIR_ALL = 9;
     // Special row type
     public static final int TYPE_SETTINGS = 20;
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
@@ -143,7 +144,10 @@ public class MainFragment extends BrowseSupportFragment
         if (mType != TYPE_TOPLEVEL) {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
-            mSelectedRowType = TYPE_SERIES;
+            if (mType == TYPE_VIDEODIR)
+                mSelectedRowType = TYPE_VIDEODIR;
+            else
+                mSelectedRowType = TYPE_SERIES;
             startLoader();
         }
     }
@@ -336,8 +340,11 @@ public class MainFragment extends BrowseSupportFragment
                 +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
                 +VideoContract.VideoEntry.COLUMN_STARTTIME;
 
-        if (mType == TYPE_TOPLEVEL)
-            orderby = VideoContract.VideoEntry.COLUMN_RECGROUP + "," + orderby;
+        if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR)
+            orderby =  VideoContract.VideoEntry.COLUMN_RECGROUP
+                    + " is null, " + VideoContract.VideoEntry.COLUMN_RECGROUP
+                    + ", " + VideoContract.VideoEntry.COLUMN_FILENAME
+                    + ", " + orderby;
 
         Loader ret = new CursorLoader(
                 getContext(),
@@ -362,6 +369,21 @@ public class MainFragment extends BrowseSupportFragment
             mLoadStarted = false;
             long lastLoadTime = System.currentTimeMillis();
 
+            int allType = TYPE_RECGROUP_ALL;
+            String allTitle = null;
+            if (mType == TYPE_TOPLEVEL) {
+                allTitle = getString(R.string.all_title) + "\t";
+                allType = TYPE_TOP_ALL;
+            }
+            if (mType == TYPE_RECGROUP) {
+                allTitle = mBaseName + "\t";
+                allType = TYPE_RECGROUP_ALL;
+            }
+            if (mType == TYPE_VIDEODIR) {
+                allTitle = getString(R.string.all_title) + "\t";;
+                allType = TYPE_VIDEODIR;
+            }
+
             final int loaderId = loader.getId();
             if (loaderId == CATEGORY_LOADER) {
                 int recgroupIndex =
@@ -372,6 +394,8 @@ public class MainFragment extends BrowseSupportFragment
                         data.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
                 int starttimeIndex =
                         data.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
+                int filenameIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
                 SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                 boolean cursorHasData = data.moveToFirst();
@@ -382,50 +406,59 @@ public class MainFragment extends BrowseSupportFragment
                 mCategoryRowAdapter.clear();
                 ArrayObjectAdapter objectAdapter = null;
                 SparseArrayObjectAdapter allObjectAdapter = null;
+                ArrayObjectAdapter rootObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
 
                 String currentCategory = null;
+                int currentRowType = -1;
                 String currentItem = null;
                 int currentRowNum = -1;
                 int allRowNum = -1;
+                int rootRowNum = -1;
+                MyHeaderItem header;
+                ListRow row;
 
-                // Create row for "All\t"
-                int allType = TYPE_RECGROUP_ALL;
-                String allTitle = null;
-                if (mType == TYPE_TOPLEVEL) {
-                    allTitle = getString(R.string.all_title) + "\t";
-                    allType = TYPE_TOP_ALL;
-                }
-                if (mType == TYPE_RECGROUP) {
-                    allTitle = mBaseName + "\t";
-                    allType = TYPE_RECGROUP_ALL;
-                }
-                if (mType == TYPE_TOPLEVEL || mType == TYPE_RECGROUP) {
-                    MyHeaderItem header = new MyHeaderItem(allTitle,
-                            allType);
-                    allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
-                    ListRow row = new ListRow(header, allObjectAdapter);
-                    row.setContentDescription(allTitle);
+                // Create "All" row
+                header = new MyHeaderItem(allTitle,
+                        allType);
+                allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
+                row = new ListRow(header, allObjectAdapter);
+                row.setContentDescription(allTitle);
+                mCategoryRowAdapter.add(row);
+                allRowNum = mCategoryRowAdapter.size() - 1;
+                if (mSelectedRowType == allType
+                    && allTitle.equals(mSelectedRowName))
+                    selectedRowNum = allRowNum;
+
+                // Create "Root" row
+                if (mType == TYPE_VIDEODIR) {
+                    String rootTitle = "Root" + "\t";
+                    header = new MyHeaderItem(rootTitle,
+                            TYPE_VIDEODIR);
+                    rootObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
+                    row = new ListRow(header, rootObjectAdapter);
+                    row.setContentDescription(rootTitle);
                     mCategoryRowAdapter.add(row);
-                    allRowNum = mCategoryRowAdapter.size() - 1;
-                    if (mSelectedRowType == allType
-                        && mSelectedRowName.equals(allTitle))
-                        selectedRowNum = allRowNum;
+                    rootRowNum = mCategoryRowAdapter.size() - 1;
+                    if (mSelectedRowType == TYPE_VIDEODIR
+                            && (mSelectedRowName == null || mSelectedRowName.length() == 0))
+                        selectedRowNum = rootRowNum;
                 }
 
                 // Iterate through each category entry and add it to the ArrayAdapter.
                 while (cursorHasData && !data.isAfterLast()) {
 
-                    int categoryIndex = -1;
                     int itemType = -1;
                     int rowType = -1;
 
                     String recgroup = data.getString(recgroupIndex);
 
+                    String category = null;
+
                     // For Rec Group type, only use recordings from that recording group.
                     // categories are titles.
                     if (mType == TYPE_RECGROUP) {
-                        categoryIndex = titleIndex;
+                        category = data.getString(titleIndex);
                         if ((getString(R.string.all_title) + "\t").equals(mBaseName)) {
                             // Do not mix deleted episodes in the All group
                             if ("Deleted".equals(recgroup)) {
@@ -444,47 +477,110 @@ public class MainFragment extends BrowseSupportFragment
 
                     // For Top Level type, only use 1 recording from each title
                     // categories are recgroups
+                    String filename = data.getString(filenameIndex);
+                    String dirname = null;
+                    // Split file name and see if it is a directory
+                    if (filename != null) {
+                        int lastSlash = filename.lastIndexOf('/');
+                        if (lastSlash >= 0)
+                            dirname = filename.substring(0, lastSlash);
+                    }
                     if (mType == TYPE_TOPLEVEL) {
-                        categoryIndex = recgroupIndex;
-                        String title = data.getString(titleIndex);
-                        if (title.equals(currentItem)) {
+                        if (recgroup == null) {
+                            category = "Videos";
+                            rowType = TYPE_VIDEODIR_ALL;
+                            if (dirname != null) {
+                                if (dirname.equals(currentItem)) {
+                                    data.moveToNext();
+                                    continue;
+                                }
+                                currentItem = dirname;
+                                itemType = TYPE_VIDEODIR;
+                            }
+                            else
+                                itemType = TYPE_VIDEO;
+                        }
+                        else {
+                            category = recgroup;
+                            String title = data.getString(titleIndex);
+                            if (title.equals(currentItem)) {
+                                data.moveToNext();
+                                continue;
+                            }
+                            currentItem = title;
+                            rowType = TYPE_RECGROUP;
+                            itemType = TYPE_SERIES;
+                        }
+                    }
+
+                    // For Video Directory type, only use videos (recgroup null)
+                    // category is full directory name.
+                    // Only one videos page
+                    // First is "all" row, then "root" row, then dir rows
+                    // mBaseName = "Videos" String
+                    // Display = "Videos" String
+                    if (mType == TYPE_VIDEODIR) {
+                        if (recgroup != null || filename == null) {
                             data.moveToNext();
                             continue;
                         }
-                        currentItem = title;
-                        rowType = TYPE_RECGROUP;
-                        itemType = TYPE_SERIES;
+                        category = dirname;
+                        rowType = TYPE_VIDEODIR;
+                        itemType = TYPE_VIDEO;
                     }
-                    String category = data.getString(categoryIndex);
 
                     // Change of row
-                    if (!category.equals(currentCategory)) {
+                    if (category != null && !category.equals(currentCategory)) {
                         // Finish off prior row
                         if (objectAdapter != null) {
                             // Create header for this category.
-                            MyHeaderItem header = new MyHeaderItem(currentCategory,
-                                    rowType);
-                            ListRow row = new ListRow(header, objectAdapter);
+                            header = new MyHeaderItem(currentCategory,
+                                    currentRowType);
+                            row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
                         }
                         currentRowNum = mCategoryRowAdapter.size();
+                        currentRowType = rowType;
                         objectAdapter = new ArrayObjectAdapter(new CardPresenter());
                         currentCategory = category;
                         if (mSelectedRowType == rowType
                                 && currentCategory.equals(mSelectedRowName))
                             selectedRowNum = currentRowNum;
                     }
+
                     Video video = (Video) videoCursorAdapter.get(data.getPosition());
+                    // If a directory, create a placeholder for directory name
+                    if (itemType == TYPE_VIDEODIR)
+                        video = new Video.VideoBuilder()
+                                .id(-1).title(dirname)
+                                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                                .build();
                     video.type = itemType;
-                    objectAdapter.add(video);
-                    if (selectedRowNum == currentRowNum) {
-                        if (video.getItemType() == mSelectedItemType
-                            && video.getName().equals(mSelectedItemName))
-                            selectedItemNum = objectAdapter.size() - 1;
+
+                    // Add video to row
+                    if (category != null) {
+                        objectAdapter.add(video);
+                        if (selectedRowNum == currentRowNum) {
+                            if (video.getItemType() == mSelectedItemType
+                                    && video.getName().equals(mSelectedItemName))
+                                selectedItemNum = objectAdapter.size() - 1;
+                        }
                     }
 
-                    if (allObjectAdapter != null) {
+                    // Add video to "Root" row
+                    if (rootObjectAdapter != null
+                        && category == null) {
+                        rootObjectAdapter.add(video);
+                        if (selectedRowNum == rootRowNum) {
+                            if (video.getItemType() == mSelectedItemType
+                                    && video.getName().equals(mSelectedItemName))
+                                selectedItemNum = objectAdapter.size() - 1;
+                        }
+                    }
+
+                    // Add video to "All" row
+                    if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL) {
                         int position;
                         String dateStr = data.getString(starttimeIndex);
                         try {
@@ -518,9 +614,9 @@ public class MainFragment extends BrowseSupportFragment
                 // Finish off prior row
                 if (objectAdapter != null) {
                     // Create header for this category.
-                    MyHeaderItem header = new MyHeaderItem(currentCategory,
-                            TYPE_RECGROUP);
-                    ListRow row = new ListRow(header, objectAdapter);
+                    header = new MyHeaderItem(currentCategory,
+                            currentRowType);
+                    row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
                 }
 
@@ -529,7 +625,7 @@ public class MainFragment extends BrowseSupportFragment
                         TYPE_SETTINGS);
                 CardPresenter presenter = new CardPresenter();
                 ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(presenter);
-                ListRow row = new ListRow(gridHeader, gridRowAdapter);
+                row = new ListRow(gridHeader, gridRowAdapter);
                 mCategoryRowAdapter.add(row);
 
                 if (selectedRowNum == allRowNum)
@@ -576,6 +672,7 @@ public class MainFragment extends BrowseSupportFragment
             int liType = li.getItemType();
             Activity context = getActivity();
             Bundle bundle;
+            MyHeaderItem headerItem;
             switch (liType) {
                 case TYPE_EPISODE:
                 case TYPE_VIDEO:
@@ -590,9 +687,20 @@ public class MainFragment extends BrowseSupportFragment
                     getActivity().startActivity(intent, bundle);
                     break;
                 case TYPE_SERIES:
-                    MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
+                    headerItem = (MyHeaderItem) row.getHeaderItem();
                     intent = new Intent(context, MainActivity.class);
                     intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                    intent.putExtra(KEY_BASENAME,headerItem.getName());
+                    intent.putExtra(KEY_ROWNAME,((Video)li).title);
+                    bundle =
+                            ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
+                                    .toBundle();
+                    context.startActivity(intent, bundle);
+                    break;
+                case TYPE_VIDEODIR:
+                    headerItem = (MyHeaderItem) row.getHeaderItem();
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(KEY_TYPE,MainFragment.TYPE_VIDEODIR);
                     intent.putExtra(KEY_BASENAME,headerItem.getName());
                     intent.putExtra(KEY_ROWNAME,((Video)li).title);
                     bundle =

@@ -21,12 +21,16 @@ import android.graphics.drawable.Drawable;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.Presenter;
 import androidx.core.content.ContextCompat;
+
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Video;
+import org.mythtv.leanfront.ui.MainFragment;
 
 /*
  * A CardPresenter is used to generate Views and bind Objects to them on demand.
@@ -36,6 +40,7 @@ public class CardPresenter extends Presenter {
     private int mSelectedBackgroundColor = -1;
     private int mDefaultBackgroundColor = -1;
     private Drawable mDefaultCardImage;
+    private Drawable mDirectoryCardImage;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
@@ -43,7 +48,8 @@ public class CardPresenter extends Presenter {
             ContextCompat.getColor(parent.getContext(), R.color.default_background);
         mSelectedBackgroundColor =
                 ContextCompat.getColor(parent.getContext(), R.color.selected_background);
-        mDefaultCardImage = parent.getResources().getDrawable(R.drawable.movie, null);
+        mDefaultCardImage = parent.getResources().getDrawable(R.drawable.ic_movie, null);
+        mDirectoryCardImage = parent.getResources().getDrawable(R.drawable.ic_folder, null);
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -74,6 +80,15 @@ public class CardPresenter extends Presenter {
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         cardView.setTitleText(video.title);
+        if (video.type == MainFragment.TYPE_VIDEODIR) {
+            // Set card size from dimension resources.
+            Resources res = cardView.getResources();
+            int width = res.getDimensionPixelSize(R.dimen.card_width);
+            int height = res.getDimensionPixelSize(R.dimen.card_height);
+            cardView.setMainImageDimensions(width, height);
+            cardView.setMainImage(mDirectoryCardImage);
+            return;
+        }
         StringBuilder subtitle = new StringBuilder();
         int progflags = Integer.parseInt(video.progflags);
         // possible characters for watched - "👁" "⏿" "👀"
@@ -85,7 +100,6 @@ public class CardPresenter extends Presenter {
         }
         subtitle.append(video.subtitle);
         cardView.setContentText(subtitle);
-
         if (video.cardImageUrl != null) {
             // Set card size from dimension resources.
             Resources res = cardView.getResources();

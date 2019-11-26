@@ -69,11 +69,17 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
         ImageView iconView = rootView.findViewById(R.id.header_icon);
         Drawable icon;
-        if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS) {
-            icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
+        switch (headerItem.getItemType()) {
+            case MainFragment.TYPE_SETTINGS:
+                icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
+                break;
+            case MainFragment.TYPE_VIDEODIR:
+            case MainFragment.TYPE_VIDEODIR_ALL:
+                icon = rootView.getResources().getDrawable(R.drawable.ic_folder, null);
+                break;
+            default:
+                icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
         }
-        else
-            icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
         MyListener listener = new MyListener();
         setOnClickListener(viewHolder,listener);
         iconView.setImageDrawable(icon);
@@ -101,16 +107,25 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         public void onClick(View v) {
             Context context = v.getContext();
             Intent intent;
-            if (headerItem.getItemType() == MainFragment.TYPE_SETTINGS)
-                intent = new Intent(context, SettingsActivity.class);
-            else if (headerItem.getItemType() == MainFragment.TYPE_RECGROUP
-                || headerItem.getItemType() == MainFragment.TYPE_TOP_ALL) {
-                intent = new Intent(context, MainActivity.class);
-                intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
-                intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+            int type = headerItem.getItemType();
+            switch (type) {
+                case MainFragment.TYPE_SETTINGS:
+                    intent = new Intent(context, SettingsActivity.class);
+                    break;
+                case MainFragment.TYPE_RECGROUP:
+                case MainFragment.TYPE_TOP_ALL:
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                    intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+                    break;
+                case MainFragment.TYPE_VIDEODIR_ALL:
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
+                    intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+                    break;
+                default:
+                    return;
             }
-            else
-                return;
             Bundle bundle =
                     ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
                             .toBundle();

@@ -563,7 +563,7 @@ public class MainFragment extends BrowseSupportFragment
                         objectAdapter.add(video);
                         if (selectedRowNum == currentRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && video.getName().equals(mSelectedItemName))
+                                    && mSelectedItemName.equals(video.getName()))
                                 selectedItemNum = objectAdapter.size() - 1;
                         }
                     }

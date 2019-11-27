@@ -210,6 +210,8 @@ public class VideoDbBuilder {
             else if (starttime != null)
                 prodYear = starttime.substring(0,4);
 
+            if (coverArtUrl == null || coverArtUrl.length() == 0)
+                coverArtUrl = defaultImage;
             String cardImageURL;
             if (phase==0) { // Recordings
                 // card image video + .png
@@ -221,10 +223,10 @@ public class VideoDbBuilder {
                 if (fileExists)
                     cardImageURL = videoUrl + ".png";
                 else
-                    cardImageURL = defaultImage;
+                    cardImageURL = coverArtUrl;
             }
-            else {
-                cardImageURL = defaultImage;
+            else { // Videos
+                cardImageURL = coverArtUrl;
             }
             String recordedid = recordingNode.getString(tagRecordedId);
             String season = programNode.getString(XMLTAG_SEASON);
@@ -238,8 +240,6 @@ public class VideoDbBuilder {
                 description = " ";
             if (videoUrl == null || videoUrl.length() == 0)
                 videoUrl = defaultImage;
-            if (coverArtUrl == null || coverArtUrl.length() == 0)
-                coverArtUrl = defaultImage;
             if (fanArtUrl == null || fanArtUrl.length() == 0)
                 fanArtUrl = defaultImage;
             if (channel == null || channel.length() == 0)

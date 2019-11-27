@@ -459,7 +459,8 @@ public class MainFragment extends BrowseSupportFragment
                     // categories are titles.
                     if (mType == TYPE_RECGROUP) {
                         category = data.getString(titleIndex);
-                        if ((getString(R.string.all_title) + "\t").equals(mBaseName)) {
+                        if (recgroup != null
+                            && (getString(R.string.all_title) + "\t").equals(mBaseName)) {
                             // Do not mix deleted episodes in the All group
                             if ("Deleted".equals(recgroup)) {
                                 data.moveToNext();

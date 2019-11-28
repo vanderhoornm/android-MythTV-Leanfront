@@ -306,6 +306,9 @@ public class MainFragment extends BrowseSupportFragment
         int width = mMetrics.widthPixels;
         int height = mMetrics.heightPixels;
 
+        if (uri == null)
+            return;
+
         RequestOptions options = new RequestOptions()
                 .centerCrop()
                 .error(mDefaultBackground);
@@ -420,7 +423,7 @@ public class MainFragment extends BrowseSupportFragment
 
                 // Create "All" row
                 header = new MyHeaderItem(allTitle,
-                        allType);
+                        allType,mBaseName);
                 allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
                 row = new ListRow(header, allObjectAdapter);
                 row.setContentDescription(allTitle);
@@ -432,9 +435,9 @@ public class MainFragment extends BrowseSupportFragment
 
                 // Create "Root" row
                 if (mType == TYPE_VIDEODIR) {
-                    String rootTitle = "Root" + "\t";
+                    String rootTitle = "\t";
                     header = new MyHeaderItem(rootTitle,
-                            TYPE_VIDEODIR);
+                            TYPE_VIDEODIR,mBaseName);
                     rootObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
                     row = new ListRow(header, rootObjectAdapter);
                     row.setContentDescription(rootTitle);
@@ -479,27 +482,62 @@ public class MainFragment extends BrowseSupportFragment
                     // For Top Level type, only use 1 recording from each title
                     // categories are recgroups
                     String filename = data.getString(filenameIndex);
+                    String [] fileparts;
                     String dirname = null;
+                    String itemname = null;
                     // Split file name and see if it is a directory
-                    if (filename != null) {
-                        int lastSlash = filename.lastIndexOf('/');
-                        if (lastSlash >= 0)
-                            dirname = filename.substring(0, lastSlash);
+                    if (recgroup == null && filename != null) {
+                        String shortName = filename;
+                        // itemlevel 0 means there is only one row for all
+                        // videos so the first part of the name is the entry
+                        // in the row.
+                        int itemlevel = 1;
+                        if (mType == TYPE_VIDEODIR) {
+                            // itemlevel 1 means there is one row for each
+                            // directory so the second part of the name is the entry
+                            // in the row.
+                            itemlevel = 2;
+                            if (mBaseName.length() == 0)
+                                shortName = filename;
+                            else if (shortName.startsWith(mBaseName + "/"))
+                                shortName = filename.substring(mBaseName.length()+1);
+                            else {
+                                data.moveToNext();
+                                continue;
+                            }
+                        }
+                        fileparts = shortName.split("/");
+                        if (fileparts.length == 1 || mType == TYPE_TOPLEVEL) {
+//                        if (fileparts.length <= itemlevel) {
+                            itemname = fileparts[0];
+                        }
+                        else {
+                            dirname = fileparts[0];
+                            itemname = fileparts[1];
+                        }
+                        if ((fileparts.length <= 2 && mType == TYPE_VIDEODIR)
+                                || fileparts.length == 1)
+                            itemType = TYPE_VIDEO;
+                        else
+                            itemType = TYPE_VIDEODIR;
+                        if (itemType == TYPE_VIDEODIR && itemname.equals(currentItem)) {
+                            data.moveToNext();
+                            continue;
+                        }
+                        currentItem = itemname;
                     }
+
                     if (mType == TYPE_TOPLEVEL) {
                         if (recgroup == null) {
                             category = "Videos";
                             rowType = TYPE_VIDEODIR_ALL;
-                            if (dirname != null) {
-                                if (dirname.equals(currentItem)) {
-                                    data.moveToNext();
-                                    continue;
-                                }
-                                currentItem = dirname;
-                                itemType = TYPE_VIDEODIR;
-                            }
-                            else
-                                itemType = TYPE_VIDEO;
+//                            if (dirname != null) {
+//                                if (dirname.equals(currentItem)) {
+//                                    data.moveToNext();
+//                                    continue;
+//                                }
+//                                currentItem = dirname;
+//                            }
                         }
                         else {
                             category = recgroup;
@@ -525,9 +563,9 @@ public class MainFragment extends BrowseSupportFragment
                             data.moveToNext();
                             continue;
                         }
+
                         category = dirname;
                         rowType = TYPE_VIDEODIR;
-                        itemType = TYPE_VIDEO;
                     }
 
                     // Change of row
@@ -536,7 +574,7 @@ public class MainFragment extends BrowseSupportFragment
                         if (objectAdapter != null) {
                             // Create header for this category.
                             header = new MyHeaderItem(currentCategory,
-                                    currentRowType);
+                                    currentRowType,mBaseName);
                             row = new ListRow(header, objectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
@@ -554,8 +592,10 @@ public class MainFragment extends BrowseSupportFragment
                     // If a directory, create a placeholder for directory name
                     if (itemType == TYPE_VIDEODIR)
                         video = new Video.VideoBuilder()
-                                .id(-1).title(dirname)
+                                .id(-1).title(itemname)
+                                .subtitle("")
                                 .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                                .progflags("0")
                                 .build();
                     video.type = itemType;
 
@@ -582,18 +622,20 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add video to "All" row
                     if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL) {
-                        int position;
+                        int position = 0;
                         String dateStr = data.getString(starttimeIndex);
-                        try {
-                            Date date = dbTimeFormat.parse(dateStr);
-                            // 525960 minutes in a year
-                            // Get position as number of minutes since 1970
-                            position = (int) (date.getTime() / 60000L);
-                            // Add 70 years in case it is before 1970
-                            position += 36817200;
-                        } catch (ParseException | NullPointerException e) {
-                            e.printStackTrace();
-                            position = 0;
+                        if (dateStr != null) {
+                            try {
+                                Date date = dbTimeFormat.parse(dateStr);
+                                // 525960 minutes in a year
+                                // Get position as number of minutes since 1970
+                                position = (int) (date.getTime() / 60000L);
+                                // Add 70 years in case it is before 1970
+                                position += 36817200;
+                            } catch (ParseException | NullPointerException e) {
+                                e.printStackTrace();
+                                position = 0;
+                            }
                         }
                         // Make sure we have an empty slot
                         try {
@@ -616,14 +658,14 @@ public class MainFragment extends BrowseSupportFragment
                 if (objectAdapter != null) {
                     // Create header for this category.
                     header = new MyHeaderItem(currentCategory,
-                            currentRowType);
+                            currentRowType,mBaseName);
                     row = new ListRow(header, objectAdapter);
                     mCategoryRowAdapter.add(row);
                 }
 
                 // Create a row for this special case with more samples.
                 MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
-                        TYPE_SETTINGS);
+                        TYPE_SETTINGS,mBaseName);
                 CardPresenter presenter = new CardPresenter();
                 ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(presenter);
                 row = new ListRow(gridHeader, gridRowAdapter);
@@ -673,7 +715,8 @@ public class MainFragment extends BrowseSupportFragment
             int liType = li.getItemType();
             Activity context = getActivity();
             Bundle bundle;
-            MyHeaderItem headerItem;
+            MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
+            int type = headerItem.getItemType();
             switch (liType) {
                 case TYPE_EPISODE:
                 case TYPE_VIDEO:
@@ -688,7 +731,6 @@ public class MainFragment extends BrowseSupportFragment
                     getActivity().startActivity(intent, bundle);
                     break;
                 case TYPE_SERIES:
-                    headerItem = (MyHeaderItem) row.getHeaderItem();
                     intent = new Intent(context, MainActivity.class);
                     intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
                     intent.putExtra(KEY_BASENAME,headerItem.getName());
@@ -699,10 +741,18 @@ public class MainFragment extends BrowseSupportFragment
                     context.startActivity(intent, bundle);
                     break;
                 case TYPE_VIDEODIR:
-                    headerItem = (MyHeaderItem) row.getHeaderItem();
                     intent = new Intent(context, MainActivity.class);
                     intent.putExtra(KEY_TYPE,MainFragment.TYPE_VIDEODIR);
-                    intent.putExtra(KEY_BASENAME,headerItem.getName());
+                    String baseName = mBaseName;
+                    if (mType == TYPE_TOPLEVEL)
+                        baseName = "";
+                    else {
+                        if (baseName != null && baseName.length() > 0)
+                            baseName = baseName + "/" + headerItem.getName();
+                        else
+                            baseName = headerItem.getName();
+                    }
+                    intent.putExtra(KEY_BASENAME,baseName);
                     intent.putExtra(KEY_ROWNAME,((Video)li).title);
                     bundle =
                             ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
@@ -717,7 +767,7 @@ public class MainFragment extends BrowseSupportFragment
         @Override
         public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
                 RowPresenter.ViewHolder rowViewHolder, Row row) {
-            if (item instanceof Video) {
+            if (item instanceof Video && ((Video) item).bgImageUrl != null) {
                 mBackgroundURI = Uri.parse(((Video) item).bgImageUrl);
                 startBackgroundTimer();
             }

@@ -7,10 +7,13 @@ import androidx.leanback.widget.HeaderItem;
 public class MyHeaderItem extends HeaderItem implements ListItem {
     // For type values see MainFragment
     private int mItemType;
+    private String mBaseName;
 
-    public MyHeaderItem(String name, int type) {
+    public MyHeaderItem(String name, int type, String baseName) {
         super(name);
         mItemType = type;
+        mBaseName = baseName;
     }
     public int getItemType() { return mItemType; }
+    public String getBaseName() { return mBaseName; }
 }

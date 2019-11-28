@@ -198,6 +198,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     private void updateBackground(String uri) {
+        if (uri == null)
+            return;
         RequestOptions options = new RequestOptions()
                 .centerCrop()
                 .error(mDefaultBackground);
@@ -453,12 +455,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 .fallback(R.drawable.ic_movie)
                 .dontAnimate();
 
-        Glide.with(this)
-                .asBitmap()
-                .load(mSelectedVideo.cardImageUrl +
-                    "&time=" + String.valueOf(System.currentTimeMillis()))
-                .apply(options)
-                .into(new CustomTarget<Bitmap>() {
+        CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(
                             Bitmap resource,
@@ -476,7 +473,20 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         super.onLoadFailed(errorDrawable);
                         mDetailsOverviewRow.setImageDrawable(defaultImage);
                     }
-                });
+                };
+        if (mSelectedVideo.cardImageUrl == null)
+            Glide.with(this)
+                    .asBitmap()
+                    .load(R.drawable.ic_movie)
+                    .apply(options)
+                    .into(target);
+        else
+            Glide.with(this)
+                    .asBitmap()
+                    .load(mSelectedVideo.cardImageUrl +
+                            "&time=" + String.valueOf(System.currentTimeMillis()))
+                    .apply(options)
+                    .into(target);
 
         mActionsAdapter = new SparseArrayObjectAdapter();
         mDetailsOverviewRow.setActionsAdapter(mActionsAdapter);

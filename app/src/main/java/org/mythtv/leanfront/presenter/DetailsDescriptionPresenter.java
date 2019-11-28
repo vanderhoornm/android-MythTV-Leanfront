@@ -60,28 +60,37 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             try {
                 // Date Recorded
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                Date date = dbFormat.parse(mVideo.starttime+"+0000");
-                long dateMS = date.getTime();
                 java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(MainActivity.getContext());
-                TimeZone tz = TimeZone.getDefault();
-                dateMS += tz.getOffset(date.getTime());
-                String recDate = outFormat.format(new Date(dateMS));
-                description.append(recDate);
+                String recDate = null;
+                if (mVideo.starttime != null) {
+                    Date date = dbFormat.parse(mVideo.starttime + "+0000");
+                    long dateMS = date.getTime();
+                    TimeZone tz = TimeZone.getDefault();
+                    dateMS += tz.getOffset(date.getTime());
+                    recDate = outFormat.format(new Date(dateMS));
+                    description.append(recDate);
+                }
                 // Length of recording
                 long duration = Long.parseLong(mVideo.duration, 10);
                 duration = duration / 60000;
-                description.append(", ").append(duration).append(" ").append(context.getString(R.string.video_minutes));
+                if (duration > 0) {
+                    if (description.length() > 0)
+                        description.append(", ");
+                    description.append(duration).append(" ").append(context.getString(R.string.video_minutes));
+                }
                 // Channel
                 description.append("  ").append(mVideo.channel);
                 // Original Air date
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
-                if ("01-01".equals(mVideo.airdate.substring(5)))
-                    description.append("   [" + mVideo.airdate.substring(0,4) + "]");
-                else {
-                    date = dbFormat.parse(mVideo.airdate);
-                    String origDate = outFormat.format(date);
-                    if (!origDate.equals(recDate))
-                        description.append("   [" + outFormat.format(date) + "]");
+                if (mVideo.airdate != null) {
+                    if ("01-01".equals(mVideo.airdate.substring(5)))
+                        description.append("   [" + mVideo.airdate.substring(0, 4) + "]");
+                    else {
+                        Date date = dbFormat.parse(mVideo.airdate);
+                        String origDate = outFormat.format(date);
+                        if (!origDate.equals(recDate))
+                            description.append("   [" + outFormat.format(date) + "]");
+                    }
                 }
                 description.append('\n');
             } catch (Exception e) {

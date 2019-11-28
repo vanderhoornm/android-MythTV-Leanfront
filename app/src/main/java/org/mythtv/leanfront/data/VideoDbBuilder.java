@@ -103,7 +103,7 @@ public class VideoDbBuilder {
         HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
         String baseUrl = XmlNode.mythApiUrl(null);
-        String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.background;
+//        String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.ic_movie;
         String [] tagsProgram;
         String tagRecordedId;
         if (phase == 0) {  //Recordings
@@ -210,8 +210,8 @@ public class VideoDbBuilder {
             else if (starttime != null)
                 prodYear = starttime.substring(0,4);
 
-            if (coverArtUrl == null || coverArtUrl.length() == 0)
-                coverArtUrl = defaultImage;
+//            if (coverArtUrl == null || coverArtUrl.length() == 0)
+//                coverArtUrl = defaultImage;
             String cardImageURL;
             if (phase==0) { // Recordings
                 // card image video + .png
@@ -238,10 +238,10 @@ public class VideoDbBuilder {
                 subtitle = " ";
             if (description == null || description.length() == 0)
                 description = " ";
-            if (videoUrl == null || videoUrl.length() == 0)
-                videoUrl = defaultImage;
-            if (fanArtUrl == null || fanArtUrl.length() == 0)
-                fanArtUrl = defaultImage;
+//            if (videoUrl == null || videoUrl.length() == 0)
+//                videoUrl = defaultImage;
+//            if (fanArtUrl == null || fanArtUrl.length() == 0)
+//                fanArtUrl = defaultImage;
             if (channel == null || channel.length() == 0)
                 channel = " ";
 

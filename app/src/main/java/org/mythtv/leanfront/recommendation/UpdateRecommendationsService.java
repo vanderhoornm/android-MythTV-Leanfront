@@ -97,14 +97,21 @@ public class UpdateRecommendationsService extends IntentService {
                             .setText(getString(R.string.popular_header))
                             .setContentIntentData(ContentRecommendation.INTENT_TYPE_ACTIVITY,
                                     buildPendingIntent(video, id), 0, null);
-
-                    Bitmap bitmap = Glide.with(getApplication())
-                            .asBitmap()
-                            .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))
-                            .submit(cardWidth, cardHeight) // Only use for synchronous .get()
-                            .get();
-                    builder.setContentImage(bitmap);
-
+                    if (video.cardImageUrl == null) {
+                        Bitmap bitmap = Glide.with(getApplication())
+                                .asBitmap()
+                                .load(R.drawable.ic_movie)
+                                .submit(cardWidth, cardHeight) // Only use for synchronous .get()
+                                .get();
+                        builder.setContentImage(bitmap);
+                    }  else {
+                        Bitmap bitmap = Glide.with(getApplication())
+                                .asBitmap()
+                                .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))
+                                .submit(cardWidth, cardHeight) // Only use for synchronous .get()
+                                .get();
+                        builder.setContentImage(bitmap);
+                    }
                     // Create an object holding all the information used to recommend the content.
                     ContentRecommendation rec = builder.build();
                     Notification notification = rec.getNotificationObject(getApplicationContext());

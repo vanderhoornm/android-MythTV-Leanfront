@@ -8,14 +8,15 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - 4K video plays successfully at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
 - The application uses exoplayer, which is the player code used by youtube, Amazon Prime and others. As such it will be able to handle new capabilities that are released on Android TV.
 - This application is in a state of development. New features are being added.
-- Currently it will play recordings from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
+- Currently it will play recordings and videos from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
 - This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend.
 - Voice search within the application is supported.
 - With backend on master or recent MythTV V30 this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
-- Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend. In cases where there is no seektable the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of thw bookmark set here will be incorrect when viewed from mythfrontend. 
+- Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend. In cases where there is no seektable the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of the bookmark set here will be incorrect when viewed from mythfrontend.
 - The "Watched" flag is set if you get to the end of the recording during playback. To ensure it is set, press forward or down arrow to get to the end before exiting playback.
 - There is a delete/undelete option so that you can delete shows after watching. Also set watched or unwatched and remove bookmark options.
 - There is a zoom icon and an aspect icon so that you can expand letterbox rec ordings and correct wrongly stretched recordings.
+- Videos do not currently support deletion or bookmarks stored on MythTV. Bookmarks for videos are stored locally on the android tv device.
 
 ## Restrictions
 
@@ -29,9 +30,7 @@ Planned additions and fixes.
 - Add wakeup of master backend.
 - Ability to move picture up and down to get rid of ticker messages at the bottom.
 - Retrieve preview picture when there is none found the normal way.
-- Improve settings page.
 - Customize recording sort order.
-- Videos need to be supported (only recordings are currently shown).
 - Subtitles.
 - Sort out license. The sample app uses apache license.
 - LiveTV and in progress recordings. I don't know if we can support these.

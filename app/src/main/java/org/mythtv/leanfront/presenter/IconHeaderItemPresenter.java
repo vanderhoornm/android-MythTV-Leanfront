@@ -121,7 +121,21 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
                 case MainFragment.TYPE_VIDEODIR_ALL:
                     intent = new Intent(context, MainActivity.class);
                     intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
-                    intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+                    intent.putExtra(MainFragment.KEY_BASENAME,"");
+                    break;
+                case MainFragment.TYPE_VIDEODIR:
+                    String name = headerItem.getName();
+                    // Exclude All and Root entries
+                    if (name.endsWith("\t"))
+                        return;
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
+                    String baseName = headerItem.getBaseName();
+                    if (baseName != null && baseName.length() > 0)
+                        baseName = baseName + "/" + name;
+                    else
+                        baseName = name;
+                    intent.putExtra(MainFragment.KEY_BASENAME,baseName);
                     break;
                 default:
                     return;

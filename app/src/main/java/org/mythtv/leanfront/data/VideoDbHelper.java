@@ -30,7 +30,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -53,18 +53,18 @@ public class VideoDbHelper extends SQLiteOpenHelper {
             // This table gets deleted and recreated periodically
             final String SQL_CREATE_VIDEO_TABLE = "CREATE TABLE " + VideoEntry.TABLE_NAME + " (" +
                     VideoEntry._ID + " INTEGER PRIMARY KEY," +
-                    VideoEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_SUBTITLE + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_VIDEO_URL + " TEXT NOT NULL, " +
+                    VideoEntry.COLUMN_TITLE + " TEXT, " +
+                    VideoEntry.COLUMN_SUBTITLE + " TEXT, " +
+                    VideoEntry.COLUMN_VIDEO_URL + " TEXT, " +
                     VideoEntry.COLUMN_FILENAME + " TEXT, " +
-                    VideoEntry.COLUMN_DESC + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_BG_IMAGE_URL + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_CHANNEL + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_CARD_IMG + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_CONTENT_TYPE + " TEXT NOT NULL, " +
+                    VideoEntry.COLUMN_DESC + " TEXT, " +
+                    VideoEntry.COLUMN_BG_IMAGE_URL + " TEXT, " +
+                    VideoEntry.COLUMN_CHANNEL + " TEXT, " +
+                    VideoEntry.COLUMN_CARD_IMG + " TEXT, " +
+                    VideoEntry.COLUMN_CONTENT_TYPE + " TEXT, " +
                     VideoEntry.COLUMN_PRODUCTION_YEAR + " TEXT, " +
-                    VideoEntry.COLUMN_DURATION + " TEXT NOT NULL, " +
-                    VideoEntry.COLUMN_ACTION + " TEXT NOT NULL," +
+                    VideoEntry.COLUMN_DURATION + " TEXT, " +
+                    VideoEntry.COLUMN_ACTION + " TEXT," +
                     VideoEntry.COLUMN_AIRDATE + " TEXT," +
                     VideoEntry.COLUMN_STARTTIME + " TEXT," +
                     VideoEntry.COLUMN_RECORDEDID + " TEXT," +

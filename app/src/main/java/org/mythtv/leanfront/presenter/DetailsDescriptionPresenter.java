@@ -26,6 +26,7 @@ import android.content.Context;
 import android.text.format.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
@@ -88,7 +89,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                     else {
                         Date date = dbFormat.parse(mVideo.airdate);
                         String origDate = outFormat.format(date);
-                        if (!origDate.equals(recDate))
+                        if (!Objects.equals(origDate,recDate))
                             description.append("   [" + outFormat.format(date) + "]");
                     }
                 }

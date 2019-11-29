@@ -184,7 +184,7 @@ public final class Video implements Parcelable, ListItem {
     public int getItemType() {
         if (type != 0)
             return type;
-        return recGroup == null || "".equals(recGroup)
+        return recGroup == null || recGroup.length() == 0
                 ? MainFragment.TYPE_VIDEO : MainFragment.TYPE_EPISODE;
     }
 

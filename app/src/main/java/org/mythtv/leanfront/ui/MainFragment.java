@@ -469,7 +469,7 @@ public class MainFragment extends BrowseSupportFragment
                                 continue;
                             }
                         } else {
-                            if (!mBaseName.equals(recgroup)) {
+                            if (!Objects.equals(mBaseName,recgroup)) {
                                 data.moveToNext();
                                 continue;
                             }
@@ -519,7 +519,7 @@ public class MainFragment extends BrowseSupportFragment
                             itemType = TYPE_VIDEO;
                         else
                             itemType = TYPE_VIDEODIR;
-                        if (itemType == TYPE_VIDEODIR && itemname.equals(currentItem)) {
+                        if (itemType == TYPE_VIDEODIR && Objects.equals(itemname,currentItem)) {
                             data.moveToNext();
                             continue;
                         }
@@ -541,7 +541,7 @@ public class MainFragment extends BrowseSupportFragment
                         else {
                             category = recgroup;
                             String title = data.getString(titleIndex);
-                            if (title.equals(currentItem)) {
+                            if (Objects.equals(title,currentItem)) {
                                 data.moveToNext();
                                 continue;
                             }
@@ -568,7 +568,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     // Change of row
-                    if (category != null && !category.equals(currentCategory)) {
+                    if (category != null && !Objects.equals(category,currentCategory)) {
                         // Finish off prior row
                         if (objectAdapter != null) {
                             // Create header for this category.
@@ -583,7 +583,7 @@ public class MainFragment extends BrowseSupportFragment
                         objectAdapter = new ArrayObjectAdapter(new CardPresenter());
                         currentCategory = category;
                         if (mSelectedRowType == rowType
-                                && currentCategory.equals(mSelectedRowName))
+                                && Objects.equals(currentCategory,mSelectedRowName))
                             selectedRowNum = currentRowNum;
                     }
 
@@ -603,7 +603,7 @@ public class MainFragment extends BrowseSupportFragment
                         objectAdapter.add(video);
                         if (selectedRowNum == currentRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && mSelectedItemName.equals(video.getName()))
+                                    && Objects.equals(mSelectedItemName,video.getName()))
                                 selectedItemNum = objectAdapter.size() - 1;
                         }
                     }
@@ -614,7 +614,7 @@ public class MainFragment extends BrowseSupportFragment
                         rootObjectAdapter.add(video);
                         if (selectedRowNum == rootRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && video.getName().equals(mSelectedItemName))
+                                    && Objects.equals(video.getName(),mSelectedItemName))
                                 selectedItemNum = objectAdapter.size() - 1;
                         }
                     }
@@ -646,7 +646,7 @@ public class MainFragment extends BrowseSupportFragment
 
                         if (selectedRowNum == allRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && video.getName().equals(mSelectedItemName))
+                                    && Objects.equals(video.getName(),mSelectedItemName))
                                 selectedItemNum = position;
                         }
                     }

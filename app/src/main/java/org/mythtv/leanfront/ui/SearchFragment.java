@@ -166,7 +166,7 @@ public class SearchFragment extends SearchSupportFragment
     }
 
     private void loadQuery(String query) {
-        if (!TextUtils.isEmpty(query) && !query.equals("nil")) {
+        if (!TextUtils.isEmpty(query) && !"nil".equals(query)) {
             mQuery = query;
             getLoaderManager().initLoader(mSearchLoaderId++, null, this);
         }

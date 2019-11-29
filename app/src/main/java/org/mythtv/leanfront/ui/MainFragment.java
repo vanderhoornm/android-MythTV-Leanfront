@@ -76,6 +76,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -382,10 +383,6 @@ public class MainFragment extends BrowseSupportFragment
                 allTitle = mBaseName + "\t";
                 allType = TYPE_RECGROUP_ALL;
             }
-            if (mType == TYPE_VIDEODIR) {
-                allTitle = getString(R.string.all_title) + "\t";;
-                allType = TYPE_VIDEODIR;
-            }
 
             final int loaderId = loader.getId();
             if (loaderId == CATEGORY_LOADER) {
@@ -421,17 +418,19 @@ public class MainFragment extends BrowseSupportFragment
                 MyHeaderItem header;
                 ListRow row;
 
-                // Create "All" row
-                header = new MyHeaderItem(allTitle,
-                        allType,mBaseName);
-                allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
-                row = new ListRow(header, allObjectAdapter);
-                row.setContentDescription(allTitle);
-                mCategoryRowAdapter.add(row);
-                allRowNum = mCategoryRowAdapter.size() - 1;
-                if (mSelectedRowType == allType
-                    && allTitle.equals(mSelectedRowName))
-                    selectedRowNum = allRowNum;
+                // Create "All" row (but not for videos)
+                if (mType != TYPE_VIDEODIR) {
+                    header = new MyHeaderItem(allTitle,
+                            allType, mBaseName);
+                    allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
+                    row = new ListRow(header, allObjectAdapter);
+                    row.setContentDescription(allTitle);
+                    mCategoryRowAdapter.add(row);
+                    allRowNum = mCategoryRowAdapter.size() - 1;
+                    if (mSelectedRowType == allType
+                            && Objects.equals(allTitle,mSelectedRowName))
+                        selectedRowNum = allRowNum;
+                }
 
                 // Create "Root" row
                 if (mType == TYPE_VIDEODIR) {

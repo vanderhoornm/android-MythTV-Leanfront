@@ -25,6 +25,7 @@ import org.mythtv.leanfront.model.Video;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -185,7 +186,7 @@ public class VideoDbBuilder {
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
             String videoUrl = baseUrl +  "/Content/GetFile?StorageGroup="
-                    + storageGroup + "&FileName=/" + videoFileName;
+                    + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName,"UTF-8");
             String coverArtUrl = null;
             String fanArtUrl = null;
             XmlNode artInfoNode = null;

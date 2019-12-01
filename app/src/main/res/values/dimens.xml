@@ -29,4 +29,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!--    Override default title size-->
+    <dimen name="lb_browse_title_text_size">22sp</dimen>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Copied from android values.xml so that I can add shadow-->
+    <style name="TextAppearance.Leanback.Title" parent="TextAppearance.Leanback">
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">@dimen/lb_browse_title_text_size</item>
+        <item name="android:textColor">@color/lb_browse_title_color</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowRadius">20</item>
+    </style>
+</resources>

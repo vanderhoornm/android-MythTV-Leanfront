@@ -88,8 +88,9 @@ public class XmlNode {
             is = urlConnection.getInputStream();
             ret = XmlNode.parseStream(is);
         } finally {
-            urlConnection.disconnect();
-            if (null != is) {
+            if (urlConnection != null)
+                urlConnection.disconnect();
+            if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {

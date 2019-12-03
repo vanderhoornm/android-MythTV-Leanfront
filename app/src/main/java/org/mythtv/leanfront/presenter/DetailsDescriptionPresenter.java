@@ -23,7 +23,6 @@ import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainActivity;
 
 import android.content.Context;
-import android.text.format.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -80,7 +79,8 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                     description.append(duration).append(" ").append(context.getString(R.string.video_minutes));
                 }
                 // Channel
-                description.append("  ").append(mVideo.channel);
+                if (mVideo.channel != null && mVideo.channel.length()>0)
+                    description.append("  ").append(mVideo.channel);
                 // Original Air date
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
                 if (mVideo.airdate != null) {

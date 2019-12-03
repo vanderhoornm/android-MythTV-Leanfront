@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * The VideoDbBuilder is used to grab a XML file from a server and parse the data
@@ -104,7 +105,6 @@ public class VideoDbBuilder {
         HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
         String baseUrl = XmlNode.mythApiUrl(null);
-//        String defaultImage = "android.resource://org.mythtv.leanfront/" + R.drawable.ic_movie;
         String [] tagsProgram;
         String tagRecordedId;
         if (phase == 0) {  //Recordings
@@ -155,14 +155,25 @@ public class VideoDbBuilder {
                 starttime = programNode.getString(XMLTAG_STARTTIME);
                 // 2018-05-23T00:00:00Z
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
+
                 String startTS = recordingNode.getString(XMLTAG_STARTTS);
                 String endTS = recordingNode.getString(XMLTAG_ENDTS);
+                long startTimeSecs = 0;
                 try {
                     Date dateStart = format.parse(startTS+"+0000");
                     Date dateEnd = format.parse(endTS+"+0000");
-                    duration = (dateEnd.getTime() - dateStart.getTime());
+                    startTimeSecs = dateStart.getTime();
+                    duration = (dateEnd.getTime() - startTimeSecs);
                 } catch (ParseException e) {
                     e.printStackTrace();
+                }
+                // if airdate missing default it to starttime.
+                if (starttime != null && airdate == null
+                    && startTimeSecs != 0) {
+                    TimeZone tz = TimeZone.getDefault();
+                    startTimeSecs += tz.getOffset(startTimeSecs);
+                    airdate = dbFormat.format(new Date(startTimeSecs));
                 }
                 progflags = programNode.getString(XMLTAG_PROGFLAGS);
             }
@@ -211,8 +222,6 @@ public class VideoDbBuilder {
             else if (starttime != null)
                 prodYear = starttime.substring(0,4);
 
-//            if (coverArtUrl == null || coverArtUrl.length() == 0)
-//                coverArtUrl = defaultImage;
             String cardImageURL;
             String dbFileName = null;
             if (phase==0) { // Recordings
@@ -241,12 +250,6 @@ public class VideoDbBuilder {
                 subtitle = " ";
             if (description == null || description.length() == 0)
                 description = " ";
-//            if (videoUrl == null || videoUrl.length() == 0)
-//                videoUrl = defaultImage;
-//            if (fanArtUrl == null || fanArtUrl.length() == 0)
-//                fanArtUrl = defaultImage;
-            if (channel == null || channel.length() == 0)
-                channel = " ";
 
             ContentValues videoValues = new ContentValues();
             videoValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);

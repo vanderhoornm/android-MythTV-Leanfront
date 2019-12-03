@@ -18,6 +18,7 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -48,6 +49,7 @@ import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
+import androidx.preference.PreferenceManager;
 
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -340,15 +342,38 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
-                +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
-                +VideoContract.VideoEntry.COLUMN_STARTTIME;
 
-        if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR)
-            orderby =  VideoContract.VideoEntry.COLUMN_RECGROUP
-                    + " is null, " + VideoContract.VideoEntry.COLUMN_RECGROUP
-                    + ", " + VideoContract.VideoEntry.COLUMN_FILENAME
-                    + ", " + orderby;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
+        String seq = prefs.getString("pref_seq", "rectime");
+        String ascdesc = prefs.getString("pref_seq_ascdesc", "asc");
+        StringBuilder orderby = new StringBuilder();
+//        switch(mType) {
+//            case TYPE_RECGROUP:
+////                orderby.append(VideoContract.VideoEntry.COLUMN_TITLE);
+//                break;
+//            case TYPE_TOPLEVEL:
+//            case TYPE_VIDEODIR:
+        if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
+//                orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(" is null, ")
+                // filename is null on recordings so they will be first
+            orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
+            orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
+//                orderby.append(VideoContract.VideoEntry.COLUMN_TITLE);
+//                break;
+        }
+        orderby.append(VideoContract.VideoEntry.COLUMN_TITLE).append(", ");
+        if ("airdate".equals(seq)) {
+            orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                    .append(ascdesc).append(", ");
+            orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                    .append(ascdesc);
+        }
+        else {
+            orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                    .append(ascdesc).append(", ");
+            orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                    .append(ascdesc);
+        }
 
         Loader ret = new CursorLoader(
                 getContext(),
@@ -356,7 +381,7 @@ public class MainFragment extends BrowseSupportFragment
                 null, // Projection to return - null means return all fields
                 null, // Selection clause
                 null,  // Select based on the category id.
-                orderby);
+                orderby.toString());
         // Map video results from the database to Video objects.
         videoCursorAdapter =
                 new CursorObjectAdapter(new CardPresenter());
@@ -372,6 +397,10 @@ public class MainFragment extends BrowseSupportFragment
         if (data != null && mLoadStarted) {
             mLoadStarted = false;
             long lastLoadTime = System.currentTimeMillis();
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
+            String seq = prefs.getString("pref_seq", "rectime");
+            String ascdesc = prefs.getString("pref_seq_ascdesc", "asc");
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -398,6 +427,16 @@ public class MainFragment extends BrowseSupportFragment
                         data.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
                 SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                int sortkey;
+                SimpleDateFormat sortKeyFormat;
+                if ("airdate".equals(seq)) {
+                    sortkey = airdateIndex;
+                    sortKeyFormat = dbDateFormat;
+                }
+                else {
+                    sortkey = starttimeIndex;
+                    sortKeyFormat = dbTimeFormat;
+                }
                 boolean cursorHasData = data.moveToFirst();
                 int selectedRowNum = -1;
                 int selectedItemNum = -1;
@@ -620,17 +659,20 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     // Add video to "All" row
-                    if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL) {
+                    if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL
+                        && !(mType == TYPE_TOPLEVEL && "Deleted".equals(recgroup))) {
                         int position = 0;
-                        String dateStr = data.getString(starttimeIndex);
-                        if (dateStr != null) {
+                        String sortKeyStr = data.getString(sortkey);
+                        if (sortKeyStr != null) {
                             try {
-                                Date date = dbTimeFormat.parse(dateStr);
+                                Date date = sortKeyFormat.parse(sortKeyStr);
                                 // 525960 minutes in a year
                                 // Get position as number of minutes since 1970
                                 position = (int) (date.getTime() / 60000L);
                                 // Add 70 years in case it is before 1970
                                 position += 36817200;
+                                if ("desc".equals(ascdesc))
+                                    position = Integer.MAX_VALUE - position;
                             } catch (ParseException | NullPointerException e) {
                                 e.printStackTrace();
                                 position = 0;

@@ -45,6 +45,7 @@ public final class Video implements Parcelable, ListItem {
     public final String starttime;
     public final String duration;
     public final String prodyear;
+    public final String filename;
     public String progflags;
     // From MythTV libmyth/programtypes.h
     // This flag is also set for videos as needed.
@@ -83,6 +84,7 @@ public final class Video implements Parcelable, ListItem {
             final String starttime,
             final String duration,
             final String prodyear,
+            final String filename,
             final String progflags) {
         this.id = id;
         this.title = title;
@@ -100,6 +102,7 @@ public final class Video implements Parcelable, ListItem {
         this.starttime = starttime;
         this.duration = duration;
         this.prodyear = prodyear;
+        this.filename = filename;
         this.progflags = progflags;
     }
 
@@ -120,6 +123,7 @@ public final class Video implements Parcelable, ListItem {
         starttime = in.readString();
         duration = in.readString();
         prodyear = in.readString();
+        filename = in.readString();
         progflags = in.readString();
     }
 
@@ -162,6 +166,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(starttime);
         dest.writeString(duration);
         dest.writeString(prodyear);
+        dest.writeString(filename);
         dest.writeString(progflags);
     }
 
@@ -211,6 +216,7 @@ public final class Video implements Parcelable, ListItem {
         private String starttime;
         private String duration;
         private String prodyear;
+        private String filename;
         private String progflags;
 
         public VideoBuilder id(long id) {
@@ -294,6 +300,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder filename(String filename) {
+            this.filename = filename;
+            return this;
+        }
+
         public VideoBuilder progflags(String progflags) {
             this.progflags = progflags;
             return this;
@@ -310,7 +321,7 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    "","","","","","","",""
+                    "","","","","","","","",""
             );
         }
 
@@ -332,6 +343,7 @@ public final class Video implements Parcelable, ListItem {
                      starttime,
                      duration,
                      prodyear,
+                     filename,
                      progflags
             );
         }

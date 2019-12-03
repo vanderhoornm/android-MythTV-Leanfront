@@ -22,23 +22,26 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_BACKEND = 1;
     private static final int ID_HTTP_PORT = 2;
     private static final int ID_BOOKMARK_STRATEGY = 3;
-    private static final int ID_BOOKMARK_MYTHTV = 4;
     private static final int ID_BOOKMARK_LOCAL = 5;
     private static final int ID_BOOKMARK_FPS = 6;
     private static final int ID_PLAYBACK = 7;
     private static final int ID_SKIP_FWD = 8;
     private static final int ID_SKIP_BACK = 9;
     private static final int ID_JUMP = 10;
+    private static final int ID_SORT = 11;
+    private static final int ID_SORT_ORIG_AIRDATE = 12;
+    private static final int ID_DESCENDING = 13;
 
     private SharedPreferences mPrefs;
     private SharedPreferences.Editor mEditor;
 
     private GuidedAction mBookmarkAction;
+    private GuidedAction mSortAction;
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
         Activity activity = getActivity();
-        String title = "Settings";
+        String title = getString(R.string.personal_settings);
         String breadcrumb = "";
         String description = getString(R.string.pref_title_settings);
         Drawable icon = activity.getDrawable(R.drawable.ic_settings);
@@ -64,20 +67,19 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
         
-        List<GuidedAction> subActions = new ArrayList<GuidedAction>();
+        List<GuidedAction> subActions = new ArrayList<>();
         String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_BOOKMARK_MYTHTV)
-                .title(R.string.pref_bookmark_mythtv)
-                .checkSetId(ID_BOOKMARK_STRATEGY)
-                .checked("mythtv".equals(bookmark))
-                .build());
+//        subActions.add(new GuidedAction.Builder(getActivity())
+//                .id(ID_BOOKMARK_MYTHTV)
+//                .title(R.string.pref_bookmark_mythtv)
+//                .checkSetId(ID_BOOKMARK_STRATEGY)
+//                .checked("mythtv".equals(bookmark))
+//                .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_LOCAL)
                 .title(R.string.pref_bookmark_local)
-                .checkSetId(ID_BOOKMARK_STRATEGY)
                 .checked("local".equals(bookmark))
-//                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_FPS)
@@ -89,7 +91,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         actions.add(mBookmarkAction = new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_STRATEGY)
                 .title(R.string.pref_title_bookmark_strategy)
-                .description(bookmarkDesc(bookmark))
+                .description(bookmarkDesc())
                 .subActions(subActions)
                 .build());
 
@@ -121,14 +123,52 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .subActions(subActions)
                 .build());
 
+        subActions = new ArrayList<GuidedAction>();
+        String seq = mPrefs.getString("pref_seq", "rectime");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_SORT_ORIG_AIRDATE)
+                .title(R.string.pref_seq_orig_airdate)
+                .checked("airdate".equals(seq))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        String ascdesc = mPrefs.getString("pref_seq_ascdesc", "asc");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_DESCENDING)
+                .title(R.string.pref_seq_descending)
+                .checked("desc".equals(ascdesc))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        actions.add(mSortAction = new GuidedAction.Builder(getActivity())
+                .id(ID_SORT)
+                .title(R.string.pref_sort_order)
+                .description(sortDesc())
+                .subActions(subActions)
+                .build());
     }
 
-    private int bookmarkDesc(String bookmark) {
+    private int bookmarkDesc() {
+        String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
         if ("mythtv".equals(bookmark))
             return R.string.pref_bookmark_mythtv;
         if ("local".equals(bookmark))
             return R.string.pref_bookmark_local;
         return R.string.dummy_empty_string;
+    }
+
+    private String sortDesc() {
+        StringBuilder builder = new StringBuilder();
+        String seq = mPrefs.getString("pref_seq", "rectime");
+        String ascdesc = mPrefs.getString("pref_seq_ascdesc", "asc");
+        if ("airdate".equals(seq))
+            builder.append(getActivity().getString(R.string.pref_seq_orig_airdate));
+        else
+            builder.append(getActivity().getString(R.string.pref_seq_rec_time));
+        builder.append(" ");
+        if ("desc".equals(ascdesc))
+            builder.append(getActivity().getString(R.string.pref_seq_descending));
+        else
+            builder.append(getActivity().getString(R.string.pref_seq_ascending));
+        return builder.toString();
     }
 
     @Override
@@ -190,21 +230,37 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
-        if (!action.isChecked())
-            return false;
+
         switch((int) action.getId()) {
-            case ID_BOOKMARK_MYTHTV:
-                mEditor.putString("pref_bookmark", "mythtv");
-                break;
+//            case ID_BOOKMARK_MYTHTV:
+//                mEditor.putString("pref_bookmark", "mythtv");
+//                break;
             case ID_BOOKMARK_LOCAL:
-                mEditor.putString("pref_bookmark", "local");
+                if (action.isChecked())
+                    mEditor.putString("pref_bookmark", "local");
+                else
+                    mEditor.putString("pref_bookmark", "mythtv");
+                break;
+            case ID_SORT_ORIG_AIRDATE:
+                if (action.isChecked())
+                    mEditor.putString("pref_seq", "airdate");
+                else
+                    mEditor.putString("pref_seq", "rectime");
+                break;
+            case ID_DESCENDING:
+                if (action.isChecked())
+                    mEditor.putString("pref_seq_ascdesc", "desc");
+                else
+                    mEditor.putString("pref_seq_ascdesc", "asc");
                 break;
             default:
                 return false;
         }
-        mBookmarkAction.setDescription(action.getTitle());
-        notifyActionChanged(findActionPositionById(ID_BOOKMARK_STRATEGY));
         mEditor.apply();
+        mBookmarkAction.setDescription(getActivity().getString(bookmarkDesc()));
+        notifyActionChanged(findActionPositionById(ID_BOOKMARK_STRATEGY));
+        mSortAction.setDescription(sortDesc());
+        notifyActionChanged(findActionPositionById(ID_SORT));
         return false;
     }
 

@@ -42,6 +42,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int starttimeIndex;
     private static int durationIndex;
     private static int prodyearIndex;
+    private static int filenameIndex;
     private static int progflagsIndex;
 
     @Override
@@ -62,6 +63,7 @@ public final class VideoCursorMapper extends CursorMapper {
         starttimeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
         durationIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DURATION);
         prodyearIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR);
+        filenameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
         progflagsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PROGFLAGS);
     }
 
@@ -92,6 +94,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String starttime = cursor.getString(starttimeIndex);
         String duration = cursor.getString(durationIndex);
         String prodyear = cursor.getString(prodyearIndex);
+        String filename = cursor.getString(filenameIndex);
         String progflags = cursor.getString(progflagsIndex);
 
         // Build a Video object to be processed.
@@ -112,6 +115,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .starttime(starttime)
                 .duration(duration)
                 .prodyear(prodyear)
+                .filename(filename)
                 .progflags(progflags)
                 .build();
     }

@@ -214,6 +214,7 @@ public class VideoDbBuilder {
 //            if (coverArtUrl == null || coverArtUrl.length() == 0)
 //                coverArtUrl = defaultImage;
             String cardImageURL;
+            String dbFileName = null;
             if (phase==0) { // Recordings
                 // card image video + .png
                 HashSet<String> sgFiles = filesOnServer.get(storageGroup);
@@ -227,6 +228,7 @@ public class VideoDbBuilder {
                     cardImageURL = coverArtUrl;
             }
             else { // Videos
+                dbFileName = videoFileName;
                 cardImageURL = coverArtUrl;
             }
             String recordedid = recordingNode.getString(tagRecordedId);
@@ -251,7 +253,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
-            videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, videoFileName);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, dbFileName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channel);

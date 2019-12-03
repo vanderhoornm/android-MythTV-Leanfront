@@ -111,6 +111,9 @@ public class PlaybackFragment extends VideoSupportFragment {
         // Loads the playlist.
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
+        args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
+        args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
+
         getLoaderManager()
                 .initLoader(VideoLoaderCallbacks.QUEUE_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
@@ -264,6 +267,9 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
+        args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
+        args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
+
         getLoaderManager().initLoader(VideoLoaderCallbacks.RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
         return videoCursorAdapter;
@@ -353,20 +359,43 @@ public class PlaybackFragment extends VideoSupportFragment {
             this.playlist = playlist;
         }
 
+        // TODO: Add filename to video object so this can work.
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             // When loading related videos or videos for the playlist, query by category.
-            String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
-            String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
-                    +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
-                    +VideoContract.VideoEntry.COLUMN_STARTTIME;
-            return new CursorLoader(
-                    getActivity(),
-                    VideoContract.VideoEntry.CONTENT_URI,
-                    null,
-                    VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
-                    new String[] {category},
-                    orderby);
+            String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
+            String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
+            if (recgroup == null && filename != null) {
+                // Videos
+                int pos = filename.lastIndexOf('/');
+                String dirname = "";
+                if (pos >= 0)
+                    dirname = filename.substring(0,pos+1);
+                dirname = dirname + "%";
+
+                String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
+                return new CursorLoader(
+                        getActivity(),
+                        VideoContract.VideoEntry.CONTENT_URI,
+                        null,
+                        VideoContract.VideoEntry.COLUMN_FILENAME + " like ?",
+                        new String[]{dirname},
+                        orderby);
+            }
+            else {
+                // Recordings
+                String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
+                        + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
+                        + VideoContract.VideoEntry.COLUMN_STARTTIME;
+                return new CursorLoader(
+                        getActivity(),
+                        VideoContract.VideoEntry.CONTENT_URI,
+                        null,
+                        VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
+                        new String[]{category},
+                        orderby);
+            }
         }
 
         @Override

@@ -105,4 +105,9 @@
     <string name="menu_mark_watched">Mark as Watched</string>
     <string name="menu_remove_bookmark">Remove Bookmark</string>
     <string name="dummy_empty_string"></string>
+    <string name="pref_seq_orig_airdate">Original Air Date</string>
+    <string name="pref_seq_rec_time">Date/Time Recorded</string>
+    <string name="pref_seq_descending">Descending</string>
+    <string name="pref_seq_ascending">Ascending</string>
+    <string name="pref_sort_order">Sort Sequence</string>
 </resources>

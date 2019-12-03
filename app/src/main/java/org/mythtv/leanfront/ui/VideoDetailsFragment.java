@@ -343,17 +343,41 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case RELATED_VIDEO_LOADER: {
-                String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
-                String orderby =  VideoContract.VideoEntry.COLUMN_TITLE + ","
-                        +VideoContract.VideoEntry.COLUMN_AIRDATE  + ","
-                        +VideoContract.VideoEntry.COLUMN_STARTTIME;
-                return new CursorLoader(
-                        getActivity(),
-                        VideoContract.VideoEntry.CONTENT_URI,
-                        null,
-                        VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
-                        new String[]{category},
-                        orderby);
+                // When loading related videos or videos for the playlist, query by category.
+                String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
+                String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
+                if (recgroup == null && filename != null) {
+                    // Videos
+                    int pos = filename.lastIndexOf('/');
+                    String dirname = "";
+                    if (pos >= 0)
+                        dirname = filename.substring(0,pos+1);
+                    dirname = dirname + "%";
+
+                    String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
+                    return new CursorLoader(
+                            getActivity(),
+                            VideoContract.VideoEntry.CONTENT_URI,
+                            null,
+                            VideoContract.VideoEntry.COLUMN_FILENAME + " like ?",
+                            new String[]{dirname},
+                            orderby);
+                }
+                else {
+                    // Recordings
+                    String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                    String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
+                            + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
+                            + VideoContract.VideoEntry.COLUMN_STARTTIME;
+                    return new CursorLoader(
+                            getActivity(),
+                            VideoContract.VideoEntry.CONTENT_URI,
+                            null,
+                            VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
+                            new String[]{category},
+                            orderby);
+                }
+
             }
             default: {
                 // Loading video from global search.
@@ -499,6 +523,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, category);
+        args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mSelectedVideo.recGroup);
+        args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mSelectedVideo.filename);
         getLoaderManager().initLoader(RELATED_VIDEO_LOADER, args, this);
 
         HeaderItem header = new HeaderItem(0, subcategories[0]);

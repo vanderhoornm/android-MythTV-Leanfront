@@ -77,9 +77,10 @@
     <string name="pref_key_login">pref_login</string>
     <string name="pref_title_login">Login</string>
     <string name="playback_tag">PLAYBACK_TAG</string>
-    <string name="pref_title_backend">Master backend IP Address or DNS name</string>
+    <string name="pref_title_backend_ip">IP Address or DNS name</string>
+    <string name="pref_title_backend">MythTV Backend</string>
     <string name="pref_title_myth_port">MythTV Backend Port</string>
-    <string name="pref_title_http_port">MythTV Backend Status Port</string>
+    <string name="pref_title_http_port">Status Port</string>
     <string name="pref_title_hostname">Frontend Host Name</string>
     <string name="pref_bookmark_mythtv">MythTV based</string>
     <string name="pref_bookmark_local">Locally Saved</string>
@@ -110,4 +111,6 @@
     <string name="pref_seq_descending">Descending</string>
     <string name="pref_seq_ascending">Ascending</string>
     <string name="pref_sort_order">Sort Sequence</string>
+    <string name="pref_title_backend_mac">Wakeup MAC Address</string>
+    <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
 </resources>

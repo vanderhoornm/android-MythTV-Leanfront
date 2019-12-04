@@ -19,7 +19,7 @@ import java.util.List;
 
 public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
-    private static final int ID_BACKEND = 1;
+    private static final int ID_BACKEND_IP = 1;
     private static final int ID_HTTP_PORT = 2;
     private static final int ID_BOOKMARK_STRATEGY = 3;
     private static final int ID_BOOKMARK_LOCAL = 5;
@@ -31,10 +31,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_SORT = 11;
     private static final int ID_SORT_ORIG_AIRDATE = 12;
     private static final int ID_DESCENDING = 13;
+    private static final int ID_BACKEND_MAC = 14;
+    private static final int ID_BACKEND = 15;
 
     private SharedPreferences mPrefs;
     private SharedPreferences.Editor mEditor;
 
+    private GuidedAction mBackendAction;
     private GuidedAction mBookmarkAction;
     private GuidedAction mSortAction;
 
@@ -53,28 +56,35 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         mPrefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
         mEditor = mPrefs.edit();
 
-        actions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_BACKEND)
-                .title(R.string.pref_title_backend)
+        List<GuidedAction> subActions = new ArrayList<>();
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_BACKEND_IP)
+                .title(R.string.pref_title_backend_ip)
                 .description(mPrefs.getString("pref_backend", null))
                 .descriptionEditable(true)
                 .build());
-        actions.add(new GuidedAction.Builder(getActivity())
+        subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_HTTP_PORT)
                 .title(R.string.pref_title_http_port)
                 .description(mPrefs.getString("pref_http_port", "6544"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-        
-        List<GuidedAction> subActions = new ArrayList<>();
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_BACKEND_MAC)
+                .title(R.string.pref_title_backend_mac)
+                .description(mPrefs.getString("pref_backend_mac", ""))
+                .descriptionEditable(true)
+                .build());
+        actions.add(mBackendAction = new GuidedAction.Builder(getActivity())
+                .id(ID_BACKEND)
+                .title(R.string.pref_title_backend)
+                .description(backendDesc())
+                .subActions(subActions)
+                .build());
+
+        subActions = new ArrayList<>();
         String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
-//        subActions.add(new GuidedAction.Builder(getActivity())
-//                .id(ID_BOOKMARK_MYTHTV)
-//                .title(R.string.pref_bookmark_mythtv)
-//                .checkSetId(ID_BOOKMARK_STRATEGY)
-//                .checked("mythtv".equals(bookmark))
-//                .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_LOCAL)
                 .title(R.string.pref_bookmark_local)
@@ -146,6 +156,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
     }
 
+    private String backendDesc() {
+        return mPrefs.getString("pref_backend", "");
+    }
+
     private int bookmarkDesc() {
         String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
         if ("mythtv".equals(bookmark))
@@ -179,11 +193,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     @Override
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
         switch((int) action.getId()) {
-            case ID_BACKEND:
+            case ID_BACKEND_IP:
                 mEditor.putString("pref_backend",action.getDescription().toString());
                 break;
             case ID_HTTP_PORT:
                 mEditor.putString("pref_http_port",action.getDescription().toString());
+                break;
+            case ID_BACKEND_MAC:
+                mEditor.putString("pref_backend_mac",action.getDescription().toString());
                 break;
             case ID_BOOKMARK_FPS:
                 mEditor.putString("pref_fps",action.getDescription().toString());
@@ -207,8 +224,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     @Override
     public void onGuidedActionEditCanceled(GuidedAction action) {
         switch((int) action.getId()) {
-            case ID_BACKEND:
+            case ID_BACKEND_IP:
                 action.setDescription(mPrefs.getString("pref_backend", null));
+                break;
+            case ID_BACKEND_MAC:
+                action.setDescription(mPrefs.getString("pref_backend_mac", "6544"));
                 break;
             case ID_HTTP_PORT:
                 action.setDescription(mPrefs.getString("pref_http_port", "6544"));

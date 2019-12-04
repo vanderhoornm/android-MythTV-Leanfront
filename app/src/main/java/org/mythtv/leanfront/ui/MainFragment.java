@@ -53,6 +53,7 @@ import androidx.preference.PreferenceManager;
 
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -75,6 +76,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -855,6 +859,10 @@ public class MainFragment extends BrowseSupportFragment
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }
+                if (connectionfail)
+                    if (wakeBackend())
+                        toastMsg = R.string.msg_wake_backend;
+
                 if (toastMsg != 0) {
                     Activity activity = MainActivity.getContext();
                     if (activity == null)
@@ -877,6 +885,62 @@ public class MainFragment extends BrowseSupportFragment
                     }
                 });
             }
+        }
+
+        public boolean wakeBackend() {
+            MainActivity main = MainActivity.getContext();
+            if (main == null)
+                return false;
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (main);
+            String backendMac = prefs.getString("pref_backend_mac", null);
+            if (backendMac == null)
+                return false;
+
+            // The magic packet is a broadcast frame containing anywhere within its payload
+            // 6 bytes of all 255 (FF FF FF FF FF FF in hexadecimal), followed by sixteen
+            // repetitions of the target computer's 48-bit MAC address, for a total of 102 bytes.
+
+            byte [] msg = new byte[102];
+            int ix;
+            for (ix=0; ix < 6; ix++)
+                msg[ix] = (byte)0xff;
+
+            int  msglen = 6;
+            String[] tokens = backendMac.split(":");
+            byte[] macaddr = new byte[6];
+
+            if (tokens.length != 6) {
+                Log.e("wakeBackend","WakeOnLan("+backendMac+"): Incorrect MAC length");
+                return false;
+            }
+
+            for (int y = 0; y < 6; y++)
+            {
+                try {
+                    macaddr[y] = (byte) Integer.parseInt(tokens[y], 16);
+                } catch (NumberFormatException e) {
+                    Log.e("wakeBackend","WakeOnLan("+backendMac+"): Invalid MAC address");
+                    return false;
+                }
+
+            }
+
+            for (int x = 0; x < 16; x++)
+                for (int y = 0; y < 6; y++)
+                    msg[msglen++] = macaddr[y];
+
+            Log.i("wakeBackend",
+                    "WakeOnLan(): Sending WOL packet to "+backendMac);
+
+            try {
+                DatagramPacket DpSend = new DatagramPacket(msg, msg.length, InetAddress.getByName("255.255.255.255"), 9);
+                DatagramSocket ds = new DatagramSocket();
+                ds.send(DpSend);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
         }
     }
 

@@ -113,4 +113,6 @@
     <string name="pref_sort_order">Sort Sequence</string>
     <string name="pref_title_backend_mac">Wakeup MAC Address</string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
+    <string name="msg_subtitle_on">Subtitle enabled.</string>
+    <string name="msg_subtitle_off">Subtitle disabled.</string>
 </resources>

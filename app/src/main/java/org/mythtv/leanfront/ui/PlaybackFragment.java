@@ -52,21 +52,24 @@ import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
+import com.google.android.exoplayer2.source.TrackGroup;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.util.ArrayList;
 
 /**
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
@@ -79,7 +82,7 @@ public class PlaybackFragment extends VideoSupportFragment {
     private VideoPlayerGlue mPlayerGlue;
     private LeanbackPlayerAdapter mPlayerAdapter;
     private SimpleExoPlayer mPlayer;
-    private TrackSelector mTrackSelector;
+    private DefaultTrackSelector mTrackSelector;
     private PlaylistActionListener mPlaylistActionListener;
 
     private Video mVideo;
@@ -96,6 +99,8 @@ public class PlaybackFragment extends VideoSupportFragment {
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
     private Toast mToast = null;
+    private SubtitleView mSubtitles;
+    private int mSubtitleIndex = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -176,12 +181,21 @@ public class PlaybackFragment extends VideoSupportFragment {
     }
 
     private void initializePlayer() {
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-
+        mTrackSelector = new DefaultTrackSelector();
+        int xy = R.layout.lb_playback_fragment;
         mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), mTrackSelector);
+        // disable subtitles at the start
+        mTrackSelector.setParameters(
+                mTrackSelector
+                .buildUponParameters()
+                .setRendererDisabled(2, true)
+        );
+        mSubtitleIndex = -1;
+        mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
+        Player.TextComponent textComponent = mPlayer.getTextComponent();
+        if (textComponent != null && mSubtitles != null)
+            textComponent.addTextOutput(mSubtitles);
+
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
         mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter, mPlaylistActionListener);
@@ -210,10 +224,12 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         StringBuilder subtitle = new StringBuilder();
         int progflags = Integer.parseInt(video.progflags);
-        // This is to marl unwatched when play starts - does not seem a good idea.
+
+        // This is to mark unwatched when play starts - does not seem a good idea.
         // possible characters for watched - "👁" "⏿" "👀"
 //        if ((progflags & video.FL_WATCHED) != 0)
 //            markWatched(false);
+
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
                     .append(' ');
@@ -289,6 +305,65 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     public void fastForward() {
         mPlayerGlue.fastForward();
+    }
+
+    public void setupSubtitles() {
+
+    }
+
+
+    public void toggleSubtitles() {
+        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+        TrackGroupArray	tga = mti.getTrackGroups(2); // 2 is the index for text tracks
+        ArrayList<String> langList = new ArrayList<>();
+        int ix = -1;
+        int iy = -1;
+        for (ix=0; ix < tga.length; ix++) {
+            TrackGroup tg = tga.get(ix);
+            for (iy = 0; iy < tg.length; iy++) {
+                Format fmt = tg.getFormat(iy);
+                langList.add(fmt.language);
+            }
+        }
+        StringBuilder msg = new StringBuilder();
+        if (++mSubtitleIndex < langList.size()) {
+
+            // This would be the preferred method but for some reason it is not working
+//            DefaultTrackSelector.SelectionOverride ovr
+//                    = new DefaultTrackSelector.SelectionOverride(ix,mSubtitleIndex);
+//            mTrackSelector.setParameters(
+//                mTrackSelector
+//                    .buildUponParameters()
+//                    .setSelectionOverride(2,tga,ovr));
+
+            String lang = langList.get(mSubtitleIndex);
+            mTrackSelector.setParameters(
+                mTrackSelector
+                    .buildUponParameters()
+                    .setPreferredTextLanguage(lang)
+                    .setSelectUndeterminedTextLanguage(true)
+                    .setDisabledTextTrackSelectionFlags(C.SELECTION_FLAG_FORCED)
+                    .setRendererDisabled(2, false)
+            );
+            msg.append(getActivity().getString(R.string.msg_subtitle_on));
+            if (langList.size() > 1)
+                msg.append(" (").append(mSubtitleIndex+1).append(")");
+        }
+        else {
+            mSubtitleIndex = -1;
+            mTrackSelector.setParameters(
+                mTrackSelector
+                    .buildUponParameters()
+                    .setRendererDisabled(2, true)
+            );
+            msg.append(getActivity().getString(R.string.msg_subtitle_off));
+        }
+
+        if (mToast != null)
+            mToast.cancel();
+        mToast = Toast.makeText(getActivity(),
+                msg, Toast.LENGTH_LONG);
+        mToast.show();
     }
 
     public void jumpForward() {
@@ -497,6 +572,11 @@ public class PlaybackFragment extends VideoSupportFragment {
             mToast = Toast.makeText(getActivity(),
                     msg, Toast.LENGTH_LONG);
             mToast.show();
+        }
+
+        @Override
+        public void onCaption() {
+            toggleSubtitles();
         }
 
         private void setScale() {

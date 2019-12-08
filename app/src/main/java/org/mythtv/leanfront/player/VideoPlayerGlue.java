@@ -68,6 +68,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onPlayCompleted();
         void onZoom();
         void onAspect();
+        void onCaption();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -97,7 +98,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
         mZoomAction = new ZoomAction(context);
         mAspectAction = new AspectAction(context);
-
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         try {
@@ -125,7 +125,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     protected void onCreateSecondaryActions(ArrayObjectAdapter adapter) {
         super.onCreateSecondaryActions(adapter);
-//        adapter.add(mClosedCaptioningAction);
+        adapter.add(mClosedCaptioningAction);
         adapter.add(mZoomAction);
         adapter.add(mAspectAction);
     }
@@ -144,7 +144,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         return action == mRewindAction
                 || action == mFastForwardAction
-//                || action == mClosedCaptioningAction
+                || action == mClosedCaptioningAction
                 || action == mZoomAction
                 || action == mAspectAction;
     }
@@ -159,6 +159,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onZoom();
         } else if (action == mAspectAction) {
             mActionListener.onAspect();
+        } else if (action == mClosedCaptioningAction) {
+            mActionListener.onCaption();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();

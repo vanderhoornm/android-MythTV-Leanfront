@@ -380,8 +380,8 @@ public class PlaybackFragment extends VideoSupportFragment {
                 null).execute(Video.ACTION_SET_WATCHED);
     }
 
-
-    public void tickle(boolean autohide) {
+    public void tickle(boolean autohide, boolean showActions) {
+        mPlayerGlue.setActions(showActions);
         setControlsOverlayAutoHideEnabled(false);
         showControlsOverlay(true);
         if (autohide)
@@ -391,7 +391,7 @@ public class PlaybackFragment extends VideoSupportFragment {
     @Override
     // Overridden because the default tickle disables the fade timer.
     public void tickle() {
-        tickle(false);
+        tickle(false, true);
     }
 
         /** Opens the video details page when a related video has been clicked. */
@@ -434,7 +434,6 @@ public class PlaybackFragment extends VideoSupportFragment {
             this.playlist = playlist;
         }
 
-        // TODO: Add filename to video object so this can work.
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             // When loading related videos or videos for the playlist, query by category.

@@ -83,6 +83,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private int mSkipFwd = 60000;
     private int mSkipBack = 20000;
     private int mJump = 300000;
+    private boolean mActionsVisible;
 
     public VideoPlayerGlue(
             Context context,
@@ -128,6 +129,37 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mClosedCaptioningAction);
         adapter.add(mZoomAction);
         adapter.add(mAspectAction);
+        mActionsVisible = true;
+    }
+
+    public void setActions(boolean showActions) {
+        if (showActions) {
+            if (mActionsVisible)
+                return;
+            PlaybackControlsRow row =  getControlsRow();
+            ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
+            adapter.clear();
+            onCreatePrimaryActions(adapter);
+            adapter.notifyArrayItemRangeChanged(0,adapter.size());
+            adapter = (ArrayObjectAdapter) row.getSecondaryActionsAdapter();
+            adapter.clear();
+            onCreateSecondaryActions(adapter);
+            adapter.notifyArrayItemRangeChanged(0,adapter.size());
+            mActionsVisible = true;
+            onPlayStateChanged();
+        }
+        else {
+            if (!mActionsVisible)
+                return;
+            PlaybackControlsRow row =  getControlsRow();
+            ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
+            adapter.clear();
+            adapter.notifyArrayItemRangeChanged(0,0);
+            adapter = (ArrayObjectAdapter) row.getSecondaryActionsAdapter();
+            adapter.clear();
+            adapter.notifyArrayItemRangeChanged(0,0);
+            mActionsVisible = false;
+        }
     }
 
     @Override

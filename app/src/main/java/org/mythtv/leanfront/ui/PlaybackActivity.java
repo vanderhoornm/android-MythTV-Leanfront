@@ -19,8 +19,11 @@ package org.mythtv.leanfront.ui;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.leanback.widget.SeekBar;
+
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 
 import org.mythtv.leanfront.R;
@@ -37,12 +40,7 @@ public class PlaybackActivity extends LeanbackActivity {
     private static final float GAMEPAD_TRIGGER_INTENSITY_OFF = 0.45f;
     private boolean gamepadTriggerPressed = false;
     private PlaybackFragment mPlaybackFragment;
-    private int mArrowStatus = 0;
-    private static final int ARROW_NORMAL = 0;
-    // Left/right is being used for FF/REW
-    private static final int ARROW_LR_FF = 1;
-    // Up/Down is being used for FF/REW
-    private static final int ARROW_UD_FF = 2;
+    private boolean mArrowSkipJump;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,46 +100,52 @@ public class PlaybackActivity extends LeanbackActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event){
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            View view = getCurrentFocus();
+            boolean isSeekBar = false;
+            if (view instanceof SeekBar)
+                isSeekBar = true;
             int keycode = event.getKeyCode();
 
             if (keycode == KeyEvent.KEYCODE_DPAD_CENTER
                 || keycode == KeyEvent.KEYCODE_ENTER) {
                 boolean wasVisible = mPlaybackFragment.isControlsOverlayVisible();
-                mArrowStatus = ARROW_NORMAL;
-                mPlaybackFragment.tickle(false);
+                if (wasVisible && mArrowSkipJump)
+                    wasVisible = false;
+                mArrowSkipJump = false;
+                mPlaybackFragment.tickle(false,!mArrowSkipJump);
                 if (!wasVisible)
                     return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle(true);
+                mPlaybackFragment.tickle(true,false);
                 mPlaybackFragment.fastForward();
                 return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowStatus = ARROW_LR_FF;
+                    mArrowSkipJump = true;
                 }
-                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
-                if (mArrowStatus == ARROW_LR_FF) {
+                mPlaybackFragment.tickle(mArrowSkipJump,!mArrowSkipJump);
+                if (mArrowSkipJump || isSeekBar) {
                     mPlaybackFragment.fastForward();
                     return true;
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.tickle(true);
+                mPlaybackFragment.tickle(true, !mArrowSkipJump);
                 mPlaybackFragment.rewind();
                 return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowStatus = ARROW_LR_FF;
+                    mArrowSkipJump = true;
                 }
-                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
-                if (mArrowStatus == ARROW_LR_FF) {
+                mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
+                if (mArrowSkipJump || isSeekBar) {
                     mPlaybackFragment.rewind();
                     return true;
                 }
@@ -149,10 +153,10 @@ public class PlaybackActivity extends LeanbackActivity {
 
             if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowStatus = ARROW_UD_FF;
+                    mArrowSkipJump = true;
                 }
-                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
-                if (mArrowStatus == ARROW_UD_FF) {
+                mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
+                if (mArrowSkipJump) {
                     mPlaybackFragment.jumpBack();
                     return true;
                 }
@@ -160,15 +164,15 @@ public class PlaybackActivity extends LeanbackActivity {
 
             if (keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowStatus = ARROW_UD_FF;
+                    mArrowSkipJump = true;
                 }
-                mPlaybackFragment.tickle(mArrowStatus != ARROW_NORMAL);
-                if (mArrowStatus == ARROW_UD_FF) {
+                mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
+                if (mArrowSkipJump) {
                     mPlaybackFragment.jumpForward();
                     return true;
                 }
             }
-            mArrowStatus = ARROW_NORMAL;
+            mArrowSkipJump = false;
         }
         return super.dispatchKeyEvent(event);
     }

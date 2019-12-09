@@ -17,21 +17,23 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - There is a delete/undelete option so that you can delete shows after watching. Also set watched or unwatched and remove bookmark options.
 - There is a zoom icon and an aspect icon so that you can expand letterbox rec ordings and correct wrongly stretched recordings.
 - Videos do not currently support deletion or bookmarks stored on MythTV. Bookmarks for videos are stored locally on the android tv device.
+- Wakeup of master backend is supported via setup.
+- Sort order of recordings can be customized.
+- Subtitles (Closed captions) are supported.
+- At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
+
 
 ## Restrictions
 
 - Playback with the shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so works on a monitor without AC3 support. You must select surround sound or auto in the shield audio setup.
-- There is no support for watching LiveTV or Recordings in progress at present.
+- There is no support for watching LiveTV at present. Recordings in progress can be viewed but may not play fully if you catch up to the recording process. This needs some work to be done.
 
 ## To Do List
 
 Planned additions and fixes.
 
-- Add wakeup of master backend.
 - Ability to move picture up and down to get rid of ticker messages at the bottom.
 - Retrieve preview picture when there is none found the normal way.
-- Customize recording sort order.
-- Subtitles.
 - Sort out license. The sample app uses apache license.
 - LiveTV and in progress recordings. I don't know if we can support these.
 - Allow search from android home screen.

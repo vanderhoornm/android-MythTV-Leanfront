@@ -8,4 +8,9 @@
         <item>mythtv</item>
         <item>local</item>
     </string-array>
+    <string-array name="msg_pin_values">
+        <item>@string/msg_pin_center</item>
+        <item>@string/msg_pin_top</item>
+        <item>@string/msg_pin_bottom</item>
+    </string-array>
 </resources>

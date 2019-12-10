@@ -716,9 +716,12 @@ public class MainFragment extends BrowseSupportFragment
                 row = new ListRow(gridHeader, gridRowAdapter);
                 mCategoryRowAdapter.add(row);
 
-                if (selectedRowNum == allRowNum)
-                    selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
-
+                if (selectedRowNum == allRowNum) {
+                    if (allObjectAdapter != null)
+                        selectedItemNum = -1;
+                    else
+                        selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
+                }
 
                 SelectionSetter setter = new SelectionSetter(selectedRowNum,selectedItemNum);
 

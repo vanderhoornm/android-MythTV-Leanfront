@@ -115,4 +115,8 @@
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
     <string name="msg_subtitle_on">Subtitle enabled.</string>
     <string name="msg_subtitle_off">Subtitle disabled.</string>
+    <string name="msg_pin_center">Pinned at Center.</string>
+    <string name="msg_pin_top">Pinned at Top.</string>
+    <string name="msg_pin_bottom">Pinned at Bottom.</string>
+
 </resources>

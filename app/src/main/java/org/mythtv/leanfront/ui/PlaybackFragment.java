@@ -98,6 +98,9 @@ public class PlaybackFragment extends VideoSupportFragment {
     private int mScaleIndex = 0;
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
+    private static float PIVOTY_VALUES[] = {0.5f, 0.0f, 1.0f};
+    private int mPivotYIndex = 0;
+    private float mPivotY = 0.5f;
     private Toast mToast = null;
     private SubtitleView mSubtitles;
     private int mSubtitleIndex = -1;
@@ -578,8 +581,25 @@ public class PlaybackFragment extends VideoSupportFragment {
             toggleSubtitles();
         }
 
+        @Override
+        public void onPivot() {
+            if (++mPivotYIndex >= PIVOTY_VALUES.length)
+                mPivotYIndex = 0;
+            mPivotY = PIVOTY_VALUES[mPivotYIndex];
+            setScale();
+            String msg = getActivity().getResources().getStringArray(R.array.msg_pin_values)[mPivotYIndex];
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    msg, Toast.LENGTH_LONG);
+            mToast.show();
+
+        }
+
         private void setScale() {
             SurfaceView view = getSurfaceView();
+            int height = view.getHeight();
+            view.setPivotY(mPivotY * height);
             view.setScaleX(mScaleX * mAspect);
             view.setScaleY(mScaleY);
         }

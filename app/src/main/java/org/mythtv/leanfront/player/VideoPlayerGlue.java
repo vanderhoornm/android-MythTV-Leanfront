@@ -69,6 +69,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onZoom();
         void onAspect();
         void onCaption();
+        void onPivot();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -78,6 +79,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
+    private PlaybackControlsRow.PictureInPictureAction mPivotAction;
     private ZoomAction mZoomAction;
     private AspectAction mAspectAction;
     private int mSkipFwd = 60000;
@@ -100,6 +102,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mZoomAction = new ZoomAction(context);
         mAspectAction = new AspectAction(context);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
+        mPivotAction = new PlaybackControlsRow.PictureInPictureAction(context);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         try {
             mSkipFwd = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_fwd", "60"));
@@ -129,6 +132,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mClosedCaptioningAction);
         adapter.add(mZoomAction);
         adapter.add(mAspectAction);
+        adapter.add(mPivotAction);
         mActionsVisible = true;
     }
 
@@ -178,7 +182,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mFastForwardAction
                 || action == mClosedCaptioningAction
                 || action == mZoomAction
-                || action == mAspectAction;
+                || action == mAspectAction
+                || action == mPivotAction;
     }
 
     private void dispatchAction(Action action) {
@@ -193,6 +198,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onAspect();
         } else if (action == mClosedCaptioningAction) {
             mActionListener.onCaption();
+        } else if (action == mPivotAction) {
+            mActionListener.onPivot();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();

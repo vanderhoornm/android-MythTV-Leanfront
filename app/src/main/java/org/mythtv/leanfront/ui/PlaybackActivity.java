@@ -17,10 +17,12 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.SeekBar;
 
+import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,6 +43,7 @@ public class PlaybackActivity extends LeanbackActivity {
     private boolean gamepadTriggerPressed = false;
     private PlaybackFragment mPlaybackFragment;
     private boolean mArrowSkipJump;
+    private boolean mJumpEnabled;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +56,14 @@ public class PlaybackActivity extends LeanbackActivity {
         }
         // Prevent screen saver during playback
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        try {
+            mJumpEnabled = Integer.parseInt(sharedPreferences.getString("pref_jump", "5"))>0;
+        } catch (NumberFormatException ex) {
+            ex.printStackTrace();
+            mJumpEnabled = false;
+        }
+
     }
 
     @Override
@@ -151,7 +162,7 @@ public class PlaybackActivity extends LeanbackActivity {
                 }
             }
 
-            if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
+            if (mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_UP) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
@@ -162,7 +173,7 @@ public class PlaybackActivity extends LeanbackActivity {
                 }
             }
 
-            if (keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }

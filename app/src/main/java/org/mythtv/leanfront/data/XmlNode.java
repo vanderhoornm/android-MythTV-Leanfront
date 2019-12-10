@@ -1,11 +1,9 @@
 package org.mythtv.leanfront.data;
 
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.util.Xml;
 
-import androidx.preference.PreferenceManager;
-
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -152,9 +150,8 @@ public class XmlNode {
         MainActivity main = MainActivity.getContext();
         if (main == null)
             return null;
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (main);
-        String backend = prefs.getString("pref_backend", null);
-        String port = prefs.getString("pref_http_port", "6544");
+        String backend = Settings.getString("pref_backend");
+        String port = Settings.getString("pref_http_port");
         String url = "http://" + backend + ":" + port;
         if (params != null)
             url = url + params;

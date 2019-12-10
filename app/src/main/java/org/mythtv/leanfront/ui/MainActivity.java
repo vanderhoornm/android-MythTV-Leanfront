@@ -16,18 +16,13 @@
 
 package org.mythtv.leanfront.ui;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.KeyEvent;
 
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.Fragment;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Settings;
 
 /*
  * MainActivity class that loads MainFragment.
@@ -39,12 +34,11 @@ public class MainActivity extends LeanbackActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Settings.init(this);
         setContentView(R.layout.main);
-
         if (context == null)
             context = this;
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if(sharedPreferences.getString("pref_backend",null) == null) {
+        if (Settings.getString("pref_backend").length() == 0) {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
         }

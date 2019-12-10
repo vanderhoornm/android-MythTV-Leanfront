@@ -17,10 +17,8 @@
 package org.mythtv.leanfront.player;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.preference.PreferenceManager;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,6 +32,7 @@ import androidx.leanback.widget.PlaybackControlsRow;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 
 import java.util.concurrent.TimeUnit;
@@ -103,11 +102,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mAspectAction = new AspectAction(context);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         mPivotAction = new PlaybackControlsRow.PictureInPictureAction(context);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         try {
-            mSkipFwd = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_fwd", "60"));
-            mSkipBack = 1000 * Integer.parseInt(sharedPreferences.getString("pref_skip_back", "20"));
-            mJump = 60000 * Integer.parseInt(sharedPreferences.getString("pref_jump", "5"));
+            mSkipFwd = 1000 * Integer.parseInt(Settings.getString("pref_skip_fwd"));
+            mSkipBack = 1000 * Integer.parseInt(Settings.getString("pref_skip_back"));
+            mJump = 60000 * Integer.parseInt(Settings.getString("pref_jump"));
         } catch (NumberFormatException ex) {
             ex.printStackTrace();
         }

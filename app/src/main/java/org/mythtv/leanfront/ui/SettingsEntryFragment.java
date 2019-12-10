@@ -10,9 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
-import androidx.preference.PreferenceManager;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_BACKEND_MAC = 14;
     private static final int ID_BACKEND = 15;
 
-    private SharedPreferences mPrefs;
     private SharedPreferences.Editor mEditor;
 
     private GuidedAction mBackendAction;
@@ -53,27 +52,26 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
-        mPrefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
-        mEditor = mPrefs.edit();
+        mEditor = Settings.getEditor();
 
         List<GuidedAction> subActions = new ArrayList<>();
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BACKEND_IP)
                 .title(R.string.pref_title_backend_ip)
-                .description(mPrefs.getString("pref_backend", null))
+                .description(Settings.getString("pref_backend"))
                 .descriptionEditable(true)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_HTTP_PORT)
                 .title(R.string.pref_title_http_port)
-                .description(mPrefs.getString("pref_http_port", "6544"))
+                .description(Settings.getString("pref_http_port"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BACKEND_MAC)
                 .title(R.string.pref_title_backend_mac)
-                .description(mPrefs.getString("pref_backend_mac", ""))
+                .description(Settings.getString("pref_backend_mac"))
                 .descriptionEditable(true)
                 .build());
         actions.add(mBackendAction = new GuidedAction.Builder(getActivity())
@@ -84,7 +82,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<>();
-        String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
+        String bookmark = Settings.getString("pref_bookmark");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_LOCAL)
                 .title(R.string.pref_bookmark_local)
@@ -94,7 +92,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_FPS)
                 .title(R.string.pref_title_fps)
-                .description(mPrefs.getString("pref_fps", "30"))
+                .description(Settings.getString("pref_fps"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
@@ -109,21 +107,21 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SKIP_FWD)
                 .title(R.string.pref_title_skip_fwd)
-                .description(mPrefs.getString("pref_skip_fwd", "60"))
+                .description(Settings.getString("pref_skip_fwd"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SKIP_BACK)
                 .title(R.string.pref_title_skip_back)
-                .description(mPrefs.getString("pref_skip_back", "20"))
+                .description(Settings.getString("pref_skip_back"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_JUMP)
                 .title(R.string.pref_title_jump)
-                .description(mPrefs.getString("pref_jump", "5"))
+                .description(Settings.getString("pref_jump"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
@@ -134,14 +132,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<GuidedAction>();
-        String seq = mPrefs.getString("pref_seq", "rectime");
+        String seq = Settings.getString("pref_seq");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SORT_ORIG_AIRDATE)
                 .title(R.string.pref_seq_orig_airdate)
                 .checked("airdate".equals(seq))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        String ascdesc = mPrefs.getString("pref_seq_ascdesc", "asc");
+        String ascdesc = Settings.getString("pref_seq_ascdesc");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_DESCENDING)
                 .title(R.string.pref_seq_descending)
@@ -157,11 +155,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     }
 
     private String backendDesc() {
-        return mPrefs.getString("pref_backend", "");
+        return Settings.getString("pref_backend");
     }
 
     private int bookmarkDesc() {
-        String bookmark = mPrefs.getString("pref_bookmark", "mythtv");
+        String bookmark = Settings.getString("pref_bookmark");
         if ("mythtv".equals(bookmark))
             return R.string.pref_bookmark_mythtv;
         if ("local".equals(bookmark))
@@ -171,8 +169,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     private String sortDesc() {
         StringBuilder builder = new StringBuilder();
-        String seq = mPrefs.getString("pref_seq", "rectime");
-        String ascdesc = mPrefs.getString("pref_seq_ascdesc", "asc");
+        String seq = Settings.getString("pref_seq");
+        String ascdesc = Settings.getString("pref_seq_ascdesc");
         if ("airdate".equals(seq))
             builder.append(getActivity().getString(R.string.pref_seq_orig_airdate));
         else
@@ -194,7 +192,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
         switch((int) action.getId()) {
             case ID_BACKEND_IP:
-                mEditor.putString("pref_backend",action.getDescription().toString());
+                String newVal = action.getDescription().toString();
+                mEditor.putString("pref_backend",newVal);
+                mBackendAction.setDescription(newVal);
+                notifyActionChanged(findActionPositionById(ID_BACKEND));
                 break;
             case ID_HTTP_PORT:
                 mEditor.putString("pref_http_port",action.getDescription().toString());
@@ -225,25 +226,25 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     public void onGuidedActionEditCanceled(GuidedAction action) {
         switch((int) action.getId()) {
             case ID_BACKEND_IP:
-                action.setDescription(mPrefs.getString("pref_backend", null));
+                action.setDescription(Settings.getString("pref_backend"));
                 break;
             case ID_BACKEND_MAC:
-                action.setDescription(mPrefs.getString("pref_backend_mac", "6544"));
+                action.setDescription(Settings.getString("pref_backend_mac"));
                 break;
             case ID_HTTP_PORT:
-                action.setDescription(mPrefs.getString("pref_http_port", "6544"));
+                action.setDescription(Settings.getString("pref_http_port"));
                 break;
             case ID_BOOKMARK_FPS:
-                action.setDescription(mPrefs.getString("pref_fps", "30"));
+                action.setDescription(Settings.getString("pref_fps"));
                 break;
             case ID_SKIP_FWD:
-                action.setDescription(mPrefs.getString("pref_skip_fwd", "60"));
+                action.setDescription(Settings.getString("pref_skip_fwd"));
                 break;
             case ID_SKIP_BACK:
-                action.setDescription(mPrefs.getString("pref_skip_back", "20"));
+                action.setDescription(Settings.getString("pref_skip_back"));
                 break;
             case ID_JUMP:
-                action.setDescription(mPrefs.getString("pref_jump", "5"));
+                action.setDescription(Settings.getString("pref_jump"));
                 break;
         }
     }

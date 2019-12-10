@@ -2,12 +2,11 @@ package org.mythtv.leanfront.data;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParserException;
@@ -64,10 +63,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         Context context = MainActivity.getContext();
                         if (context == null)
                             return null;
-                        SharedPreferences sharedPreferences
-                                = PreferenceManager.getDefaultSharedPreferences(context);
-                        String pref = sharedPreferences.getString("pref_bookmark", "mythtv");
-                        String fpsStr = sharedPreferences.getString("pref_fps", "30");
+                        String pref = Settings.getString("pref_bookmark");
+                        String fpsStr = Settings.getString("pref_fps");
                         int fps = 30;
                         try {
                             fps = Integer.parseInt(fpsStr, 10);
@@ -216,10 +213,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                 case Video.ACTION_SET_BOOKMARK:
                     try {
                         found = false;
-                        SharedPreferences sharedPreferences
-                                = PreferenceManager.getDefaultSharedPreferences(main);
-                        String pref = sharedPreferences.getString("pref_bookmark", "mythtv");
-                        String fpsStr = sharedPreferences.getString("pref_fps", "30");
+                        String pref = Settings.getString("pref_bookmark");
+                        String fpsStr = Settings.getString("pref_fps");
                         int fps = 30;
                         try {
                             fps = Integer.parseInt(fpsStr,10);

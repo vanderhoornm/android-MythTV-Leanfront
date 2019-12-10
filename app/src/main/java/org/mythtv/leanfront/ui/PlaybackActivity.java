@@ -17,18 +17,17 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.SeekBar;
 
-import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Settings;
 
 /**
  * Loads PlaybackFragment and delegates input from a game controller.
@@ -56,9 +55,8 @@ public class PlaybackActivity extends LeanbackActivity {
         }
         // Prevent screen saver during playback
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         try {
-            mJumpEnabled = Integer.parseInt(sharedPreferences.getString("pref_jump", "5"))>0;
+            mJumpEnabled = Integer.parseInt(Settings.getString("pref_jump"))>0;
         } catch (NumberFormatException ex) {
             ex.printStackTrace();
             mJumpEnabled = false;

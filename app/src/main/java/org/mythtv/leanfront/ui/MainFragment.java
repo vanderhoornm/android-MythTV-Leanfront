@@ -18,7 +18,6 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -49,7 +48,6 @@ import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
-import androidx.preference.PreferenceManager;
 
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -67,6 +65,7 @@ import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.ListItem;
 import org.mythtv.leanfront.model.MyHeaderItem;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
@@ -347,23 +346,12 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
-        String seq = prefs.getString("pref_seq", "rectime");
-        String ascdesc = prefs.getString("pref_seq_ascdesc", "asc");
+        String seq = Settings.getString("pref_seq");
+        String ascdesc = Settings.getString("pref_seq_ascdesc");
         StringBuilder orderby = new StringBuilder();
-//        switch(mType) {
-//            case TYPE_RECGROUP:
-////                orderby.append(VideoContract.VideoEntry.COLUMN_TITLE);
-//                break;
-//            case TYPE_TOPLEVEL:
-//            case TYPE_VIDEODIR:
         if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
-//                orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(" is null, ")
-                // filename is null on recordings so they will be first
             orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
-//                orderby.append(VideoContract.VideoEntry.COLUMN_TITLE);
-//                break;
         }
         orderby.append(VideoContract.VideoEntry.COLUMN_TITLE).append(", ");
         if ("airdate".equals(seq)) {
@@ -402,9 +390,8 @@ public class MainFragment extends BrowseSupportFragment
             mLoadStarted = false;
             long lastLoadTime = System.currentTimeMillis();
 
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (getActivity());
-            String seq = prefs.getString("pref_seq", "rectime");
-            String ascdesc = prefs.getString("pref_seq_ascdesc", "asc");
+            String seq = Settings.getString("pref_seq");
+            String ascdesc = Settings.getString("pref_seq_ascdesc");
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -894,9 +881,8 @@ public class MainFragment extends BrowseSupportFragment
             MainActivity main = MainActivity.getContext();
             if (main == null)
                 return false;
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences (main);
-            String backendMac = prefs.getString("pref_backend_mac", null);
-            if (backendMac == null)
+            String backendMac = Settings.getString("pref_backend_mac");
+            if (backendMac.length() == 0)
                 return false;
 
             // The magic packet is a broadcast frame containing anywhere within its payload

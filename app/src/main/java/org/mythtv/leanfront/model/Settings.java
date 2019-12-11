@@ -30,6 +30,18 @@ public class Settings {
         return mSingleton.mPrefs.getString(key, "");
     }
 
+    public static int getInt(String key) {
+        String str = mSingleton.mPrefs.getString(key, "").trim();
+        if (str.length() == 0)
+            return 0;
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
     private void setDefaults(Context context) {
         mPrefs =  PreferenceManager.getDefaultSharedPreferences (context);
         mEditor = mPrefs.edit();

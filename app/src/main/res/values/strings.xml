@@ -118,5 +118,6 @@
     <string name="msg_pin_center">Pinned at Center.</string>
     <string name="msg_pin_top">Pinned at Top.</string>
     <string name="msg_pin_bottom">Pinned at Bottom.</string>
+    <string name="button_refresh_lists">Refresh Lists</string>
 
 </resources>

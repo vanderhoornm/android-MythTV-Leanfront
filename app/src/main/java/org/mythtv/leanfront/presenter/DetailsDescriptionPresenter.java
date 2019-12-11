@@ -22,6 +22,7 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,6 +40,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
         setupDescription();
     }
     
+    @SuppressLint("SimpleDateFormat")
     public void setupDescription() {
         if (mVideo != null) {
             mViewHolder.getTitle().setText(mVideo.title);

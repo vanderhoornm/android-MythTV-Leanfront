@@ -104,7 +104,7 @@ public class UpdateRecommendationsService extends IntentService {
                     }  else {
                         Bitmap bitmap = Glide.with(getApplication())
                                 .asBitmap()
-                                .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))
+                                .load(video.cardImageUrl + "&time=" + System.currentTimeMillis())
                                 .submit(cardWidth, cardHeight) // Only use for synchronous .get()
                                 .get();
                         builder.setContentImage(bitmap);

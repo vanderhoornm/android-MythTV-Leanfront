@@ -15,6 +15,7 @@
  */
 package org.mythtv.leanfront.data;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import androidx.annotation.NonNull;
@@ -154,7 +155,9 @@ public class VideoDbBuilder {
                 airdate = programNode.getString(XMLTAG_AIRDATE);
                 starttime = programNode.getString(XMLTAG_STARTTIME);
                 // 2018-05-23T00:00:00Z
+                @SuppressLint("SimpleDateFormat")
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                @SuppressLint("SimpleDateFormat")
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                 String startTS = recordingNode.getString(XMLTAG_STARTTS);

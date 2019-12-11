@@ -40,7 +40,7 @@ public final class VideoContract {
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "." + PATH_VIDEO;
         // Name of the video table.
         public static final String TABLE_NAME = "video";
-        public static final String COLUMN_TITLE = SearchManager.SUGGEST_COLUMN_TEXT_1;;
+        public static final String COLUMN_TITLE = SearchManager.SUGGEST_COLUMN_TEXT_1;
         // Description of the video.
         public static final String COLUMN_DESC = "description";
         // Description of the video.

@@ -16,6 +16,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -387,6 +388,7 @@ public class MainFragment extends BrowseSupportFragment
         return ret;
     }
 
+    @SuppressLint("SimpleDateFormat")
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // the mLoadStarted check is needed becuase for some reason onLoadFinished
@@ -703,7 +705,7 @@ public class MainFragment extends BrowseSupportFragment
                 mCategoryRowAdapter.add(row);
 
                 Video video = new Video.VideoBuilder()
-                        .id(-1).title("Refresh")
+                        .id(-1).title(getString(R.string.button_refresh_lists))
                         .subtitle("")
                         .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
                         .progflags("0")
@@ -768,7 +770,7 @@ public class MainFragment extends BrowseSupportFragment
                     intent.putExtra(VideoDetailsActivity.VIDEO, video);
 
                     bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            (Activity)context,
+                            context,
                             ((ImageCardView) itemViewHolder.view).getMainImageView(),
                             VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
                     context.startActivity(intent, bundle);
@@ -779,7 +781,7 @@ public class MainFragment extends BrowseSupportFragment
                     intent.putExtra(KEY_BASENAME,headerItem.getName());
                     intent.putExtra(KEY_ROWNAME,((Video)li).title);
                     bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
+                            ActivityOptionsCompat.makeSceneTransitionAnimation(context)
                                     .toBundle();
                     context.startActivity(intent, bundle);
                     break;
@@ -798,7 +800,7 @@ public class MainFragment extends BrowseSupportFragment
                     intent.putExtra(KEY_BASENAME,baseName);
                     intent.putExtra(KEY_ROWNAME,((Video)li).title);
                     bundle =
-                            ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
+                            ActivityOptionsCompat.makeSceneTransitionAnimation(context)
                                     .toBundle();
                     context.startActivity(intent, bundle);
                     break;

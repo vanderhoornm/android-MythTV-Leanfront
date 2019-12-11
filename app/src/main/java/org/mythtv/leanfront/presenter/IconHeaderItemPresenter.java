@@ -35,13 +35,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.ui.LeanbackActivity;
 import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.ui.SettingsActivity;
-
-;
 
 public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
@@ -84,7 +81,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         setOnClickListener(viewHolder,listener);
         iconView.setImageDrawable(icon);
 
-        TextView label = (TextView) rootView.findViewById(R.id.header_label);
+        TextView label = rootView.findViewById(R.id.header_label);
         label.setText(headerItem.getName());
         label.setTextColor(rootView.getResources().getColor(R.color.header_text));
     }

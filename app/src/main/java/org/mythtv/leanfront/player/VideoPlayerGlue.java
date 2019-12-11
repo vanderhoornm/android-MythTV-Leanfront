@@ -102,13 +102,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mAspectAction = new AspectAction(context);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         mPivotAction = new PlaybackControlsRow.PictureInPictureAction(context);
-        try {
-            mSkipFwd = 1000 * Integer.parseInt(Settings.getString("pref_skip_fwd"));
-            mSkipBack = 1000 * Integer.parseInt(Settings.getString("pref_skip_back"));
-            mJump = 60000 * Integer.parseInt(Settings.getString("pref_jump"));
-        } catch (NumberFormatException ex) {
-            ex.printStackTrace();
-        }
+        mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
+        mSkipBack = 1000 * Settings.getInt("pref_skip_back");
+        mJump = 60000 * Settings.getInt("pref_jump");
     }
 
     @Override

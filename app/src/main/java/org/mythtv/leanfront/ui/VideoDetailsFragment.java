@@ -124,7 +124,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mVideoCursorAdapter = new CursorObjectAdapter(new CardPresenter());
         mVideoCursorAdapter.setMapper(mVideoCursorMapper);
 
-        mSelectedVideo = (Video) getActivity().getIntent()
+        mSelectedVideo = getActivity().getIntent()
                 .getParcelableExtra(VideoDetailsActivity.VIDEO);
 
         if (savedInstanceState != null)
@@ -505,7 +505,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             Glide.with(this)
                     .asBitmap()
                     .load(mSelectedVideo.cardImageUrl +
-                            "&time=" + String.valueOf(System.currentTimeMillis()))
+                            "&time=" + System.currentTimeMillis())
                     .apply(options)
                     .into(target);
 
@@ -516,7 +516,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     private void setupMovieListRow() {
-        String subcategories[] = {getString(R.string.related_movies)};
+        String[] subcategories = {getString(R.string.related_movies)};
 
         // Generating related video list.
         String category = mSelectedVideo.title;

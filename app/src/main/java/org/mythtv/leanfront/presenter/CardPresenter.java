@@ -90,7 +90,7 @@ public class CardPresenter extends Presenter {
         StringBuilder subtitle = new StringBuilder();
         int progflags = Integer.parseInt(video.progflags);
         // possible characters for watched - "👁" "⏿" "👀"
-        if ((progflags & video.FL_WATCHED) != 0)
+        if ((progflags & Video.FL_WATCHED) != 0)
             subtitle.append("\uD83D\uDC41");
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
@@ -116,7 +116,7 @@ public class CardPresenter extends Presenter {
         }
         else
             Glide.with(cardView.getContext())
-                    .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))
+                    .load(video.cardImageUrl + "&time=" + System.currentTimeMillis())
                     .apply(options)
                     .into(cardView.getMainImageView());
     }

@@ -91,14 +91,14 @@ public class PlaybackFragment extends VideoSupportFragment {
     private CursorObjectAdapter mVideoCursorAdapter;
     private long mBookmark = 0;
     private boolean mWatched = false;
-    private static float ASPECT_VALUES[] = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
+    private static float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
     private int mAspectIndex = 0;
     private float mAspect = 1.0f;
-    private static float SCALE_VALUES[] = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
+    private static float[] SCALE_VALUES = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
     private int mScaleIndex = 0;
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
-    private static float PIVOTY_VALUES[] = {0.5f, 0.0f, 1.0f};
+    private static float[] PIVOTY_VALUES = {0.5f, 0.0f, 1.0f};
     private int mPivotYIndex = 0;
     private float mPivotY = 0.5f;
     private Toast mToast = null;

@@ -123,6 +123,8 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_VIDEODIR_ALL = 9;
     // Special row type
     public static final int TYPE_SETTINGS = 20;
+    // Special Item Type
+    public static final int TYPE_REFRESH = 21;
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
     public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
@@ -260,6 +262,10 @@ public class MainFragment extends BrowseSupportFragment
     public void onStop() {
         mBackgroundManager.release();
         super.onStop();
+    }
+
+    public static MainFragment getActiveFragment() {
+        return mActiveFragment;
     }
 
     private void prepareBackgroundManager() {
@@ -560,13 +566,6 @@ public class MainFragment extends BrowseSupportFragment
                         if (recgroup == null) {
                             category = "Videos";
                             rowType = TYPE_VIDEODIR_ALL;
-//                            if (dirname != null) {
-//                                if (dirname.equals(currentItem)) {
-//                                    data.moveToNext();
-//                                    continue;
-//                                }
-//                                currentItem = dirname;
-//                            }
                         }
                         else {
                             category = recgroup;
@@ -699,12 +698,21 @@ public class MainFragment extends BrowseSupportFragment
                 MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
                         TYPE_SETTINGS,mBaseName);
                 CardPresenter presenter = new CardPresenter();
-                ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(presenter);
-                row = new ListRow(gridHeader, gridRowAdapter);
+                ArrayObjectAdapter settingsRowAdapter = new ArrayObjectAdapter(presenter);
+                row = new ListRow(gridHeader, settingsRowAdapter);
                 mCategoryRowAdapter.add(row);
 
+                Video video = new Video.VideoBuilder()
+                        .id(-1).title("Refresh")
+                        .subtitle("")
+                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                        .progflags("0")
+                        .build();
+                video.type = TYPE_REFRESH;
+                settingsRowAdapter.add(video);
+
                 if (selectedRowNum == allRowNum) {
-                    if (allObjectAdapter != null)
+                    if (allObjectAdapter == null)
                         selectedItemNum = -1;
                     else
                         selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
@@ -763,7 +771,7 @@ public class MainFragment extends BrowseSupportFragment
                             (Activity)context,
                             ((ImageCardView) itemViewHolder.view).getMainImageView(),
                             VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
-                    getActivity().startActivity(intent, bundle);
+                    context.startActivity(intent, bundle);
                     break;
                 case TYPE_SERIES:
                     intent = new Intent(context, MainActivity.class);
@@ -793,6 +801,11 @@ public class MainFragment extends BrowseSupportFragment
                             ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
                                     .toBundle();
                     context.startActivity(intent, bundle);
+                    break;
+                case TYPE_REFRESH:
+                    mSelectedRowType = -1;
+                    mSelectedRowName = null;
+                    startFetch();
                     break;
             }
         }
@@ -963,13 +976,10 @@ public class MainFragment extends BrowseSupportFragment
             this.selectedItemNum = selectedItemNum;
         }
         public void run() {
-            if (selectedRowNum != -1) {
-                if (selectedItemNum == -1)
-                    setSelectedPosition(selectedRowNum);
-                else
-                    getRowsSupportFragment().setSelectedPosition(selectedRowNum, false,
-                            new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
-            }
+            getRowsSupportFragment().setSelectedPosition(selectedRowNum, false,
+                    new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
+            if (selectedItemNum == -1)
+                getHeadersSupportFragment().getView().requestFocus();
 
         }
     }

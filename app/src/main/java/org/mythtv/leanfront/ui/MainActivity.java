@@ -68,9 +68,9 @@ public class MainActivity extends LeanbackActivity {
         if (main != null) {
             main.runOnUiThread(new Runnable() {
                 public void run() {
-                    MainActivity main = getContext();
-                    if (main != null)
-                        main.getMainFragment().startLoader();
+                    MainFragment frag = MainFragment.getActiveFragment();
+                    if (frag != null)
+                        frag.startLoader();
                 }
             });
         }

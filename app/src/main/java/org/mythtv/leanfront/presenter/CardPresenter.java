@@ -16,9 +16,7 @@
 
 package org.mythtv.leanfront.presenter;
 
-import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 
 import androidx.leanback.widget.BaseCardView;
 import androidx.leanback.widget.ImageCardView;
@@ -40,8 +38,6 @@ import org.mythtv.leanfront.ui.MainFragment;
 public class CardPresenter extends Presenter {
     private int mSelectedBackgroundColor = -1;
     private int mDefaultBackgroundColor = -1;
-    private Drawable mDefaultCardImage;
-    private Drawable mDirectoryCardImage;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
@@ -49,8 +45,6 @@ public class CardPresenter extends Presenter {
                 ContextCompat.getColor(parent.getContext(), R.color.default_background);
         mSelectedBackgroundColor =
                 ContextCompat.getColor(parent.getContext(), R.color.selected_background);
-        mDefaultCardImage = parent.getResources().getDrawable(R.drawable.ic_movie, null);
-        mDirectoryCardImage = parent.getResources().getDrawable(R.drawable.ic_folder, null);
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -62,7 +56,6 @@ public class CardPresenter extends Presenter {
 
         cardView.setFocusable(true);
         cardView.setFocusableInTouchMode(true);
-//        cardView.setCardType(BaseCardView.CARD_TYPE_INFO_OVER);
         cardView.setInfoVisibility(BaseCardView.CARD_REGION_VISIBLE_ALWAYS);
         updateCardBackgroundColor(cardView, false);
         return new ViewHolder(cardView);
@@ -84,19 +77,16 @@ public class CardPresenter extends Presenter {
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         cardView.setTitleText(video.title);
         int defaultIcon;
-        if (video.type == MainFragment.TYPE_VIDEODIR)
-            defaultIcon = R.drawable.ic_folder;
-        else
-            defaultIcon = R.drawable.ic_movie;
-//            // Set card size from dimension resources.
-//            Resources res = cardView.getResources();
-//            int width = res.getDimensionPixelSize(R.dimen.card_width);
-//            int height = res.getDimensionPixelSize(R.dimen.card_height);
-//            cardView.setMainImageDimensions(width, height);
-//            cardView.setMainImage(mDirectoryCardImage);
-////            cardView.getMainImageView().setImageDrawable(mDirectoryCardImage);
-//            return;
-//        }
+        switch (video.type) {
+            case MainFragment.TYPE_VIDEODIR:
+                defaultIcon = R.drawable.im_folder;
+                break;
+            case MainFragment.TYPE_REFRESH:
+                defaultIcon = R.drawable.im_refresh;
+                break;
+            default:
+                defaultIcon = R.drawable.im_movie;
+        }
         StringBuilder subtitle = new StringBuilder();
         int progflags = Integer.parseInt(video.progflags);
         // possible characters for watched - "👁" "⏿" "👀"
@@ -118,11 +108,12 @@ public class CardPresenter extends Presenter {
                 .centerCrop()
                 .error(defaultIcon);
 
-        if (video.cardImageUrl == null)
+        if (video.cardImageUrl == null) {
             Glide.with(cardView.getContext())
                     .load(defaultIcon)
                     .apply(options)
                     .into(cardView.getMainImageView());
+        }
         else
             Glide.with(cardView.getContext())
                     .load(video.cardImageUrl + "&time=" + String.valueOf(System.currentTimeMillis()))

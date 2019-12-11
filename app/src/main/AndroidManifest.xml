@@ -103,7 +103,7 @@
 
         <receiver
             android:name="org.mythtv.leanfront.recommendation.RecommendationReceiver"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -115,7 +115,7 @@
             android:exported="false" />
         <service
             android:name="org.mythtv.leanfront.recommendation.UpdateRecommendationsService"
-            android:enabled="true" />
+            android:enabled="false" />
 
         <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
             android:exported="true"

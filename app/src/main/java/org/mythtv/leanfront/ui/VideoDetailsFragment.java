@@ -469,11 +469,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     private void setupDetailsOverviewRow() {
         mDetailsOverviewRow = new DetailsOverviewRow(mSelectedVideo);
-        Drawable defaultImage = getResources().getDrawable(R.drawable.ic_movie, null);
+        Drawable defaultImage = getResources().getDrawable(R.drawable.im_movie, null);
 
         RequestOptions options = new RequestOptions()
-                .error(R.drawable.ic_movie)
-                .fallback(R.drawable.ic_movie)
+                .error(R.drawable.im_movie)
+                .fallback(R.drawable.im_movie)
                 .dontAnimate();
 
         CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
@@ -498,7 +498,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         if (mSelectedVideo.cardImageUrl == null)
             Glide.with(this)
                     .asBitmap()
-                    .load(R.drawable.ic_movie)
+                    .load(R.drawable.im_movie)
                     .apply(options)
                     .into(target);
         else

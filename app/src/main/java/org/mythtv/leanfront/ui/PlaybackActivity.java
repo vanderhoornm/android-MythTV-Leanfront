@@ -182,6 +182,7 @@ public class PlaybackActivity extends LeanbackActivity {
                 }
             }
             mArrowSkipJump = false;
+            mPlaybackFragment.setActions(true);
         }
         return super.dispatchKeyEvent(event);
     }

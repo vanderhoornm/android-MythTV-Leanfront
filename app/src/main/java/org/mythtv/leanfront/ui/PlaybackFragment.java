@@ -391,6 +391,11 @@ public class PlaybackFragment extends VideoSupportFragment {
             setControlsOverlayAutoHideEnabled(true);
     }
 
+    public void setActions(boolean showActions) {
+        mPlayerGlue.setActions(showActions);
+    }
+
+
     @Override
     // Overridden because the default tickle disables the fade timer.
     public void tickle() {

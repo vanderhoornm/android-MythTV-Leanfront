@@ -127,7 +127,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle(true,false);
+                mPlaybackFragment.tickle(true,!mArrowSkipJump);
                 mPlaybackFragment.fastForward();
                 return true;
             }

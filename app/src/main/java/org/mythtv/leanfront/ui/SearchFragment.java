@@ -193,7 +193,9 @@ public class SearchFragment extends SearchSupportFragment
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         int titleRes;
-        if (cursor != null && cursor.moveToFirst()) {
+        if (cursor == null || cursor.isClosed())
+            return;
+        if (cursor.moveToFirst()) {
             mResultsFound = true;
             titleRes = R.string.search_results;
         } else {

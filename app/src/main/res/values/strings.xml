@@ -120,4 +120,12 @@
     <string name="msg_pin_bottom">Pinned at Bottom.</string>
     <string name="button_refresh_lists">Refresh Lists</string>
 
+    <!--Words to be stripped from the front of titles for sorting
+        Must be in UPPER CASE-->
+    <string-array name="title_sort_articles">
+        <item>THE</item>
+        <item>A</item>
+    </string-array>
+
+
 </resources>

@@ -360,7 +360,15 @@ public class MainFragment extends BrowseSupportFragment
             orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
         }
-        orderby.append(VideoContract.VideoEntry.COLUMN_TITLE).append(", ");
+        // Sort uppercase title
+        StringBuilder titleSort = new StringBuilder();
+        titleSort.append("'^'||UPPER(").append(VideoContract.VideoEntry.COLUMN_TITLE).append(")");
+        String [] articles = getResources().getStringArray(R.array.title_sort_articles);
+        for (String article : articles) {
+            titleSort.insert(0,"replace(");
+            titleSort.append(",'^").append(article).append(" ','^')");
+        }
+        orderby.append(titleSort).append(", ");
         if ("airdate".equals(seq)) {
             orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
                     .append(ascdesc).append(", ");

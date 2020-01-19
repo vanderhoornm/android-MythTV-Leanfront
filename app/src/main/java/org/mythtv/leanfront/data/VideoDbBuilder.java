@@ -62,6 +62,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_STARTTS = "StartTs";
     public static final String XMLTAG_ENDTS = "EndTs";
     public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
+    public static final String XMLTAG_FILESIZE = "FileSize";
 
     // Specific to video list
     private static final String[] XMLTAGS_VIDEO = {"VideoMetadataInfos","VideoMetadataInfo"};
@@ -133,6 +134,10 @@ public class VideoDbBuilder {
             long duration = 0;
             String progflags;
             if (phase == 0) { // Recordings
+                String fileSize = programNode.getString(XMLTAG_FILESIZE);
+                // Skip dummy LiveTV entry
+                if ("0".equals(fileSize))
+                    continue;
                 recordingNode = programNode.getNode(XMLTAG_RECORDING);
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)

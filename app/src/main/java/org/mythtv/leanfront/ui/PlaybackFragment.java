@@ -347,7 +347,7 @@ public class PlaybackFragment extends VideoSupportFragment
     public void rewind() {
         long newPosition = mPlayerGlue.getCurrentPosition() - mSkipBack;
         newPosition = (newPosition < 0) ? 0 : newPosition;
-        mPlayerAdapter.seekTo(newPosition);
+        seekTo(newPosition);
     }
 
     /** Skips forward 10 seconds. */
@@ -356,7 +356,7 @@ public class PlaybackFragment extends VideoSupportFragment
         if (duration > -1) {
             long newPosition = mPlayerGlue.getCurrentPosition() + mSkipFwd;
             newPosition = (newPosition > duration) ? duration : newPosition;
-            mPlayerAdapter.seekTo(newPosition);
+            seekTo(newPosition);
         }
     }
 
@@ -364,7 +364,7 @@ public class PlaybackFragment extends VideoSupportFragment
     public void jumpBack() {
         long newPosition = mPlayerGlue.getCurrentPosition() - mJump;
         newPosition = (newPosition < 0) ? 0 : newPosition;
-        mPlayerAdapter.seekTo(newPosition);
+        seekTo(newPosition);
     }
 
     /** Jumps forward 5 min. */
@@ -373,7 +373,20 @@ public class PlaybackFragment extends VideoSupportFragment
         if (duration > -1) {
             long newPosition = mPlayerGlue.getCurrentPosition() + mJump;
             newPosition = (newPosition > duration) ? duration : newPosition;
-            mPlayerGlue.getPlayerAdapter().seekTo(newPosition);
+            seekTo(newPosition);
+        }
+    }
+
+    private void seekTo(long position) {
+        if (mIsBounded)
+            mPlayerAdapter.seekTo(position);
+        else {
+            mIsBounded = true;
+            mBookmark = position;
+            mOffsetBytes = 0;
+            mPlayerGlue.setOffsetMillis(0);
+            mPlayer.stop(true);
+            play(mVideo);
         }
     }
 
@@ -449,14 +462,15 @@ public class PlaybackFragment extends VideoSupportFragment
         if (fileLength > mFileLength) {
             mFileLength = fileLength;
             if (mIsPlayResumable) {
-                mIsPlayResumable = false;
                 mIsBounded = false;
                 mBookmark = 0;
                 mOffsetBytes = mDataSource.getCurrentPos();
                 mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
                 play(mVideo);
+                hideControlsOverlay(false);
             }
         }
+        mIsPlayResumable = false;
     }
 
     public void setDataSource(MythHttpDataSource mDataSource) {

@@ -32,10 +32,7 @@ import androidx.leanback.widget.PlaybackControlsRow;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Manages customizing the actions in the {@link PlaybackControlsRow}. Adds and manages the
@@ -67,7 +64,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onAspect();
         void onCaption();
         void onPivot();
-        void onUpdateProgress();
+        void onRewind();
+        void onFastForward();
+        void onJumpForward();
+        void onJumpBack();
+
     }
 
     private final OnActionClickedListener mActionListener;
@@ -80,9 +81,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.PictureInPictureAction mPivotAction;
     private ZoomAction mZoomAction;
     private AspectAction mAspectAction;
-    private int mSkipFwd;
-    private int mSkipBack;
-    private int mJump;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
 
@@ -102,9 +100,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mAspectAction = new AspectAction(context);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         mPivotAction = new PlaybackControlsRow.PictureInPictureAction(context);
-        mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
-        mSkipBack = 1000 * Settings.getInt("pref_skip_back");
-        mJump = 60000 * Settings.getInt("pref_jump");
     }
 
     @Override
@@ -183,9 +178,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private void dispatchAction(Action action) {
         // Primary actions are handled manually.
         if (action == mRewindAction) {
-            rewind();
+            mActionListener.onRewind();
         } else if (action == mFastForwardAction) {
-            fastForward();
+            mActionListener.onFastForward();
         } else if (action == mZoomAction) {
             mActionListener.onZoom();
         } else if (action == mAspectAction) {
@@ -225,38 +220,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mActionListener.onPrevious();
     }
 
-    /** Skips backwards 10 seconds. */
-    public void rewind() {
-        long newPosition = getCurrentPosition() - mSkipBack;
-        newPosition = (newPosition < 0) ? 0 : newPosition;
-        getPlayerAdapter().seekTo(newPosition);
-    }
-
-    /** Skips forward 10 seconds. */
-    public void fastForward() {
-        if (myGetDuration() > -1) {
-            long newPosition = getCurrentPosition() + mSkipFwd;
-            newPosition = (newPosition > myGetDuration()) ? myGetDuration() : newPosition;
-            getPlayerAdapter().seekTo(newPosition);
-        }
-    }
-
-    /** Jumps backwards 5 min. */
-    public void jumpBack() {
-        long newPosition = getCurrentPosition() - mJump;
-        newPosition = (newPosition < 0) ? 0 : newPosition;
-        getPlayerAdapter().seekTo(newPosition);
-    }
-
-    /** Jumps forward 5 min. */
-    public void jumpForward() {
-        if (myGetDuration() > -1) {
-            long newPosition = getCurrentPosition() + mJump;
-            newPosition = (newPosition > myGetDuration()) ? myGetDuration() : newPosition;
-            getPlayerAdapter().seekTo(newPosition);
-        }
-    }
-
     @Override
     protected void onPlayCompleted() {
         mActionListener.onPlayCompleted();
@@ -266,12 +229,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         return super.onKey(v, keyCode, event);
-    }
-
-    @Override
-    protected void onUpdateProgress() {
-        mActionListener.onUpdateProgress();
-        super.onUpdateProgress();
     }
 
     static int getIconHighlightColor(Context context) {

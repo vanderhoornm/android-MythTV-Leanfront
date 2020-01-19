@@ -48,6 +48,7 @@ import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.MythHttpDataSource;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.model.Playlist;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
@@ -108,12 +109,15 @@ public class PlaybackFragment extends VideoSupportFragment
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
     private MediaSource mMediaSource;
-    private long mLastLengthCheckTime;
     private MythHttpDataSource mDataSource;
     // Bounded indicates we have a fixed file length
     private boolean mIsBounded = true;
     private long mOffsetBytes;
     private boolean mIsPlayResumable;
+    // Settings
+    private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
+    private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
+    private int mJump = 60000 * Settings.getInt("pref_jump");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -244,10 +248,10 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.setTitle(video.title);
 
         StringBuilder subtitle = new StringBuilder();
-        int progflags = Integer.parseInt(video.progflags);
 
         // This is to mark unwatched when play starts - does not seem a good idea.
         // possible characters for watched - "👁" "⏿" "👀"
+//        int progflags = Integer.parseInt(video.progflags);
 //        if ((progflags & video.FL_WATCHED) != 0)
 //            markWatched(false);
 
@@ -266,7 +270,6 @@ public class PlaybackFragment extends VideoSupportFragment
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         mFileLength = -1;
         getFileLength();
-        mLastLengthCheckTime = System.currentTimeMillis();
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
         ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
@@ -318,20 +321,62 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     public void skipToNext() {
-        mPlayerGlue.next();
+//        mPlayerGlue.next();
+        Video v = mPlaylist.next();
+        if (v != null) {
+            setBookmark();
+            mBookmark = 0;
+            mVideo = v;
+            play(mVideo);
+        }
+
     }
 
     public void skipToPrevious() {
-        mPlayerGlue.previous();
+        Video v = mPlaylist.previous();
+        if (v != null) {
+            setBookmark();
+            // TODO: Refactor so that we can resume from bookmark
+            mBookmark = 0;
+            mVideo = v;
+            play(mVideo);
+        }
     }
 
+    /** Skips backwards 10 seconds. */
     public void rewind() {
-        mPlayerGlue.rewind();
+        long newPosition = mPlayerGlue.getCurrentPosition() - mSkipBack;
+        newPosition = (newPosition < 0) ? 0 : newPosition;
+        mPlayerAdapter.seekTo(newPosition);
     }
 
+    /** Skips forward 10 seconds. */
     public void fastForward() {
-        mPlayerGlue.fastForward();
+        long duration = mPlayerGlue.myGetDuration();
+        if (duration > -1) {
+            long newPosition = mPlayerGlue.getCurrentPosition() + mSkipFwd;
+            newPosition = (newPosition > duration) ? duration : newPosition;
+            mPlayerAdapter.seekTo(newPosition);
+        }
     }
+
+    /** Jumps backwards 5 min. */
+    public void jumpBack() {
+        long newPosition = mPlayerGlue.getCurrentPosition() - mJump;
+        newPosition = (newPosition < 0) ? 0 : newPosition;
+        mPlayerAdapter.seekTo(newPosition);
+    }
+
+    /** Jumps forward 5 min. */
+    public void jumpForward() {
+        long duration = mPlayerGlue.myGetDuration();
+        if (duration > -1) {
+            long newPosition = mPlayerGlue.getCurrentPosition() + mJump;
+            newPosition = (newPosition > duration) ? duration : newPosition;
+            mPlayerGlue.getPlayerAdapter().seekTo(newPosition);
+        }
+    }
+
 
     public void toggleSubtitles() {
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
@@ -384,14 +429,6 @@ public class PlaybackFragment extends VideoSupportFragment
         mToast = Toast.makeText(getActivity(),
                 msg, Toast.LENGTH_LONG);
         mToast.show();
-    }
-
-    public void jumpForward() {
-        mPlayerGlue.jumpForward();
-    }
-
-    public void jumpBack() {
-        mPlayerGlue.jumpBack();
     }
 
     public void markWatched(boolean watched) {
@@ -574,25 +611,12 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onPrevious() {
-            Video v = mPlaylist.previous();
-            if (v != null) {
-                setBookmark();
-                // TODO: Refactor so that we can resume from bookmark
-                mBookmark = 0;
-                mVideo = v;
-                play(mVideo);
-            }
+            skipToPrevious();
         }
 
         @Override
         public void onNext() {
-            Video v = mPlaylist.next();
-            if (v != null) {
-                setBookmark();
-                mBookmark = 0;
-                mVideo = v;
-                play(mVideo);
-            }
+            skipToNext();
         }
 
         @Override
@@ -660,8 +684,25 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onUpdateProgress() {
+        public void onRewind() {
+            rewind();
+        }
 
+        @Override
+        public void onFastForward() {
+            fastForward();
+        }
+
+        @Override
+        // unused as we do not have OSD icons for this
+        public void onJumpForward() {
+            jumpForward();
+        }
+
+        @Override
+        // unused as we do not have OSD icons for this
+        public void onJumpBack() {
+            jumpBack();
         }
 
         private void setScale() {

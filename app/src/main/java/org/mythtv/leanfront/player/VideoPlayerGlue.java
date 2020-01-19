@@ -56,8 +56,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayerAdapter> {
 
-    private static final long TEN_SECONDS = TimeUnit.SECONDS.toMillis(10);
-
     /** Listens for when skip to next and previous actions have been dispatched. */
     public interface OnActionClickedListener {
         /** Skip to the previous item in the queue. */
@@ -69,6 +67,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onAspect();
         void onCaption();
         void onPivot();
+        void onUpdateProgress();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -81,10 +80,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.PictureInPictureAction mPivotAction;
     private ZoomAction mZoomAction;
     private AspectAction mAspectAction;
-    private int mSkipFwd = 60000;
-    private int mSkipBack = 20000;
-    private int mJump = 300000;
+    private int mSkipFwd;
+    private int mSkipBack;
+    private int mJump;
     private boolean mActionsVisible;
+    private long mOffsetMillis = 0;
 
     public VideoPlayerGlue(
             Context context,
@@ -234,9 +234,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     /** Skips forward 10 seconds. */
     public void fastForward() {
-        if (getDuration() > -1) {
+        if (myGetDuration() > -1) {
             long newPosition = getCurrentPosition() + mSkipFwd;
-            newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
+            newPosition = (newPosition > myGetDuration()) ? myGetDuration() : newPosition;
             getPlayerAdapter().seekTo(newPosition);
         }
     }
@@ -250,9 +250,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     /** Jumps forward 5 min. */
     public void jumpForward() {
-        if (getDuration() > -1) {
+        if (myGetDuration() > -1) {
             long newPosition = getCurrentPosition() + mJump;
-            newPosition = (newPosition > getDuration()) ? getDuration() : newPosition;
+            newPosition = (newPosition > myGetDuration()) ? myGetDuration() : newPosition;
             getPlayerAdapter().seekTo(newPosition);
         }
     }
@@ -268,6 +268,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         return super.onKey(v, keyCode, event);
     }
 
+    @Override
+    protected void onUpdateProgress() {
+        mActionListener.onUpdateProgress();
+        super.onUpdateProgress();
+    }
+
     static int getIconHighlightColor(Context context) {
         TypedValue outValue = new TypedValue();
         if (context.getTheme().resolveAttribute(R.attr.playbackControlsIconHighlightColor,
@@ -277,6 +283,40 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         return context.getResources().getColor(R.color.lb_playback_icon_highlight_no_theme);
     }
 
+    @Override
+    public long getCurrentPosition() {
+        return super.getCurrentPosition() + mOffsetMillis;
+    }
+
+    @Override
+    // This method was copied from PlaybackBaseControlGlue
+    // so we can modify the duration
+    protected void onUpdateDuration() {
+        PlaybackControlsRow controlsRow = getControlsRow();
+        LeanbackPlayerAdapter adapter = getPlayerAdapter();
+        if (controlsRow != null) {
+            controlsRow.setDuration(
+                    adapter.isPrepared() ? myGetDuration() : -1);
+        }
+        else
+            // This is to satisfy the @CallSuper annotation
+            super.onUpdateDuration();
+    }
+
+    public long myGetDuration() {
+        long duration = getDuration();
+        if (duration >= 0)
+            duration += mOffsetMillis;
+        return duration;
+    }
+
+    public long getOffsetMillis() {
+        return mOffsetMillis;
+    }
+
+    public void setOffsetMillis(long offsetMillis) {
+        this.mOffsetMillis = offsetMillis;
+    }
 
     /**
      * An action for displaying a Zoom icon.

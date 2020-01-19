@@ -45,6 +45,7 @@ import androidx.loader.content.Loader;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.MythHttpDataSource;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
@@ -66,7 +67,6 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
@@ -75,7 +75,8 @@ import java.util.ArrayList;
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
  * VideoPlayerGlue}.
  */
-public class PlaybackFragment extends VideoSupportFragment {
+public class PlaybackFragment extends VideoSupportFragment
+        implements AsyncBackendCall.OnBackendCallListener {
 
     private static final int UPDATE_DELAY = 16;
 
@@ -104,6 +105,15 @@ public class PlaybackFragment extends VideoSupportFragment {
     private Toast mToast = null;
     private SubtitleView mSubtitles;
     private int mSubtitleIndex = -1;
+    private long mFileLength = -1;
+    private MythHttpDataSource.Factory mDsFactory;
+    private MediaSource mMediaSource;
+    private long mLastLengthCheckTime;
+    private MythHttpDataSource mDataSource;
+    // Bounded indicates we have a fixed file length
+    private boolean mIsBounded = true;
+    private long mOffsetBytes;
+    private boolean mIsPlayResumable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -144,7 +154,9 @@ public class PlaybackFragment extends VideoSupportFragment {
         }
     }
 
-    /** Pauses the player. */
+    /**
+     * Pauses the player.
+     */
     @TargetApi(Build.VERSION_CODES.N)
     @Override
     public void onPause() {
@@ -161,8 +173,8 @@ public class PlaybackFragment extends VideoSupportFragment {
 
     private void setBookmark() {
         long pos = mPlayerGlue.getCurrentPosition();
-        long leng = mPlayerGlue.getDuration();
-        if (pos > 5000 && pos < (leng-5000))
+        long leng = mPlayerGlue.myGetDuration();
+        if (pos > 5000 && pos < (leng - 5000))
             mBookmark = pos;
         else
             mBookmark = 0;
@@ -190,8 +202,8 @@ public class PlaybackFragment extends VideoSupportFragment {
         // disable subtitles at the start
         mTrackSelector.setParameters(
                 mTrackSelector
-                .buildUponParameters()
-                .setRendererDisabled(2, true)
+                        .buildUponParameters()
+                        .setRendererDisabled(2, true)
         );
         mSubtitleIndex = -1;
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
@@ -223,6 +235,12 @@ public class PlaybackFragment extends VideoSupportFragment {
     }
 
     private void play(Video video) {
+
+        if (mIsBounded) {
+            mOffsetBytes = 0;
+            mPlayerGlue.setOffsetMillis(0);
+        }
+
         mPlayerGlue.setTitle(video.title);
 
         StringBuilder subtitle = new StringBuilder();
@@ -246,13 +264,18 @@ public class PlaybackFragment extends VideoSupportFragment {
     }
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
+        mFileLength = -1;
+        getFileLength();
+        mLastLengthCheckTime = System.currentTimeMillis();
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
+        mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
         ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
-                  (new DefaultDataSourceFactory(getActivity(), userAgent),
-                   new DefaultExtractorsFactory());
-        MediaSource mediaSource = pmf.createMediaSource(mediaSourceUri);
-        mPlayer.prepare(mediaSource);
+                (mDsFactory,
+                        new DefaultExtractorsFactory());
+        mMediaSource = pmf.createMediaSource(mediaSourceUri);
+        mPlayer.prepare(mMediaSource);
     }
+
 
     private ArrayObjectAdapter initializeRelatedVideosRow() {
         /*
@@ -310,18 +333,13 @@ public class PlaybackFragment extends VideoSupportFragment {
         mPlayerGlue.fastForward();
     }
 
-    public void setupSubtitles() {
-
-    }
-
-
     public void toggleSubtitles() {
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-        TrackGroupArray	tga = mti.getTrackGroups(2); // 2 is the index for text tracks
+        TrackGroupArray tga = mti.getTrackGroups(2); // 2 is the index for text tracks
         ArrayList<String> langList = new ArrayList<>();
         int ix = -1;
         int iy = -1;
-        for (ix=0; ix < tga.length; ix++) {
+        for (ix = 0; ix < tga.length; ix++) {
             TrackGroup tg = tga.get(ix);
             for (iy = 0; iy < tg.length; iy++) {
                 Format fmt = tg.getFormat(iy);
@@ -341,23 +359,22 @@ public class PlaybackFragment extends VideoSupportFragment {
 
             String lang = langList.get(mSubtitleIndex);
             mTrackSelector.setParameters(
-                mTrackSelector
-                    .buildUponParameters()
-                    .setPreferredTextLanguage(lang)
-                    .setSelectUndeterminedTextLanguage(true)
-                    .setDisabledTextTrackSelectionFlags(C.SELECTION_FLAG_FORCED)
-                    .setRendererDisabled(2, false)
+                    mTrackSelector
+                            .buildUponParameters()
+                            .setPreferredTextLanguage(lang)
+                            .setSelectUndeterminedTextLanguage(true)
+                            .setDisabledTextTrackSelectionFlags(C.SELECTION_FLAG_FORCED)
+                            .setRendererDisabled(2, false)
             );
             msg.append(getActivity().getString(R.string.msg_subtitle_on));
             if (langList.size() > 1)
-                msg.append(" (").append(mSubtitleIndex+1).append(")");
-        }
-        else {
+                msg.append(" (").append(mSubtitleIndex + 1).append(")");
+        } else {
             mSubtitleIndex = -1;
             mTrackSelector.setParameters(
-                mTrackSelector
-                    .buildUponParameters()
-                    .setRendererDisabled(2, true)
+                    mTrackSelector
+                            .buildUponParameters()
+                            .setRendererDisabled(2, true)
             );
             msg.append(getActivity().getString(R.string.msg_subtitle_off));
         }
@@ -383,6 +400,32 @@ public class PlaybackFragment extends VideoSupportFragment {
                 null).execute(Video.ACTION_SET_WATCHED);
     }
 
+    public void getFileLength() {
+        new AsyncBackendCall(mVideo, mBookmark, mWatched,
+                this).execute(Video.ACTION_FILELENGTH);
+    }
+
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        long fileLength = taskRunner.getFileLength();
+        // If file has got bigger, resume with bigger file
+        if (fileLength > mFileLength) {
+            mFileLength = fileLength;
+            if (mIsPlayResumable) {
+                mIsPlayResumable = false;
+                mIsBounded = false;
+                mBookmark = 0;
+                mOffsetBytes = mDataSource.getCurrentPos();
+                mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
+                play(mVideo);
+            }
+        }
+    }
+
+    public void setDataSource(MythHttpDataSource mDataSource) {
+        this.mDataSource = mDataSource;
+    }
+
     public void tickle(boolean autohide, boolean showActions) {
         mPlayerGlue.setActions(showActions);
         setControlsOverlayAutoHideEnabled(false);
@@ -402,7 +445,17 @@ public class PlaybackFragment extends VideoSupportFragment {
         tickle(false, true);
     }
 
-        /** Opens the video details page when a related video has been clicked. */
+    public boolean isBounded() {
+        return mIsBounded;
+    }
+
+    public long getOffsetBytes() {
+        return mOffsetBytes;
+    }
+
+    /**
+     * Opens the video details page when a related video has been clicked.
+     */
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
         public void onItemClicked(
@@ -419,16 +472,18 @@ public class PlaybackFragment extends VideoSupportFragment {
 
                 Bundle bundle =
                         ActivityOptionsCompat.makeSceneTransitionAnimation(
-                                        getActivity(),
-                                        ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                                        VideoDetailsActivity.SHARED_ELEMENT_NAME)
+                                getActivity(),
+                                ((ImageCardView) itemViewHolder.view).getMainImageView(),
+                                VideoDetailsActivity.SHARED_ELEMENT_NAME)
                                 .toBundle();
                 getActivity().startActivity(intent, bundle);
             }
         }
     }
 
-    /** Loads a playlist with videos from a cursor and also updates the related videos cursor. */
+    /**
+     * Loads a playlist with videos from a cursor and also updates the related videos cursor.
+     */
     protected class VideoLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
 
         static final int RELATED_VIDEOS_LOADER = 1;
@@ -452,7 +507,7 @@ public class PlaybackFragment extends VideoSupportFragment {
                 int pos = filename.lastIndexOf('/');
                 String dirname = "";
                 if (pos >= 0)
-                    dirname = filename.substring(0,pos+1);
+                    dirname = filename.substring(0, pos + 1);
                 dirname = dirname + "%";
 
                 String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
@@ -463,8 +518,7 @@ public class PlaybackFragment extends VideoSupportFragment {
                         VideoContract.VideoEntry.COLUMN_FILENAME + " like ?",
                         new String[]{dirname},
                         orderby);
-            }
-            else {
+            } else {
                 // Recordings
                 String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
                 String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
@@ -543,6 +597,10 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         @Override
         public void onPlayCompleted() {
+            if (mIsBounded) {
+                mIsPlayResumable = true;
+                getFileLength();
+            }
             markWatched(true);
         }
 
@@ -601,6 +659,11 @@ public class PlaybackFragment extends VideoSupportFragment {
 
         }
 
+        @Override
+        public void onUpdateProgress() {
+
+        }
+
         private void setScale() {
             SurfaceView view = getSurfaceView();
             int height = view.getHeight();
@@ -608,6 +671,7 @@ public class PlaybackFragment extends VideoSupportFragment {
             view.setScaleX(mScaleX * mAspect);
             view.setScaleY(mScaleY);
         }
+
     }
 
 }

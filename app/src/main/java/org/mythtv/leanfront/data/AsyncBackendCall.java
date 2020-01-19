@@ -5,6 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.util.Log;
+
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
+import com.google.android.exoplayer2.util.Util;
 
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -12,6 +18,9 @@ import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 
 
@@ -26,6 +35,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private OnBackendCallListener mBackendCallListener;
     private boolean mWatched;
     private int [] mTasks;
+    private long mFileLength = -1;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -45,6 +55,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mBookmark;
     }
 
+    public long getFileLength() {
+        return mFileLength;
+    }
+
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
         boolean isRecording = (mVideo.recGroup != null);
@@ -54,7 +68,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             MainActivity main = MainActivity.getContext();
             boolean found;
             XmlNode response;
-            String url;
+            String urlString;
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mBookmark = 0;
@@ -74,10 +88,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         }
                         if (isRecording && ("mythtv".equals(pref) || "auto".equals(pref))) {
                             // look for a mythtv bookmark
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                     "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
                                             + mVideo.recordedid);
-                            XmlNode bkmrkData = XmlNode.fetch(url, null);
+                            XmlNode bkmrkData = XmlNode.fetch(urlString, null);
                             try {
                                 mBookmark = Long.parseLong(bkmrkData.getString());
                             } catch (NumberFormatException e) {
@@ -94,10 +108,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 found = true;
                             if (mBookmark == -1) {
                                 // look for a position bookmark (for recording with no seek table)
-                                url = XmlNode.mythApiUrl(
+                                urlString = XmlNode.mythApiUrl(
                                         "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
                                                 + mVideo.recordedid);
-                                bkmrkData = XmlNode.fetch(url, null);
+                                bkmrkData = XmlNode.fetch(urlString, null);
                                 long pos = 0;
                                 try {
                                     pos = Long.parseLong(bkmrkData.getString());
@@ -155,18 +169,18 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         }
                         if (isRecording) {
                             // Find out rec group
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                     "/Dvr/GetRecorded?RecordedId="
                                             + mVideo.recordedid);
-                            XmlNode recorded = XmlNode.fetch(url, null);
+                            XmlNode recorded = XmlNode.fetch(urlString, null);
                             mVideo.recGroup = recorded.getString(XMLTAGS_RECGROUP);
                             mVideo.progflags = recorded.getString(XMLTAGS_PROGRAMFLAGS);
                         }
                         else {
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                     "/Video/GetVideo?Id="
                                             + mVideo.recordedid);
-                            XmlNode resp = XmlNode.fetch(url, null);
+                            XmlNode resp = XmlNode.fetch(urlString, null);
                             String watched = resp.getString(XMLTAG_WATCHED);
                             if ("true".equals(watched))
                                 watched = VALUE_WATCHED;
@@ -185,10 +199,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     if (!isRecording || "Deleted".equals(mVideo.recGroup))
                         break;
                     try {
-                        url = XmlNode.mythApiUrl(
+                        urlString = XmlNode.mythApiUrl(
                                 "/Dvr/DeleteRecording?RecordedId="
                                         + mVideo.recordedid);
-                        response = XmlNode.fetch(url, "POST");
+                        response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
                             main.getMainFragment().startFetch();
                     } catch (IOException | XmlPullParserException e) {
@@ -200,10 +214,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     if (!isRecording)
                         break;
                     try {
-                        url = XmlNode.mythApiUrl(
+                        urlString = XmlNode.mythApiUrl(
                                 "/Dvr/UnDeleteRecording?RecordedId="
                                         + mVideo.recordedid);
-                        response = XmlNode.fetch(url, "POST");
+                        response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
                             main.getMainFragment().startFetch();
                     } catch (IOException | XmlPullParserException e) {
@@ -224,20 +238,20 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         }
                         if (isRecording && ("mythtv".equals(pref)||"auto".equals(pref))) {
                             // store a mythtv bookmark
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                     "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
                                             + mVideo.recordedid + "&Offset=" + mBookmark);
-                            response = XmlNode.fetch(url, "POST");
+                            response = XmlNode.fetch(urlString, "POST");
                             String result = response.getString();
                             if ("true".equals(result))
                                 found = true;
                             else {
                                 // store a mythtv position bookmark (in case there is no seek table)
                                 long posBkmark = mBookmark * fps / 1000;
-                                url = XmlNode.mythApiUrl(
+                                urlString = XmlNode.mythApiUrl(
                                         "/Dvr/SetSavedBookmark?RecordedId="
                                                 + mVideo.recordedid + "&Offset=" + posBkmark);
-                                response = XmlNode.fetch(url, "POST");
+                                response = XmlNode.fetch(urlString, "POST");
                                 result = response.getString();
                             }
                         }
@@ -281,15 +295,15 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     try {
                         if (isRecording)
                             // set recording watched
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                 "/Dvr/UpdateRecordedWatchedStatus?RecordedId="
                                         + mVideo.recordedid + "&Watched=" + mWatched);
                         else
                             // set video watched
-                            url = XmlNode.mythApiUrl(
+                            urlString = XmlNode.mythApiUrl(
                                     "/Video/UpdateVideoWatchedStatus?Id="
                                             + mVideo.recordedid + "&Watched=" + mWatched);
-                        response = XmlNode.fetch(url, "POST");
+                        response = XmlNode.fetch(urlString, "POST");
                         String result = response.getString();
                         if (main != null)
                             main.getMainFragment().startFetch();
@@ -297,7 +311,25 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
-
+                case Video.ACTION_FILELENGTH:
+                    urlString = mVideo.videoUrl;
+                    HttpURLConnection urlConnection = null;
+                    mFileLength = -1;
+                    try {
+                        URL url = new URL(urlString);
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.addRequestProperty("Cache-Control", "no-cache");
+                        urlConnection.setConnectTimeout(5000);
+                        urlConnection.setReadTimeout(30000);
+                        urlConnection.setRequestMethod("HEAD");
+                        mFileLength = urlConnection.getContentLength();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (urlConnection != null)
+                            urlConnection.disconnect();
+                    }
+                    break;
                 default:
                     break;
             }

@@ -58,7 +58,6 @@ public class PlaybackActivity extends LeanbackActivity {
         try {
             mJumpEnabled = Integer.parseInt(Settings.getString("pref_jump"))>0;
         } catch (NumberFormatException ex) {
-            ex.printStackTrace();
             mJumpEnabled = false;
         }
 

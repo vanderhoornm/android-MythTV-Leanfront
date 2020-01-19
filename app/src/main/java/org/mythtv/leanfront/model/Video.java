@@ -65,6 +65,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_REMOVE_BOOKMARK = 9;
     public static final int ACTION_ZOOM = 10;
     public static final int ACTION_ASPECT = 11;
+    public static final int ACTION_FILELENGTH = 12;
 
 
     private Video(

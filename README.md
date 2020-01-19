@@ -22,6 +22,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Sort order of recordings can be customized.
 - Subtitles (Closed captions) are supported.
 - At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
+- You can play in-progress recordings and the appl;ication will follow the progress as the recording continues. This way you almost have LiveTV support, if you first start a recording or a LiveTV session via mythfrontend, and then refresh the list in leanfront.
 
 ## Main Screen
 
@@ -35,7 +36,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 - Pressing Enter, up or down brings up the OSD playback controls. Note if you have enabled up/down jumping then up and down will cause a jump instead.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
-- Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for use in the OSD, and this can cause confusion.
+- Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 
 ## Playback controls (OSD)
 
@@ -56,8 +57,8 @@ The following controls are available when pressing enter during playback. Select
 
 ## Restrictions
 
-- Playback with the NVidia Shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so works on a monitor without AC3 support. You must select surround sound or auto in the shield audio setup.
-- There is no support for watching LiveTV at present. Recordings in progress can be viewed but may not play fully if you catch up to the recording process. This needs some work to be done.
+- Playback with the NVidia Shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so it works on a monitor without AC3 support. You must select surround sound or auto in the shield audio setup.
+- There is limited support for watching LiveTV at present.
 
 ## To Do List
 
@@ -65,7 +66,7 @@ Planned additions and fixes.
 
 - Retrieve preview picture when there is none found the normal way.
 - Sort out license. The sample app uses apache license.
-- LiveTV and in progress recordings. I don't know if we can support these.
+- LiveTV.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 - Amazon specific search and recommendations.
@@ -92,13 +93,6 @@ Make sure you select surround sound or auto in the audio setup (On Shield).
 - [Android TV Apps in Google Play Store][store-apps]
 
 
-## Support
-
-If you need additional help, our community might be able to help.
-
-- Android TV Google+ Community: [https://g.co/androidtvdev](https://g.co/androidtvdev)
-- Stack Overflow: [http://stackoverflow.com/questions/tagged/android-tv](http://stackoverflow.com/questions/tagged/android-tv)
-
 ## Dependencies
 
 If you use Android Studio as recommended, the following dependencies will **automatically** be installed by Gradle.
@@ -114,6 +108,4 @@ Licensed under the Apache 2.0 license. See the [LICENSE file][license] for detai
 [store-apps]: https://play.google.com/store/apps/collection/promotion_3000e26_androidtv_apps_all
 [studio]: https://developer.android.com/tools/studio/index.html
 [getting-started]: https://developer.android.com/training/tv/start/start.html
-[bugs]: https://github.com/googlesamples/androidtv-Leanback/issues/new
-[contributing]: CONTRIBUTING.md
 [license]: LICENSE

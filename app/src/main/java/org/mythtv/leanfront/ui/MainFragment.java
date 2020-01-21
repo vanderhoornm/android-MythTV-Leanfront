@@ -18,7 +18,9 @@ package org.mythtv.leanfront.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -97,6 +99,7 @@ public class MainFragment extends BrowseSupportFragment
     private final Handler mHandler = new Handler();
     private ArrayObjectAdapter mCategoryRowAdapter;
     private Drawable mDefaultBackground;
+    private Uri mDefaultBackgroundURI;
     private DisplayMetrics mMetrics;
     private Runnable mBackgroundTask;
     private Uri mBackgroundURI;
@@ -104,8 +107,6 @@ public class MainFragment extends BrowseSupportFragment
     private LoaderManager mLoaderManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
     private CursorObjectAdapter videoCursorAdapter;
-//    private int mSelectedRow = -1;
-//    private int mSelectedItem = -1;
     private int mType;
     public static final String KEY_TYPE = "LEANFRONT_TYPE";
     // Type applicable to main screen
@@ -272,7 +273,15 @@ public class MainFragment extends BrowseSupportFragment
     private void prepareBackgroundManager() {
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
         mBackgroundManager.attach(getActivity().getWindow());
-        mDefaultBackground = getResources().getDrawable(R.drawable.default_background, null);
+        int resourceId = R.drawable.background;
+        Resources resources = getResources();
+        mDefaultBackgroundURI = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(resources.getResourcePackageName(resourceId))
+                .appendPath(resources.getResourceTypeName(resourceId))
+                .appendPath(resources.getResourceEntryName(resourceId))
+                .build();
+        mDefaultBackground = resources.getDrawable(R.drawable.background, null);
         mBackgroundTask = new UpdateBackgroundTask();
         mMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
@@ -553,7 +562,6 @@ public class MainFragment extends BrowseSupportFragment
                         }
                         fileparts = shortName.split("/");
                         if (fileparts.length == 1 || mType == TYPE_TOPLEVEL) {
-//                        if (fileparts.length <= itemlevel) {
                             itemname = fileparts[0];
                         }
                         else {
@@ -758,7 +766,6 @@ public class MainFragment extends BrowseSupportFragment
             }
         }
     }
-
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
@@ -825,13 +832,15 @@ public class MainFragment extends BrowseSupportFragment
         @Override
         public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
                 RowPresenter.ViewHolder rowViewHolder, Row row) {
-            if (item instanceof Video && ((Video) item).bgImageUrl != null) {
+            if (item instanceof Video && ((Video) item).bgImageUrl != null)
                 mBackgroundURI = Uri.parse(((Video) item).bgImageUrl);
-                startBackgroundTimer();
-            }
+            else
+                mBackgroundURI = mDefaultBackgroundURI;
 
+            startBackgroundTimer();
         }
     }
+
 
     private static class MythTask implements Runnable{
         boolean mVersionMessageShown = false;

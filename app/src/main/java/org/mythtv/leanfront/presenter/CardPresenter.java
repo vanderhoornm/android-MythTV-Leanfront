@@ -116,7 +116,7 @@ public class CardPresenter extends Presenter {
         }
         else
             Glide.with(cardView.getContext())
-                    .load(video.cardImageUrl + "&time=" + System.currentTimeMillis())
+                    .load(video.cardImageUrl)
                     .apply(options)
                     .into(cardView.getMainImageView());
     }

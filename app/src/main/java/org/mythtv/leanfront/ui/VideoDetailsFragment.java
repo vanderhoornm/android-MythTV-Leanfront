@@ -18,6 +18,7 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -105,6 +106,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private ClassPresenterSelector mPresenterSelector;
     private BackgroundManager mBackgroundManager;
     private Drawable mDefaultBackground;
+    private Uri mDefaultBackgroundURI;
     private DisplayMetrics mMetrics;
     private CursorObjectAdapter mVideoCursorAdapter;
     private FullWidthDetailsOverviewSharedElementHelper mHelper;
@@ -166,6 +168,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         super.onStop();
     }
 
+    @Override
+    public void onResume() {
+        updateBackground(mSelectedVideo.bgImageUrl);
+        super.onResume();
+    }
+
     /**
      * Check if there is a global search intent. If there is, load that video.
      */
@@ -189,14 +197,22 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private void prepareBackgroundManager() {
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
         mBackgroundManager.attach(getActivity().getWindow());
-        mDefaultBackground = getResources().getDrawable(R.drawable.default_background, null);
+        int resourceId = R.drawable.background;
+        Resources resources = getResources();
+        mDefaultBackgroundURI = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(resources.getResourcePackageName(resourceId))
+                .appendPath(resources.getResourceTypeName(resourceId))
+                .appendPath(resources.getResourceEntryName(resourceId))
+                .build();
+        mDefaultBackground = getResources().getDrawable(R.drawable.background, null);
         mMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
     }
 
     private void updateBackground(String uri) {
         if (uri == null)
-            return;
+            uri = mDefaultBackgroundURI.toString();
         RequestOptions options = new RequestOptions()
                 .centerCrop()
                 .error(mDefaultBackground);
@@ -504,8 +520,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         else
             Glide.with(this)
                     .asBitmap()
-                    .load(mSelectedVideo.cardImageUrl +
-                            "&time=" + System.currentTimeMillis())
+                    .load(mSelectedVideo.cardImageUrl)
                     .apply(options)
                     .into(target);
 

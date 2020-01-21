@@ -104,7 +104,6 @@ public class VideoDbBuilder {
      * @param phase 0 for recordings, 1 for videos
      */
     public List<ContentValues> buildMedia(XmlNode xmlFull, int phase) throws IOException, XmlPullParserException {
-        HashMap <String, HashSet<String>> filesOnServer = new HashMap <>();
         List<ContentValues> videosToInsert = new ArrayList<>();
         String baseUrl = XmlNode.mythApiUrl(null);
         String [] tagsProgram;
@@ -133,29 +132,18 @@ public class VideoDbBuilder {
             String starttime;
             long duration = 0;
             String progflags;
+            String recordedid = null;
             if (phase == 0) { // Recordings
                 String fileSize = programNode.getString(XMLTAG_FILESIZE);
                 // Skip dummy LiveTV entry
                 if ("0".equals(fileSize))
                     continue;
                 recordingNode = programNode.getNode(XMLTAG_RECORDING);
+                recordedid = recordingNode.getString(tagRecordedId);
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)
                     recGroup = "Default";
                 storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
-                if (!filesOnServer.containsKey(storageGroup)) {
-                    String url =  baseUrl + "/Content/GetFileList?StorageGroup=" + storageGroup;
-                    XmlNode fileData = XmlNode.fetch(url,null);
-                    HashSet<String> sgFiles = new HashSet<>();
-                    filesOnServer.put(storageGroup,sgFiles);
-                    XmlNode fileNode = fileData.getNode("String",0);
-                    while (fileNode != null) {
-                        String fileName = fileNode.getString();
-                        if (fileName != null)
-                            sgFiles.add(fileName);
-                        fileNode = fileNode.getNextSibling();
-                    }
-                }
                 channel = programNode.getString(XMLTAGS_CHANNELNAME);
                 airdate = programNode.getString(XMLTAG_AIRDATE);
                 starttime = programNode.getString(XMLTAG_STARTTIME);
@@ -233,22 +221,12 @@ public class VideoDbBuilder {
             String cardImageURL;
             String dbFileName = null;
             if (phase==0) { // Recordings
-                // card image video + .png
-                HashSet<String> sgFiles = filesOnServer.get(storageGroup);
-                String cardImageFile = videoFileName + ".png";
-                boolean fileExists = false;
-                if (sgFiles != null)
-                    fileExists = sgFiles.contains(cardImageFile);
-                if (fileExists)
-                    cardImageURL = videoUrl + ".png";
-                else
-                    cardImageURL = coverArtUrl;
+                cardImageURL =   baseUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
             }
             else { // Videos
                 dbFileName = videoFileName;
                 cardImageURL = coverArtUrl;
             }
-            String recordedid = recordingNode.getString(tagRecordedId);
             String season = programNode.getString(XMLTAG_SEASON);
             String episode = programNode.getString(XMLTAG_EPISODE);
 

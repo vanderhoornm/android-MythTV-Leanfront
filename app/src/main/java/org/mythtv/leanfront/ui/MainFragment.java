@@ -19,9 +19,11 @@ package org.mythtv.leanfront.ui;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -65,6 +67,7 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.FetchVideoService;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.ListItem;
 import org.mythtv.leanfront.model.MyHeaderItem;
@@ -151,7 +154,19 @@ public class MainFragment extends BrowseSupportFragment
         super.onCreate(savedInstanceState);
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
-        if (mType != TYPE_TOPLEVEL) {
+        if (mType == TYPE_TOPLEVEL) {
+
+            // delete stale entries from bookmark table
+            VideoDbHelper dbh = new VideoDbHelper(getContext());
+            SQLiteDatabase db = dbh.getWritableDatabase();
+            Date now = new Date();
+            String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
+            // 60 days in milliseconds
+            String[] selectionArgs = {String.valueOf(now.getTime() - 60L*24*60*60*1000)};
+            // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
+            int sqlCount = db.delete(VideoContract.StatusEntry.TABLE_NAME, where,selectionArgs);
+            db.close();
+        } else {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
             if (mType == TYPE_VIDEODIR)

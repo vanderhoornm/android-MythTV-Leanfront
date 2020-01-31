@@ -52,12 +52,18 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_DESCENDING = 13;
     private static final int ID_BACKEND_MAC = 14;
     private static final int ID_BACKEND = 15;
+    private static final int ID_AUDIO = 16;
+    private static final int ID_AUDIO_AUTO = 17;
+    private static final int ID_AUDIO_MEDIACODEC = 18;
+    private static final int ID_AUDIO_FFMPEG = 19;
+
 
     private SharedPreferences.Editor mEditor;
 
     private GuidedAction mBackendAction;
     private GuidedAction mBookmarkAction;
     private GuidedAction mSortAction;
+    private GuidedAction mAudioAction;
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
@@ -171,6 +177,34 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .description(sortDesc())
                 .subActions(subActions)
                 .build());
+
+        subActions = new ArrayList<GuidedAction>();
+
+        String audio = Settings.getString("pref_audio");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_AUDIO_AUTO)
+                .title(R.string.pref_audio_auto)
+                .checked("auto".equals(audio))
+                .checkSetId(ID_AUDIO)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_AUDIO_MEDIACODEC)
+                .title(R.string.pref_audio_mediacodec)
+                .checked("mediacodec".equals(audio))
+                .checkSetId(ID_AUDIO)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_AUDIO_FFMPEG)
+                .title(R.string.pref_audio_ffmpeg)
+                .checked("ffmpeg".equals(audio))
+                .checkSetId(ID_AUDIO)
+                .build());
+        actions.add(mAudioAction = new GuidedAction.Builder(getActivity())
+                .id(ID_AUDIO)
+                .title(R.string.pref_ff_title)
+                .description(audiodesc())
+                .subActions(subActions)
+                .build());
     }
 
     private String backendDesc() {
@@ -200,6 +234,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         else
             builder.append(getActivity().getString(R.string.pref_seq_ascending));
         return builder.toString();
+    }
+
+    private String audiodesc() {
+        return Settings.getString("pref_audio");
     }
 
     @Override
@@ -271,10 +309,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
 
-        switch((int) action.getId()) {
-//            case ID_BOOKMARK_MYTHTV:
-//                mEditor.putString("pref_bookmark", "mythtv");
-//                break;
+        int id = (int) action.getId();
+        switch(id) {
             case ID_BOOKMARK_LOCAL:
                 if (action.isChecked())
                     mEditor.putString("pref_bookmark", "local");
@@ -293,6 +329,18 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 else
                     mEditor.putString("pref_seq_ascdesc", "asc");
                 break;
+            case ID_AUDIO_AUTO:
+                if (action.isChecked())
+                    mEditor.putString("pref_audio", "auto");
+                break;
+            case ID_AUDIO_MEDIACODEC:
+                if (action.isChecked())
+                    mEditor.putString("pref_audio", "mediacodec");
+                break;
+            case ID_AUDIO_FFMPEG:
+                if (action.isChecked())
+                    mEditor.putString("pref_audio", "ffmpeg");
+                break;
             default:
                 return false;
         }
@@ -301,6 +349,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         notifyActionChanged(findActionPositionById(ID_BOOKMARK_STRATEGY));
         mSortAction.setDescription(sortDesc());
         notifyActionChanged(findActionPositionById(ID_SORT));
+        mAudioAction.setDescription(audiodesc());
+        notifyActionChanged(findActionPositionById(ID_AUDIO));
         return false;
     }
 

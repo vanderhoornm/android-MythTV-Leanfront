@@ -7,7 +7,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 - 4K video plays at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
 - The application uses exoplayer, which is the player code used by youtube, Amazon Prime and others. As such it will be able to handle new capabilities that are released on Android TV.
-- Currently it will play recordings and videos from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
+- It plays recordings and videos from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
 - This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend from v29 onwards. It may work on older versions if the apis are available on the MythTV backend.
 - Voice search within the application is supported.
 - With backend on master or recent MythTV V30 this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
@@ -22,6 +22,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Subtitles (Closed captions) are supported.
 - At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
 - You can play in-progress recordings and the application will follow the progress as the recording continues. This way you almost have LiveTV support, if you first start a recording or a LiveTV session via mythfrontend, and then refresh the list in leanfront.
+- Video playback is exlusively via hardware assisted mediacodec.
+- Audio playback is supported using mediacodec (hardware) or ffmpeg (software). By default it will use mediacodec if it can, and will switch to ffmpeg if there is a media format not supported by mediacodec. There is a setting where you can change this default and force either mediacodec or ffmpeg.
+- Audio playback supports digital passthrough for AC3 and other digital formats if they are supported on your sound system. It also supports downmix to stereo if you do not have a system that supports AC3.
 
 ## Main Screen
 
@@ -55,9 +58,8 @@ The following controls are available when pressing enter during playback. Select
 
 ## Restrictions
 
-- Playback with the NVidia Shield needs a TV that supports AC3 (I believe all TVs should support that) as the shield is unable to decode AC3 in hardware. The amazon fire stick 4K will decode AC3 in hardware so it works on a monitor without AC3 support. You must select surround sound or auto in the shield audio setup.
 - There is limited support for watching LiveTV at present.
-- Slave backends are currently only supported if you use "Master backend override" or they are available on the master backend.
+- Slave backends are currently only supported if you use "Master backend override" or recordings are available on the master backend.
 
 ## To Do List
 
@@ -71,12 +73,16 @@ Further development will continue. These are some possible additions.
 - Support for slave backends.
 - Program guide.
 - Live TV.
+- Playback time stretch.
 
 ## Building
 
+- Download and install [Android Studio][studio]. Also download the latest ndk and Cmake from within android studio.
+- In the $HOME/Android directory create a link to the ndk, for example android-ndk -> Sdk/ndk/21.0.6113669
+- In the app/src/main/jni/ directory, run download_ffmpeg.sh and build_ffmpeg.sh.
 - Open the project in [Android Studio][studio].
 - Compile and deploy to your Android TV device (such as a Shield or Amazon fire stick). 
-- It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 or AC3 playback, so you need to play an h264 or h265 recording with non-ac3 audio.
+- It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 playback, so you need to play an h264 or h265 recording.
 - If you do not want to build this yourself, there is a package at https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/
 
 ## Running
@@ -84,8 +90,6 @@ Further development will continue. These are some possible additions.
 Start up the app. There is an entry on the main screen at the end called "settings". There you need to enter the backend ip address. There are other options available here.
 
 If using backend earlier than fixes/30 of Nov 12 2019 or Master of October 31 2019, make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
-
-Make sure you select surround sound or auto in the audio setup (On Shield). Amazon fire stick supports AC3 decoding so you can select Stereo if you have a TV that does not support AC3.
 
 ## License
 

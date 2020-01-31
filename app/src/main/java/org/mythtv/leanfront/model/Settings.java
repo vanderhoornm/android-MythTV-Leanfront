@@ -79,6 +79,8 @@ public class Settings {
         mEditor.putString("pref_seq",str);
         str = mPrefs.getString("pref_seq_ascdesc", "asc");
         mEditor.putString("pref_seq_ascdesc",str);
+        str = mPrefs.getString("pref_audio", "auto");
+        mEditor.putString("pref_audio",str);
         mEditor.apply();
     }
 }

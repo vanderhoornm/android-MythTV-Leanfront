@@ -63,6 +63,7 @@ import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
@@ -126,6 +127,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
     private int mJump = 60000 * Settings.getInt("pref_jump");
+    private String mAudio = Settings.getString("pref_audio");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -209,14 +211,15 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private void initializePlayer() {
         mTrackSelector = new DefaultTrackSelector();
-        int xy = R.layout.lb_playback_fragment;
-        mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), mTrackSelector);
-        // disable subtitles at the start
-        mTrackSelector.setParameters(
-                mTrackSelector
-                        .buildUponParameters()
-                        .setRendererDisabled(2, true)
-        );
+        DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getActivity());
+        int extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
+        if ("mediacodec".equals(mAudio))
+            extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
+        else if ("ffmpeg".equals(mAudio))
+            extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
+        rFactory.setExtensionRendererMode(extMode);
+        rFactory.setEnableDecoderFallback(true);
+        mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
         mSubtitleIndex = -1;
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
@@ -398,10 +401,18 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-
     public void toggleSubtitles() {
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-        TrackGroupArray tga = mti.getTrackGroups(2); // 2 is the index for text tracks
+        int textRenderer = -1;
+        for (int ix = 0 ; ix < mti.getRendererCount(); ix ++) {
+            if (mti.getRendererType(ix) == C.TRACK_TYPE_TEXT) {
+                textRenderer = ix;
+                break;
+            }
+        }
+        if (textRenderer == -1)
+            return;
+        TrackGroupArray tga = mti.getTrackGroups(textRenderer); // the index for text tracks
         ArrayList<String> langList = new ArrayList<>();
         int ix = -1;
         int iy = -1;
@@ -430,7 +441,7 @@ public class PlaybackFragment extends VideoSupportFragment
                             .setPreferredTextLanguage(lang)
                             .setSelectUndeterminedTextLanguage(true)
                             .setDisabledTextTrackSelectionFlags(C.SELECTION_FLAG_FORCED)
-                            .setRendererDisabled(2, false)
+                            .setRendererDisabled(textRenderer, false)
             );
             msg.append(getActivity().getString(R.string.msg_subtitle_on));
             if (langList.size() > 1)
@@ -440,7 +451,7 @@ public class PlaybackFragment extends VideoSupportFragment
             mTrackSelector.setParameters(
                     mTrackSelector
                             .buildUponParameters()
-                            .setRendererDisabled(2, true)
+                            .setRendererDisabled(textRenderer, true)
             );
             msg.append(getActivity().getString(R.string.msg_subtitle_off));
         }

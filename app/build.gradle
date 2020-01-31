@@ -34,6 +34,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    externalNativeBuild {
+        ndkBuild {
+            path file('src/main/jni/Android.mk')
+        }
+    }
 }
 
 dependencies {
@@ -58,4 +63,11 @@ dependencies {
 
     def lifecycle_version = "1.1.1"
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+}
+
+apply plugin: 'idea'
+idea {
+    module {
+        excludeDirs.add(file('app/src/main/jni/ffmpeg'))
+    }
 }

@@ -35,3 +35,7 @@ Thumbs.db
 #.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
 .gradle
 build/
+
+# Peter
+app/.cxx/
+app/src/main/jni/ffmpeg/

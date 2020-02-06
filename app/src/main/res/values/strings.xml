@@ -123,6 +123,8 @@
     <string name="pref_audio_auto">Auto select</string>
     <string name="pref_audio_mediacodec">Mediacodec</string>
     <string name="pref_audio_ffmpeg">FFmpeg</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>
 
     <!--Words to be stripped from the front of titles for sorting
         Must be in UPPER CASE-->

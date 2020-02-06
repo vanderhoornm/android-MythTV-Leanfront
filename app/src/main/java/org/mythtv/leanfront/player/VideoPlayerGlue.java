@@ -76,7 +76,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onFastForward();
         void onJumpForward();
         void onJumpBack();
-
+        void onSpeed(int increment);
     }
 
     private final OnActionClickedListener mActionListener;
@@ -86,9 +86,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
-    private PlaybackControlsRow.PictureInPictureAction mPivotAction;
+    private PivotAction mPivotAction;
     private ZoomAction mZoomAction;
     private AspectAction mAspectAction;
+    private SpeedAction mSpeedDecAction;
+    private SpeedAction mSpeedIncAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
 
@@ -106,8 +108,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
         mZoomAction = new ZoomAction(context);
         mAspectAction = new AspectAction(context);
+        mSpeedDecAction = new SpeedAction(context, -1);
+        mSpeedIncAction = new SpeedAction(context, 1);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
-        mPivotAction = new PlaybackControlsRow.PictureInPictureAction(context);
+        mPivotAction = new PivotAction(context);
     }
 
     @Override
@@ -130,6 +134,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mZoomAction);
         adapter.add(mAspectAction);
         adapter.add(mPivotAction);
+        adapter.add(mSpeedDecAction);
+        adapter.add(mSpeedIncAction);
         mActionsVisible = true;
     }
 
@@ -180,7 +186,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mClosedCaptioningAction
                 || action == mZoomAction
                 || action == mAspectAction
-                || action == mPivotAction;
+                || action == mPivotAction
+                || action == mSpeedDecAction
+                || action == mSpeedIncAction;
     }
 
     private void dispatchAction(Action action) {
@@ -197,6 +205,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onCaption();
         } else if (action == mPivotAction) {
             mActionListener.onPivot();
+        } else if (action == mSpeedDecAction) {
+            mActionListener.onSpeed(-1);
+        } else if (action == mSpeedIncAction) {
+            mActionListener.onSpeed(1);
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();
@@ -333,6 +345,60 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             Resources res = context.getResources();
             Drawable[] drawables = new Drawable[1];
             drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_aspect_button, null);
+            setDrawables(drawables);
+        }
+    }
+
+    /**
+     * An action for displaying an Aspect icon.
+     */
+    public static class PivotAction extends PlaybackControlsRow.MultiAction {
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         */
+        public PivotAction(Context context) {
+            this(context, getIconHighlightColor(context));
+        }
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         * @param highlightColor Color for the highlighted icon state.
+         */
+        public PivotAction(Context context, int highlightColor) {
+            super(Video.ACTION_PIVOT);
+            Resources res = context.getResources();
+            Drawable[] drawables = new Drawable[1];
+            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_up_down_button, null);
+            setDrawables(drawables);
+        }
+    }
+
+    /**
+     * An action for displaying a Speed icon.
+     */
+    public static class SpeedAction extends PlaybackControlsRow.MultiAction {
+
+        int mIncrement;
+
+        /**
+         * Constructor
+         * @param context Context used for loading resources.
+         * @param increment -1 for down, +1 for up
+         */
+        public SpeedAction(Context context, int increment) {
+            super(Video.ACTION_SPEED);
+            this.mIncrement = increment;
+            Resources res = context.getResources();
+            Drawable[] drawables = new Drawable[1];
+            int icon;
+            if (mIncrement == -1)
+                icon = R.drawable.ic_speed_decrease;
+            else
+                icon = R.drawable.ic_speed_increase;
+            drawables[0] = ResourcesCompat.getDrawable(res, icon, null);
             setDrawables(drawables);
         }
     }

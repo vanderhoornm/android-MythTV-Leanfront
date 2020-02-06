@@ -2,7 +2,6 @@
 
 This is based on a clone of the sample Videos By Google app, designed to run on an Android TV device (such as the Shield or Amazon Fire Stick). It uses the Leanback Support library which enables you to easily develop beautiful Android TV apps with a user-friendly UI that complies with the UX guidelines of Android TV.
 
-
 ## Features
 
 - 4K video plays at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
@@ -42,18 +41,35 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ## Playback controls (OSD)
 
+![](PlaybackExample.png)
+
 The following controls are available when pressing enter during playback. Select an icon and press enter to apply it.
 
-- Pause/Resume.
-- Previous track. This plays the previous recording or video in the list without needing to exit from playback (see related videos, below).
-- Rewind. This skips back by the time set in the settings.
-- Fast Forward. This skips forward by the time set in the settings.
-- Next track. This plays the next recording or video in the list without needing to exit from playback (see related videos, below).
-- Progress bar. This shows playback position plus time played and total time. While this is focused you can use left and right arrows to skip back and forward. Holding the arrow down moves quickly through the recording. While this is focused, pressing Enter pauses and resumes.
-- CC icon to turn on or off captions (subtitles). If there are multiple languages this rotates among them.
-- Zoom Icon to change the picture size. Pressing this rotates among several standard zoom amounts.
-- Aspect icon to stretch or squeeze the picture in case it is showing at the wrong aspect ratio.
-- Pin icon (looks like PIP). This pins the picture to the top middle or bottom. For use when you want to cut off the top or bottom of the picture.
+### Top Row of Controls
+
+1. Pause/Resume: Switches between pause icon and play icon depending on the current state.
+2. Previous track: This plays the previous recording or video in the list without needing to exit from playback (see related videos, below).
+3. Rewind: This skips back by the time set in the settings.
+4. Fast Forward: This skips forward by the time set in the settings.
+5. Next track: This plays the next recording or video in the list without needing to exit from playback (see related videos, below).
+
+### Progress Bar
+
+* Progress bar: This shows playback position plus time played and total time. While this is focused you can use left and right arrows to skip back and forward. Holding the arrow down moves quickly through the recording. While this is focused, pressing Enter pauses and resumes.
+
+### Bottom Row of controls
+
+1. CC: Turns on or off captions (subtitles). If there are multiple languages this rotates among them.
+2. Zoom: Changes the picture size. Pressing this rotates among several standard zoom amounts.
+3. Aspect: Stretch or squeeze the picture in case it is showing at the wrong aspect ratio. Pressing this rotates between several common aspect ratios.
+4. Up/down: If the picture has been resized, moves the picture up or down. There are three positions, aligned on top, middle, or bottom. For use when you want to cut off the top or bottom of the picture, after zooming to a bigger size.
+5. Slow down: Slows playback speed by increments down to a minimum of 50%.
+6. Speed up: Speeds up playback by increments to a maximum of 800%.
+
+**Note:** To use *slow down* or *speed up* you have to disable digital audio passthrough, by either selecting *Stereo* in Android settings or selecting *FFmpeg* in leanfront settings.
+
+### Related videos
+
 - Related videos (press down arrow to see them). Other videos / recordings in the current group. You can select one of these to play instead of the current playing video. That cancels the current playback.
 
 ## Restrictions
@@ -73,7 +89,6 @@ Further development will continue. These are some possible additions.
 - Support for slave backends.
 - Program guide.
 - Live TV.
-- Playback time stretch.
 
 ## Building
 

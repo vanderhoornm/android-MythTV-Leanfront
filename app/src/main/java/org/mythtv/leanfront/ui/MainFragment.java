@@ -39,6 +39,7 @@ import android.os.Handler;
 
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
+import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.CursorObjectAdapter;
 import androidx.leanback.widget.ImageCardView;
@@ -148,7 +149,7 @@ public class MainFragment extends BrowseSupportFragment
     private int mSelectedItemType;
     private boolean mLoadStarted = false;
 
-    private static ScheduledExecutorService executor = null;
+    static ScheduledExecutorService executor = null;
     private MythTask mythTask = new MythTask();
     private long mLastLoadTime = 0;
     public static long mLoadNeededTime = System.currentTimeMillis();
@@ -1017,11 +1018,13 @@ public class MainFragment extends BrowseSupportFragment
             this.selectedItemNum = selectedItemNum;
         }
         public void run() {
-            getRowsSupportFragment().setSelectedPosition(selectedRowNum, false,
-                    new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
-            if (selectedItemNum == -1)
-                getHeadersSupportFragment().getView().requestFocus();
-
+            RowsSupportFragment frag = getRowsSupportFragment();
+            if (frag != null) {
+                frag.setSelectedPosition(selectedRowNum, false,
+                        new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
+                if (selectedItemNum == -1)
+                    getHeadersSupportFragment().getView().requestFocus();
+            }
         }
     }
 

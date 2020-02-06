@@ -66,6 +66,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
@@ -80,6 +81,8 @@ import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
@@ -95,6 +98,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private SimpleExoPlayer mPlayer;
     private DefaultTrackSelector mTrackSelector;
     private PlaylistActionListener mPlaylistActionListener;
+    private PlayerEventListener mPlayerEventListener;
 
     private Video mVideo;
     private Playlist mPlaylist;
@@ -102,16 +106,22 @@ public class PlaybackFragment extends VideoSupportFragment
     private CursorObjectAdapter mVideoCursorAdapter;
     private long mBookmark = 0;
     private boolean mWatched = false;
-    private static float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
+    private static final float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
     private int mAspectIndex = 0;
     private float mAspect = 1.0f;
-    private static float[] SCALE_VALUES = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
+    private static final float[] SCALE_VALUES = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
     private int mScaleIndex = 0;
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
     private static float[] PIVOTY_VALUES = {0.5f, 0.0f, 1.0f};
     private int mPivotYIndex = 0;
     private float mPivotY = 0.5f;
+    private static final float[] SPEED_VALUES = {0.5f, 0.75f, 0.9f, 1.0f,
+            1.1f, 1.25f, 1.5f, 1.75f,
+            2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+    private static final int SPEED_1_INDEX = 3;
+    private int mSpeedIndex = SPEED_1_INDEX;
+    private float mSpeed = SPEED_VALUES[SPEED_1_INDEX];
     private Toast mToast = null;
     private SubtitleView mSubtitles;
     private int mSubtitleIndex = -1;
@@ -123,6 +133,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean mIsBounded = true;
     private long mOffsetBytes;
     private boolean mIsPlayResumable;
+    private boolean mIsSpeedChangeConfirmed = false;
+    private ScheduledFuture<?> mSchedCheckSpeed;
     // Settings
     private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
@@ -225,6 +237,9 @@ public class PlaybackFragment extends VideoSupportFragment
         Player.TextComponent textComponent = mPlayer.getTextComponent();
         if (textComponent != null && mSubtitles != null)
             textComponent.addTextOutput(mSubtitles);
+
+        mPlayerEventListener = new PlayerEventListener();
+        mPlayer.addListener(mPlayerEventListener);
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
         mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
@@ -713,7 +728,54 @@ public class PlaybackFragment extends VideoSupportFragment
             mToast = Toast.makeText(getActivity(),
                     msg, Toast.LENGTH_LONG);
             mToast.show();
+        }
 
+        @Override
+        public void onSpeed(int increment) {
+            int newix = mSpeedIndex + increment;
+            if (newix >= SPEED_VALUES.length || newix < 0) {
+                PlaybackParameters playbackParameters = mPlayer.getPlaybackParameters();
+                int stretchPerc = Math.round(playbackParameters.speed * 100.0f);
+                StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_speed))
+                        .append(" ").append(stretchPerc).append("%");
+                if (mToast != null)
+                    mToast.cancel();
+                mToast = Toast.makeText(getActivity(),
+                        msg, Toast.LENGTH_LONG);
+                mToast.show();
+                return;
+            }
+            mSpeedIndex = newix;
+            mSpeed = SPEED_VALUES[mSpeedIndex];
+            PlaybackParameters parms = new PlaybackParameters(mSpeed);
+            mPlayer.setPlaybackParameters(parms);
+            mIsSpeedChangeConfirmed = false;
+            if (mSchedCheckSpeed != null && !mSchedCheckSpeed.isDone())
+                mSchedCheckSpeed.cancel(false);
+            if (MainFragment.executor != null) {
+                mSchedCheckSpeed = MainFragment.executor.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        getActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (!mIsSpeedChangeConfirmed) {
+                                    PlaybackParameters playbackParameters = mPlayer.getPlaybackParameters();
+                                    if (playbackParameters.speed != 1.0f)
+                                        return;
+                                    mSpeedIndex = SPEED_1_INDEX;
+                                    mSpeed = SPEED_VALUES[mSpeedIndex];
+                                    if (mToast != null)
+                                        mToast.cancel();
+                                    mToast = Toast.makeText(getActivity(),
+                                            getActivity().getString(R.string.msg_unable_speed),
+                                            Toast.LENGTH_LONG);
+                                    mToast.show();
+                                }
+                            }
+                        });
+                    }
+                } , 1000, TimeUnit.MILLISECONDS);
+            }
         }
 
         @Override
@@ -746,6 +808,21 @@ public class PlaybackFragment extends VideoSupportFragment
             view.setScaleY(mScaleY);
         }
 
+    }
+
+    class PlayerEventListener implements Player.EventListener {
+        @Override
+        public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+            mIsSpeedChangeConfirmed = true;
+            int stretchPerc = Math.round(playbackParameters.speed * 100.0f);
+            StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_speed))
+                    .append(" ").append(stretchPerc).append("%");
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    msg, Toast.LENGTH_LONG);
+            mToast.show();
+        }
     }
 
 }

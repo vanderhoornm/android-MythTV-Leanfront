@@ -68,6 +68,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -288,8 +289,16 @@ public class PlaybackFragment extends VideoSupportFragment
         subtitle.append(video.subtitle);
         mPlayerGlue.setSubtitle(subtitle);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
-        if (mBookmark > 0)
-            mPlayerGlue.seekTo(mBookmark);
+
+        long startPos = mBookmark;
+        // When starting at the begining, audio sync may be off
+        // Skipping 1.5 seconds avoids this.
+        if (startPos <= 1500L)
+            startPos = 1500L;
+
+        mPlayerGlue.seekTo(startPos);
+        // This makes future seeks faster.
+        mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         mPlayerGlue.play();
     }
 

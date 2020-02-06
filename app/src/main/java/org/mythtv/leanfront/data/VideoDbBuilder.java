@@ -213,6 +213,12 @@ public class VideoDbBuilder {
                     break;
                 String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
                 String artUrl = baseUrl + artInfoNode.getString(XMLTAG_ARTURL);
+                int equ = artUrl.lastIndexOf('=');
+                if (equ > 0) {
+                    String fileName = artUrl.substring(equ + 1);
+                    if (fileName.length() > 0 && fileName.charAt(0) == '/')
+                        artUrl = artUrl.substring(0, equ + 1) + URLEncoder.encode(fileName, "UTF-8");
+                }
                 if ("coverart".equals(artType))
                     coverArtUrl = artUrl;
                 else if ("fanart".equals(artType))

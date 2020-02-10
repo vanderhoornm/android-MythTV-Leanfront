@@ -139,14 +139,12 @@ public class VideoDbBuilder {
             String starttime;
             long duration = 0;
             String progflags;
-            String recordedid = null;
             if (phase == 0) { // Recordings
                 String fileSize = programNode.getString(XMLTAG_FILESIZE);
                 // Skip dummy LiveTV entry
                 if ("0".equals(fileSize))
                     continue;
                 recordingNode = programNode.getNode(XMLTAG_RECORDING);
-                recordedid = recordingNode.getString(tagRecordedId);
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)
                     recGroup = "Default";
@@ -195,6 +193,7 @@ public class VideoDbBuilder {
                 else
                     progflags = "0";
             }
+            String recordedid = recordingNode.getString(tagRecordedId);
             String title = programNode.getString(XMLTAG_TITLE);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
             String description = programNode.getString(XMLTAG_DESCRIPTION);

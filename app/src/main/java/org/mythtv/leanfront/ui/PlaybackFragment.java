@@ -31,10 +31,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
+import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
 import androidx.leanback.widget.CursorObjectAdapter;
@@ -141,6 +144,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
     private int mJump = 60000 * Settings.getInt("pref_jump");
     private String mAudio = Settings.getString("pref_audio");
+    private View mFocusView;
+    private Action mCurrentAction;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -252,6 +257,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
         setAdapter(mRowsAdapter);
+        mPlayerGlue.setupSelectedListener();
     }
 
     private void releasePlayer() {
@@ -486,6 +492,33 @@ public class PlaybackFragment extends VideoSupportFragment
                 msg, Toast.LENGTH_LONG);
         mToast.show();
     }
+
+
+    public void actionSelected(Action action) {
+        View view = getView();
+        TextView text = view.findViewById(R.id.button_selected);
+        if (text == null)
+            return;
+        if (action != null) {
+            mCurrentAction = action;
+            text.setText(action.getLabel1());
+            mFocusView = view.findFocus();
+        } else {
+            // Called with null when a key is presssed. Will clear help message
+            // if we are no longer on the control.
+            View newView = view.findFocus();
+            if (newView != mFocusView) {
+                text.setText("");
+                mFocusView = newView;
+                mCurrentAction = null;
+            }
+            // This is to hanld buttons that change title, for example
+            // play / pause.
+            else if (mCurrentAction != null)
+                text.setText(mCurrentAction.getLabel1());
+        }
+    }
+
 
     public void markWatched(boolean watched) {
         mWatched = watched;
@@ -807,6 +840,11 @@ public class PlaybackFragment extends VideoSupportFragment
         // unused as we do not have OSD icons for this
         public void onJumpBack() {
             jumpBack();
+        }
+
+        @Override
+        public void onActionSelected(Action action) {
+            actionSelected(action);
         }
 
         private void setScale() {

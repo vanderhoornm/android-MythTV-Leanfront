@@ -125,6 +125,12 @@
     <string name="pref_audio_ffmpeg">FFmpeg</string>
     <string name="playback_speed">Playback Speed</string>
     <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>
+    <string name="button_zoom">Picture Size</string>
+    <string name="button_aspect">Stretch Horizontally</string>
+    <string name="button_slowdown">Slow Down</string>
+    <string name="button_speedup">Speed Up</string>
+    <string name="button_pivot">Move Up/Down</string>
+    <string name="button_cc">Closed Captions</string>
 
     <!--Words to be stripped from the front of titles for sorting
         Must be in UPPER CASE-->

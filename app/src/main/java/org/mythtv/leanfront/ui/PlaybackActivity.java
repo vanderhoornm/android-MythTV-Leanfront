@@ -191,7 +191,9 @@ public class PlaybackActivity extends LeanbackActivity {
             mArrowSkipJump = false;
             mPlaybackFragment.setActions(true);
         }
-        return super.dispatchKeyEvent(event);
+        boolean ret = super.dispatchKeyEvent(event);
+        mPlaybackFragment.actionSelected(null);
+        return ret;
     }
 
 }

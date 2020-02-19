@@ -36,6 +36,10 @@ import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.PlaybackControlsRow;
+import androidx.leanback.widget.PlaybackRowPresenter;
+import androidx.leanback.widget.PlaybackTransportRowPresenter;
+import androidx.leanback.widget.Presenter;
+import androidx.leanback.widget.WidgetAccess;
 
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
@@ -77,20 +81,22 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onJumpForward();
         void onJumpBack();
         void onSpeed(int increment);
+        void onActionSelected(Action action);
     }
 
     private final OnActionClickedListener mActionListener;
+    private WidgetAccess.MySelectedListener mActionSelectedListener = new SelectedListener();
 
     private PlaybackControlsRow.SkipPreviousAction mSkipPreviousAction;
     private PlaybackControlsRow.SkipNextAction mSkipNextAction;
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
-    private PivotAction mPivotAction;
-    private ZoomAction mZoomAction;
-    private AspectAction mAspectAction;
-    private SpeedAction mSpeedDecAction;
-    private SpeedAction mSpeedIncAction;
+    private MyAction mZoomAction;
+    private MyAction mPivotAction;
+    private MyAction mAspectAction;
+    private MyAction mSpeedDecAction;
+    private MyAction mSpeedIncAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
 
@@ -106,12 +112,16 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mSkipNextAction = new PlaybackControlsRow.SkipNextAction(context);
         mFastForwardAction = new PlaybackControlsRow.FastForwardAction(context);
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
-        mZoomAction = new ZoomAction(context);
-        mAspectAction = new AspectAction(context);
-        mSpeedDecAction = new SpeedAction(context, -1);
-        mSpeedIncAction = new SpeedAction(context, 1);
+        mZoomAction = new MyAction(context,Video.ACTION_ZOOM, R.drawable.ic_zoom_button,R.string.button_zoom);
+        mAspectAction = new MyAction(context,Video.ACTION_ASPECT, R.drawable.ic_aspect_button,R.string.button_aspect);
+        mSpeedDecAction = new MyAction(context,Video.ACTION_SLOWDOWN, R.drawable.ic_speed_decrease,R.string.button_slowdown);
+        mSpeedIncAction = new MyAction(context,Video.ACTION_SPEEDUP, R.drawable.ic_speed_increase,R.string.button_speedup);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
-        mPivotAction = new PivotAction(context);
+        Resources res = context.getResources();
+        String[] labels = new String[1];
+        labels[0] = res.getString(R.string.button_cc);
+        mClosedCaptioningAction.setLabels(labels);
+        mPivotAction = new MyAction(context,Video.ACTION_PIVOT, R.drawable.ic_up_down_button,R.string.button_pivot);
     }
 
     @Override
@@ -125,6 +135,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mRewindAction);
         adapter.add(mFastForwardAction);
         adapter.add(mSkipNextAction);
+        adapter.add(mSpeedDecAction);
+        adapter.add(mSpeedIncAction);
     }
 
     @Override
@@ -134,8 +146,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mZoomAction);
         adapter.add(mAspectAction);
         adapter.add(mPivotAction);
-        adapter.add(mSpeedDecAction);
-        adapter.add(mSpeedIncAction);
         mActionsVisible = true;
     }
 
@@ -166,6 +176,15 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             adapter.clear();
             adapter.notifyArrayItemRangeChanged(0,0);
             mActionsVisible = false;
+        }
+    }
+
+    public void setupSelectedListener() {
+        PlaybackRowPresenter presenter = getPlaybackRowPresenter();
+        if (presenter instanceof PlaybackTransportRowPresenter) {
+            WidgetAccess w = new WidgetAccess();
+            w.setMySelectedListener(
+                    (PlaybackTransportRowPresenter)presenter, mActionSelectedListener);
         }
     }
 
@@ -228,6 +247,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 adapter.notifyArrayItemRangeChanged(index, 1);
             }
         }
+    }
+
+    private void onActionSelected(Action action) {
+        mActionListener.onActionSelected(action);
     }
 
     @Override
@@ -295,113 +318,31 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         this.mOffsetMillis = offsetMillis;
     }
 
-    /**
-     * An action for displaying a Zoom icon.
-     */
-    public static class ZoomAction extends PlaybackControlsRow.MultiAction {
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         */
-        public ZoomAction(Context context) {
-            this(context, getIconHighlightColor(context));
-        }
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         * @param highlightColor Color for the highlighted icon state.
-         */
-        public ZoomAction(Context context, int highlightColor) {
-            super(Video.ACTION_ZOOM);
-            Resources res = context.getResources();
-            Drawable[] drawables = new Drawable[1];
-            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_zoom_button, null);
-            setDrawables(drawables);
+    public class  SelectedListener implements WidgetAccess.MySelectedListener {
+        @Override
+        public void onControlSelected(Presenter.ViewHolder controlViewHolder, Object item) {
+            if (item instanceof Action)
+                onActionSelected((Action)item);
         }
     }
 
     /**
-     * An action for displaying an Aspect icon.
+     * Our custom actions
      */
-    public static class AspectAction extends PlaybackControlsRow.MultiAction {
+    public static class MyAction extends PlaybackControlsRow.MultiAction {
 
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         */
-        public AspectAction(Context context) {
-            this(context, getIconHighlightColor(context));
-        }
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         * @param highlightColor Color for the highlighted icon state.
-         */
-        public AspectAction(Context context, int highlightColor) {
-            super(Video.ACTION_ASPECT);
+        public MyAction(Context context, int id, int icon, int label) {
+            super(id);
             Resources res = context.getResources();
             Drawable[] drawables = new Drawable[1];
-            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_aspect_button, null);
-            setDrawables(drawables);
-        }
-    }
-
-    /**
-     * An action for displaying an Aspect icon.
-     */
-    public static class PivotAction extends PlaybackControlsRow.MultiAction {
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         */
-        public PivotAction(Context context) {
-            this(context, getIconHighlightColor(context));
-        }
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         * @param highlightColor Color for the highlighted icon state.
-         */
-        public PivotAction(Context context, int highlightColor) {
-            super(Video.ACTION_PIVOT);
-            Resources res = context.getResources();
-            Drawable[] drawables = new Drawable[1];
-            drawables[0] = ResourcesCompat.getDrawable(res, R.drawable.ic_up_down_button, null);
-            setDrawables(drawables);
-        }
-    }
-
-    /**
-     * An action for displaying a Speed icon.
-     */
-    public static class SpeedAction extends PlaybackControlsRow.MultiAction {
-
-        int mIncrement;
-
-        /**
-         * Constructor
-         * @param context Context used for loading resources.
-         * @param increment -1 for down, +1 for up
-         */
-        public SpeedAction(Context context, int increment) {
-            super(Video.ACTION_SPEED);
-            this.mIncrement = increment;
-            Resources res = context.getResources();
-            Drawable[] drawables = new Drawable[1];
-            int icon;
-            if (mIncrement == -1)
-                icon = R.drawable.ic_speed_decrease;
-            else
-                icon = R.drawable.ic_speed_increase;
             drawables[0] = ResourcesCompat.getDrawable(res, icon, null);
             setDrawables(drawables);
+            String[] labels = new String[1];
+            labels[0] = res.getString(label);
+            setLabels(labels);
         }
     }
+
 
 
 }

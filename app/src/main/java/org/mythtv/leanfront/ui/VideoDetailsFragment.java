@@ -309,7 +309,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         }
 
                         if (mWatched) {
-                            prompts.add(getString(R.string.maneu_mark_unwatched));
+                            prompts.add(getString(R.string.menu_mark_unwatched));
                             actions.add(new Action(Video.ACTION_UNWATCHED));
                         } else {
                             prompts.add(getString(R.string.menu_mark_watched));

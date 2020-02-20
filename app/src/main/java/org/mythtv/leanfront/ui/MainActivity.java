@@ -25,12 +25,17 @@
 package org.mythtv.leanfront.ui;
 
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 
 import androidx.fragment.app.Fragment;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Settings;
+
+import java.util.Locale;
 
 /*
  * MainActivity class that loads MainFragment.
@@ -46,6 +51,8 @@ public class MainActivity extends LeanbackActivity {
         setContentView(R.layout.main);
         if (context == null)
             context = this;
+        // to test another language uncomment this
+//        setAppLocale("es");
         if (Settings.getString("pref_backend").length() == 0) {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
@@ -83,5 +90,16 @@ public class MainActivity extends LeanbackActivity {
             });
         }
     }
+
+    public static void setAppLocale(String localeCode){
+        Resources resources = context.getResources();
+        DisplayMetrics displayMetrics = resources.getDisplayMetrics();
+        Configuration configuration = resources.getConfiguration();
+        configuration.setLocale(new Locale(localeCode.toLowerCase()));
+        resources.updateConfiguration(configuration, displayMetrics);
+        configuration.locale = new Locale(localeCode.toLowerCase());
+        resources.updateConfiguration(configuration, displayMetrics);
+    }
+
 
 }

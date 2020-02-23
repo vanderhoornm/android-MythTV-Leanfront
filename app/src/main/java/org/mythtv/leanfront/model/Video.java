@@ -77,6 +77,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_SPEEDUP = 13;
     public static final int ACTION_SLOWDOWN = 14;
     public static final int ACTION_PIVOT = 15;
+    public static final int ACTION_AUDIOTRACK = 16;
 
 
     private Video(

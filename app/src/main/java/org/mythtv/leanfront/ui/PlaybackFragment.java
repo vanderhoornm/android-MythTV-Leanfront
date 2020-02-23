@@ -85,6 +85,7 @@ import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -128,7 +129,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private float mSpeed = SPEED_VALUES[SPEED_1_INDEX];
     private Toast mToast = null;
     private SubtitleView mSubtitles;
-    private int mSubtitleIndex = -1;
+    private int mTextSelection = -1;
+    private int mAudioSelection = -1;
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
     private MediaSource mMediaSource;
@@ -238,7 +240,9 @@ public class PlaybackFragment extends VideoSupportFragment
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
         mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
-        mSubtitleIndex = -1;
+        mTextSelection = -1;
+        mAudioSelection = -1;
+
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
         if (textComponent != null && mSubtitles != null)
@@ -431,59 +435,78 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    public void toggleSubtitles() {
+    private int trackSelector(int trackType, int trackSelection,
+            int msgOn, int msgOff, boolean disable) {
+        // optionList array - 0 = renderer, 1 = track group, 2 = track
+        ArrayList<int[]> optionList = new ArrayList<>();
+        ArrayList<Integer> renderList = new ArrayList<>();
+        ArrayList<Format> formatList = new ArrayList<>();
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-        int textRenderer = -1;
-        for (int ix = 0 ; ix < mti.getRendererCount(); ix ++) {
-            if (mti.getRendererType(ix) == C.TRACK_TYPE_TEXT) {
-                textRenderer = ix;
-                break;
-            }
-        }
-        if (textRenderer == -1)
-            return;
-        TrackGroupArray tga = mti.getTrackGroups(textRenderer); // the index for text tracks
-        ArrayList<String> langList = new ArrayList<>();
-        int ix = -1;
-        int iy = -1;
-        for (ix = 0; ix < tga.length; ix++) {
-            TrackGroup tg = tga.get(ix);
-            for (iy = 0; iy < tg.length; iy++) {
-                Format fmt = tg.getFormat(iy);
-                langList.add(fmt.language);
+        if (mti == null)
+            return -1;
+        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
+            if (mti.getRendererType(rendIx) == trackType) {
+                renderList.add(rendIx);
+                TrackGroupArray tga = mti.getTrackGroups(rendIx);
+                if (tga != null) {
+                    TrackGroup tg = null;
+                    for (int tgIx = 0 ; tgIx < tga.length; tgIx++) {
+                        tg = tga.get(tgIx);
+                        if (tg != null) {
+                            for (int trkIx = 0; trkIx < tg.length; trkIx++) {
+                                int[] selection = new int[3];
+                                // optionList array - 0 = renderer, 1 = track group, 2 = track
+                                selection[0] = rendIx;
+                                selection[1] = tgIx;
+                                selection[2] = trkIx;
+                                optionList.add(selection);
+                                formatList.add(tg.getFormat(trkIx));
+                            }
+                        }
+                    }
+                }
             }
         }
         StringBuilder msg = new StringBuilder();
-        if (++mSubtitleIndex < langList.size()) {
+        if (++trackSelection >= optionList.size()) {
+            if (disable)
+                trackSelection = -1;
+            else
+                trackSelection = 0;
+        }
+        if (trackSelection >= 0) {
+            int [] selection = optionList.get(trackSelection);
+            DefaultTrackSelector.SelectionOverride ovr
+                    = new DefaultTrackSelector.SelectionOverride(
+                    selection[1], selection[2]);
 
-            // This would be the preferred method but for some reason it is not working
-//            DefaultTrackSelector.SelectionOverride ovr
-//                    = new DefaultTrackSelector.SelectionOverride(ix,mSubtitleIndex);
-//            mTrackSelector.setParameters(
-//                mTrackSelector
-//                    .buildUponParameters()
-//                    .setSelectionOverride(2,tga,ovr));
-
-            String lang = langList.get(mSubtitleIndex);
-            mTrackSelector.setParameters(
-                    mTrackSelector
-                            .buildUponParameters()
-                            .setPreferredTextLanguage(lang)
-                            .setSelectUndeterminedTextLanguage(true)
-                            .setDisabledTextTrackSelectionFlags(C.SELECTION_FLAG_FORCED)
-                            .setRendererDisabled(textRenderer, false)
-            );
-            msg.append(getActivity().getString(R.string.msg_subtitle_on));
-            if (langList.size() > 1)
-                msg.append(" (").append(mSubtitleIndex + 1).append(")");
+            TrackGroupArray tga = mti.getTrackGroups(selection[0]);
+            DefaultTrackSelector.ParametersBuilder parms
+                    = mTrackSelector
+                    .buildUponParameters()
+                    .setSelectionOverride(selection[0], tga, ovr);
+            if (disable)
+                parms = parms.setRendererDisabled(selection[0], false);
+            mTrackSelector.setParameters(parms);
+            String language = formatList.get(trackSelection).language;
+            if (language == null)
+                language = new String();
+            else {
+                Locale locale = new Locale(language);
+                String langDesc = locale.getDisplayLanguage();
+                language = " (" + langDesc + ")";
+            }
+            msg.append(getActivity().getString(msgOn,
+                    trackSelection+1, language));
         } else {
-            mSubtitleIndex = -1;
-            mTrackSelector.setParameters(
-                    mTrackSelector
-                            .buildUponParameters()
-                            .setRendererDisabled(textRenderer, true)
-            );
-            msg.append(getActivity().getString(R.string.msg_subtitle_off));
+            for (int ix = 0; ix < renderList.size(); ix++) {
+                mTrackSelector.setParameters(
+                        mTrackSelector
+                                .buildUponParameters()
+                                .setRendererDisabled(renderList.get(ix), true)
+                );
+            }
+            msg.append(getActivity().getString(msgOff));
         }
 
         if (mToast != null)
@@ -491,8 +514,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mToast = Toast.makeText(getActivity(),
                 msg, Toast.LENGTH_LONG);
         mToast.show();
+        return trackSelection;
     }
-
 
     public void actionSelected(Action action) {
         View view = getView();
@@ -504,7 +527,7 @@ public class PlaybackFragment extends VideoSupportFragment
             text.setText(action.getLabel1());
             mFocusView = view.findFocus();
         } else {
-            // Called with null when a key is presssed. Will clear help message
+            // Called with null when a key is pressed. Will clear help message
             // if we are no longer on the control.
             View newView = view.findFocus();
             if (newView != mFocusView) {
@@ -512,7 +535,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 mFocusView = newView;
                 mCurrentAction = null;
             }
-            // This is to hanld buttons that change title, for example
+            // This is to handle buttons that change title, for example
             // play / pause.
             else if (mCurrentAction != null)
                 text.setText(mCurrentAction.getLabel1());
@@ -755,7 +778,8 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onCaption() {
-            toggleSubtitles();
+            mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
+                    R.string.msg_subtitle_on, R.string.msg_subtitle_off, true);
         }
 
         @Override
@@ -845,6 +869,12 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onActionSelected(Action action) {
             actionSelected(action);
+        }
+
+        @Override
+        public void onAudioTrack() {
+            mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
+                    R.string.msg_audio_track, R.string.dummy_empty_string, false);
         }
 
         private void setScale() {

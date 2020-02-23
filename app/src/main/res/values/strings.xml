@@ -100,7 +100,10 @@
     <string name="pref_sort_order">Sort Sequence</string>
     <string name="pref_title_backend_mac">Wakeup MAC Address</string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
-    <string name="msg_subtitle_on">Subtitle enabled.</string>
+    <!-- In the next 2, %1 in the track number, %2 is the language if known
+         in parens e.g (English) or empty string if not known -->
+    <string name="msg_subtitle_on">Subtitle %1$d%2$s enabled.</string>
+    <string name="msg_audio_track">Audio Track %1$d%2$s enabled.</string>
     <string name="msg_subtitle_off">Subtitle disabled.</string>
     <string name="msg_pin_center">Pinned at Center.</string>
     <string name="msg_pin_top">Pinned at Top.</string>
@@ -118,6 +121,7 @@
     <string name="button_speedup">Speed Up</string>
     <string name="button_pivot">Move Up/Down</string>
     <string name="button_cc">Closed Captions</string>
+    <string name="button_audiotrack">Change Audio Track</string>
 
     <!--Words to be stripped from the front of titles for sorting
         Must be in UPPER CASE-->

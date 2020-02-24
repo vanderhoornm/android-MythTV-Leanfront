@@ -71,8 +71,8 @@ public class FetchVideoService extends IntentService {
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
                 // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
                 String[] urls = {
-                        mythApiUrl("/Dvr/GetRecordedList"),
-                        mythApiUrl("/Video/GetVideoList")};
+                        mythApiUrl(null, "/Dvr/GetRecordedList"),
+                        mythApiUrl(null, "/Video/GetVideoList")};
                 for (int i = 0; i < urls.length; i++) {
                     String url = urls[i];
                     if (url != null) {

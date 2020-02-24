@@ -881,7 +881,7 @@ public class MainFragment extends BrowseSupportFragment
                         return;
                     }
                     String result = null;
-                    String url = XmlNode.mythApiUrl(
+                    String url = XmlNode.mythApiUrl(null,
                             "/Myth/DelayShutdown");
                     if (url == null)
                         return;

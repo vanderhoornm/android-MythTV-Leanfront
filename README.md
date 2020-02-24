@@ -24,6 +24,8 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Video playback is exlusively via hardware assisted mediacodec.
 - Audio playback is supported using mediacodec (hardware) or ffmpeg (software). By default it will use mediacodec if it can, and will switch to ffmpeg if there is a media format not supported by mediacodec. There is a setting where you can change this default and force either mediacodec or ffmpeg.
 - Audio playback supports digital passthrough for AC3 and other digital formats if they are supported on your sound system. It also supports downmix to stereo if you do not have a system that supports AC3.
+- Selection of alternate audio tracks during playback.
+- Playback from slave backends is now supported.
 
 ## Main Screen
 
@@ -52,6 +54,8 @@ The following controls are available when pressing enter during playback. Select
 3. Rewind: This skips back by the time set in the settings.
 4. Fast Forward: This skips forward by the time set in the settings.
 5. Next track: This plays the next recording or video in the list without needing to exit from playback (see related videos, below).
+6. Slow down: Slows playback speed by increments down to a minimum of 50%.
+7. Speed up: Speeds up playback by increments to a maximum of 800%.
 
 ### Progress Bar
 
@@ -63,8 +67,7 @@ The following controls are available when pressing enter during playback. Select
 2. Zoom: Changes the picture size. Pressing this rotates among several standard zoom amounts.
 3. Aspect: Stretch or squeeze the picture in case it is showing at the wrong aspect ratio. Pressing this rotates between several common aspect ratios.
 4. Up/down: If the picture has been resized, moves the picture up or down. There are three positions, aligned on top, middle, or bottom. For use when you want to cut off the top or bottom of the picture, after zooming to a bigger size.
-5. Slow down: Slows playback speed by increments down to a minimum of 50%.
-6. Speed up: Speeds up playback by increments to a maximum of 800%.
+5. Audio Track: Rotates among available audio tracks
 
 **Note:** To use *slow down* or *speed up* you have to disable digital audio passthrough, by either selecting *Stereo* in Android settings or selecting *FFmpeg* in leanfront settings.
 
@@ -72,10 +75,28 @@ The following controls are available when pressing enter during playback. Select
 
 - Related videos (press down arrow to see them). Other videos / recordings in the current group. You can select one of these to play instead of the current playing video. That cancels the current playback.
 
-## Restrictions
+## Restrictions / Limitations
 
-- There is limited support for watching LiveTV at present.
-- Slave backends are currently only supported if you use "Master backend override" or recordings are available on the master backend.
+These may be addressed n a future release.
+
+- There is no support for watching LiveTV at present.
+- The *Master Backend Override* setting does not work. It is ignored.
+- There is no support at present for showing program listings or scheduling recordings.
+- Moving recordings to new recording groups is not supported.
+- Metadata input and update are not supported.
+- Request of video file scan is not supported.
+
+## Download and install
+
+- Download the latest apk from  [Bintray][bintray].
+- Enable debug mode on your android TV device.
+- install adb on your computer
+- Run these
+
+```
+    adb connect <android-ip-address>
+    adb install -r <apk-name>
+```
 
 ## To Do List
 
@@ -86,7 +107,6 @@ Further development will continue. These are some possible additions.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 - Amazon specific search and recommendations.
-- Support for slave backends.
 - Program guide.
 - Live TV.
 
@@ -98,7 +118,7 @@ Further development will continue. These are some possible additions.
 - Open the project in [Android Studio][studio].
 - Compile and deploy to your Android TV device (such as a Shield or Amazon fire stick). 
 - It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 playback, so you need to play an h264 or h265 recording.
-- If you do not want to build this yourself, there is a package at https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/
+- If you do not want to build this yourself, there is a package at [Bintray][bintray].
 
 ## Running
 
@@ -112,3 +132,4 @@ Licensed under the GNU GPL version 3 or later. See the [LICENSE file][license] f
 
 [studio]: https://developer.android.com/tools/studio/index.html
 [license]: LICENSE
+[bintray]: https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android

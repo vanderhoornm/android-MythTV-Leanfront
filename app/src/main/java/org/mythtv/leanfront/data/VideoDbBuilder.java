@@ -70,6 +70,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ENDTS = "EndTs";
     public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
     public static final String XMLTAG_FILESIZE = "FileSize";
+    public static final String XMLTAG_HOSTNAME = "HostName";
 
     // Specific to video list
     private static final String[] XMLTAGS_VIDEO = {"VideoMetadataInfos","VideoMetadataInfo"};
@@ -112,7 +113,6 @@ public class VideoDbBuilder {
      */
     public List<ContentValues> buildMedia(XmlNode xmlFull, int phase) throws IOException, XmlPullParserException {
         List<ContentValues> videosToInsert = new ArrayList<>();
-        String baseUrl = XmlNode.mythApiUrl(null);
         String [] tagsProgram;
         String tagRecordedId;
         if (phase == 0) {  //Recordings
@@ -123,6 +123,8 @@ public class VideoDbBuilder {
             tagsProgram = XMLTAGS_VIDEO;
             tagRecordedId = XMLTAG_ID;
         }
+        // Art urls have to be off main backend
+        String baseArtUrl = XmlNode.mythApiUrl(null,null);
         XmlNode programNode = null;
         for (;;) {
             if (programNode == null)
@@ -195,9 +197,11 @@ public class VideoDbBuilder {
             }
             String recordedid = recordingNode.getString(tagRecordedId);
             String title = programNode.getString(XMLTAG_TITLE);
+            String hostName = recordingNode.getString(XMLTAG_HOSTNAME);
             String subtitle = programNode.getString(XMLTAG_SUBTITLE);
             String description = programNode.getString(XMLTAG_DESCRIPTION);
             String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
+            String baseUrl = XmlNode.mythApiUrl(hostName,null);
             String videoUrl = baseUrl +  "/Content/GetFile?StorageGroup="
                     + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName,"UTF-8");
             String coverArtUrl = null;
@@ -211,7 +215,7 @@ public class VideoDbBuilder {
                 if (artInfoNode == null)
                     break;
                 String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
-                String artUrl = baseUrl + artInfoNode.getString(XMLTAG_ARTURL);
+                String artUrl = baseArtUrl + artInfoNode.getString(XMLTAG_ARTURL);
                 int equ = artUrl.lastIndexOf('=');
                 if (equ > 0) {
                     String fileName = artUrl.substring(equ + 1);
@@ -255,6 +259,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, dbFileName);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_HOSTNAME, hostName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channel);

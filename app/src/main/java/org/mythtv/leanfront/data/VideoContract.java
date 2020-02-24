@@ -57,6 +57,8 @@ public final class VideoContract {
         public static final String COLUMN_VIDEO_URL = "video_url";
         // Directory name of video file, applies only to Videos storage group
         public static final String COLUMN_FILENAME = "filename";
+        // Host name of video file
+        public static final String COLUMN_HOSTNAME = "hostname";
         // The url to the background image.
         public static final String COLUMN_BG_IMAGE_URL = "bg_image_url";
         // The channel name.

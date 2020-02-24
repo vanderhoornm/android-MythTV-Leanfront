@@ -41,6 +41,39 @@ public class XmlNode {
     private HashMap<String, XmlNode> childMap = new HashMap<String, XmlNode>();
     private String text = null;
     private XmlNode nextSibling;
+    private static HashMap<String, String> sHostMap;
+    private static String sBackendIP;
+
+    private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
+        String backendIP = Settings.getString("pref_backend");
+        String port = Settings.getString("pref_http_port");
+        if (backendIP == null || port == null) {
+            Log.e(TAG, "Backend port or IP address not specified");
+            return null;
+        }
+        if (!backendIP.equals(sBackendIP)) {
+            sBackendIP = backendIP;
+            sHostMap = new HashMap<>();
+        }
+        if (hostname == null)
+            return sBackendIP + ":" + port;
+        String hostIpAndPort = sHostMap.get(hostname);
+        if (hostIpAndPort == null) {
+            String urlString = XmlNode.mythApiUrl(null,
+                    "/Myth/GetSetting?Key=BackendServerAddr&HostName="
+                            + hostname);
+            XmlNode response = XmlNode.fetch(urlString, "POST");
+            String hostIp = response.getString();
+            urlString = XmlNode.mythApiUrl(null,
+                    "/Myth/GetSetting?Key=BackendStatusPort&HostName="
+                            + hostname);
+            response = XmlNode.fetch(urlString, "POST");
+            port = response.getString();
+            hostIpAndPort = hostIp + ":" + port;
+            sHostMap.put(hostname, hostIpAndPort);
+        }
+        return hostIpAndPort;
+    }
 
     public static XmlNode parseStream(InputStream in) throws XmlPullParserException, IOException {
         XmlPullParser parser = Xml.newPullParser();
@@ -111,7 +144,7 @@ public class XmlNode {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    Log.e(TAG, "XML feed closed", e);
+                    Log.e(TAG, "XML feed closed: " + urlString, e);
                 }
             }
         }
@@ -165,17 +198,15 @@ public class XmlNode {
 
     public String getString() { return text; }
 
-    public static String mythApiUrl(String params) throws IOException, XmlPullParserException {
+    public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
         MainActivity main = MainActivity.getContext();
         if (main == null)
             return null;
-        String backend = Settings.getString("pref_backend");
-        String port = Settings.getString("pref_http_port");
-        String url = "http://" + backend + ":" + port;
+        String ipAndPort = getIpAndPort(hostName);
+        String url = "http://" + ipAndPort;
         if (params != null)
             url = url + params;
         return url;
     }
-
 
 }

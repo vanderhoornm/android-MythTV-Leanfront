@@ -38,7 +38,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -65,6 +65,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_SUBTITLE + " TEXT, " +
                     VideoEntry.COLUMN_VIDEO_URL + " TEXT, " +
                     VideoEntry.COLUMN_FILENAME + " TEXT, " +
+                    VideoEntry.COLUMN_HOSTNAME + " TEXT, " +
                     VideoEntry.COLUMN_DESC + " TEXT, " +
                     VideoEntry.COLUMN_BG_IMAGE_URL + " TEXT, " +
                     VideoEntry.COLUMN_CHANNEL + " TEXT, " +

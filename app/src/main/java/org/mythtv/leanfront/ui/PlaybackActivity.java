@@ -140,7 +140,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump,!mArrowSkipJump);
@@ -157,7 +157,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
-                if (!mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);

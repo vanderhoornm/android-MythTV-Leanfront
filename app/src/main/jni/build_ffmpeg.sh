@@ -98,3 +98,16 @@ make clean
 make -j4
 make install-libs
 make clean
+./configure \
+    --libdir=android-libs/x86_64 \
+    --arch=x86_64 \
+    --cpu=x86_64 \
+    --cross-prefix="${TOOLCHAIN_PREFIX}/x86_64-linux-android29-" \
+    --nm="${TOOLCHAIN_PREFIX}/x86_64-linux-android-nm" \
+    --strip="${TOOLCHAIN_PREFIX}/x86_64-linux-android-strip" \
+    --extra-ldexeflags=-pie \
+    --disable-asm \
+    ${COMMON_OPTIONS}
+make -j4
+make install-libs
+make clean

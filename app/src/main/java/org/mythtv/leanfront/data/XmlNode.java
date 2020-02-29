@@ -23,7 +23,6 @@ import android.util.Log;
 import android.util.Xml;
 
 import org.mythtv.leanfront.model.Settings;
-import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -38,7 +37,7 @@ public class XmlNode {
     private static final String TAG = "XmlNode";
 
     private String name;
-    private HashMap<String, XmlNode> childMap = new HashMap<String, XmlNode>();
+    private HashMap<String, XmlNode> childMap = new HashMap<>();
     private String text = null;
     private XmlNode nextSibling;
     private static HashMap<String, String> sHostMap;
@@ -46,8 +45,8 @@ public class XmlNode {
 
     private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
-        String port = Settings.getString("pref_http_port");
-        if (backendIP == null || port == null) {
+        String mainPort = Settings.getString("pref_http_port");
+        if (backendIP == null || mainPort == null) {
             Log.e(TAG, "Backend port or IP address not specified");
             return null;
         }
@@ -56,7 +55,7 @@ public class XmlNode {
             sHostMap = new HashMap<>();
         }
         if (hostname == null)
-            return sBackendIP + ":" + port;
+            return sBackendIP + ":" + mainPort;
         String hostIpAndPort = sHostMap.get(hostname);
         if (hostIpAndPort == null) {
             String urlString = XmlNode.mythApiUrl(null,
@@ -64,11 +63,15 @@ public class XmlNode {
                             + hostname);
             XmlNode response = XmlNode.fetch(urlString, "POST");
             String hostIp = response.getString();
+            if (hostIp == null)
+                hostIp = backendIP;
             urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendStatusPort&HostName="
                             + hostname);
             response = XmlNode.fetch(urlString, "POST");
-            port = response.getString();
+            String port = response.getString();
+            if (port == null)
+                port = mainPort;
             hostIpAndPort = hostIp + ":" + port;
             sHostMap.put(hostname, hostIpAndPort);
         }
@@ -199,9 +202,6 @@ public class XmlNode {
     public String getString() { return text; }
 
     public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
-        MainActivity main = MainActivity.getContext();
-        if (main == null)
-            return null;
         String ipAndPort = getIpAndPort(hostName);
         String url = "http://" + ipAndPort;
         if (params != null)

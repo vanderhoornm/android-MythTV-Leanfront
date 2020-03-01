@@ -208,7 +208,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private void setBookmark() {
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.myGetDuration();
-        if (pos > 5000 && pos < (leng - 5000))
+        if (leng == -1 || (pos > 5000 && pos < (leng - 5000)))
             mBookmark = pos;
         else
             mBookmark = 0;
@@ -388,46 +388,65 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    /** Skips backwards 10 seconds. */
+    /** Skips backwards 1 minute. */
     public void rewind() {
         long newPosition = mPlayerGlue.getCurrentPosition() - mSkipBack;
         newPosition = (newPosition < 0) ? 0 : newPosition;
-        seekTo(newPosition);
+        seekTo(newPosition,false);
     }
 
-    /** Skips forward 10 seconds. */
+    /** Skips forward 1 minute. */
     public void fastForward() {
-        long duration = mPlayerGlue.myGetDuration();
-        if (duration > -1) {
-            long newPosition = mPlayerGlue.getCurrentPosition() + mSkipFwd;
-            newPosition = (newPosition > duration) ? duration : newPosition;
-            seekTo(newPosition);
-        }
+        moveForward(mSkipFwd);
     }
 
     /** Jumps backwards 5 min. */
     public void jumpBack() {
         long newPosition = mPlayerGlue.getCurrentPosition() - mJump;
         newPosition = (newPosition < 0) ? 0 : newPosition;
-        seekTo(newPosition);
+        seekTo(newPosition, false);
     }
 
     /** Jumps forward 5 min. */
     public void jumpForward() {
+        moveForward(mJump);
+    }
+
+    private void moveForward(int millis) {
+        boolean doReset = false;
+        boolean resetDone = false;
+        if (!mIsBounded) {
+            seekTo(-1,true);
+            resetDone = true;
+        }
         long duration = mPlayerGlue.myGetDuration();
         if (duration > -1) {
-            long newPosition = mPlayerGlue.getCurrentPosition() + mJump;
-            newPosition = (newPosition > duration) ? duration : newPosition;
-            seekTo(newPosition);
+            long newPosition = mPlayerGlue.getCurrentPosition() + millis;
+            if (newPosition > duration - 1000) {
+                newPosition = duration - 1000;
+                doReset = true;
+            }
+            seekTo(newPosition, doReset && !resetDone);
         }
     }
 
-    private void seekTo(long position) {
-        if (mIsBounded)
-            mPlayerAdapter.seekTo(position);
+    // set position to -1 for a reset with no seek.
+    // set doReset true to refresh file size information.
+    // If it is in unbounded state will reset to bounded state
+    // regardless of parameters.
+    private void seekTo(long position, boolean doReset) {
+        long newPosition;
+        if (position == -1)
+            newPosition = mPlayerGlue.getCurrentPosition();
+        else
+            newPosition = position;
+        if (mIsBounded && !doReset) {
+            if (position != -1)
+                mPlayerAdapter.seekTo(newPosition);
+        }
         else {
             mIsBounded = true;
-            mBookmark = position;
+            mBookmark = newPosition;
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);
             mPlayer.stop(true);
@@ -601,6 +620,15 @@ public class PlaybackFragment extends VideoSupportFragment
 
     public long getOffsetBytes() {
         return mOffsetBytes;
+    }
+
+    public void resetSpeed() {
+        mSpeedIndex = SPEED_1_INDEX;
+        mPlaylistActionListener.onSpeed(0);
+    }
+
+    public boolean isSpeededUp() {
+        return mSpeedIndex > SPEED_1_INDEX;
     }
 
     /**

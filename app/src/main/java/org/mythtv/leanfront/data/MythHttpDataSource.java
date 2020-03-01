@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 
+import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.PlaybackFragment;
 
 import java.io.IOException;
@@ -94,6 +95,14 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                     mDataSpec.flags);
             mHttpDataSource.close();
 
+            if (mPlaybackFragment.isSpeededUp()) {
+                MainActivity context = MainActivity.getContext();
+                context.runOnUiThread(new Runnable() {
+                    public void run() {
+                        mPlaybackFragment.resetSpeed();
+                    }
+                });
+            }
             long leng2 = 0;
             try {
                 try {

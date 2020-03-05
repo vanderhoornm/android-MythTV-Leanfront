@@ -487,7 +487,9 @@ public class PlaybackFragment extends VideoSupportFragment
             }
         }
         StringBuilder msg = new StringBuilder();
-        if (++trackSelection >= optionList.size()) {
+        if (optionList.size() == 0)
+            trackSelection = -1;
+        else if (++trackSelection >= optionList.size()) {
             if (disable)
                 trackSelection = -1;
             else
@@ -518,12 +520,14 @@ public class PlaybackFragment extends VideoSupportFragment
             msg.append(getActivity().getString(msgOn,
                     trackSelection+1, language));
         } else {
-            for (int ix = 0; ix < renderList.size(); ix++) {
-                mTrackSelector.setParameters(
-                        mTrackSelector
-                                .buildUponParameters()
-                                .setRendererDisabled(renderList.get(ix), true)
-                );
+            if (optionList.size() > 0) {
+                for (int ix = 0; ix < renderList.size(); ix++) {
+                    mTrackSelector.setParameters(
+                            mTrackSelector
+                                    .buildUponParameters()
+                                    .setRendererDisabled(renderList.get(ix), true)
+                    );
+                }
             }
             msg.append(getActivity().getString(msgOff));
         }
@@ -902,7 +906,7 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onAudioTrack() {
             mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
-                    R.string.msg_audio_track, R.string.dummy_empty_string, false);
+                    R.string.msg_audio_track, R.string.msg_no_audio_track, false);
         }
 
         private void setScale() {

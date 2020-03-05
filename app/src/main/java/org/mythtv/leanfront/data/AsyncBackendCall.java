@@ -328,6 +328,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     HttpURLConnection urlConnection = null;
                     mFileLength = -1;
                     try {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         URL url = new URL(urlString);
                         urlConnection = (HttpURLConnection) url.openConnection();
                         urlConnection.addRequestProperty("Cache-Control", "no-cache");

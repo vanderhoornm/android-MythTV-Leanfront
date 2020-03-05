@@ -208,7 +208,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private void setBookmark() {
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.myGetDuration();
-        if (leng == -1 || (pos > 5000 && pos < (leng - 5000)))
+        if (leng == -1 || (pos > 5000 && pos < (leng - 500)))
             mBookmark = pos;
         else
             mBookmark = 0;

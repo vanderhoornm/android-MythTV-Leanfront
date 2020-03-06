@@ -33,13 +33,14 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - There is a row for "All" at the top.
 - After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
 - There is a row labeled "Settings" at the bottom. select "Settings" and press enter to see and update program settings.
-- There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. Note that the list is also refreshed after using Settings.
+- There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. Note that the list is also refreshed after using Settings. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil --scanvideos" on the backend.
 
 ## Playback
 
 - Pressing Enter, up or down brings up the OSD playback controls. Note if you have enabled up/down jumping then up and down will cause a jump instead.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
+- If you are playing a recording that is in progress of being recorded, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press froward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 
 ## Playback controls (OSD)
 
@@ -104,11 +105,22 @@ Possible additions.
 
 Further development will continue. These are some possible additions.
 
+- Automatically switch to ffmpeg decoding if you use speedup, instead of prompting you to change your settings.
+- Support keys on a multimedia remote control.
+- Allow pressing "play" to start playback from the program list, bypassing the detail screen.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 - Amazon specific search and recommendations.
 - Program guide.
 - Live TV.
+- Create recording rules.
+
+The following items will need api changes on the backend
+
+- Video scan
+- Video delete
+- Video bookmarks stored on the backend.
+- Change recording group on a recording.
 
 ## Building
 

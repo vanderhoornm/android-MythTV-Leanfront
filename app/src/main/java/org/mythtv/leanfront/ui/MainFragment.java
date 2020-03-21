@@ -150,12 +150,15 @@ public class MainFragment extends BrowseSupportFragment
     private boolean mLoadStarted = false;
 
     static ScheduledExecutorService executor = null;
-    private MythTask mythTask = new MythTask();
+    private static MythTask mythTask = new MythTask();
     private long mLastLoadTime = 0;
     public static long mLoadNeededTime = System.currentTimeMillis();
     public static long mFetchTime = 0;
     // Keep track of the fragment currently showing, if any.
     private static MainFragment mActiveFragment = null;
+    private static boolean mWasInBackground = true;
+    // Not final so I can change it during debug
+    private static int TASK_INTERVAL = 240;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -244,15 +247,20 @@ public class MainFragment extends BrowseSupportFragment
         super.onResume();
         mActiveFragment = this;
         startBackgroundTimer();
-        if (executor == null) {
-            executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleAtFixedRate(mythTask,0,240, TimeUnit.SECONDS);
-        }
+        if (mWasInBackground)
+            restartMythTask();
         // If it's been more than an hour, refresh
-        if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
+        else if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
             startFetch();
         else if (mLastLoadTime < mLoadNeededTime)
             startLoader();
+    }
+
+    public static void restartMythTask() {
+        if (executor != null)
+            executor.shutdownNow();
+        executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(mythTask,0,TASK_INTERVAL, TimeUnit.SECONDS);
     }
 
     @Override
@@ -871,15 +879,17 @@ public class MainFragment extends BrowseSupportFragment
         public void run() {
             boolean connection = false;
             boolean connectionfail = false;
+            if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
+                    == Lifecycle.State.CREATED) {
+                // process is now in the background
+                mWasInBackground = true;
+                return;
+            }
+            mWasInBackground = false;
             while (!connection) {
                 int toastMsg = 0;
                 int toastLeng = 0;
                 try {
-                    if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
-                            == Lifecycle.State.CREATED) {
-                        // process is now in the background
-                        return;
-                    }
                     String result = null;
                     String url = XmlNode.mythApiUrl(null,
                             "/Myth/DelayShutdown");
@@ -920,7 +930,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                 }
             }
-            if (connectionfail || mFetchTime < System.currentTimeMillis() - 60*60*1000) {
+            if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
                 Activity activity = MainActivity.getContext();
                 if (activity == null)
                     return;

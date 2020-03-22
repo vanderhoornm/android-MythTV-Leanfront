@@ -250,7 +250,7 @@ public class MainFragment extends BrowseSupportFragment
         if (mWasInBackground)
             restartMythTask();
         // If it's been more than an hour, refresh
-        else if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
+        if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
             startFetch();
         else if (mLastLoadTime < mLoadNeededTime)
             startLoader();

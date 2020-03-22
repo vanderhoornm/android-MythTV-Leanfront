@@ -576,7 +576,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
-        if (taskRunner == null)
+        if (taskRunner == null || getActivity() == null)
             return;
         mBookmark = taskRunner.getBookmark();
         int progflags = Integer.parseInt(mSelectedVideo.progflags);

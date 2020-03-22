@@ -66,6 +66,8 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -159,6 +161,7 @@ public class MainFragment extends BrowseSupportFragment
     private static boolean mWasInBackground = true;
     // Not final so I can change it during debug
     private static int TASK_INTERVAL = 240;
+    private ProgressBar progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -188,6 +191,20 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
+    private void setProgressBar(int visibility) {
+        if (progressBar == null) {
+            View mainView = getView();
+            if (mainView == null)
+                return;
+            int height = mainView.getHeight();
+            int padding = height * 5 / 12;
+            progressBar = new ProgressBar(getActivity());
+            progressBar.setPadding(padding,padding,padding,padding);
+            ViewGroup grp = mainView.findViewById(R.id.main_frame);
+            grp.addView(progressBar);
+        }
+        progressBar.setVisibility(visibility);
+    }
 
     // Fetch video list from MythTV into local database
     public void startFetch() {
@@ -774,6 +791,7 @@ public class MainFragment extends BrowseSupportFragment
 
             }
             mLastLoadTime = lastLoadTime;
+            setProgressBar(View.INVISIBLE);
         }
     }
 
@@ -853,6 +871,7 @@ public class MainFragment extends BrowseSupportFragment
                 case TYPE_REFRESH:
                     mSelectedRowType = -1;
                     mSelectedRowName = null;
+                    setProgressBar(View.VISIBLE);
                     startFetch();
                     break;
             }

@@ -193,6 +193,8 @@ public class MainFragment extends BrowseSupportFragment
 
     private void setProgressBar(int visibility) {
         if (progressBar == null) {
+            if (visibility == View.INVISIBLE)
+                return;
             View mainView = getView();
             if (mainView == null)
                 return;

@@ -155,7 +155,7 @@ public class MainFragment extends BrowseSupportFragment
     private static MythTask mythTask = new MythTask();
     private long mLastLoadTime = 0;
     public static long mLoadNeededTime = System.currentTimeMillis();
-    public static long mFetchTime = 0;
+    public static volatile long mFetchTime = 0;
     // Keep track of the fragment currently showing, if any.
     private static MainFragment mActiveFragment = null;
     private static boolean mWasInBackground = true;

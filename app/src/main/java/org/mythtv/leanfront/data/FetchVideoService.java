@@ -87,6 +87,7 @@ public class FetchVideoService extends IntentService {
                 // Repeat if another fetch request came in while we were fetching
             }  while(MainFragment.mFetchTime > fetchTime);
         } catch (IOException | XmlPullParserException e) {
+            MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }

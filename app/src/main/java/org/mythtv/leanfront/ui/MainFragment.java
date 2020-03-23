@@ -268,6 +268,7 @@ public class MainFragment extends BrowseSupportFragment
         startBackgroundTimer();
         if (mWasInBackground)
             restartMythTask();
+        mWasInBackground = false;
         // If it's been more than an hour, refresh
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000)
             startFetch();
@@ -906,7 +907,6 @@ public class MainFragment extends BrowseSupportFragment
                 mWasInBackground = true;
                 return;
             }
-            mWasInBackground = false;
             while (!connection) {
                 int toastMsg = 0;
                 int toastLeng = 0;

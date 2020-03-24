@@ -169,17 +169,25 @@ public class MainFragment extends BrowseSupportFragment
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
-
             // delete stale entries from bookmark table
             VideoDbHelper dbh = new VideoDbHelper(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
-            Date now = new Date();
             String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
             // 60 days in milliseconds
-            String[] selectionArgs = {String.valueOf(now.getTime() - 60L*24*60*60*1000)};
+            String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L*24*60*60*1000)};
             // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
             int sqlCount = db.delete(VideoContract.StatusEntry.TABLE_NAME, where,selectionArgs);
             db.close();
+            // Initialize startup members
+            if (executor != null)
+                executor.shutdownNow();
+            executor = null;
+            mLastLoadTime = 0;
+            mLoadNeededTime = System.currentTimeMillis();
+            mFetchTime = 0;
+            mActiveFragment = null;
+            mWasInBackground = true;
+
         } else {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
             mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
@@ -932,6 +940,7 @@ public class MainFragment extends BrowseSupportFragment
                     toastMsg = R.string.msg_no_connection;
                     toastLeng = Toast.LENGTH_LONG;
                     connectionfail = true;
+                    mFetchTime = 0; // Force a fetch when it comes back
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }

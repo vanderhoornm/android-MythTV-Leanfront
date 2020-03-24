@@ -23,9 +23,11 @@ import android.util.Log;
 import android.util.Xml;
 
 import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -140,6 +142,12 @@ public class XmlNode {
                 urlConnection.setRequestMethod(requestMethod);
             is = urlConnection.getInputStream();
             ret = XmlNode.parseStream(is);
+        } catch(FileNotFoundException e) {
+            throw e;
+        } catch(IOException e) {
+            if (!urlString.endsWith("/Myth/DelayShutdown"))
+                MainFragment.restartMythTask();
+            throw e;
         } finally {
             if (urlConnection != null)
                 urlConnection.disconnect();

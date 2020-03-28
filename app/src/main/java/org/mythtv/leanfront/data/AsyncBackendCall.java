@@ -71,6 +71,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mFileLength;
     }
 
+    public Video getVideo() {
+        return mVideo;
+    }
+
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
         boolean isRecording = (mVideo.recGroup != null);

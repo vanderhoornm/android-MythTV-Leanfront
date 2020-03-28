@@ -95,7 +95,7 @@ import java.util.ArrayList;
  */
 public class VideoDetailsFragment extends DetailsSupportFragment
         implements LoaderManager.LoaderCallbacks<Cursor>,
-        AsyncBackendCall.OnBackendCallListener {
+        AsyncBackendCall.OnBackendCallListener, OnActionClickedListener {
 
     private static final int NO_NOTIFICATION = -1;
 
@@ -258,100 +258,100 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         detailsPresenter.setParticipatingEntranceTransition(false);
         prepareEntranceTransition();
 
-        detailsPresenter.setOnActionClickedListener(new OnActionClickedListener() {
-            @Override
-            public void onActionClicked(Action action) {
-                int id = (int) action.getId();
-                long bookmark = 0;
-                switch (id) {
-                    case Video.ACTION_PLAY_FROM_BOOKMARK:
-                        bookmark = mBookmark;
-                    case Video.ACTION_PLAY:
-                        Intent intent = new Intent(getActivity(), PlaybackActivity.class);
-                        intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
-                        intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
-                        startActivityForResult(intent, Video.ACTION_PLAY);
-                        break;
-                    case Video.ACTION_DELETE:
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this)
-                                .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
-                        break;
-                    case Video.ACTION_UNDELETE:
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this)
-                                .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
-                        break;
-                    case Video.ACTION_WATCHED:
-                    case Video.ACTION_UNWATCHED:
-                        mWatched = (id == Video.ACTION_WATCHED);
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this)
-                                .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
-                        break;
-                    case Video.ACTION_REMOVE_BOOKMARK:
-                        mBookmark = 0;
-                        new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                                VideoDetailsFragment.this)
-                                .execute(Video.ACTION_SET_BOOKMARK, Video.ACTION_REFRESH);
-                        break;
-                    case Video.ACTION_OTHER:
-                        ArrayList<String> prompts = new ArrayList<String>();
-                        ArrayList<Action> actions = new ArrayList<Action>();
-                        if (mSelectedVideo.recGroup != null) {
-                            if ("Deleted".equals(mSelectedVideo.recGroup)) {
-                                prompts.add(getString(R.string.menu_undelete));
-                                actions.add(new Action(Video.ACTION_UNDELETE));
-                            } else {
-                                prompts.add(getString(R.string.menu_delete));
-                                actions.add(new Action(Video.ACTION_DELETE));
-                            }
-                        }
-
-                        if (mWatched) {
-                            prompts.add(getString(R.string.menu_mark_unwatched));
-                            actions.add(new Action(Video.ACTION_UNWATCHED));
-                        } else {
-                            prompts.add(getString(R.string.menu_mark_watched));
-                            actions.add(new Action(Video.ACTION_WATCHED));
-                        }
-
-                        if (mBookmark > 0) {
-                            prompts.add(getString(R.string.menu_remove_bookmark));
-                            actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
-                        }
-
-                        // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
-                                R.style.Theme_AppCompat_Dialog_Alert);
-                        OnActionClickedListener parent = this;
-                        builder  // If you want a title - .setTitle("Other Actions")
-                            .setTitle(mSelectedVideo.title)
-                            .setItems(prompts.toArray(new String[0]),
-                                new DialogInterface.OnClickListener() {
-                                    ArrayList<Action> mActions = actions;
-                                    OnActionClickedListener mParent = parent;
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // The 'which' argument contains the index position
-                                        // of the selected item
-                                        if (which < mActions.size()) {
-                                            parent.onActionClicked(mActions.get(which));
-                                        }
-                                    }
-                                });
-                        builder.show();
-                        break;
-                    default:
-                        Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        detailsPresenter.setOnActionClickedListener(this);
 
         mPresenterSelector = new ClassPresenterSelector();
         mPresenterSelector.addClassPresenter(DetailsOverviewRow.class, detailsPresenter);
         mPresenterSelector.addClassPresenter(ListRow.class, new ListRowPresenter());
         mAdapter = new ArrayObjectAdapter(mPresenterSelector);
         setAdapter(mAdapter);
+    }
+
+    @Override
+    public void onActionClicked(Action action) {
+        int id = (int) action.getId();
+        long bookmark = 0;
+        switch (id) {
+            case Video.ACTION_PLAY_FROM_BOOKMARK:
+                bookmark = mBookmark;
+            case Video.ACTION_PLAY:
+                Intent intent = new Intent(getActivity(), PlaybackActivity.class);
+                intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
+                intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
+                startActivityForResult(intent, Video.ACTION_PLAY);
+                break;
+            case Video.ACTION_DELETE:
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        VideoDetailsFragment.this)
+                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
+                break;
+            case Video.ACTION_UNDELETE:
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        VideoDetailsFragment.this)
+                        .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
+                break;
+            case Video.ACTION_WATCHED:
+            case Video.ACTION_UNWATCHED:
+                mWatched = (id == Video.ACTION_WATCHED);
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        VideoDetailsFragment.this)
+                        .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
+                break;
+            case Video.ACTION_REMOVE_BOOKMARK:
+                mBookmark = 0;
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        VideoDetailsFragment.this)
+                        .execute(Video.ACTION_SET_BOOKMARK, Video.ACTION_REFRESH);
+                break;
+            case Video.ACTION_OTHER:
+                ArrayList<String> prompts = new ArrayList<String>();
+                ArrayList<Action> actions = new ArrayList<Action>();
+                if (mSelectedVideo.recGroup != null) {
+                    if ("Deleted".equals(mSelectedVideo.recGroup)) {
+                        prompts.add(getString(R.string.menu_undelete));
+                        actions.add(new Action(Video.ACTION_UNDELETE));
+                    } else {
+                        prompts.add(getString(R.string.menu_delete));
+                        actions.add(new Action(Video.ACTION_DELETE));
+                    }
+                }
+
+                if (mWatched) {
+                    prompts.add(getString(R.string.menu_mark_unwatched));
+                    actions.add(new Action(Video.ACTION_UNWATCHED));
+                } else {
+                    prompts.add(getString(R.string.menu_mark_watched));
+                    actions.add(new Action(Video.ACTION_WATCHED));
+                }
+
+                if (mBookmark > 0) {
+                    prompts.add(getString(R.string.menu_remove_bookmark));
+                    actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
+                }
+
+                // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                        R.style.Theme_AppCompat_Dialog_Alert);
+                OnActionClickedListener parent = this;
+                builder  // If you want a title - .setTitle("Other Actions")
+                        .setTitle(mSelectedVideo.title)
+                        .setItems(prompts.toArray(new String[0]),
+                            new DialogInterface.OnClickListener() {
+                                ArrayList<Action> mActions = actions;
+                                OnActionClickedListener mParent = parent;
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    if (which < mActions.size()) {
+                                        mParent.onActionClicked(mActions.get(which));
+                                    }
+                                }
+                            });
+                builder.show();
+                break;
+            default:
+                Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
+        }
     }
 
 

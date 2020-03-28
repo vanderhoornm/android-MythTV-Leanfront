@@ -56,7 +56,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_AUDIO_AUTO = 17;
     private static final int ID_AUDIO_MEDIACODEC = 18;
     private static final int ID_AUDIO_FFMPEG = 19;
-
+    private static final int ID_ARROW_JUMP = 20;
 
     private SharedPreferences.Editor mEditor;
 
@@ -143,6 +143,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
+        String arrowjump = Settings.getString("pref_arrow_jump");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_ARROW_JUMP)
+                .title(R.string.pref_title_arrow_jump)
+                .checked("true".equals(arrowjump))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_JUMP)
                 .title(R.string.pref_title_jump)
@@ -316,6 +324,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                     mEditor.putString("pref_bookmark", "local");
                 else
                     mEditor.putString("pref_bookmark", "mythtv");
+                break;
+            case ID_ARROW_JUMP:
+                if (action.isChecked())
+                    mEditor.putString("pref_arrow_jump", "true");
+                else
+                    mEditor.putString("pref_arrow_jump", "false");
                 break;
             case ID_SORT_ORIG_AIRDATE:
                 if (action.isChecked())

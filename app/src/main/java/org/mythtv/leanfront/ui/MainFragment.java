@@ -75,6 +75,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.FetchVideoService;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
@@ -106,7 +107,7 @@ import java.util.concurrent.TimeUnit;
  * Main class to show BrowseFragment with header and rows of videos
  */
 public class MainFragment extends BrowseSupportFragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>, AsyncBackendCall.OnBackendCallListener {
 
     private static final int BACKGROUND_UPDATE_DELAY = 300;
     private final Handler mHandler = new Handler();
@@ -162,6 +163,7 @@ public class MainFragment extends BrowseSupportFragment
     // Not final so I can change it during debug
     private static int TASK_INTERVAL = 240;
     private ProgressBar progressBar;
+    private ItemViewClickedListener mItemViewClickedListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -325,6 +327,44 @@ public class MainFragment extends BrowseSupportFragment
         super.onStop();
     }
 
+    public boolean onPlay() {
+        int selectedRowNum = getSelectedPosition();
+        int selectedItemNum = -1;
+        if (selectedRowNum >= 0) {
+            int liType = -1;
+            Video video = null;
+            if (!isShowingHeaders()) {
+                ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
+                ListRowPresenter.ViewHolder selectedViewHolder
+                        = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+                        .getRowViewHolder(selectedRowNum);
+                if (selectedViewHolder != null)
+                    selectedItemNum = selectedViewHolder.getSelectedPosition();
+                if (selectedItemNum >= 0) {
+                    ObjectAdapter itemAdapter = selectedRow.getAdapter();
+                    video = (Video) itemAdapter.get(selectedItemNum);
+                    liType = video.getItemType();
+                }
+                switch (liType) {
+                    case TYPE_EPISODE:
+                    case TYPE_VIDEO:
+                        new AsyncBackendCall(video, 0L, false,
+                                this).execute(Video.ACTION_REFRESH);
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        Intent intent = new Intent(getActivity(), PlaybackActivity.class);
+        intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
+        intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
+        startActivityForResult(intent, Video.ACTION_PLAY);
+    }
+
     public static MainFragment getActiveFragment() {
         return mActiveFragment;
     }
@@ -379,7 +419,7 @@ public class MainFragment extends BrowseSupportFragment
             }
         });
 
-        setOnItemViewClickedListener(new ItemViewClickedListener());
+        setOnItemViewClickedListener(mItemViewClickedListener = new ItemViewClickedListener());
         setOnItemViewSelectedListener(new ItemViewSelectedListener());
     }
 
@@ -836,7 +876,6 @@ public class MainFragment extends BrowseSupportFragment
             Activity context = getActivity();
             Bundle bundle;
             MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
-            int type = headerItem.getItemType();
             switch (liType) {
                 case TYPE_EPISODE:
                 case TYPE_VIDEO:

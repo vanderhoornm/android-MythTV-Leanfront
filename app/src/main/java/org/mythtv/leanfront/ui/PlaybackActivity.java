@@ -63,12 +63,7 @@ public class PlaybackActivity extends LeanbackActivity {
         }
         // Prevent screen saver during playback
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        try {
-            mJumpEnabled = Integer.parseInt(Settings.getString("pref_jump"))>0;
-        } catch (NumberFormatException ex) {
-            mJumpEnabled = false;
-        }
-
+        mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
     }
 
     @Override
@@ -79,16 +74,45 @@ public class PlaybackActivity extends LeanbackActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
-            mPlaybackFragment.skipToNext();
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_L1) {
-            mPlaybackFragment.skipToPrevious();
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_L2) {
-            mPlaybackFragment.rewind();
-        } else if (keyCode == KeyEvent.KEYCODE_BUTTON_R2) {
-            mPlaybackFragment.fastForward();
+        switch(keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                mPlaybackFragment.skipToPrevious();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                mPlaybackFragment.skipToNext();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+                mPlaybackFragment.rewind();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+                mPlaybackFragment.fastForward();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_STOP:
+                finish();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
+                mPlaybackFragment.getPlaylistActionListener().onAudioTrack();
+                return true;
+            case KeyEvent.KEYCODE_CAPTIONS:
+                mPlaybackFragment.getPlaylistActionListener().onCaption();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
+                mPlaybackFragment.tickle();
+                mPlaybackFragment.jumpForward();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
+                mPlaybackFragment.tickle();
+                mPlaybackFragment.jumpBack();
+                return true;
+            case KeyEvent.KEYCODE_TV_ZOOM_MODE:
+                mPlaybackFragment.getPlaylistActionListener().onAspect();
+                return true;
+            case KeyEvent.KEYCODE_ZOOM_IN:
+                mPlaybackFragment.zoom(1);
+                return true;
+            case KeyEvent.KEYCODE_ZOOM_OUT:
+                mPlaybackFragment.zoom(-1);
+                return true;
         }
 
         return super.onKeyDown(keyCode, event);
@@ -134,7 +158,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle(true,!mArrowSkipJump);
+                mPlaybackFragment.tickle();
                 mPlaybackFragment.fastForward();
                 return true;
             }
@@ -151,7 +175,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.tickle(true, !mArrowSkipJump);
+                mPlaybackFragment.tickle();
                 mPlaybackFragment.rewind();
                 return true;
             }

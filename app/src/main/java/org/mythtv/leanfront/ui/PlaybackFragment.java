@@ -114,8 +114,9 @@ public class PlaybackFragment extends VideoSupportFragment
     private static final float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
     private int mAspectIndex = 0;
     private float mAspect = 1.0f;
-    private static final float[] SCALE_VALUES = {1.0f, 1.166666f, 1.333333f, 1.5f, 0.875f};
-    private int mScaleIndex = 0;
+    private static final float[] SCALE_VALUES = { 0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
+    private static final int SCALE_DEFAULT_INDEX = 1;
+    private int mScaleIndex = SCALE_DEFAULT_INDEX;
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
     private static float[] PIVOTY_VALUES = {0.5f, 0.0f, 1.0f};
@@ -635,6 +636,49 @@ public class PlaybackFragment extends VideoSupportFragment
         return mSpeedIndex > SPEED_1_INDEX;
     }
 
+    public PlaylistActionListener getPlaylistActionListener() {
+        return mPlaylistActionListener;
+    }
+
+
+    // mode = -1 for smaller, 0 for rotate, 1 for bigger
+    public void zoom(int mode) {
+        if (mode == 0) {
+            if (++mScaleIndex >= SCALE_VALUES.length)
+                mScaleIndex = 0;
+        }
+        else {
+            int newValue = mScaleIndex + mode;
+            if (newValue >= SCALE_VALUES.length
+                || newValue < 0)
+                return;
+            mScaleIndex = newValue;
+        }
+
+        mScaleX = SCALE_VALUES[mScaleIndex];
+        mScaleY = SCALE_VALUES[mScaleIndex];
+        setScale();
+
+        int vertPerc = Math.round(mScaleY * 100.0f);
+        StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_zoom_size))
+                .append(" ").append(vertPerc).append("%");
+        if (mToast != null)
+            mToast.cancel();
+        mToast = Toast.makeText(getActivity(),
+                msg, Toast.LENGTH_LONG);
+        mToast.show();
+    }
+
+    private void setScale() {
+        SurfaceView view = getSurfaceView();
+        int height = view.getHeight();
+        view.setPivotY(mPivotY * height);
+        view.setScaleX(mScaleX * mAspect);
+        view.setScaleY(mScaleY);
+    }
+
+
+
     /**
      * Opens the video details page when a related video has been clicked.
      */
@@ -775,20 +819,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onZoom() {
-            if (++mScaleIndex >= SCALE_VALUES.length)
-                mScaleIndex = 0;
-            mScaleX = SCALE_VALUES[mScaleIndex];
-            mScaleY = SCALE_VALUES[mScaleIndex];
-            setScale();
-
-            int vertPerc = Math.round(mScaleY * 100.0f);
-            StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_zoom_size))
-                    .append(" ").append(vertPerc).append("%");
-            if (mToast != null)
-                mToast.cancel();
-            mToast = Toast.makeText(getActivity(),
-                    msg, Toast.LENGTH_LONG);
-            mToast.show();
+            zoom(0);
         }
 
         @Override
@@ -907,14 +938,6 @@ public class PlaybackFragment extends VideoSupportFragment
         public void onAudioTrack() {
             mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
                     R.string.msg_audio_track, R.string.msg_no_audio_track, false);
-        }
-
-        private void setScale() {
-            SurfaceView view = getSurfaceView();
-            int height = view.getHeight();
-            view.setPivotY(mPivotY * height);
-            view.setScaleX(mScaleX * mAspect);
-            view.setScaleY(mScaleY);
         }
 
     }

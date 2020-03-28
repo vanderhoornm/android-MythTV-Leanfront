@@ -29,6 +29,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 
 import androidx.fragment.app.Fragment;
 
@@ -90,6 +91,20 @@ public class MainActivity extends LeanbackActivity {
             });
         }
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_MEDIA_PLAY:
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                if (mainFragment != null) {
+                    if (mainFragment.onPlay())
+                        return true;
+                }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 
     public static void setAppLocale(String localeCode){
         Resources resources = context.getResources();

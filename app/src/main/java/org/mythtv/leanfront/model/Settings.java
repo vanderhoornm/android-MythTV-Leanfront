@@ -81,6 +81,10 @@ public class Settings {
         mEditor.putString("pref_seq_ascdesc",str);
         str = mPrefs.getString("pref_audio", "auto");
         mEditor.putString("pref_audio",str);
+        str = mPrefs.getString("pref_arrow_jump", "false");
+        mEditor.putString("pref_arrow_jump",str);
+        str = mPrefs.getString("pref_jump", "5");
+        mEditor.putString("pref_jump",str);
         mEditor.apply();
     }
 }

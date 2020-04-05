@@ -27,6 +27,7 @@ package org.mythtv.leanfront.ui;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -39,6 +40,7 @@ import android.os.Handler;
 
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
+import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.CursorObjectAdapter;
@@ -51,6 +53,7 @@ import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.Row;
+import androidx.leanback.widget.RowHeaderPresenter;
 import androidx.leanback.widget.RowPresenter;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.widget.SparseArrayObjectAdapter;
@@ -421,6 +424,9 @@ public class MainFragment extends BrowseSupportFragment
 
         setOnItemViewClickedListener(mItemViewClickedListener = new ItemViewClickedListener());
         setOnItemViewSelectedListener(new ItemViewSelectedListener());
+        HeadersSupportFragment header = getHeadersSupportFragment();
+        if (header != null)
+            header.setOnHeaderClickedListener(new HeaderClickedListener());
     }
 
     private void updateBackground(String uri) {
@@ -941,6 +947,68 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
+    private final class HeaderClickedListener implements HeadersSupportFragment.OnHeaderClickedListener {
+        @Override
+        public void onHeaderClicked(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
+            Context context = getActivity();
+            MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
+
+            Intent intent;
+            int type = headerItem.getItemType();
+            switch (type) {
+                case MainFragment.TYPE_SETTINGS:
+                    intent = new Intent(context, SettingsActivity.class);
+                    break;
+                case MainFragment.TYPE_RECGROUP:
+                case MainFragment.TYPE_TOP_ALL:
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
+                    intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
+                    break;
+                case MainFragment.TYPE_VIDEODIR_ALL:
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
+                    intent.putExtra(MainFragment.KEY_BASENAME,"");
+                    break;
+                case MainFragment.TYPE_VIDEODIR:
+                    String name = headerItem.getName();
+                    // All and Root entries
+                    if (name.endsWith("\t")) {
+                        int rownum = mCategoryRowAdapter.indexOf(row);
+                        if (rownum == -1)
+                            return;
+                        if (rownum == getSelectedPosition())
+                            startHeadersTransition(false);
+                        else
+                            setSelectedPosition(rownum);
+                        return;
+                    }
+                    intent = new Intent(context, MainActivity.class);
+                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
+                    String baseName = headerItem.getBaseName();
+                    if (baseName != null && baseName.length() > 0)
+                        baseName = baseName + "/" + name;
+                    else
+                        baseName = name;
+                    intent.putExtra(MainFragment.KEY_BASENAME,baseName);
+                    break;
+                default:
+                    int rownum = mCategoryRowAdapter.indexOf(row);
+                    if (rownum == -1)
+                        return;
+                    if (rownum == getSelectedPosition())
+                        startHeadersTransition(false);
+                    else
+                        setSelectedPosition(rownum);
+                    return;
+            }
+            Bundle bundle =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
+                            .toBundle();
+            context.startActivity(intent, bundle);
+
+        }
+    }
 
     private static class MythTask implements Runnable{
         boolean mVersionMessageShown = false;
@@ -954,6 +1022,9 @@ public class MainFragment extends BrowseSupportFragment
                 mWasInBackground = true;
                 return;
             }
+            String backendIP = Settings.getString("pref_backend");
+            if (backendIP == null || backendIP.length() == 0)
+                return;
             while (!connection) {
                 int toastMsg = 0;
                 int toastLeng = 0;

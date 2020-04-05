@@ -24,17 +24,13 @@
 
 package org.mythtv.leanfront.presenter;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,10 +38,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.mythtv.leanfront.model.MyHeaderItem;
-import org.mythtv.leanfront.ui.SettingsActivity;
 
 public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
@@ -84,8 +78,6 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             default:
                 icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
         }
-        MyListener listener = new MyListener();
-        setOnClickListener(viewHolder,listener);
         iconView.setImageDrawable(icon);
 
         TextView label = rootView.findViewById(R.id.header_label);
@@ -104,50 +96,5 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
     protected void onSelectLevelChanged(RowHeaderPresenter.ViewHolder holder) {
         holder.view.setAlpha(mUnselectedAlpha + holder.getSelectLevel() *
                 (1.0f - mUnselectedAlpha));
-    }
-
-    private class MyListener implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-            Context context = v.getContext();
-            Intent intent;
-            int type = headerItem.getItemType();
-            switch (type) {
-                case MainFragment.TYPE_SETTINGS:
-                    intent = new Intent(context, SettingsActivity.class);
-                    break;
-                case MainFragment.TYPE_RECGROUP:
-                case MainFragment.TYPE_TOP_ALL:
-                    intent = new Intent(context, MainActivity.class);
-                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_RECGROUP);
-                    intent.putExtra(MainFragment.KEY_BASENAME,headerItem.getName());
-                    break;
-                case MainFragment.TYPE_VIDEODIR_ALL:
-                    intent = new Intent(context, MainActivity.class);
-                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
-                    intent.putExtra(MainFragment.KEY_BASENAME,"");
-                    break;
-                case MainFragment.TYPE_VIDEODIR:
-                    String name = headerItem.getName();
-                    // Exclude All and Root entries
-                    if (name.endsWith("\t"))
-                        return;
-                    intent = new Intent(context, MainActivity.class);
-                    intent.putExtra(MainFragment.KEY_TYPE,MainFragment.TYPE_VIDEODIR);
-                    String baseName = headerItem.getBaseName();
-                    if (baseName != null && baseName.length() > 0)
-                        baseName = baseName + "/" + name;
-                    else
-                        baseName = name;
-                    intent.putExtra(MainFragment.KEY_BASENAME,baseName);
-                    break;
-                default:
-                    return;
-            }
-            Bundle bundle =
-                    ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
-                            .toBundle();
-            context.startActivity(intent, bundle);
-        }
     }
 }

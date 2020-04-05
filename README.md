@@ -42,6 +42,20 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press froward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 
+## Problems
+
+Some recordings or videos may not play correctly, or may not play at all. In some cases,
+videos may play but the duration may not show in the OSD and skipping forward may not work.
+In some cases audio may be garbled. We are looking into these problems and hope to have a
+solution. If the recording plays correctly with mythfrontend or VLC but not with leanfront,
+try running this command against the file. Use this for recorded programs only (mpeg ts streams):
+
+```
+ffmpeg -i inputfile -acodec copy -vcodec copy -scodec copy -f mpegts outputfile
+```
+You can overwrite the recording file with the output from this command. This may
+repair the file so that it works correctly.
+
 ## Playback controls (OSD)
 
 ![](PlaybackExample.png)
@@ -119,9 +133,18 @@ If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. H
 | DPad Up | Playback | Jump forward number of minutes specified in settings (default is 5) |
 | DPad Down | Playback | Jump back number of minutes specified in settings (default is 5) |
 
-## Restrictions / Limitations
+## Android Phones / Tablets
 
-These may be addressed n a future release.
+It is not recommended to run leanfront on an Android phone or tablet. You can install it if
+you are running Android 5.0 (Lollipop) or later version, but controlling it through the touch
+screen does not work correctly.
+The application reacts to the touch screen, but it is not usable.
+It may be possible to run it on a phone or tablet if you attach a remote control
+or a keyboard.
+
+## Leanfront Restrictions / Limitations
+
+These may be addressed in a future release.
 
 - There is no support for watching LiveTV at present.
 - The *Master Backend Override* setting does not work. It is ignored.
@@ -133,7 +156,7 @@ These may be addressed n a future release.
 ## Download and install
 
 - Download the latest apk from  [Bintray][bintray].
-- Enable debug mode on your android TV device.
+- Enable developer mode on your android device.
 - install adb on your computer
 - Run these
 
@@ -141,6 +164,10 @@ These may be addressed n a future release.
     adb connect <android-ip-address>
     adb install -r <apk-name>
 ```
+Alternatively, if you have a browser on your android device you can avoid using developer mode.
+
+- Enable installation of apps from unknown source in Android settings.
+- Navigate to the download site (https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android), select the latest version, tap it and request the system to install it.
 
 ## To Do List
 

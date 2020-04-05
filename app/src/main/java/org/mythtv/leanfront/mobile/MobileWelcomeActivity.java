@@ -26,9 +26,12 @@
 package org.mythtv.leanfront.mobile;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.ui.MainActivity;
 
 public class MobileWelcomeActivity extends Activity {
 
@@ -36,5 +39,10 @@ public class MobileWelcomeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mobile_welcome);
+    }
+
+    public void onClickBanner(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);;
     }
 }

@@ -15,19 +15,25 @@
         android:gravity="center_horizontal"
         android:id="@+id/title"
         android:layout_height="wrap_content" />
+
     <TextView
+        android:id="@+id/description"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="16dp"
         android:text="@string/mobile_welcome_description"
-        android:textSize="16sp"
-        android:id="@+id/description"
-        android:layout_height="wrap_content" />
+        android:textSize="16sp" />
+
     <ImageView
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_below="@id/description"
-        android:src="@drawable/ic_main_icon"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
-        android:layout_height="wrap_content" />
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:onClick="onClickBanner"
+        android:src="@drawable/banner_lean" />
 </RelativeLayout>

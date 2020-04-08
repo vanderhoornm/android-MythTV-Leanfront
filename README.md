@@ -46,15 +46,19 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 Some recordings or videos may not play correctly, or may not play at all. In some cases,
 videos may play but the duration may not show in the OSD and skipping forward may not work.
-In some cases audio may be garbled. We are looking into these problems and hope to have a
-solution. If the recording plays correctly with mythfrontend or VLC but not with leanfront,
-try running this command against the file. Use this for recorded programs only (mpeg ts streams):
+In some cases audio may be garbled. If the recording plays correctly with mythfrontend or VLC but not with leanfront,
+try running one of these commands (below) against the file. Use the first one for recorded programs only (mpeg ts streams).
+The second command can be used for recordings or videos. The second command converts the file to
+mkv format. You do not need to use an mkv extension, a ts or mpg extension will also work for an mkv format
+file.
 
 ```
 ffmpeg -i inputfile -acodec copy -vcodec copy -scodec copy -f mpegts outputfile
+mkvmerge -o outputfile inputfile
 ```
-You can overwrite the recording file with the output from this command. This may
-repair the file so that it works correctly.
+You can overwrite the recording or video file with the output from one of these commands. Both of these commands run very quickly and recreate the file with any inconsistencies fixed. The mkvmerge command seems to be better than ffmpeg at fixing most problems.
+
+You can create a user job to run one of these commands after each recording if necessary.
 
 ## Playback controls (OSD)
 

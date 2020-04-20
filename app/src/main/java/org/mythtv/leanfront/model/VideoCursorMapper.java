@@ -35,6 +35,7 @@ import org.mythtv.leanfront.data.VideoContract;
 public final class VideoCursorMapper extends CursorMapper {
 
     private static int idIndex;
+    private static int rectypeIndex;
     private static int titleIndex;
     private static int nameIndex;
     private static int descIndex;
@@ -48,15 +49,20 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int episodeIndex;
     private static int airdateIndex;
     private static int starttimeIndex;
+    private static int endtimeIndex;
     private static int durationIndex;
     private static int prodyearIndex;
     private static int filenameIndex;
     private static int hostnameIndex;
     private static int progflagsIndex;
+    private static int chanidIndex;
+    private static int channumIndex;
+    private static int callsignIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
         idIndex = cursor.getColumnIndex(VideoContract.VideoEntry._ID);
+        rectypeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECTYPE);
         titleIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
         nameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         descIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DESC);
@@ -70,11 +76,15 @@ public final class VideoCursorMapper extends CursorMapper {
         episodeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_EPISODE);
         airdateIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
         starttimeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
+        endtimeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_ENDTIME);
         durationIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DURATION);
         prodyearIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR);
         filenameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
         hostnameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_HOSTNAME);
         progflagsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PROGFLAGS);
+        chanidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
+        channumIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
+        callsignIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CALLSIGN);
     }
 
     @Override
@@ -88,6 +98,7 @@ public final class VideoCursorMapper extends CursorMapper {
                     .build();
         // Get the values of the video.
         long id = cursor.getLong(idIndex);
+        int rectype = cursor.getInt(rectypeIndex);
         String title = cursor.getString(titleIndex);
         String subtitle = cursor.getString(nameIndex);
         String desc = cursor.getString(descIndex);
@@ -97,20 +108,24 @@ public final class VideoCursorMapper extends CursorMapper {
         String channel = cursor.getString(channelIndex);
         String recordedid = cursor.getString(recordedidIndex);
         String recGroup = cursor.getString(recGroupIndex);
-
         String season = cursor.getString(seasonIndex);
         String episode = cursor.getString(episodeIndex);
         String airdate = cursor.getString(airdateIndex);
         String starttime = cursor.getString(starttimeIndex);
+        String endtime = cursor.getString(endtimeIndex);
         String duration = cursor.getString(durationIndex);
         String prodyear = cursor.getString(prodyearIndex);
         String filename = cursor.getString(filenameIndex);
         String hostname = cursor.getString(hostnameIndex);
         String progflags = cursor.getString(progflagsIndex);
+        String chanid = cursor.getString(chanidIndex);
+        String channum = cursor.getString(channumIndex);
+        String callsign = cursor.getString(callsignIndex);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
                 .id(id)
+                .rectype(rectype)
                 .title(title)
                 .subtitle(subtitle)
                 .description(desc)
@@ -124,11 +139,15 @@ public final class VideoCursorMapper extends CursorMapper {
                 .episode(episode)
                 .airdate(airdate)
                 .starttime(starttime)
+                .endtime(endtime)
                 .duration(duration)
                 .prodyear(prodyear)
                 .filename(filename)
                 .hostname(hostname)
                 .progflags(progflags)
+                .chanid(chanid)
+                .channum(channum)
+                .callsign(callsign)
                 .build();
     }
 }

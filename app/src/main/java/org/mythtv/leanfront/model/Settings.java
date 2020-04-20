@@ -85,6 +85,8 @@ public class Settings {
         mEditor.putString("pref_arrow_jump",str);
         str = mPrefs.getString("pref_jump", "5");
         mEditor.putString("pref_jump",str);
+        str = mPrefs.getString("pref_livetv_duration", "60");
+        mEditor.putString("pref_livetv_duration",str);
         mEditor.apply();
     }
 }

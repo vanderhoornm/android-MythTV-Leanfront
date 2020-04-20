@@ -108,7 +108,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    // Ignore this exception.
                 }
                 leng2 = mHttpDataSource.open(dataSpec2);
             } catch (HttpDataSource.InvalidResponseCodeException e) {

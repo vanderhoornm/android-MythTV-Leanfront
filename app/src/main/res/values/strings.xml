@@ -32,6 +32,8 @@
     <string name="personal_settings">Settings</string>
     <string name="play_1">Play</string>
     <string name="play_2">From Start</string>
+    <string name="play_livetv_1">Play</string>
+    <string name="play_livetv_2">Live TV</string>
     <string name="resume_1">Play from</string>
     <string name="resume_2">Bookmark</string>
     <string name="delete_1">Delete</string>
@@ -98,6 +100,8 @@
     <string name="menu_mark_unwatched">Mark as Unwatched</string>
     <string name="menu_mark_watched">Mark as Watched</string>
     <string name="menu_remove_bookmark">Remove Bookmark</string>
+    <string name="menu_stop_recording">Stop Recording</string>
+    <string name="menu_dont_stop_recording">Don\'t Stop Recording</string>
     <string name="dummy_empty_string" translatable="false"></string>
     <string name="pref_seq_orig_airdate">Original Air Date</string>
     <string name="pref_seq_rec_time">Date/Time Recorded</string>
@@ -116,6 +120,7 @@
     <string name="msg_pin_top">Pinned at Top.</string>
     <string name="msg_pin_bottom">Pinned at Bottom.</string>
     <string name="button_refresh_lists">Refresh Lists</string>
+    <string name="title_livetv_recording">LiveTV</string>
     <string name="pref_ff_title">Audio Decode</string>
     <string name="pref_audio_auto">Auto select</string>
     <string name="pref_audio_mediacodec">Mediacodec</string>
@@ -129,6 +134,14 @@
     <string name="button_pivot">Move Up/Down</string>
     <string name="button_cc">Closed Captions</string>
     <string name="button_audiotrack">Change Audio Track</string>
+    <string name="row_header_videos">Videos</string>
+    <string name="row_header_channels">Channels</string>
+    <string name="title_alert_livetv">Live TV</string>
+    <string name="alert_livetv_message">Recording failed.</string>
+    <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
+    <string name="title_are_you_sure">Are you sure?</string>
+    <!-- In the below string the %1 is the channel number ans %2 is the callsign   -->
+    <string name="channel_item_subtitle">Channel %1$s %2$s</string>
 
     <!--Words to be stripped from the front of titles for sorting
         Must be in UPPER CASE-->

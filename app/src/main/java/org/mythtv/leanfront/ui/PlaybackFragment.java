@@ -149,6 +149,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private String mAudio = Settings.getString("pref_audio");
     private View mFocusView;
     private Action mCurrentAction;
+    private long mRecordid = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -156,6 +157,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
         mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
+        mRecordid = getActivity().getIntent().getLongExtra(VideoDetailsActivity.RECORDID, -1);
         mPlaylist = new Playlist();
         mWatched = (Integer.parseInt(mVideo.progflags, 10) & Video.FL_WATCHED) != 0;
 
@@ -164,6 +166,7 @@ public class PlaybackFragment extends VideoSupportFragment
         // Loads the playlist.
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
+        args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mVideo.rectype);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
 
@@ -200,7 +203,15 @@ public class PlaybackFragment extends VideoSupportFragment
         if (mPlayerGlue != null && mPlayerGlue.isPlaying()) {
             mPlayerGlue.pause();
         }
-        setBookmark();
+        if (mRecordid >= 0) {
+            // Terminate Live TV
+            new AsyncBackendCall(mVideo, mRecordid, false,
+                    null).execute(
+                    Video.ACTION_STOP_RECORDING,
+                    Video.ACTION_REMOVE_RECORD_RULE);
+        }
+        else
+            setBookmark();
         if (Util.SDK_INT <= 23) {
             releasePlayer();
         }
@@ -254,7 +265,8 @@ public class PlaybackFragment extends VideoSupportFragment
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
         mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
-        mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter, mPlaylistActionListener);
+        mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
+                mPlaylistActionListener, mRecordid < 0);
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         mPlayerGlue.playWhenPrepared();
 
@@ -358,6 +370,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         Bundle args = new Bundle();
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, mVideo.title);
+        args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mVideo.rectype);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
 
@@ -367,7 +380,9 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     public void skipToNext() {
-//        mPlayerGlue.next();
+        // We do not support this for LiveTV
+        if (mRecordid >= 0)
+            return;
         Video v = mPlaylist.next();
         if (v != null) {
             setBookmark();
@@ -379,6 +394,9 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     public void skipToPrevious() {
+        // We do not support this for LiveTV
+        if (mRecordid >= 0)
+            return;
         Video v = mPlaylist.previous();
         if (v != null) {
             setBookmark();
@@ -566,7 +584,6 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-
     public void markWatched(boolean watched) {
         mWatched = watched;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
@@ -593,6 +610,8 @@ public class PlaybackFragment extends VideoSupportFragment
                 hideControlsOverlay(false);
             }
         }
+        else
+            markWatched(true);
         mIsPlayResumable = false;
     }
 
@@ -726,9 +745,10 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             // When loading related videos or videos for the playlist, query by category.
+            int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE, -1);
             String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
             String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
-            if (recgroup == null && filename != null) {
+            if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
                 // Videos
                 int pos = filename.lastIndexOf('/');
                 String dirname = "";
@@ -745,8 +765,12 @@ public class PlaybackFragment extends VideoSupportFragment
                         new String[]{dirname},
                         orderby);
             } else {
-                // Recordings
-                String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                // Recordings or LiveTV
+                String category;
+                if (mRecordid < 0) // i.e. LiveTV
+                    category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                else
+                    category = "X\t";
                 String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                         + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                         + VideoContract.VideoEntry.COLUMN_STARTTIME;
@@ -814,7 +838,6 @@ public class PlaybackFragment extends VideoSupportFragment
                 mIsPlayResumable = true;
                 getFileLength();
             }
-            markWatched(true);
         }
 
         @Override

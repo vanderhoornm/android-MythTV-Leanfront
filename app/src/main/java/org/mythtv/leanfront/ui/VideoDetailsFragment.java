@@ -66,10 +66,12 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -81,12 +83,18 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.DetailsDescriptionPresenter;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 /*
@@ -96,6 +104,9 @@ import java.util.ArrayList;
 public class VideoDetailsFragment extends DetailsSupportFragment
         implements LoaderManager.LoaderCallbacks<Cursor>,
         AsyncBackendCall.OnBackendCallListener, OnActionClickedListener {
+
+    private static final String TAG = "lfe";
+    private static final String CLASS = "VideoDetailsFragment";
 
     private static final int NO_NOTIFICATION = -1;
 
@@ -125,6 +136,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private DetailsOverviewRow mDetailsOverviewRow = null;
     private boolean mWatched;
     private DetailsDescriptionPresenter mDetailsDescriptionPresenter;
+    private ProgressBar mProgressBar = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -149,8 +161,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             updateBackground(mSelectedVideo.bgImageUrl);
             int progflags = Integer.parseInt(mSelectedVideo.progflags);
             mWatched = ((progflags & Video.FL_WATCHED) != 0);
-            new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                    this).execute(Video.ACTION_REFRESH);
+            if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        this).execute(Video.ACTION_REFRESH);
 
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(new ItemViewClickedListener());
@@ -271,6 +284,13 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public void onActionClicked(Action action) {
         int id = (int) action.getId();
         long bookmark = 0;
+        ArrayList<String> prompts = null;
+        ArrayList<Action> actions = null;
+        String alertTitle = null;
+
+        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL
+            && (id == Video.ACTION_PLAY_FROM_BOOKMARK || id == Video.ACTION_PLAY))
+            id = Video.ACTION_LIVETV;
         switch (id) {
             case Video.ACTION_PLAY_FROM_BOOKMARK:
                 bookmark = mBookmark;
@@ -280,32 +300,57 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
                 startActivityForResult(intent, Video.ACTION_PLAY);
                 break;
+            case Video.ACTION_LIVETV:
+                setProgressBar(true);
+                new AsyncBackendCall(mSelectedVideo, 0L, false,
+                        this).execute(Video.ACTION_LIVETV);
+                break;
             case Video.ACTION_DELETE:
                 new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                        VideoDetailsFragment.this)
+                        this)
                         .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_UNDELETE:
                 new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                        VideoDetailsFragment.this)
+                        this)
                         .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_WATCHED:
             case Video.ACTION_UNWATCHED:
                 mWatched = (id == Video.ACTION_WATCHED);
                 new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                        VideoDetailsFragment.this)
+                        this)
                         .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_REMOVE_BOOKMARK:
                 mBookmark = 0;
                 new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
-                        VideoDetailsFragment.this)
+                        this)
                         .execute(Video.ACTION_SET_BOOKMARK, Video.ACTION_REFRESH);
                 break;
+            case Video.ACTION_QUERY_STOP_RECORDING:
+                prompts = new ArrayList<>();
+                actions = new ArrayList<>();
+                alertTitle = getString(R.string.title_are_you_sure);
+                prompts.add(getString(R.string.menu_dont_stop_recording));
+                actions.add(new Action(Video.ACTION_CANCEL));
+                prompts.add(getString(R.string.menu_stop_recording));
+                actions.add(new Action(Video.ACTION_STOP_RECORDING));
+                break;
+
+            case Video.ACTION_STOP_RECORDING:
+                if (mSelectedVideo.recordedid != null) {
+                    // Terminate Live TV
+                    new AsyncBackendCall(mSelectedVideo, 0, false,
+                            this)
+                            .execute(Video.ACTION_STOP_RECORDING, Video.ACTION_REFRESH);
+                }
+                break;
+            case Video.ACTION_CANCEL:
+                break;
             case Video.ACTION_OTHER:
-                ArrayList<String> prompts = new ArrayList<String>();
-                ArrayList<Action> actions = new ArrayList<Action>();
+                prompts = new ArrayList<>();
+                actions = new ArrayList<>();
                 if (mSelectedVideo.recGroup != null) {
                     if ("Deleted".equals(mSelectedVideo.recGroup)) {
                         prompts.add(getString(R.string.menu_undelete));
@@ -329,16 +374,41 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
                 }
 
-                // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
-                        R.style.Theme_AppCompat_Dialog_Alert);
-                OnActionClickedListener parent = this;
-                builder  // If you want a title - .setTitle("Other Actions")
-                        .setTitle(mSelectedVideo.title)
-                        .setItems(prompts.toArray(new String[0]),
+                // End Time
+                try {
+                    SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                    if (mSelectedVideo.endtime != null) {
+                        Date dateEnd = dbFormat.parse(mSelectedVideo.endtime + "+0000");
+                        long dateMS = dateEnd.getTime();
+                        // If end time is more than 2 mins in the future allow stopping
+                        if (dateMS > System.currentTimeMillis() + 120000) {
+                            prompts.add(getString(R.string.menu_stop_recording));
+                            actions.add(new Action(Video.ACTION_QUERY_STOP_RECORDING));
+                        }
+                    }
+                } catch (ParseException e) {
+                    Log.e(TAG, CLASS + " Exception parsing endtime.", e);
+                }
+                break;
+
+            default:
+                Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
+        }
+        if (prompts != null && actions != null) {
+            final ArrayList<Action> finalActions = actions; // needed because used in inner class
+            if (alertTitle == null)
+                alertTitle = mSelectedVideo.title;
+            // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                    R.style.Theme_AppCompat_Dialog_Alert);
+            OnActionClickedListener parent = this;
+            builder
+                    .setTitle(alertTitle)
+                    .setItems(prompts.toArray(new String[0]),
                             new DialogInterface.OnClickListener() {
-                                ArrayList<Action> mActions = actions;
+                                ArrayList<Action> mActions = finalActions;
                                 OnActionClickedListener mParent = parent;
+
                                 public void onClick(DialogInterface dialog, int which) {
                                     // The 'which' argument contains the index position
                                     // of the selected item
@@ -347,10 +417,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                     }
                                 }
                             });
-                builder.show();
-                break;
-            default:
-                Toast.makeText(getActivity(), action.toString(), Toast.LENGTH_SHORT).show();
+            builder.show();
         }
     }
 
@@ -358,7 +425,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public void onActivityResult (int requestCode,
                                   int resultCode,
                                   Intent intent) {
-        if (requestCode == Video.ACTION_PLAY)
+        if (requestCode == Video.ACTION_PLAY
+                && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
             new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
                     this).execute(Video.ACTION_REFRESH);
     }
@@ -368,9 +436,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         switch (id) {
             case RELATED_VIDEO_LOADER: {
                 // When loading related videos or videos for the playlist, query by category.
+                int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE);
                 String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
                 String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
-                if (recgroup == null && filename != null) {
+                if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
                     // Videos
                     int pos = filename.lastIndexOf('/');
                     String dirname = "";
@@ -388,8 +457,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             orderby);
                 }
                 else {
-                    // Recordings
-                    String category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                    // Recordings or channels
+                    String category;
+                    if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                        category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
+                    else
+                        category = "X\t"; // To prevent anything being found
                     String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                             + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                             + VideoContract.VideoEntry.COLUMN_STARTTIME;
@@ -401,7 +474,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             new String[]{category},
                             orderby);
                 }
-
             }
             default: {
                 // Loading video from global search.
@@ -473,7 +545,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             int width = res.getDimensionPixelSize(R.dimen.detail_thumb_width);
             int height = res.getDimensionPixelSize(R.dimen.detail_thumb_height);
             imageView.setLayoutParams(new ViewGroup.MarginLayoutParams(width, height));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             return new ViewHolder(imageView);
         }
@@ -495,9 +567,20 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mDetailsOverviewRow = new DetailsOverviewRow(mSelectedVideo);
         Drawable defaultImage = getResources().getDrawable(R.drawable.im_movie, null);
 
+        int defaultIcon = R.drawable.im_movie;
+        String imageUrl = mSelectedVideo.cardImageUrl;
+        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            defaultIcon = R.drawable.im_live_tv;
+            try {
+                imageUrl = XmlNode.mythApiUrl(null, "/Guide/GetChannelIcon?ChanId=" + mSelectedVideo.chanid);
+            } catch (IOException | XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+
         RequestOptions options = new RequestOptions()
-                .error(R.drawable.im_movie)
-                .fallback(R.drawable.im_movie)
+                .error(defaultIcon)
+                .fallback(defaultIcon)
                 .dontAnimate();
 
         CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
@@ -519,20 +602,25 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         mDetailsOverviewRow.setImageDrawable(defaultImage);
                     }
                 };
-        if (mSelectedVideo.cardImageUrl == null)
+        if (imageUrl == null)
             Glide.with(this)
                     .asBitmap()
-                    .load(R.drawable.im_movie)
+                    .load(defaultIcon)
                     .apply(options)
                     .into(target);
         else
             Glide.with(this)
                     .asBitmap()
-                    .load(mSelectedVideo.cardImageUrl)
+                    .load(imageUrl)
                     .apply(options)
                     .into(target);
 
         mActionsAdapter = new SparseArrayObjectAdapter();
+        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            mActionsAdapter.set(0, new Action(Video.ACTION_LIVETV, getResources()
+                    .getString(R.string.play_livetv_1),
+                    getResources().getString(R.string.play_livetv_2)));
+        }
         mDetailsOverviewRow.setActionsAdapter(mActionsAdapter);
 
         mAdapter.add(mDetailsOverviewRow);
@@ -545,6 +633,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         String category = mSelectedVideo.title;
 
         Bundle args = new Bundle();
+        args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mSelectedVideo.rectype);
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, category);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mSelectedVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mSelectedVideo.filename);
@@ -554,6 +643,22 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mAdapter.add(new ListRow(header, mVideoCursorAdapter));
     }
 
+    private void setProgressBar(boolean show) {
+        if (mProgressBar == null) {
+            if (!show)
+                return;
+            View mainView = getView();
+            if (mainView == null)
+                return;
+            int height = mainView.getHeight();
+            int padding = height * 5 / 12;
+            mProgressBar = new ProgressBar(getActivity());
+            mProgressBar.setPadding(padding,padding,padding,padding);
+            ViewGroup grp = mainView.findViewById(R.id.details_fragment_root);
+            grp.addView(mProgressBar);
+        }
+        mProgressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+    }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
@@ -576,32 +681,74 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
-        if (taskRunner == null || getActivity() == null)
+        if (taskRunner == null)
             return;
-        mBookmark = taskRunner.getBookmark();
-        int progflags = Integer.parseInt(mSelectedVideo.progflags);
-        mWatched = ((progflags & Video.FL_WATCHED) != 0);
-        mDetailsDescriptionPresenter.setupDescription();
-        int i = 0;
-        mActionsAdapter.clear();
-        if (mBookmark > 0)
-            mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
-                .getString(R.string.resume_1),
-                 getResources().getString(R.string.resume_2)));
-        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
-            .getString(R.string.play_1),
-             getResources().getString(R.string.play_2)));
-        // These add extra if needed buttons
-//        if ("Deleted".equals(mSelectedVideo.recGroup))
-//            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()
-//                 .getString(R.string.undelete_1),
-//                  getResources().getString(R.string.undelete_2)));
-//        else
-//            mActionsAdapter.set(++i, new Action(Video.ACTION_DELETE, getResources()
-//                   .getString(R.string.delete_1),
-//                    getResources().getString(R.string.delete_2)));
-        mActionsAdapter.set(++i, new Action(Video.ACTION_OTHER, getResources()
-                .getString(R.string.button_other_1),
-                getResources().getString(R.string.button_other_2)));
+        Activity activity = getActivity();
+        int [] tasks = taskRunner.getTasks();
+        switch (tasks[0]) {
+            case Video.ACTION_LIVETV:
+                setProgressBar(false);
+                Video video = taskRunner.getVideo();
+                // video null means recording failed
+                // activity null means user pressed back button
+                if (video == null || activity == null) {
+                    if (activity != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(activity,
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.title_alert_livetv);
+                        builder.setMessage(R.string.alert_livetv_message);
+                        // add a button
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.show();
+                    }
+                    long recordId = taskRunner.getRecordId();
+                    long recordedId = taskRunner.getRecordedId();
+                    video = new Video.VideoBuilder()
+                            .recGroup("LiveTV")
+                            .recordedid(String.valueOf(recordedId))
+                            .build();
+                    if (recordId >= 0) {
+                        // Terminate Live TV
+                        new AsyncBackendCall(video, recordId, false,
+                                null).execute(
+                                Video.ACTION_STOP_RECORDING,
+                                Video.ACTION_REMOVE_RECORD_RULE);
+                    }
+                    break;
+                }
+                Intent intent = new Intent(activity, PlaybackActivity.class);
+                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
+                intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
+                startActivity(intent);
+                break;
+            default:
+                mBookmark = taskRunner.getBookmark();
+                int progflags = Integer.parseInt(mSelectedVideo.progflags);
+                mWatched = ((progflags & Video.FL_WATCHED) != 0);
+                mDetailsDescriptionPresenter.setupDescription();
+                int i = 0;
+                mActionsAdapter.clear();
+                if (mBookmark > 0)
+                    mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
+                            .getString(R.string.resume_1),
+                            getResources().getString(R.string.resume_2)));
+                mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
+                        .getString(R.string.play_1),
+                        getResources().getString(R.string.play_2)));
+                // These add extra if needed buttons
+                //        if ("Deleted".equals(mSelectedVideo.recGroup))
+                //            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()
+                //                 .getString(R.string.undelete_1),
+                //                  getResources().getString(R.string.undelete_2)));
+                //        else
+                //            mActionsAdapter.set(++i, new Action(Video.ACTION_DELETE, getResources()
+                //                   .getString(R.string.delete_1),
+                //                    getResources().getString(R.string.delete_2)));
+                mActionsAdapter.set(++i, new Action(Video.ACTION_OTHER, getResources()
+                        .getString(R.string.button_other_1),
+                        getResources().getString(R.string.button_other_2)));
+                break;
+        }
     }
 }

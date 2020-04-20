@@ -41,6 +41,7 @@ public class VideoDetailsActivity extends LeanbackActivity {
     public static final String VIDEO = "Video";
     public static final String NOTIFICATION_ID = "NotificationId";
     public static final String BOOKMARK = "bookmark";
+    public static final String RECORDID = "recordid";
 
     private VideoDetailsFragment mFragment;
 

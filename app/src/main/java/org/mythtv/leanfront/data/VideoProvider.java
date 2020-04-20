@@ -83,6 +83,7 @@ public class VideoProvider extends ContentProvider {
                 VideoContract.VideoEntry.COLUMN_DURATION,
                 VideoContract.VideoEntry.COLUMN_AIRDATE,
                 VideoContract.VideoEntry.COLUMN_STARTTIME,
+                VideoContract.VideoEntry.COLUMN_ENDTIME,
                 VideoContract.VideoEntry.COLUMN_ACTION,
                 VideoContract.VideoEntry.COLUMN_RECORDEDID,
                 VideoContract.VideoEntry.COLUMN_STORAGEGROUP,
@@ -125,6 +126,7 @@ public class VideoProvider extends ContentProvider {
     private static HashMap<String, String> buildColumnMap() {
         HashMap<String, String> map = new HashMap<>();
         map.put(VideoContract.VideoEntry._ID, VideoContract.VideoEntry._ID);
+        map.put(VideoContract.VideoEntry.COLUMN_RECTYPE, VideoContract.VideoEntry.COLUMN_RECTYPE);
         map.put(VideoContract.VideoEntry.COLUMN_TITLE, VideoContract.VideoEntry.COLUMN_TITLE);
         map.put(VideoContract.VideoEntry.COLUMN_DESC, VideoContract.VideoEntry.COLUMN_DESC);
         map.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, VideoContract.VideoEntry.COLUMN_SUBTITLE);
@@ -141,6 +143,7 @@ public class VideoProvider extends ContentProvider {
         map.put(VideoContract.VideoEntry.COLUMN_DURATION, VideoContract.VideoEntry.COLUMN_DURATION);
         map.put(VideoContract.VideoEntry.COLUMN_AIRDATE, VideoContract.VideoEntry.COLUMN_AIRDATE);
         map.put(VideoContract.VideoEntry.COLUMN_STARTTIME, VideoContract.VideoEntry.COLUMN_STARTTIME);
+        map.put(VideoContract.VideoEntry.COLUMN_ENDTIME, VideoContract.VideoEntry.COLUMN_ENDTIME);
         map.put(VideoContract.VideoEntry.COLUMN_ACTION, VideoContract.VideoEntry.COLUMN_ACTION);
         map.put(VideoContract.VideoEntry.COLUMN_RECORDEDID, VideoContract.VideoEntry.COLUMN_RECORDEDID);
         map.put(VideoContract.VideoEntry.COLUMN_STORAGEGROUP,
@@ -149,6 +152,9 @@ public class VideoProvider extends ContentProvider {
         map.put(VideoContract.VideoEntry.COLUMN_SEASON,  VideoContract.VideoEntry.COLUMN_SEASON);
         map.put(VideoContract.VideoEntry.COLUMN_EPISODE, VideoContract.VideoEntry.COLUMN_EPISODE);
         map.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, VideoContract.VideoEntry.COLUMN_PROGFLAGS);
+        map.put(VideoContract.VideoEntry.COLUMN_CHANID, VideoContract.VideoEntry.COLUMN_CHANID);
+        map.put(VideoContract.VideoEntry.COLUMN_CHANNUM, VideoContract.VideoEntry.COLUMN_CHANNUM);
+        map.put(VideoContract.VideoEntry.COLUMN_CALLSIGN, VideoContract.VideoEntry.COLUMN_CALLSIGN);
 
         map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, VideoContract.VideoEntry._ID + " AS " +
                 SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID);

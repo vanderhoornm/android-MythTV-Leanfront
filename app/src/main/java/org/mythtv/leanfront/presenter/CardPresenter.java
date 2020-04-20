@@ -32,12 +32,18 @@ import androidx.leanback.widget.Presenter;
 import androidx.core.content.ContextCompat;
 
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainFragment;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 
 /*
  * A CardPresenter is used to generate Views and bind Objects to them on demand.
@@ -83,7 +89,19 @@ public class CardPresenter extends Presenter {
         Video video = (Video) item;
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
-        cardView.setTitleText(video.title);
+        String imageUrl = null;
+        if (video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            cardView.setTitleText(video.channel);
+            try {
+                imageUrl = XmlNode.mythApiUrl(null,"/Guide/GetChannelIcon?ChanId=" + video.chanid);
+            } catch (IOException | XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            cardView.setTitleText(video.title);
+            imageUrl = video.cardImageUrl;
+        }
         int defaultIcon;
         switch (video.type) {
             case MainFragment.TYPE_VIDEODIR:
@@ -92,41 +110,63 @@ public class CardPresenter extends Presenter {
             case MainFragment.TYPE_REFRESH:
                 defaultIcon = R.drawable.im_refresh;
                 break;
+            case MainFragment.TYPE_CHANNEL:
+                defaultIcon = R.drawable.im_live_tv;
+                break;
             default:
-                defaultIcon = R.drawable.im_movie;
+                switch (video.rectype) {
+                    case VideoContract.VideoEntry.RECTYPE_CHANNEL:
+                        defaultIcon = R.drawable.im_live_tv;
+                        break;
+                    default:
+                        defaultIcon = R.drawable.im_movie;
+                }
+
         }
         StringBuilder subtitle = new StringBuilder();
-        int progflags = Integer.parseInt(video.progflags);
-        // possible characters for watched - "👁" "⏿" "👀"
-        if ((progflags & Video.FL_WATCHED) != 0)
-            subtitle.append("\uD83D\uDC41");
-        if (video.season != null && video.season.compareTo("0") > 0) {
-            subtitle.append('S').append(video.season).append('E').append(video.episode)
-                    .append(' ');
+        if (video.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+            || video.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+            int progflags = 0;
+            if (video.progflags != null)
+                progflags = Integer.parseInt(video.progflags);
+            // possible characters for watched - "👁" "⏿" "👀"
+            if ((progflags & Video.FL_WATCHED) != 0)
+                subtitle.append("\uD83D\uDC41");
+            if (video.season != null && video.season.compareTo("0") > 0) {
+                subtitle.append('S').append(video.season).append('E').append(video.episode)
+                        .append(' ');
+            }
+            subtitle.append(video.subtitle);
         }
-        subtitle.append(video.subtitle);
+        else if (video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            subtitle.append("Channel").append(" ");
+            subtitle.append(video.channum).append(" ");
+            subtitle.append(video.callsign);
+        }
         cardView.setContentText(subtitle);
         // Set card size from dimension resources.
         Resources res = cardView.getResources();
         int width = res.getDimensionPixelSize(R.dimen.card_width);
         int height = res.getDimensionPixelSize(R.dimen.card_height);
         cardView.setMainImageDimensions(width, height);
+        ImageView image = cardView.getMainImageView();
+        image.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         RequestOptions options = new RequestOptions()
-                .centerCrop()
+//                .fitCenter()
                 .error(defaultIcon);
 
-        if (video.cardImageUrl == null) {
+        if (imageUrl == null) {
             Glide.with(cardView.getContext())
                     .load(defaultIcon)
                     .apply(options)
-                    .into(cardView.getMainImageView());
+                    .into(image);
         }
         else
             Glide.with(cardView.getContext())
-                    .load(video.cardImageUrl)
+                    .load(imageUrl)
                     .apply(options)
-                    .into(cardView.getMainImageView());
+                    .into(image);
     }
 
     @Override

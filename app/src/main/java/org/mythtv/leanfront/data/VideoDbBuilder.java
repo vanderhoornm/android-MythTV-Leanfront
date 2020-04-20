@@ -48,9 +48,9 @@ import java.util.TimeZone;
  * to be placed into a local database
  */
 public class VideoDbBuilder {
-    private static final String[] XMLTAGS_PROGRAM = {"Programs","Program"};
-    private static final String[] XMLTAGS_ARTINFO = {"Artwork","ArtworkInfos","ArtworkInfo"};
-    private static final String[] XMLTAGS_CHANNELNAME = {"Channel","ChannelName"};
+    public static final String[] XMLTAGS_PROGRAM = {"Programs", "Program"};
+    public static final String[] XMLTAGS_ARTINFO = {"Artwork", "ArtworkInfos", "ArtworkInfo"};
+    public static final String[] XMLTAGS_CHANNELNAME = {"Channel", "ChannelName"};
 
     public static final String XMLTAG_RECORDING = "Recording";
     public static final String XMLTAG_TITLE = "Title";
@@ -58,6 +58,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_STORAGEGROUP = "StorageGroup";
     public static final String XMLTAG_RECGROUP = "RecGroup";
     public static final String XMLTAG_RECORDEDID = "RecordedId";
+    public static final String XMLTAG_RECORDID = "RecordId";
     public static final String XMLTAG_SEASON = "Season";
     public static final String XMLTAG_EPISODE = "Episode";
     public static final String XMLTAG_FILENAME = "FileName";
@@ -65,6 +66,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ARTURL = "URL";
     public static final String XMLTAG_SUBTITLE = "SubTitle";
     public static final String XMLTAG_STARTTIME = "StartTime";
+    public static final String XMLTAG_ENDTIME = "EndTime";
     public static final String XMLTAG_AIRDATE = "Airdate";
     public static final String XMLTAG_STARTTS = "StartTs";
     public static final String XMLTAG_ENDTS = "EndTs";
@@ -73,12 +75,18 @@ public class VideoDbBuilder {
     public static final String XMLTAG_HOSTNAME = "HostName";
 
     // Specific to video list
-    private static final String[] XMLTAGS_VIDEO = {"VideoMetadataInfos","VideoMetadataInfo"};
+    public static final String[] XMLTAGS_VIDEO = {"VideoMetadataInfos", "VideoMetadataInfo"};
     public static final String XMLTAG_RELEASEDATE = "ReleaseDate";
     public static final String XMLTAG_ID = "Id";
     public static final String XMLTAG_WATCHED = "Watched";
     public static final String VALUE_WATCHED = (new Integer(Video.FL_WATCHED)).toString();
 
+    // Channels
+    private static final String[] XMLTAGS_CHANNEL = {"ChannelInfos", "ChannelInfo"};
+    public static final String XMLTAG_CHANID = "ChanId";
+    public static final String XMLTAG_CHANNUM = "ChanNum";
+    public static final String XMLTAG_CALLSIGN = "CallSign";
+    public static final String XMLTAG_CHANNELNAME = "ChannelName";
 
     private static final String TAG = "VideoDbBuilder";
 
@@ -97,56 +105,71 @@ public class VideoDbBuilder {
 
     /**
      * Fetches data representing videos from a server and populates that in a database
+     *
      * @param url The location of the video list
      */
     public @NonNull
     List<ContentValues> fetch(String url, int phase)
             throws IOException, XmlPullParserException {
-        XmlNode videoData = XmlNode.fetch(url,null);
-        return buildMedia(videoData, phase);
+        XmlNode videoData = XmlNode.fetch(url, null);
+        return buildMedia(videoData, phase, -1);
     }
 
     /**
      * Takes the contents of an XML object and populates the database
+     *
      * @param xmlFull The XML object of videos
-     * @param phase 0 for recordings, 1 for videos
+     * @param phase   0 for recordings, 1 for videos, 2 for channels
+     * @param ixSingle if this is -1 process all records, otherwise process the specified single record
      */
-    public List<ContentValues> buildMedia(XmlNode xmlFull, int phase) throws IOException, XmlPullParserException {
-        List<ContentValues> videosToInsert = new ArrayList<>();
-        String [] tagsProgram;
-        String tagRecordedId;
+    public List<ContentValues> buildMedia(XmlNode xmlFull, int phase, int ixSingle) throws IOException, XmlPullParserException {
+        String[] tagsProgram = null;
+        String tagRecordedId = null;
         if (phase == 0) {  //Recordings
             tagsProgram = XMLTAGS_PROGRAM;
             tagRecordedId = XMLTAG_RECORDEDID;
         }
-        else {  //Videos
+        if (phase == 1) {  //Videos
             tagsProgram = XMLTAGS_VIDEO;
             tagRecordedId = XMLTAG_ID;
         }
+        if (phase == 2) {
+            return loadChannels(xmlFull);
+        }
+        List<ContentValues> videosToInsert = new ArrayList<>();
         // Art urls have to be off main backend
-        String baseArtUrl = XmlNode.mythApiUrl(null,null);
+        String baseArtUrl = XmlNode.mythApiUrl(null, null);
         XmlNode programNode = null;
-        for (;;) {
-            if (programNode == null)
-                programNode = xmlFull.getNode(tagsProgram,0);
+        for (; ; ) {
+            if (programNode == null) {
+                int ixWant = 0;;
+                if (ixSingle >= 0)
+                    ixWant = ixSingle;
+                programNode = xmlFull.getNode(tagsProgram, ixWant);
+            }
             else
                 programNode = programNode.getNextSibling();
             if (programNode == null)
                 break;
-            XmlNode recordingNode;
-            String recGroup;
-            String storageGroup;
-            String channel;
-            String airdate;
-            String starttime;
+            XmlNode recordingNode = null;
+            int rectype = -1;
+            String recGroup = null;
+            String storageGroup = null;
+            String channel = null;
+            String airdate = null;
+            String starttime = null;
+            String endtime = null;
+            String baseUrl = null;
             long duration = 0;
-            String progflags;
+            String progflags = "0";
             if (phase == 0) { // Recordings
+                rectype = VideoContract.VideoEntry.RECTYPE_RECORDING;
                 String fileSize = programNode.getString(XMLTAG_FILESIZE);
-                // Skip dummy LiveTV entry
-                if ("0".equals(fileSize))
-                    continue;
                 recordingNode = programNode.getNode(XMLTAG_RECORDING);
+                String recordId = recordingNode.getString(XMLTAG_RECORDID);
+                // Skip dummy LiveTV entry
+                if ("0".equals(fileSize) && "0".equals(recordId))
+                    continue;
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)
                     recGroup = "Default";
@@ -161,11 +184,11 @@ public class VideoDbBuilder {
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                 String startTS = recordingNode.getString(XMLTAG_STARTTS);
-                String endTS = recordingNode.getString(XMLTAG_ENDTS);
+                endtime = recordingNode.getString(XMLTAG_ENDTS);
                 long startTimeSecs = 0;
                 try {
-                    Date dateStart = format.parse(startTS+"+0000");
-                    Date dateEnd = format.parse(endTS+"+0000");
+                    Date dateStart = format.parse(startTS + "+0000");
+                    Date dateEnd = format.parse(endtime + "+0000");
                     startTimeSecs = dateStart.getTime();
                     duration = (dateEnd.getTime() - startTimeSecs);
                 } catch (ParseException e) {
@@ -173,21 +196,22 @@ public class VideoDbBuilder {
                 }
                 // if airdate missing default it to starttime.
                 if (starttime != null && airdate == null
-                    && startTimeSecs != 0) {
+                        && startTimeSecs != 0) {
                     TimeZone tz = TimeZone.getDefault();
                     startTimeSecs += tz.getOffset(startTimeSecs);
                     airdate = dbFormat.format(new Date(startTimeSecs));
                 }
                 progflags = programNode.getString(XMLTAG_PROGFLAGS);
             }
-            else { // Videos
+            if (phase == 1) { // Videos
+                rectype = VideoContract.VideoEntry.RECTYPE_VIDEO;
                 recordingNode = programNode;
                 recGroup = null;
                 storageGroup = "Videos";
                 channel = null;
                 airdate = programNode.getString(XMLTAG_RELEASEDATE);
                 if (airdate != null && airdate.length() > 10)
-                    airdate = programNode.getString(XMLTAG_RELEASEDATE).substring(0,10);
+                    airdate = programNode.getString(XMLTAG_RELEASEDATE).substring(0, 10);
                 starttime = null;
                 String watched = programNode.getString(XMLTAG_WATCHED);
                 if ("true".equals(watched))
@@ -195,51 +219,59 @@ public class VideoDbBuilder {
                 else
                     progflags = "0";
             }
-            String recordedid = recordingNode.getString(tagRecordedId);
-            String title = programNode.getString(XMLTAG_TITLE);
-            String hostName = recordingNode.getString(XMLTAG_HOSTNAME);
-            String subtitle = programNode.getString(XMLTAG_SUBTITLE);
-            String description = programNode.getString(XMLTAG_DESCRIPTION);
-            String videoFileName = recordingNode.getString(XMLTAG_FILENAME);
-            String baseUrl = XmlNode.mythApiUrl(hostName,null);
-            String videoUrl = baseUrl +  "/Content/GetFile?StorageGroup="
-                    + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName,"UTF-8");
+            String recordedid = null;
+            String videoFileName = null;
             String coverArtUrl = null;
+            String title = null;
+            String subtitle = null;
+            String description = null;
+            String videoUrl = null;
+            String hostName = null;
             String fanArtUrl = null;
-            XmlNode artInfoNode = null;
-            for (;;) {
-                if (artInfoNode == null)
-                    artInfoNode = programNode.getNode(XMLTAGS_ARTINFO,0);
-                else
-                    artInfoNode = artInfoNode.getNextSibling();
-                if (artInfoNode == null)
-                    break;
-                String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
-                String artUrl = baseArtUrl + artInfoNode.getString(XMLTAG_ARTURL);
-                int equ = artUrl.lastIndexOf('=');
-                if (equ > 0) {
-                    String fileName = artUrl.substring(equ + 1);
-                    if (fileName.length() > 0 && fileName.charAt(0) == '/')
-                        artUrl = artUrl.substring(0, equ + 1) + URLEncoder.encode(fileName, "UTF-8");
-                }
-                if ("coverart".equals(artType))
-                    coverArtUrl = artUrl;
-                else if ("fanart".equals(artType))
-                    fanArtUrl = artUrl;
-            }
-
             String prodYear = null;
-            if (airdate != null)
-                prodYear = airdate.substring(0,4);
-            else if (starttime != null)
-                prodYear = starttime.substring(0,4);
+            if (phase == 0 || phase == 1) {
+                recordedid = recordingNode.getString(tagRecordedId);
+                title = programNode.getString(XMLTAG_TITLE);
+                hostName = recordingNode.getString(XMLTAG_HOSTNAME);
+                subtitle = programNode.getString(XMLTAG_SUBTITLE);
+                description = programNode.getString(XMLTAG_DESCRIPTION);
+                videoFileName = recordingNode.getString(XMLTAG_FILENAME);
+                baseUrl = XmlNode.mythApiUrl(hostName, null);
+                videoUrl = baseUrl + "/Content/GetFile?StorageGroup="
+                        + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName, "UTF-8");
+                XmlNode artInfoNode = null;
+                for (; ; ) {
+                    if (artInfoNode == null)
+                        artInfoNode = programNode.getNode(XMLTAGS_ARTINFO, 0);
+                    else
+                        artInfoNode = artInfoNode.getNextSibling();
+                    if (artInfoNode == null)
+                        break;
+                    String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
+                    String artUrl = baseArtUrl + artInfoNode.getString(XMLTAG_ARTURL);
+                    int equ = artUrl.lastIndexOf('=');
+                    if (equ > 0) {
+                        String fileName = artUrl.substring(equ + 1);
+                        if (fileName.length() > 0 && fileName.charAt(0) == '/')
+                            artUrl = artUrl.substring(0, equ + 1) + URLEncoder.encode(fileName, "UTF-8");
+                    }
+                    if ("coverart".equals(artType))
+                        coverArtUrl = artUrl;
+                    else if ("fanart".equals(artType))
+                        fanArtUrl = artUrl;
+                }
 
-            String cardImageURL;
-            String dbFileName = null;
-            if (phase==0) { // Recordings
-                cardImageURL =   baseUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
+                if (airdate != null)
+                    prodYear = airdate.substring(0, 4);
+                else if (starttime != null)
+                    prodYear = starttime.substring(0, 4);
             }
-            else { // Videos
+            String cardImageURL = null;
+            String dbFileName = null;
+            if (phase == 0) { // Recordings
+                cardImageURL = baseUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
+            }
+            if (phase == 1) { // Videos
                 dbFileName = videoFileName;
                 cardImageURL = coverArtUrl;
             }
@@ -254,6 +286,7 @@ public class VideoDbBuilder {
                 description = " ";
 
             ContentValues videoValues = new ContentValues();
+            videoValues.put(VideoContract.VideoEntry.COLUMN_RECTYPE, rectype);
             videoValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
             videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
@@ -266,6 +299,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_AIRDATE, airdate);
 
             videoValues.put(VideoContract.VideoEntry.COLUMN_STARTTIME, starttime);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_ENDTIME, endtime);
             videoValues.put(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR, prodYear);
             videoValues.put(VideoContract.VideoEntry.COLUMN_RECORDEDID, recordedid);
             videoValues.put(VideoContract.VideoEntry.COLUMN_STORAGEGROUP, storageGroup);
@@ -282,8 +316,64 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, progflags);
 
             videosToInsert.add(videoValues);
+            if (ixSingle >= 0)
+                break;
         }
         return videosToInsert;
     }
 
+    private List<ContentValues> loadChannels(XmlNode xmlFull) throws IOException, XmlPullParserException {
+        List<ContentValues> channelsToInsert = new ArrayList<>();
+        XmlNode channelNode = null;
+        for (; ; ) {
+            if (channelNode == null)
+                channelNode = xmlFull.getNode(XMLTAGS_CHANNEL, 0);
+            else
+                channelNode = channelNode.getNextSibling();
+            if (channelNode == null)
+                break;
+            int rectype = VideoContract.VideoEntry.RECTYPE_CHANNEL;
+            String chanid = channelNode.getString(XMLTAG_CHANID);
+            String channum = channelNode.getString(XMLTAG_CHANNUM);
+            String callsign = channelNode.getString(XMLTAG_CALLSIGN);
+            String channelname = channelNode.getString(XMLTAG_CHANNELNAME);
+            String title;
+            float fChannum = -1.0f;
+            try {
+                fChannum = Float.parseFloat(channum.replace('-', '.'));
+            } catch (NumberFormatException e) {
+                fChannum = -1.0f;
+            }
+            if (fChannum < 0.0f) {
+                // Non numeric channel number
+                title = "Channel " + channum.toUpperCase().charAt(0);
+            }
+            else {
+                int start = (((int) fChannum) /100) * 100;
+                int end = start + 99;
+                String spacer;
+                if (fChannum < 1.0f)
+                    spacer = "   ";
+                else if (fChannum < 100.0f)
+                    spacer = "  ";
+                else if (fChannum < 1000.0f)
+                    spacer = " ";
+                else
+                    spacer = "";
+                title = "Channel " + spacer + start + " - " + end;
+            }
+            ContentValues channelValues = new ContentValues();
+            channelValues.put(VideoContract.VideoEntry.COLUMN_RECTYPE, rectype);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, channum + " " + channelname + " " + callsign);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_CHANID, chanid);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_CHANNUM, channum);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_CALLSIGN, callsign);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channelname);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, "0");
+            channelValues.put(VideoContract.VideoEntry.COLUMN_RECGROUP, "LiveTV");
+            channelsToInsert.add(channelValues);
+        }
+        return channelsToInsert;
+    }
 }

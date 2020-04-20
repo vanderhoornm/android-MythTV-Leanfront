@@ -57,6 +57,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_AUDIO_MEDIACODEC = 18;
     private static final int ID_AUDIO_FFMPEG = 19;
     private static final int ID_ARROW_JUMP = 20;
+    private static final int ID_LIVETV_DURATION = 21;
 
     private SharedPreferences.Editor mEditor;
 
@@ -150,11 +151,17 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .checked("true".equals(arrowjump))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_JUMP)
                 .title(R.string.pref_title_jump)
                 .description(Settings.getString("pref_jump"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_LIVETV_DURATION)
+                .title(R.string.pref_title_livetv_duration)
+                .description(Settings.getString("pref_livetv_duration"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
@@ -280,6 +287,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             case ID_JUMP:
                 mEditor.putString("pref_jump",action.getDescription().toString());
                 break;
+            case ID_LIVETV_DURATION:
+                mEditor.putString("pref_livetv_duration",action.getDescription().toString());
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -310,6 +320,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_JUMP:
                 action.setDescription(Settings.getString("pref_jump"));
+                break;
+            case ID_LIVETV_DURATION:
+                action.setDescription(Settings.getString("pref_livetv_duration"));
                 break;
         }
     }

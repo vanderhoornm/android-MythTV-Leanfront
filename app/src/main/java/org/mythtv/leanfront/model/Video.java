@@ -28,6 +28,7 @@ import android.media.MediaDescription;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.ui.MainFragment;
 
 /**
@@ -35,6 +36,7 @@ import org.mythtv.leanfront.ui.MainFragment;
  */
 public final class Video implements Parcelable, ListItem {
     public final long id;
+    public final int rectype;
     public final String title;
     public final String subtitle;
     public final String description;
@@ -44,6 +46,8 @@ public final class Video implements Parcelable, ListItem {
     public final String channel;
     public final String recordedid;
     public String recGroup;
+    // type takes one of the values in MainFragment to indicate
+    // a type of UI element
     public int type;
     public final String season;
     public final String episode;
@@ -51,6 +55,7 @@ public final class Video implements Parcelable, ListItem {
     public final String airdate;
     // Format yyyy-mm-ddThh:mm:ssZ
     public final String starttime;
+    public String endtime;
     public final String duration;
     public final String prodyear;
     public final String filename;
@@ -59,6 +64,10 @@ public final class Video implements Parcelable, ListItem {
     // From MythTV libmyth/programtypes.h
     // This flag is also set for videos as needed.
     public static final int FL_WATCHED = 0x00000200;
+    // Channel values
+    public final String chanid;
+    public final String channum;
+    public final String callsign;
 
     // Actions used by multiple classes
     public static final int ACTION_SET_BOOKMARK = 6;
@@ -79,10 +88,16 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_SLOWDOWN = 14;
     public static final int ACTION_PIVOT = 15;
     public static final int ACTION_AUDIOTRACK = 16;
+    public static final int ACTION_LIVETV = 17;
+    public static final int ACTION_QUERY_STOP_RECORDING = 19;
+    public static final int ACTION_STOP_RECORDING = 20;
+    public static final int ACTION_REMOVE_RECORD_RULE = 21;
+    public static final int ACTION_CANCEL = 22;
 
 
     private Video(
             final long id,
+            final int rectype,
             final String title,
             final String subtitle,
             final String desc,
@@ -96,12 +111,17 @@ public final class Video implements Parcelable, ListItem {
             final String episode,
             final String airdate,
             final String starttime,
+            final String endtime,
             final String duration,
             final String prodyear,
             final String filename,
             final String hostname,
-            final String progflags) {
+            final String progflags,
+            final String chanid,
+            final String channum,
+            final String callsign) {
         this.id = id;
+        this.rectype = rectype;
         this.title = title;
         this.subtitle = subtitle;
         this.description = desc;
@@ -115,15 +135,20 @@ public final class Video implements Parcelable, ListItem {
         this.episode = episode;
         this.airdate = airdate;
         this.starttime = starttime;
+        this.endtime = endtime;
         this.duration = duration;
         this.prodyear = prodyear;
         this.filename = filename;
         this.hostname = hostname;
         this.progflags = progflags;
+        this.chanid = chanid;
+        this.channum = channum;
+        this.callsign = callsign;
     }
 
     protected Video(Parcel in) {
         id = in.readLong();
+        rectype = in.readInt();
         title = in.readString();
         subtitle = in.readString();
         description = in.readString();
@@ -137,11 +162,15 @@ public final class Video implements Parcelable, ListItem {
         episode = in.readString();
         airdate = in.readString();
         starttime = in.readString();
+        endtime = in.readString();
         duration = in.readString();
         prodyear = in.readString();
         filename = in.readString();
         hostname = in.readString();
         progflags = in.readString();
+        chanid = in.readString();
+        channum = in.readString();
+        callsign = in.readString();
     }
 
     public static final Creator<Video> CREATOR = new Creator<Video>() {
@@ -168,6 +197,7 @@ public final class Video implements Parcelable, ListItem {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
+        dest.writeInt(rectype);
         dest.writeString(title);
         dest.writeString(subtitle);
         dest.writeString(description);
@@ -181,18 +211,22 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(episode);
         dest.writeString(airdate);
         dest.writeString(starttime);
+        dest.writeString(endtime);
         dest.writeString(duration);
         dest.writeString(prodyear);
         dest.writeString(filename);
         dest.writeString(hostname);
         dest.writeString(progflags);
+        dest.writeString(chanid);
+        dest.writeString(channum);
+        dest.writeString(callsign);
     }
 
     @Override
     public String toString() {
         String s = "Video{";
         s += "id=" + id;
-        s += ", recGroup='" + recGroup + "'";
+        s += ", rectype='" + rectype + "'";
         s += ", title='" + title + "'";
         s += ", subtitle='" + subtitle + "'";
         s += ", videoUrl='" + videoUrl + "'";
@@ -212,13 +246,20 @@ public final class Video implements Parcelable, ListItem {
     }
 
     @Override
+    // This provides a unique identifier for the item, needed by the UI
     public String getName() {
-        return videoUrl;
+        if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+          || rectype == VideoContract.VideoEntry.RECTYPE_VIDEO)
+            return videoUrl;
+        if (rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL)
+            return chanid;
+        return null;
     }
 
     // Builder for Video object.
     public static class VideoBuilder {
         private long id;
+        private int rectype;
         private String title;
         private String subtitle;
         private String desc;
@@ -232,14 +273,23 @@ public final class Video implements Parcelable, ListItem {
         private String episode;
         private String airdate;
         private String starttime;
+        private String endtime;
         private String duration;
         private String prodyear;
         private String filename;
         private String hostname;
         private String progflags;
+        private String chanid;
+        private String channum;
+        private String callsign;
 
         public VideoBuilder id(long id) {
             this.id = id;
+            return this;
+        }
+
+        public VideoBuilder rectype(int rectype) {
+            this.rectype = rectype;
             return this;
         }
 
@@ -309,6 +359,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder endtime(String endtime) {
+            this.starttime = endtime;
+            return this;
+        }
+
         public VideoBuilder duration(String duration) {
             this.duration = duration;
             return this;
@@ -334,9 +389,25 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder chanid(String chanid) {
+            this.chanid = chanid;
+            return this;
+        }
+
+        public VideoBuilder channum(String channum) {
+            this.channum = channum;
+            return this;
+        }
+
+        public VideoBuilder callsign(String callsign) {
+            this.callsign = callsign;
+            return this;
+        }
+
         public Video buildFromMediaDesc(MediaDescription desc) {
             return new Video(
                     Long.parseLong(desc.getMediaId()),
+                    VideoContract.VideoEntry.RECTYPE_VIDEO,
                     String.valueOf(desc.getTitle()),
                     "",
                     String.valueOf(desc.getDescription()),
@@ -345,13 +416,14 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    "","","","","","","","","",""
+                    "","","","","","","","","","","","","",""
             );
         }
 
         public Video build() {
             return new Video(
                     id,
+                    rectype,
                     title,
                     subtitle,
                     desc,
@@ -364,12 +436,16 @@ public final class Video implements Parcelable, ListItem {
                      season,
                      episode,
                      airdate,
-                     starttime,
+                    starttime,
+                    endtime,
                      duration,
                      prodyear,
                      filename,
                      hostname,
-                     progflags
+                     progflags,
+                    chanid,
+                    channum,
+                    callsign
             );
         }
     }

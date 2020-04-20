@@ -73,10 +73,20 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
                 break;
             case MainFragment.TYPE_VIDEODIR:
             case MainFragment.TYPE_VIDEODIR_ALL:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_folder, null);
+                icon = rootView.getResources().getDrawable(R.drawable.im_folder, null);
+                break;
+            case MainFragment.TYPE_RECGROUP:
+            case MainFragment.TYPE_RECGROUP_ALL:
+            case MainFragment.TYPE_TOP_ALL:
+            case MainFragment.TYPE_SERIES:
+                icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
+                break;
+            case MainFragment.TYPE_CHANNEL:
+            case MainFragment.TYPE_CHANNEL_ALL:
+                icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);
                 break;
             default:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
+                icon = rootView.getResources().getDrawable(R.drawable.ic_launcher_lean, null);
         }
         iconView.setImageDrawable(icon);
 

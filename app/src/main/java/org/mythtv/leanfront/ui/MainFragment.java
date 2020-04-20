@@ -38,6 +38,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
@@ -136,9 +137,12 @@ public class MainFragment extends BrowseSupportFragment
     // Types applicable to cell
     public static final int TYPE_EPISODE = 5;
     public static final int TYPE_VIDEO = 6;
-    public static final int TYPE_TOP_ALL = 7;
-    public static final int TYPE_RECGROUP_ALL = 8;
-    public static final int TYPE_VIDEODIR_ALL = 9;
+    public static final int TYPE_CHANNEL = 7;
+
+    public static final int TYPE_TOP_ALL = 8;
+    public static final int TYPE_RECGROUP_ALL = 9;
+    public static final int TYPE_VIDEODIR_ALL = 10;
+    public static final int TYPE_CHANNEL_ALL = 11;
     // Special row type
     public static final int TYPE_SETTINGS = 20;
     // Special Item Type
@@ -346,19 +350,80 @@ public class MainFragment extends BrowseSupportFragment
                         new AsyncBackendCall(video, 0L, false,
                                 this).execute(Video.ACTION_REFRESH);
                         return true;
+                    case TYPE_CHANNEL:
+                        playLiveTV(video);
+                        return true;
                 }
             }
         }
         return false;
     }
 
+    public void playLiveTV(Video video) {
+        // Schedule a recording for 3 hours starting now
+        // Wait for recording to be ready
+        // Play recording, passing in the info needed for cancelling it on exit.
+        setProgressBar(true);
+        new AsyncBackendCall(video, 0L, false,
+                this).execute(Video.ACTION_LIVETV);
+    }
+
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
-        Intent intent = new Intent(getActivity(), PlaybackActivity.class);
-        intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
-        intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
-        startActivityForResult(intent, Video.ACTION_PLAY);
+        if (taskRunner == null)
+            return;
+        Activity activity = getActivity();
+        int [] tasks = taskRunner.getTasks();
+        Intent intent;
+        switch (tasks[0]) {
+            case Video.ACTION_REFRESH:
+                if (activity == null)
+                    break;
+                intent = new Intent(activity, PlaybackActivity.class);
+                intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
+                intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
+                startActivity(intent);
+                break;
+            case Video.ACTION_LIVETV:
+                setProgressBar(false);
+                Video video = taskRunner.getVideo();
+                // video null means recording failed
+                // activity null means user pressed back button
+                if (video == null || activity == null) {
+                    if (activity != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(activity,
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.title_alert_livetv);
+                        builder.setMessage(R.string.alert_livetv_message);
+                        // add a button
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.show();
+                    }
+                    long recordId = taskRunner.getRecordId();
+                    long recordedId = taskRunner.getRecordedId();
+                    video = new Video.VideoBuilder()
+                            .recGroup("LiveTV")
+                            .recordedid(String.valueOf(recordedId))
+                            .build();
+                    if (recordId >= 0) {
+                        // Terminate Live TV
+                        new AsyncBackendCall(video, recordId, false,
+                                null).execute(
+                                Video.ACTION_STOP_RECORDING,
+                                Video.ACTION_REMOVE_RECORD_RULE);
+                    }
+                    break;
+                }
+                intent = new Intent(activity, PlaybackActivity.class);
+                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
+                intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
+                startActivity(intent);
+                break;
+
+        }
     }
+
 
     public static MainFragment getActiveFragment() {
         return mActiveFragment;
@@ -462,10 +527,33 @@ public class MainFragment extends BrowseSupportFragment
         String seq = Settings.getString("pref_seq");
         String ascdesc = Settings.getString("pref_seq_ascdesc");
         StringBuilder orderby = new StringBuilder();
+        StringBuilder selection = new StringBuilder();
+        String [] selectionArgs = null;
         if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
+            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
+            orderby.append("CAST (").append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(" as real), ");
         }
+        // for Recording Group page, limit selection to those recordings.
+        if (mType == TYPE_RECGROUP) {
+            // Only the "All" recgroup basename ends with \t
+            if (!mBaseName.endsWith("\t")) {
+                selection.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(" = ? ");
+                selectionArgs = new String[1];
+                selectionArgs[0] = mBaseName;
+                if (mBaseName.equals("LiveTV")) {
+                    orderby.append("CAST (").append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(" as real), ");
+                    orderby.append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(", ");
+                }
+            }
+        }
+        // for Video Directory page, limit selection to videos
+        if (mType == TYPE_VIDEODIR) {
+            selection.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
+            selection.append(VideoContract.VideoEntry.RECTYPE_VIDEO);
+        }
+
         // Sort uppercase title
         StringBuilder titleSort = new StringBuilder();
         titleSort.append("'^'||UPPER(").append(VideoContract.VideoEntry.COLUMN_TITLE).append(")");
@@ -492,8 +580,8 @@ public class MainFragment extends BrowseSupportFragment
                 getContext(),
                 VideoContract.VideoEntry.CONTENT_URI, // Table to query
                 null, // Projection to return - null means return all fields
-                null, // Selection clause
-                null,  // Select based on the category id.
+                selection.toString(), // Selection clause
+                selectionArgs,  // Select based on the category id.
                 orderby.toString());
         // Map video results from the database to Video objects.
         videoCursorAdapter =
@@ -505,7 +593,7 @@ public class MainFragment extends BrowseSupportFragment
     @SuppressLint("SimpleDateFormat")
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // the mLoadStarted check is needed becuase for some reason onLoadFinished
+        // the mLoadStarted check is needed because for some reason onLoadFinished
         // gets called every time the screen goes into the BG and this causes
         // the current selection and focus to be lost.
         if (data != null && mLoadStarted) {
@@ -522,12 +610,15 @@ public class MainFragment extends BrowseSupportFragment
                 allType = TYPE_TOP_ALL;
             }
             if (mType == TYPE_RECGROUP) {
-                allTitle = mBaseName + "\t";
+                if (!mBaseName.endsWith("\t"))
+                    allTitle = mBaseName + "\t";
                 allType = TYPE_RECGROUP_ALL;
             }
 
             final int loaderId = loader.getId();
             if (loaderId == CATEGORY_LOADER) {
+                int rectypeIndex =
+                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECTYPE);
                 int recgroupIndex =
                         data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
                 int titleIndex =
@@ -606,8 +697,10 @@ public class MainFragment extends BrowseSupportFragment
                     int rowType = -1;
 
                     String recgroup = data.getString(recgroupIndex);
+                    int rectype = data.getInt(rectypeIndex);
 
                     String category = null;
+                    Video video = (Video) videoCursorAdapter.get(data.getPosition());
 
                     // For Rec Group type, only use recordings from that recording group.
                     // categories are titles.
@@ -626,8 +719,14 @@ public class MainFragment extends BrowseSupportFragment
                                 continue;
                             }
                         }
-                        rowType = TYPE_SERIES;
-                        itemType = TYPE_EPISODE;
+                        if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                            rowType = TYPE_SERIES;
+                            itemType = TYPE_EPISODE;
+                        }
+                        else if (rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+                            rowType = TYPE_CHANNEL_ALL;
+                            itemType = TYPE_CHANNEL;
+                        }
                     }
 
                     // For Top Level type, only use 1 recording from each title
@@ -637,7 +736,7 @@ public class MainFragment extends BrowseSupportFragment
                     String dirname = null;
                     String itemname = null;
                     // Split file name and see if it is a directory
-                    if (recgroup == null && filename != null) {
+                    if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO && filename != null) {
                         String shortName = filename;
                         // itemlevel 0 means there is only one row for all
                         // videos so the first part of the name is the entry
@@ -678,11 +777,11 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     if (mType == TYPE_TOPLEVEL) {
-                        if (recgroup == null) {
-                            category = "Videos";
+                        if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                            category = getString(R.string.row_header_videos)+ "\t";
                             rowType = TYPE_VIDEODIR_ALL;
                         }
-                        else {
+                        else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
                             category = recgroup;
                             String title = data.getString(titleIndex);
                             if (Objects.equals(title,currentItem)) {
@@ -702,11 +801,6 @@ public class MainFragment extends BrowseSupportFragment
                     // mBaseName = "Videos" String
                     // Display = "Videos" String
                     if (mType == TYPE_VIDEODIR) {
-                        if (recgroup != null || filename == null) {
-                            data.moveToNext();
-                            continue;
-                        }
-
                         category = dirname;
                         rowType = TYPE_VIDEODIR;
                     }
@@ -731,7 +825,6 @@ public class MainFragment extends BrowseSupportFragment
                             selectedRowNum = currentRowNum;
                     }
 
-                    Video video = (Video) videoCursorAdapter.get(data.getPosition());
                     // If a directory, create a placeholder for directory name
                     if (itemType == TYPE_VIDEODIR)
                         video = new Video.VideoBuilder()
@@ -765,6 +858,7 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add video to "All" row
                     if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL
+                        && rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                         && !(mType == TYPE_TOPLEVEL && "Deleted".equals(recgroup))) {
                         int position = 0;
                         String sortKeyStr = data.getString(sortkey);
@@ -877,6 +971,7 @@ public class MainFragment extends BrowseSupportFragment
             switch (liType) {
                 case TYPE_EPISODE:
                 case TYPE_VIDEO:
+                case TYPE_CHANNEL:
                     Video video = (Video) item;
                     Intent intent = new Intent(context, VideoDetailsActivity.class);
                     intent.putExtra(VideoDetailsActivity.VIDEO, video);

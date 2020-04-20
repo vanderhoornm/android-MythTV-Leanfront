@@ -48,14 +48,21 @@ public final class VideoContract {
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "." + PATH_VIDEO;
         // Name of the video table.
         public static final String TABLE_NAME = "video";
+        // Rectype - Video, recording, channel, ...
+        public static final String COLUMN_RECTYPE = "rectype";
+        // The order of these determines the sequence on screen.
+        public static final int RECTYPE_RECORDING = 1;
+        public static final int RECTYPE_VIDEO = 2;
+        public static final int RECTYPE_CHANNEL = 3;
+        // Recording or video title
         public static final String COLUMN_TITLE = SearchManager.SUGGEST_COLUMN_TEXT_1;
         // Description of the video.
         public static final String COLUMN_DESC = "description";
-        // Description of the video.
+        // Subtitle.
         public static final String COLUMN_SUBTITLE = SearchManager.SUGGEST_COLUMN_TEXT_2;
         // The url to the video content.
         public static final String COLUMN_VIDEO_URL = "video_url";
-        // Directory name of video file, applies only to Videos storage group
+        // Directory and name of video file, applies only to Videos storage group
         public static final String COLUMN_FILENAME = "filename";
         // Host name of video file
         public static final String COLUMN_HOSTNAME = "hostname";
@@ -75,6 +82,8 @@ public final class VideoContract {
         public static final String COLUMN_AIRDATE  = "airdate";
         // The start time string format 2018-08-13T20:30:00Z
         public static final String COLUMN_STARTTIME  = "starttime";
+        // End Time
+        public static final String COLUMN_ENDTIME  = "endtime";
         // This contains recordedid or video id
         public static final String COLUMN_RECORDEDID = "recordedid";
         // Storage Group "Videos' for Videos
@@ -91,6 +100,10 @@ public final class VideoContract {
         }
         // see libmyth/programtypes.h for list of values.
         public static final String COLUMN_PROGFLAGS = "progflags";
+        // Channel columns - use channel for the channel name
+        public static final String COLUMN_CHANID = "chanid";
+        public static final String COLUMN_CHANNUM = "channum";
+        public static final String COLUMN_CALLSIGN = "callsign";
     } // end of VideoEntry
 
         /* Inner class that defines the status table */

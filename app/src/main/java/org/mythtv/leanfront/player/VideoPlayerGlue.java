@@ -101,14 +101,19 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mAudioTrackAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
+    // Skip means go to next or previous track
+    // Skip is disallowed when playing Live TV
+    private boolean mAllowSkip;
 
     public VideoPlayerGlue(
             Context context,
             LeanbackPlayerAdapter playerAdapter,
-            OnActionClickedListener actionListener) {
+            OnActionClickedListener actionListener,
+            boolean allowSkip) {
         super(context, playerAdapter);
 
         mActionListener = actionListener;
+        mAllowSkip = allowSkip;
 
         mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(context);
         mSkipNextAction = new PlaybackControlsRow.SkipNextAction(context);
@@ -134,10 +139,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         // play/pause, previous, rewind, fast forward, next
         //   > /||      |<        <<        >>         >|
         super.onCreatePrimaryActions(adapter);
-        adapter.add(mSkipPreviousAction);
+        if (mAllowSkip)
+            adapter.add(mSkipPreviousAction);
         adapter.add(mRewindAction);
         adapter.add(mFastForwardAction);
-        adapter.add(mSkipNextAction);
+        if (mAllowSkip)
+            adapter.add(mSkipNextAction);
         adapter.add(mSpeedDecAction);
         adapter.add(mSpeedIncAction);
     }

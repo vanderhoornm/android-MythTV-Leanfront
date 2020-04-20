@@ -27,15 +27,14 @@ package org.mythtv.leanfront.presenter;
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.model.Video;
-import org.mythtv.leanfront.ui.MainActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
-import java.util.TimeZone;
 
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
     private ViewHolder mViewHolder;
@@ -50,9 +49,12 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
     
     @SuppressLint("SimpleDateFormat")
     public void setupDescription() {
-        if (mVideo != null) {
+        if (mVideo == null)
+            return;
+        Context context = mViewHolder.getBody().getContext();
+        if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+            || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
             mViewHolder.getTitle().setText(mVideo.title);
-            Context context = mViewHolder.getBody().getContext();
             StringBuilder subtitle = new StringBuilder();
             // possible characters for watched - "👁" "⏿" "👀"
             int progflags = Integer.parseInt(mVideo.progflags);
@@ -69,15 +71,12 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             // 2018-05-23T00:00:00Z
             try {
                 // Date Recorded
-                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(MainActivity.getContext());
+                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(context);
                 String recDate = null;
                 if (mVideo.starttime != null) {
                     Date date = dbFormat.parse(mVideo.starttime + "+0000");
-                    long dateMS = date.getTime();
-                    TimeZone tz = TimeZone.getDefault();
-                    dateMS += tz.getOffset(date.getTime());
-                    recDate = outFormat.format(new Date(dateMS));
+                    recDate = outFormat.format(date);
                     description.append(recDate);
                 }
                 // Length of recording
@@ -95,12 +94,12 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 dbFormat = new SimpleDateFormat("yyyy-MM-dd");
                 if (mVideo.airdate != null) {
                     if ("01-01".equals(mVideo.airdate.substring(5)))
-                        description.append("   [" + mVideo.airdate.substring(0, 4) + "]");
+                        description.append("   [").append(mVideo.airdate.substring(0, 4)).append("]");
                     else {
                         Date date = dbFormat.parse(mVideo.airdate);
                         String origDate = outFormat.format(date);
                         if (!Objects.equals(origDate,recDate))
-                            description.append("   [" + outFormat.format(date) + "]");
+                            description.append("   [").append(outFormat.format(date)).append("]");
                     }
                 }
                 description.append('\n');
@@ -110,5 +109,14 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             description.append(mVideo.description);
             mViewHolder.getBody().setText(description);
         }
+        else if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            mViewHolder.getTitle().setText(mVideo.channel);
+
+            mViewHolder.getSubtitle().setText(
+                    String.format(context.getString(R.string.channel_item_subtitle), mVideo.channum, mVideo.callsign));
+            mViewHolder.getBody().setText("");
+
+        }
+
     }
 }

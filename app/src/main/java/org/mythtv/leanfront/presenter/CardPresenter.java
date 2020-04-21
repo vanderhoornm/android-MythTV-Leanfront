@@ -93,7 +93,8 @@ public class CardPresenter extends Presenter {
         if (video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
             cardView.setTitleText(video.channel);
             try {
-                imageUrl = XmlNode.mythApiUrl(null,"/Guide/GetChannelIcon?ChanId=" + video.chanid);
+                if (video.chanid != null)
+                    imageUrl = XmlNode.mythApiUrl(null,"/Guide/GetChannelIcon?ChanId=" + video.chanid);
             } catch (IOException | XmlPullParserException e) {
                 e.printStackTrace();
             }
@@ -139,9 +140,11 @@ public class CardPresenter extends Presenter {
             subtitle.append(video.subtitle);
         }
         else if (video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
-            subtitle.append("Channel").append(" ");
-            subtitle.append(video.channum).append(" ");
-            subtitle.append(video.callsign);
+            if (video.channum != null && video.callsign != null) {
+                subtitle.append("Channel").append(" ");
+                subtitle.append(video.channum).append(" ");
+                subtitle.append(video.callsign);
+            }
         }
         cardView.setContentText(subtitle);
         // Set card size from dimension resources.

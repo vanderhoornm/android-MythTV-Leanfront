@@ -67,6 +67,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
         ImageView iconView = rootView.findViewById(R.id.header_icon);
         Drawable icon;
+        String name = headerItem.getName();
         switch (headerItem.getItemType()) {
             case MainFragment.TYPE_SETTINGS:
                 icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
@@ -79,7 +80,10 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             case MainFragment.TYPE_RECGROUP_ALL:
             case MainFragment.TYPE_TOP_ALL:
             case MainFragment.TYPE_SERIES:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
+                if ("LiveTV".equals(name))
+                    icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);
+                else
+                    icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
                 break;
             case MainFragment.TYPE_CHANNEL:
             case MainFragment.TYPE_CHANNEL_ALL:

@@ -142,6 +142,7 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_TOP_ALL = 8;
     public static final int TYPE_RECGROUP_ALL = 9;
     public static final int TYPE_VIDEODIR_ALL = 10;
+    // Type applicable to row or cell
     public static final int TYPE_CHANNEL_ALL = 11;
     // Special row type
     public static final int TYPE_SETTINGS = 20;
@@ -530,10 +531,14 @@ public class MainFragment extends BrowseSupportFragment
         StringBuilder selection = new StringBuilder();
         String [] selectionArgs = null;
         if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
-            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(", ");
+            // This case will sort channels together with videos
+            orderby.append("CASE WHEN ");
+            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
+            orderby.append(VideoContract.VideoEntry.RECTYPE_CHANNEL);
+            orderby.append(" THEN ").append(VideoContract.VideoEntry.RECTYPE_RECORDING);
+            orderby.append(" ELSE ").append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" END, ");
             orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
-            orderby.append("CAST (").append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(" as real), ");
         }
         // for Recording Group page, limit selection to those recordings.
         if (mType == TYPE_RECGROUP) {
@@ -647,7 +652,7 @@ public class MainFragment extends BrowseSupportFragment
 
                 // Every time we have to re-get the category loader, we must re-create the sidebar.
                 mCategoryRowAdapter.clear();
-                ArrayObjectAdapter objectAdapter = null;
+                ArrayObjectAdapter rowObjectAdapter = null;
                 SparseArrayObjectAdapter allObjectAdapter = null;
                 ArrayObjectAdapter rootObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
@@ -781,9 +786,14 @@ public class MainFragment extends BrowseSupportFragment
                             category = getString(R.string.row_header_videos)+ "\t";
                             rowType = TYPE_VIDEODIR_ALL;
                         }
-                        else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                        else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                                || rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
                             category = recgroup;
-                            String title = data.getString(titleIndex);
+                            String title;
+                            if (rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL)
+                                title = "Channels\t";
+                            else
+                                title = data.getString(titleIndex);
                             if (Objects.equals(title,currentItem)) {
                                 data.moveToNext();
                                 continue;
@@ -808,17 +818,17 @@ public class MainFragment extends BrowseSupportFragment
                     // Change of row
                     if (category != null && !Objects.equals(category,currentCategory)) {
                         // Finish off prior row
-                        if (objectAdapter != null) {
+                        if (rowObjectAdapter != null) {
                             // Create header for this category.
                             header = new MyHeaderItem(currentCategory,
                                     currentRowType,mBaseName);
-                            row = new ListRow(header, objectAdapter);
+                            row = new ListRow(header, rowObjectAdapter);
                             row.setContentDescription(currentCategory);
                             mCategoryRowAdapter.add(row);
                         }
                         currentRowNum = mCategoryRowAdapter.size();
                         currentRowType = rowType;
-                        objectAdapter = new ArrayObjectAdapter(new CardPresenter());
+                        rowObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
                         currentCategory = category;
                         if (mSelectedRowType == rowType
                                 && Objects.equals(currentCategory,mSelectedRowName))
@@ -837,11 +847,22 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add video to row
                     if (category != null) {
-                        objectAdapter.add(video);
+                        Video tVideo = video;
+                        if (mType == TYPE_TOPLEVEL && video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+                            // Create dummy video for "All Channels"
+                            tVideo = new Video.VideoBuilder()
+                                    .id(-1).channel(getString(R.string.row_header_channels))
+                                    .rectype(VideoContract.VideoEntry.RECTYPE_CHANNEL)
+                                    .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                                    .progflags("0")
+                                    .build();
+                            tVideo.type = TYPE_CHANNEL_ALL;
+                        }
+                        rowObjectAdapter.add(tVideo);
                         if (selectedRowNum == currentRowNum) {
                             if (video.getItemType() == mSelectedItemType
                                     && Objects.equals(mSelectedItemName,video.getName()))
-                                selectedItemNum = objectAdapter.size() - 1;
+                                selectedItemNum = rowObjectAdapter.size() - 1;
                         }
                     }
 
@@ -852,7 +873,7 @@ public class MainFragment extends BrowseSupportFragment
                         if (selectedRowNum == rootRowNum) {
                             if (video.getItemType() == mSelectedItemType
                                     && Objects.equals(video.getName(),mSelectedItemName))
-                                selectedItemNum = objectAdapter.size() - 1;
+                                selectedItemNum = rowObjectAdapter.size() - 1;
                         }
                     }
 
@@ -895,11 +916,11 @@ public class MainFragment extends BrowseSupportFragment
                     data.moveToNext();
                 }
                 // Finish off prior row
-                if (objectAdapter != null) {
+                if (rowObjectAdapter != null) {
                     // Create header for this category.
                     header = new MyHeaderItem(currentCategory,
                             currentRowType,mBaseName);
-                    row = new ListRow(header, objectAdapter);
+                    row = new ListRow(header, rowObjectAdapter);
                     mCategoryRowAdapter.add(row);
                 }
 
@@ -983,6 +1004,7 @@ public class MainFragment extends BrowseSupportFragment
                     context.startActivity(intent, bundle);
                     break;
                 case TYPE_SERIES:
+                case TYPE_CHANNEL_ALL:
                     intent = new Intent(context, MainActivity.class);
                     intent.putExtra(KEY_TYPE,MainFragment.TYPE_RECGROUP);
                     intent.putExtra(KEY_BASENAME,headerItem.getName());
@@ -1126,11 +1148,9 @@ public class MainFragment extends BrowseSupportFragment
                     connection = true;
                 } catch (FileNotFoundException e) {
                     if (!mVersionMessageShown) {
-                        if (!mVersionMessageShown) {
-                            toastMsg = R.string.msg_no_delayshutdown;
-                            toastLeng = Toast.LENGTH_LONG;
-                            mVersionMessageShown = true;
-                        }
+                        toastMsg = R.string.msg_no_delayshutdown;
+                        toastLeng = Toast.LENGTH_LONG;
+                        mVersionMessageShown = true;
                         connection = true;
                     }
                 } catch (IOException e) {
@@ -1153,7 +1173,7 @@ public class MainFragment extends BrowseSupportFragment
                     activity.runOnUiThread(toastShower);
                     try {
                         Thread.sleep(5000);
-                    } catch (InterruptedException e2) {
+                    } catch (InterruptedException ignored) {
                     }
                 }
             }

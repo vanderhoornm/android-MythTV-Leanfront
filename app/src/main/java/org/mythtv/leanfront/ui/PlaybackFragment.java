@@ -387,6 +387,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.setSubtitle(subtitle);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
 
+        mPlayerGlue.seekTo(mBookmark);
         // disable and enable audio to fix sync errors
         audioFix();
         // This makes future seeks faster.

@@ -340,10 +340,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
             case Video.ACTION_STOP_RECORDING:
                 if (mSelectedVideo.recordedid != null) {
-                    // Terminate Live TV
+                    // Terminate a recording that may be a scheduled event
+                    // so don't remove the record rule.
                     new AsyncBackendCall(mSelectedVideo, 0, false,
                             this)
-                            .execute(Video.ACTION_STOP_RECORDING, Video.ACTION_REFRESH);
+                            .execute(Video.ACTION_STOP_RECORDING,
+                                    Video.ACTION_REFRESH);
                 }
                 break;
             case Video.ACTION_CANCEL:

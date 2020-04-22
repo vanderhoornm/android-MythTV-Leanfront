@@ -6,11 +6,11 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 - 4K video plays at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
 - The application uses exoplayer, which is the player code used by youtube, Amazon Prime and others. As such it will be able to handle new capabilities that are released on Android TV.
-- It plays recordings, videos and Live TV from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording group. You can drill down to a list of titles in a recording group.
-- This application uses the MythTV api to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend from v29 onwards. It may work on older versions if the apis are available on the MythTV backend.
+- It plays recordings, videos and Live TV from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording groups. You can drill down to a list of titles in a recording group.
+- This application uses the MythTV Service API to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend from v29 onwards. It may work on older versions if the APIs are available on the MythTV backend.
 - Voice search within the application is supported.
-- With backend on master or recent MythTV V30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
-- Bookmarks are supported. Bookmarks can be stored on MythTV (for recordings) or on the local leanback frontend (for recordings or videos). In cases where there is no seektable the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of the bookmark set here will be incorrect when viewed from mythfrontend. Note that video bookmarks will always be stored locally.
+- With backend on master or recent MythTV v30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
+- Bookmarks are supported. Bookmarks can be stored on MythTV (for recordings) or on the local leanback frontend (for recordings or videos). In cases where there is no seek table the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of the bookmark set here will be incorrect when viewed from mythfrontend. Note that video bookmarks will always be stored locally.
 - The "Watched" flag is set if you get to the end of the recording during playback. To ensure it is set, press forward to get to the end before exiting playback.
 - There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options. There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
 - There is a zoom icon and an aspect icon so that you can expand letterbox recordings and correct wrongly stretched recordings.
@@ -21,7 +21,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Subtitles (Closed captions) are supported.
 - At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
 - You can play in-progress recordings and the application will follow the progress as the recording continues.
-- Video playback is exlusively via hardware assisted mediacodec.
+- Video playback is exclusively via hardware assisted mediacodec.
 - Audio playback is supported using mediacodec (hardware) or ffmpeg (software). By default it will use mediacodec if it can, and will switch to ffmpeg if there is a media format not supported by mediacodec. There is a setting where you can change this default and force either mediacodec or ffmpeg.
 - Audio playback supports digital passthrough for AC3 and other digital formats if they are supported on your sound system. It also supports downmix to stereo if you do not have a system that supports AC3.
 - Selection of alternate audio tracks during playback.
@@ -35,7 +35,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - There is a row for "All" at the top.
 - After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
 - There is a row labeled "Settings" at the bottom. select "Settings" and press enter to see and update program settings.
-- There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. Note that the list is also refreshed after using Settings. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil --scanvideos" on the backend.
+- There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. Note that the list is also refreshed after using Settings. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
 
 ## Playback
 
@@ -46,7 +46,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ## Live TV
 
-In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will set up a recording of that channel, and once the recording is available it will start playing it. There is a difference between this and mythfrontend Live TV. In leanfront, the LiveTV recording will be named "LiveTV" with the date. The recording time and channel will be shown as the subtitle. The recording length defaults to 60 minutes. This default can be changed in Settings. When you exit from playback by any method, the recording is stopped and the recording rule is deleted. However, if you exit the recording by disconnecting the android TV device, or the device crashes, this cancel of the recording will not happen and it will contnue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button.
+In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will set up a recording of that channel, and once the recording is available it will start playing it. There is a difference between this and mythfrontend Live TV. In leanfront, the LiveTV recording will be named "LiveTV" with the date. The recording time and channel will be shown as the subtitle. The recording length defaults to 60 minutes. This default can be changed in Settings. When you exit from playback by any method, the recording is stopped and the recording rule is deleted.
 
 Notes:
 
@@ -54,11 +54,13 @@ Notes:
 - Live TV recordings are named only with date, time and channel, unlike in mythfrontend where they are named with the actual program name from the guide.
 - Live TV recording rules are created with priority -99. This means they will not preempt any recordings you may have set up for the same time slot.
 - Live TV recordings made with leanfront will not honor the tuner LiveTV assignments in setup. They will use the tuners set up for recordings.
-- If you invoke Live TV when there is no tuner available or the channel cannot be recorded, there will be a message informing you that the recording failed. The message cannot distinguish why the recording failed.
+- If you invoke Live TV when there is no tuner available or the channel cannot be recorded, there will be a message, after a delay of around 15 seconds, informing you that the recording failed. The message cannot distinguish why the recording failed.
 - You can set a default time for LiveTV in Settings. That is the maximum time you can watch. After that time the recording ends. You can exit from the recording and select to play LiveTV again for another period.
 - If you set the Live TV recording time too short you will have to keep restarting LiveTV. If you set it too long, your request may fail if there is another recording scheduled during that time and that causes a conflict.
 - If you have playback problems that you have to fix with ffmpeg or mkvmerge (see section "Problems" below), then this LiveTV feature will not work for you.
 - LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age
+- If you exit LivetV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do that.
+- While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
 
 ## Problems
 

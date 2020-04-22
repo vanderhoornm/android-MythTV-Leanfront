@@ -114,7 +114,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private static final float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
     private int mAspectIndex = 0;
     private float mAspect = 1.0f;
-    private static final float[] SCALE_VALUES = { 0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
+    private static final float[] SCALE_VALUES = {0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
     private static final int SCALE_DEFAULT_INDEX = 1;
     private int mScaleIndex = SCALE_DEFAULT_INDEX;
     private float mScaleX = 1.0f;
@@ -138,7 +138,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private MythHttpDataSource mDataSource;
     // Bounded indicates we have a fixed file length
     private boolean mIsBounded = true;
-    private long mOffsetBytes;
+    private long mOffsetBytes = 0;
     private boolean mIsPlayResumable;
     private boolean mIsSpeedChangeConfirmed = false;
     private ScheduledFuture<?> mSchedCheckSpeed;
@@ -263,6 +263,10 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerEventListener = new PlayerEventListener();
         mPlayer.addListener(mPlayerEventListener);
 
+        if (mRecordid >= 0)
+            // For live TV start off as unbounded
+            mIsBounded = false;
+
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
         mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
@@ -271,11 +275,81 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.playWhenPrepared();
 
         play(mVideo);
-
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
         setAdapter(mRowsAdapter);
         mPlayerGlue.setupSelectedListener();
     }
+
+    private void audioFix() {
+        if (MainFragment.executor != null) {
+            ScheduledFuture<?> sched;
+            sched = MainFragment.executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            // disable
+                            enableTrack(C.TRACK_TYPE_AUDIO, false);
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                            }
+                            //enable
+                            enableTrack(C.TRACK_TYPE_AUDIO, true);
+                        }
+                    });
+                }
+            }, 500, TimeUnit.MILLISECONDS);
+        }
+    }
+
+
+    private void enableTrack(int trackType, boolean enable) {
+        // optionList array - 0 = renderer, 1 = track group, 2 = track
+        ArrayList<int[]> optionList = new ArrayList<>();
+        ArrayList<Integer> renderList = new ArrayList<>();
+        ArrayList<Format> formatList = new ArrayList<>();
+        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+        if (mti == null)
+            return;
+        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
+            if (mti.getRendererType(rendIx) == trackType) {
+                renderList.add(rendIx);
+                TrackGroupArray tga = mti.getTrackGroups(rendIx);
+                if (tga != null) {
+                    TrackGroup tg = null;
+                    for (int tgIx = 0 ; tgIx < tga.length; tgIx++) {
+                        tg = tga.get(tgIx);
+                        if (tg != null) {
+                            for (int trkIx = 0; trkIx < tg.length; trkIx++) {
+                                int[] selection = new int[3];
+                                // optionList array - 0 = renderer, 1 = track group, 2 = track
+                                selection[0] = rendIx;
+                                selection[1] = tgIx;
+                                selection[2] = trkIx;
+                                optionList.add(selection);
+                                formatList.add(tg.getFormat(trkIx));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (optionList.size() > 0) {
+            for (int ix = 0; ix < renderList.size(); ix++) {
+                mTrackSelector.setParameters(
+                        mTrackSelector
+                                .buildUponParameters()
+                                .setRendererDisabled(renderList.get(ix), !enable)
+                );
+            }
+        }
+
+    }
+
+
+
 
     private void releasePlayer() {
         if (mPlayer != null) {
@@ -313,13 +387,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.setSubtitle(subtitle);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
 
-        long startPos = mBookmark;
-        // When starting at the begining, audio sync may be off
-        // Skipping 1.5 seconds avoids this.
-        if (startPos <= 1500L)
-            startPos = 1500L;
-
-        mPlayerGlue.seekTo(startPos);
+        // disable and enable audio to fix sync errors
+        audioFix();
         // This makes future seeks faster.
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         mPlayerGlue.play();
@@ -472,6 +541,10 @@ public class PlaybackFragment extends VideoSupportFragment
             play(mVideo);
         }
     }
+
+    // trackSelection = current selection.
+    // disable = true : Include disabled in the rotation
+    // Return = new track selection.
 
     private int trackSelector(int trackType, int trackSelection,
             int msgOn, int msgOff, boolean disable) {
@@ -960,7 +1033,7 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onAudioTrack() {
             mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
-                    R.string.msg_audio_track, R.string.msg_no_audio_track, false);
+                    R.string.msg_audio_track, R.string.msg_audio_track_off, true);
         }
 
     }

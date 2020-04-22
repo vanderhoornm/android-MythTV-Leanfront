@@ -115,7 +115,8 @@
     <string name="msg_subtitle_on">Subtitle %1$d%2$s enabled.</string>
     <string name="msg_audio_track">Audio Track %1$d%2$s enabled.</string>
     <string name="msg_no_audio_track">No Audio Track.</string>
-    <string name="msg_subtitle_off">Subtitle disabled.</string>
+    <string name="msg_audio_track_off">Audio Track Disabled.</string>
+    <string name="msg_subtitle_off">Subtitle Disabled.</string>
     <string name="msg_pin_center">Pinned at Center.</string>
     <string name="msg_pin_top">Pinned at Top.</string>
     <string name="msg_pin_bottom">Pinned at Bottom.</string>

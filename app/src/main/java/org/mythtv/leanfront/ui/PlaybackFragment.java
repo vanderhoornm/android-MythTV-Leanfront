@@ -305,50 +305,19 @@ public class PlaybackFragment extends VideoSupportFragment
 
 
     private void enableTrack(int trackType, boolean enable) {
-        // optionList array - 0 = renderer, 1 = track group, 2 = track
-        ArrayList<int[]> optionList = new ArrayList<>();
-        ArrayList<Integer> renderList = new ArrayList<>();
-        ArrayList<Format> formatList = new ArrayList<>();
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
         if (mti == null)
             return;
         for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
             if (mti.getRendererType(rendIx) == trackType) {
-                renderList.add(rendIx);
-                TrackGroupArray tga = mti.getTrackGroups(rendIx);
-                if (tga != null) {
-                    TrackGroup tg = null;
-                    for (int tgIx = 0 ; tgIx < tga.length; tgIx++) {
-                        tg = tga.get(tgIx);
-                        if (tg != null) {
-                            for (int trkIx = 0; trkIx < tg.length; trkIx++) {
-                                int[] selection = new int[3];
-                                // optionList array - 0 = renderer, 1 = track group, 2 = track
-                                selection[0] = rendIx;
-                                selection[1] = tgIx;
-                                selection[2] = trkIx;
-                                optionList.add(selection);
-                                formatList.add(tg.getFormat(trkIx));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (optionList.size() > 0) {
-            for (int ix = 0; ix < renderList.size(); ix++) {
                 mTrackSelector.setParameters(
                         mTrackSelector
                                 .buildUponParameters()
-                                .setRendererDisabled(renderList.get(ix), !enable)
+                                .setRendererDisabled(rendIx, !enable)
                 );
             }
         }
-
     }
-
-
 
 
     private void releasePlayer() {

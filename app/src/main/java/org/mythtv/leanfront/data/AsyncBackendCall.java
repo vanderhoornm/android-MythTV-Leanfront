@@ -517,6 +517,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
                 case Video.ACTION_STOP_RECORDING:
                     // Stop recording
+                    if ("-1".equals(mVideo.recordedid))
+                        break;
                     try {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Dvr/StopRecording?RecordedId=" + mVideo.recordedid);
@@ -530,9 +532,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         Log.e(TAG, CLASS + " Exception Stopping Recording.", e);
                     }
                     break;
+
                 case Video.ACTION_REMOVE_RECORD_RULE:
                     try {
-                        Thread.sleep(5000); // Wait a while to make sure recording was stopped.
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Dvr/RemoveRecordSchedule?RecordId=" + mValue);
                         response = XmlNode.fetch(urlString, "POST");

@@ -299,15 +299,15 @@ public class PlaybackFragment extends VideoSupportFragment
                         }
                     });
                 }
-            }, 500, TimeUnit.MILLISECONDS);
+            }, 5000, TimeUnit.MILLISECONDS);
         }
     }
-
 
     private void enableTrack(int trackType, boolean enable) {
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
         if (mti == null)
             return;
+
         for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
             if (mti.getRendererType(rendIx) == trackType) {
                 mTrackSelector.setParameters(
@@ -318,7 +318,6 @@ public class PlaybackFragment extends VideoSupportFragment
             }
         }
     }
-
 
     private void releasePlayer() {
         if (mPlayer != null) {

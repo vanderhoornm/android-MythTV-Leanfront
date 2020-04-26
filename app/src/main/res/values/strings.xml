@@ -102,6 +102,8 @@
     <string name="menu_remove_bookmark">Remove Bookmark</string>
     <string name="menu_stop_recording">Stop Recording</string>
     <string name="menu_dont_stop_recording">Don\'t Stop Recording</string>
+    <string name="menu_stop_livetv">Stop Live TV</string>
+    <string name="menu_dont_stop_livetv">Don\'t Stop Live TV</string>
     <string name="dummy_empty_string" translatable="false"></string>
     <string name="pref_seq_orig_airdate">Original Air Date</string>
     <string name="pref_seq_rec_time">Date/Time Recorded</string>

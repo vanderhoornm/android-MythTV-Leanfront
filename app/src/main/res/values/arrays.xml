@@ -13,4 +13,8 @@
         <item>@string/msg_pin_top</item>
         <item>@string/msg_pin_bottom</item>
     </string-array>
+    <string-array name="prompt_stop_livetv">
+        <item>@string/menu_dont_stop_livetv</item>
+        <item>@string/menu_stop_livetv</item>
+    </string-array>
 </resources>

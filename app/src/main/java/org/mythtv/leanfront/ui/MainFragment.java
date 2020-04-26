@@ -351,9 +351,13 @@ public class MainFragment extends BrowseSupportFragment
                         new AsyncBackendCall(video, 0L, false,
                                 this).execute(Video.ACTION_REFRESH);
                         return true;
-                    case TYPE_CHANNEL:
-                        playLiveTV(video);
-                        return true;
+
+                    // This could be used to start live tv, but commented
+                    // to suppress live tv play from channel list
+                    // to discourage channel surfing
+//                    case TYPE_CHANNEL:
+//                        playLiveTV(video);
+//                        return true;
                 }
             }
         }

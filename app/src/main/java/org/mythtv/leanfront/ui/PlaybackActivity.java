@@ -73,6 +73,12 @@ public class PlaybackActivity extends LeanbackActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        if (mPlaybackFragment.canEnd())
+            super.onBackPressed();
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch(keyCode) {
             case KeyEvent.KEYCODE_BUTTON_L1:

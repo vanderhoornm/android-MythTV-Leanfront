@@ -25,6 +25,7 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -35,6 +36,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
 import androidx.leanback.widget.Action;
@@ -45,6 +47,7 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.OnActionClickedListener;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
@@ -232,6 +235,31 @@ public class PlaybackFragment extends VideoSupportFragment
             e.printStackTrace();
         }
     }
+
+    boolean canEnd() {
+        if (mRecordid >= 0) {
+                // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                        R.style.Theme_AppCompat_Dialog_Alert);
+                builder
+                        .setTitle(R.string.title_are_you_sure)
+                        .setItems(R.array.prompt_stop_livetv,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
+                                        // 0 = don't stop, 1 = stop
+                                        if (which == 1) {
+                                            getActivity().finish();
+                                        }
+                                    }
+                                });
+                builder.show();
+                return false;
+            }
+        return true;
+    }
+
 
     @Override
     public void onStop() {
@@ -737,8 +765,6 @@ public class PlaybackFragment extends VideoSupportFragment
         view.setScaleX(mScaleX * mAspect);
         view.setScaleY(mScaleY);
     }
-
-
 
     /**
      * Opens the video details page when a related video has been clicked.

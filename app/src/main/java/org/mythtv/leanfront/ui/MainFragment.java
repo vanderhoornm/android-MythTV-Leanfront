@@ -121,7 +121,6 @@ public class MainFragment extends BrowseSupportFragment
     private Runnable mBackgroundTask;
     private Uri mBackgroundURI;
     private BackgroundManager mBackgroundManager;
-    private LoaderManager mLoaderManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
     private CursorObjectAdapter videoCursorAdapter;
     private int mType;
@@ -157,12 +156,9 @@ public class MainFragment extends BrowseSupportFragment
     private int mSelectedRowType;
     private String mSelectedItemName;
     private int mSelectedItemType;
-    private boolean mLoadStarted = false;
 
     static ScheduledExecutorService executor = null;
     private static MythTask mythTask = new MythTask();
-    private long mLastLoadTime = 0;
-    public static long mLoadNeededTime = System.currentTimeMillis();
     public static volatile long mFetchTime = 0;
     // Keep track of the fragment currently showing, if any.
     private static MainFragment mActiveFragment = null;
@@ -177,21 +173,19 @@ public class MainFragment extends BrowseSupportFragment
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
-            // delete stale entries from bookmark table
             VideoDbHelper dbh = new VideoDbHelper(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
+            // delete stale entries from bookmark table
             String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
             // 60 days in milliseconds
             String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L*24*60*60*1000)};
             // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
-            int sqlCount = db.delete(VideoContract.StatusEntry.TABLE_NAME, where,selectionArgs);
+            db.delete(VideoContract.StatusEntry.TABLE_NAME, where,selectionArgs);
             db.close();
             // Initialize startup members
             if (executor != null)
                 executor.shutdownNow();
             executor = null;
-            mLastLoadTime = 0;
-            mLoadNeededTime = System.currentTimeMillis();
             mFetchTime = 0;
             mActiveFragment = null;
             mWasInBackground = true;
@@ -203,8 +197,8 @@ public class MainFragment extends BrowseSupportFragment
                 mSelectedRowType = TYPE_VIDEODIR;
             else
                 mSelectedRowType = TYPE_SERIES;
-            startLoader();
         }
+        startLoader();
     }
 
     private void setProgressBar(boolean show) {
@@ -226,15 +220,9 @@ public class MainFragment extends BrowseSupportFragment
 
     // Load user interface from local database.
     public void startLoader() {
-        if (!mLoadStarted) {
-            Lifecycle.State state = getLifecycle().getCurrentState();
-            if (state == Lifecycle.State.STARTED
-               || state == Lifecycle.State.RESUMED) {
-                mLoaderManager = LoaderManager.getInstance(this);
-                mLoaderManager.restartLoader(CATEGORY_LOADER, null, this);
-                mLoadStarted = true;
-            }
-        }
+        LoaderManager manager = LoaderManager.getInstance(this);
+        manager.initLoader(CATEGORY_LOADER, null, this);
+
     }
 
     @Override
@@ -279,11 +267,8 @@ public class MainFragment extends BrowseSupportFragment
         mWasInBackground = false;
         // If it's been more than an hour, refresh
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
-            setProgressBar(true);
             startFetch();
         }
-        else if (mLastLoadTime < mLoadNeededTime)
-            startLoader();
     }
 
     public static void restartMythTask() {
@@ -351,13 +336,12 @@ public class MainFragment extends BrowseSupportFragment
                         new AsyncBackendCall(video, 0L, false,
                                 this).execute(Video.ACTION_REFRESH);
                         return true;
-
                     // This could be used to start live tv, but commented
                     // to suppress live tv play from channel list
                     // to discourage channel surfing
-//                    case TYPE_CHANNEL:
-//                        playLiveTV(video);
-//                        return true;
+                    //                    case TYPE_CHANNEL:
+                    //                        playLiveTV(video);
+                    //                        return true;
                 }
             }
         }
@@ -375,16 +359,16 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
+        Context context = getContext();
         if (taskRunner == null)
             return;
-        Activity activity = getActivity();
         int [] tasks = taskRunner.getTasks();
         Intent intent;
         switch (tasks[0]) {
             case Video.ACTION_REFRESH:
-                if (activity == null)
+                if (context == null)
                     break;
-                intent = new Intent(activity, PlaybackActivity.class);
+                intent = new Intent(context, PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
                 startActivity(intent);
@@ -394,9 +378,9 @@ public class MainFragment extends BrowseSupportFragment
                 Video video = taskRunner.getVideo();
                 // video null means recording failed
                 // activity null means user pressed back button
-                if (video == null || activity == null) {
-                    if (activity != null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(activity,
+                if (video == null || context == null) {
+                    if (context != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
                                 R.style.Theme_AppCompat_Dialog_Alert);
                         builder.setTitle(R.string.title_alert_livetv);
                         builder.setMessage(R.string.alert_livetv_message);
@@ -419,7 +403,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                     break;
                 }
-                intent = new Intent(activity, PlaybackActivity.class);
+                intent = new Intent(context, PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, video);
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
                 intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
@@ -605,8 +589,7 @@ public class MainFragment extends BrowseSupportFragment
         // the mLoadStarted check is needed because for some reason onLoadFinished
         // gets called every time the screen goes into the BG and this causes
         // the current selection and focus to be lost.
-        if (data != null && mLoadStarted) {
-            mLoadStarted = false;
+        if (data != null) {
             long lastLoadTime = System.currentTimeMillis();
 
             String seq = Settings.getString("pref_seq");
@@ -958,7 +941,6 @@ public class MainFragment extends BrowseSupportFragment
                 handler.postDelayed(setter, 100);
 
             }
-            mLastLoadTime = lastLoadTime;
             setProgressBar(false);
         }
     }
@@ -1250,11 +1232,12 @@ public class MainFragment extends BrowseSupportFragment
     }
 
 
-    static class ToastShower implements Runnable {
+    private static class ToastShower implements Runnable {
 
         private Activity activity;
         private int toastMsg;
         private int toastLeng;
+        private static Toast mToast;
 
         public ToastShower(Activity activity, int toastMsg, int toastLeng) {
             this.activity = activity;
@@ -1263,9 +1246,11 @@ public class MainFragment extends BrowseSupportFragment
         }
         public void run() {
             // show toast here
-            Toast.makeText(activity,
-                    activity.getString(toastMsg), toastLeng)
-                    .show();
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(activity,
+                    activity.getString(toastMsg), toastLeng);
+            mToast.show();
         }
     }
 

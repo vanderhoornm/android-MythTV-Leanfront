@@ -25,6 +25,7 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -47,7 +48,6 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
-import androidx.leanback.widget.OnActionClickedListener;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
@@ -70,6 +70,7 @@ import org.mythtv.leanfront.presenter.CardPresenter;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -133,8 +134,10 @@ public class PlaybackFragment extends VideoSupportFragment
     private float mSpeed = SPEED_VALUES[SPEED_1_INDEX];
     private Toast mToast = null;
     private SubtitleView mSubtitles;
-    private int mTextSelection = -1;
-    private int mAudioSelection = -1;
+    // for these selections, -2 = default, -1 = disabled,
+    // 0 or above = enabled track number
+    private int mTextSelection = -2;
+    private int mAudioSelection = -2;
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
     private MediaSource mMediaSource;
@@ -163,6 +166,10 @@ public class PlaybackFragment extends VideoSupportFragment
         mRecordid = getActivity().getIntent().getLongExtra(VideoDetailsActivity.RECORDID, -1);
         mPlaylist = new Playlist();
         mWatched = (Integer.parseInt(mVideo.progflags, 10) & Video.FL_WATCHED) != 0;
+
+        // For live TV start off as unbounded
+        if (mRecordid >= 0)
+            mIsBounded = false;
 
         mVideoLoaderCallbacks = new VideoLoaderCallbacks(mPlaylist);
 
@@ -280,8 +287,6 @@ public class PlaybackFragment extends VideoSupportFragment
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
         mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
-        mTextSelection = -1;
-        mAudioSelection = -1;
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
@@ -290,10 +295,6 @@ public class PlaybackFragment extends VideoSupportFragment
 
         mPlayerEventListener = new PlayerEventListener();
         mPlayer.addListener(mPlayerEventListener);
-
-        if (mRecordid >= 0)
-            // For live TV start off as unbounded
-            mIsBounded = false;
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
         mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
@@ -316,14 +317,24 @@ public class PlaybackFragment extends VideoSupportFragment
                 public void run() {
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
-                            // disable
-                            enableTrack(C.TRACK_TYPE_AUDIO, false);
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
+                            // Enable subtitle if necessary
+                            if (mTextSelection != -2)
+                                mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
+                                        0, 0, true, false);
+                            // change audio track if necessary
+                            if (mAudioSelection != -2)
+                                mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
+                                        0, 0, true, false);
+                            else {
+                                // disable and enable to fix audio sync
+                                enableTrack(C.TRACK_TYPE_AUDIO, false);
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                }
+                                enableTrack(C.TRACK_TYPE_AUDIO, true);
                             }
-                            //enable
-                            enableTrack(C.TRACK_TYPE_AUDIO, true);
+
                         }
                     });
                 }
@@ -371,9 +382,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
         // This is to mark unwatched when play starts - does not seem a good idea.
         // possible characters for watched - "👁" "⏿" "👀"
-//        int progflags = Integer.parseInt(video.progflags);
-//        if ((progflags & video.FL_WATCHED) != 0)
-//            markWatched(false);
+        //        int progflags = Integer.parseInt(video.progflags);
+        //        if ((progflags & video.FL_WATCHED) != 0)
+        //            markWatched(false);
 
         if (video.season != null && video.season.compareTo("0") > 0) {
             subtitle.append('S').append(video.season).append('E').append(video.episode)
@@ -386,6 +397,9 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.seekTo(mBookmark);
         // disable and enable audio to fix sync errors
         audioFix();
+        // set desired playback speed
+        PlaybackParameters parms = new PlaybackParameters(mSpeed);
+        mPlayer.setPlaybackParameters(parms);
         // This makes future seeks faster.
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         mPlayerGlue.play();
@@ -393,6 +407,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         mFileLength = -1;
+        mIsPlayResumable = false;
         getFileLength();
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
@@ -539,12 +554,13 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    // trackSelection = current selection.
+    // trackSelection = current selection. -1 = disabled, -2 = leave as is
     // disable = true : Include disabled in the rotation
+    // doChange = true : select a new track, false = leave same track
     // Return = new track selection.
 
     private int trackSelector(int trackType, int trackSelection,
-            int msgOn, int msgOff, boolean disable) {
+            int msgOn, int msgOff, boolean disable, boolean doChange) {
         // optionList array - 0 = renderer, 1 = track group, 2 = track
         ArrayList<int[]> optionList = new ArrayList<>();
         ArrayList<Integer> renderList = new ArrayList<>();
@@ -576,13 +592,17 @@ public class PlaybackFragment extends VideoSupportFragment
             }
         }
         StringBuilder msg = new StringBuilder();
-        if (optionList.size() == 0)
-            trackSelection = -1;
-        else if (++trackSelection >= optionList.size()) {
-            if (disable)
+        if (doChange) {
+            if (trackSelection == -2)
                 trackSelection = -1;
-            else
-                trackSelection = 0;
+            if (optionList.size() == 0)
+                trackSelection = -1;
+            else if (++trackSelection >= optionList.size()) {
+                if (disable)
+                    trackSelection = -1;
+                else
+                    trackSelection = 0;
+            }
         }
         if (trackSelection >= 0) {
             int [] selection = optionList.get(trackSelection);
@@ -606,9 +626,10 @@ public class PlaybackFragment extends VideoSupportFragment
                 String langDesc = locale.getDisplayLanguage();
                 language = " (" + langDesc + ")";
             }
-            msg.append(getActivity().getString(msgOn,
-                    trackSelection+1, language));
-        } else {
+            if (msgOn > 0)
+                msg.append(getActivity().getString(msgOn,
+                        trackSelection+1, language));
+        } else if (trackSelection == -1){
             if (optionList.size() > 0) {
                 for (int ix = 0; ix < renderList.size(); ix++) {
                     mTrackSelector.setParameters(
@@ -618,14 +639,17 @@ public class PlaybackFragment extends VideoSupportFragment
                     );
                 }
             }
-            msg.append(getActivity().getString(msgOff));
+            if (msgOff > 0)
+                msg.append(getActivity().getString(msgOff));
         }
 
-        if (mToast != null)
-            mToast.cancel();
-        mToast = Toast.makeText(getActivity(),
-                msg, Toast.LENGTH_LONG);
-        mToast.show();
+        if (msg.length() > 0) {
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    msg, Toast.LENGTH_LONG);
+            mToast.show();
+        }
         return trackSelection;
     }
 
@@ -661,28 +685,33 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     public void getFileLength() {
-        new AsyncBackendCall(mVideo, mBookmark, mWatched,
+        new AsyncBackendCall(mVideo, mFileLength, mWatched,
                 this).execute(Video.ACTION_FILELENGTH);
     }
 
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
-        long fileLength = taskRunner.getFileLength();
-        // If file has got bigger, resume with bigger file
-        if (fileLength > mFileLength) {
-            mFileLength = fileLength;
+        if (getContext() == null)
+            return;
+        int [] tasks = taskRunner.getTasks();
+        if (tasks != null && tasks.length > 0
+            && tasks[0] == Video.ACTION_FILELENGTH) {
+            long fileLength = taskRunner.getFileLength();
+            // If file has got bigger, resume with bigger file
             if (mIsPlayResumable) {
-                mIsBounded = false;
-                mBookmark = 0;
-                mOffsetBytes = mDataSource.getCurrentPos();
-                mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
-                play(mVideo);
-                hideControlsOverlay(false);
+                if (fileLength > mFileLength) {
+                    mFileLength = fileLength;
+                    mIsBounded = false;
+                    mBookmark = 0;
+                    mOffsetBytes = mDataSource.getCurrentPos();
+                    mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
+                    play(mVideo);
+                    hideControlsOverlay(false);
+                }
             }
+            mFileLength = fileLength;
+            mIsPlayResumable = false;
         }
-        else
-            markWatched(true);
-        mIsPlayResumable = false;
     }
 
     public void setDataSource(MythHttpDataSource mDataSource) {
@@ -902,6 +931,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onPlayCompleted() {
+            markWatched(true);
             if (mIsBounded) {
                 mIsPlayResumable = true;
                 getFileLength();
@@ -933,7 +963,7 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onCaption() {
             mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
-                    R.string.msg_subtitle_on, R.string.msg_subtitle_off, true);
+                    R.string.msg_subtitle_on, R.string.msg_subtitle_off, true, true);
         }
 
         @Override
@@ -978,7 +1008,20 @@ public class PlaybackFragment extends VideoSupportFragment
                     public void run() {
                         getActivity().runOnUiThread(new Runnable() {
                             public void run() {
-                                if (!mIsSpeedChangeConfirmed) {
+                                long duration = mPlayerGlue.myGetDuration();
+                                if (!mIsSpeedChangeConfirmed &&
+                                        (duration > 0 || !mIsBounded)) {
+                                    // If we cannot change speed, switch to ffmpeg audio.
+                                    if (!"ffmpeg".equals(mAudio)) {
+                                        mAudio = "ffmpeg";
+                                        mBookmark = mPlayerGlue.getCurrentPosition();
+                                        mIsBounded = true;
+                                        mOffsetBytes = 0;
+                                        mPlayerGlue.setOffsetMillis(0);
+                                        mPlayer.stop(true);
+                                        initializePlayer();
+                                        return;
+                                    }
                                     PlaybackParameters playbackParameters = mPlayer.getPlaybackParameters();
                                     if (playbackParameters.speed != 1.0f)
                                         return;
@@ -1028,7 +1071,7 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onAudioTrack() {
             mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
-                    R.string.msg_audio_track, R.string.msg_audio_track_off, true);
+                    R.string.msg_audio_track, R.string.msg_audio_track_off, true, true);
         }
 
     }
@@ -1045,6 +1088,59 @@ public class PlaybackFragment extends VideoSupportFragment
             mToast = Toast.makeText(getActivity(),
                     msg, Toast.LENGTH_LONG);
             mToast.show();
+        }
+
+        @Override
+        public void onPlayerError(ExoPlaybackException error) {
+            Throwable cause = null;
+            int msgNum = -1;
+            switch(error.type) {
+                case ExoPlaybackException.TYPE_OUT_OF_MEMORY:
+                    msgNum = R.string.pberror_out_of_memory;
+                    cause = error.getOutOfMemoryError();
+                    break;
+                case ExoPlaybackException.TYPE_REMOTE:
+                    msgNum = R.string.pberror_remote;
+                    cause = null;
+                    break;
+                case ExoPlaybackException.TYPE_RENDERER:
+                    msgNum = R.string.pberror_renderer;
+                    cause = error.getRendererException();
+                    break;
+                case ExoPlaybackException.TYPE_SOURCE:
+                    msgNum = R.string.pberror_source;
+                    cause = error.getSourceException();
+                    break;
+                case ExoPlaybackException.TYPE_UNEXPECTED:
+                    msgNum = R.string.pberror_unexpected;
+                    cause = error.getUnexpectedException();
+                    break;
+                default:
+                    msgNum = R.string.pberror_default;
+                    cause = null;
+                    break;
+            }
+
+            Context context = getContext();
+            if (context != null) {
+                StringBuilder msg = new StringBuilder(context.getString(msgNum));
+                msg.append("\n").append(error.getMessage());
+                if (cause != null)
+                    msg.append("\n").append(cause.getMessage());
+                AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                        R.style.Theme_AppCompat_Dialog_Alert);
+                builder.setTitle(R.string.pberror_title);
+                builder.setMessage(msg);
+                // add a button
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(
+                    new DialogInterface.OnDismissListener() {
+                        public void onDismiss(DialogInterface dialog) {
+                                getActivity().finish();
+                            }
+                        });
+                builder.show();
+            }
         }
     }
 

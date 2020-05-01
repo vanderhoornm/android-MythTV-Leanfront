@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -109,10 +108,10 @@ public class VideoDbBuilder {
      * @param url The location of the video list
      */
     public @NonNull
-    List<ContentValues> fetch(String url, int phase)
+    void fetch(String url, int phase, List<ContentValues> videosToInsert)
             throws IOException, XmlPullParserException {
         XmlNode videoData = XmlNode.fetch(url, null);
-        return buildMedia(videoData, phase, -1);
+        buildMedia(videoData, phase, -1, videosToInsert);
     }
 
     /**
@@ -122,7 +121,8 @@ public class VideoDbBuilder {
      * @param phase   0 for recordings, 1 for videos, 2 for channels
      * @param ixSingle if this is -1 process all records, otherwise process the specified single record
      */
-    public List<ContentValues> buildMedia(XmlNode xmlFull, int phase, int ixSingle) throws IOException, XmlPullParserException {
+    public void buildMedia(XmlNode xmlFull, int phase, int ixSingle, List<ContentValues> videosToInsert)
+            throws IOException, XmlPullParserException {
         String[] tagsProgram = null;
         String tagRecordedId = null;
         if (phase == 0) {  //Recordings
@@ -133,10 +133,10 @@ public class VideoDbBuilder {
             tagsProgram = XMLTAGS_VIDEO;
             tagRecordedId = XMLTAG_ID;
         }
-        if (phase == 2) {
-            return loadChannels(xmlFull);
+        if (phase == 2) { // Channels
+            loadChannels(xmlFull, videosToInsert);
+            return;
         }
-        List<ContentValues> videosToInsert = new ArrayList<>();
         // Art urls have to be off main backend
         String baseArtUrl = XmlNode.mythApiUrl(null, null);
         XmlNode programNode = null;
@@ -319,11 +319,10 @@ public class VideoDbBuilder {
             if (ixSingle >= 0)
                 break;
         }
-        return videosToInsert;
+        return;
     }
 
-    private List<ContentValues> loadChannels(XmlNode xmlFull) throws IOException, XmlPullParserException {
-        List<ContentValues> channelsToInsert = new ArrayList<>();
+    private void loadChannels(XmlNode xmlFull, List<ContentValues> channelsToInsert) {
         XmlNode channelNode = null;
         for (; ; ) {
             if (channelNode == null)
@@ -374,6 +373,6 @@ public class VideoDbBuilder {
             channelValues.put(VideoContract.VideoEntry.COLUMN_RECGROUP, "LiveTV");
             channelsToInsert.add(channelValues);
         }
-        return channelsToInsert;
+        return;
     }
 }

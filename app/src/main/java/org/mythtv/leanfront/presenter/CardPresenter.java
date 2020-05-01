@@ -156,7 +156,6 @@ public class CardPresenter extends Presenter {
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         RequestOptions options = new RequestOptions()
-//                .fitCenter()
                 .error(defaultIcon);
 
         if (imageUrl == null) {

@@ -30,11 +30,11 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
@@ -63,28 +63,28 @@ public class FetchVideoService extends IntentService {
             do {
                 fetchTime = System.currentTimeMillis();
 
-                VideoDbHelper dbh = new VideoDbHelper(this);
-                SQLiteDatabase db = dbh.getWritableDatabase();
-                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-                db.close();
-
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
                 // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
                 String[] urls = {
                         mythApiUrl(null, "/Dvr/GetRecordedList"),
                         mythApiUrl(null, "/Video/GetVideoList"),
                         mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true")};
+                List<ContentValues> contentValuesList = new ArrayList<>();
                 for (int i = 0; i < urls.length; i++) {
                     String url = urls[i];
                     if (url != null) {
                         // This call expects recordings to be 0, videos to be 1, channels to be 2
-                        List<ContentValues> contentValuesList = builder.fetch(url, i);
-                        ContentValues[] downloadedVideoContentValues =
-                                contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-                        getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                                downloadedVideoContentValues);
+                        builder.fetch(url, i, contentValuesList);
                     }
                 }
+                ContentValues[] downloadedVideoContentValues =
+                        contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                VideoDbHelper dbh = new VideoDbHelper(this);
+                SQLiteDatabase db = dbh.getWritableDatabase();
+                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+                db.close();
+                getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                        downloadedVideoContentValues);
                 // Repeat if another fetch request came in while we were fetching
             }  while(MainFragment.mFetchTime > fetchTime);
         } catch (IOException | XmlPullParserException e) {
@@ -92,8 +92,5 @@ public class FetchVideoService extends IntentService {
             Log.e(TAG, "Error occurred in downloading videos");
             e.printStackTrace();
         }
-
-        MainFragment.mLoadNeededTime = System.currentTimeMillis();
-        MainActivity.startMainLoader();
     }
 }

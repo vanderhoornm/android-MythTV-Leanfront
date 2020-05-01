@@ -683,9 +683,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
+        Context context = getContext();
         if (taskRunner == null)
             return;
-        Activity activity = getActivity();
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_LIVETV:
@@ -693,9 +693,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 Video video = taskRunner.getVideo();
                 // video null means recording failed
                 // activity null means user pressed back button
-                if (video == null || activity == null) {
-                    if (activity != null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(activity,
+                if (video == null || context == null) {
+                    if (context != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
                                 R.style.Theme_AppCompat_Dialog_Alert);
                         builder.setTitle(R.string.title_alert_livetv);
                         builder.setMessage(R.string.alert_livetv_message);
@@ -718,13 +718,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     }
                     break;
                 }
-                Intent intent = new Intent(activity, PlaybackActivity.class);
+                Intent intent = new Intent(context, PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, video);
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
                 intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
                 startActivity(intent);
                 break;
             default:
+                if (context == null)
+                    break;
                 mBookmark = taskRunner.getBookmark();
                 int progflags = Integer.parseInt(mSelectedVideo.progflags);
                 mWatched = ((progflags & Video.FL_WATCHED) != 0);

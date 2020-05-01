@@ -20,6 +20,7 @@
 package org.mythtv.leanfront.data;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -42,6 +43,9 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
     private long mTotalLength;
     private long mCurrentPos;
     private long mOffsetBytes;
+    private static final String TAG = "lfe";
+    private static final String CLASS = "MythHttpDataSource";
+
 
     public MythHttpDataSource(String userAgent, PlaybackFragment playbackFragment){
         super(true);
@@ -67,7 +71,14 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
         try {
             leng = mHttpDataSource.open(mDataSpec);
         } catch (HttpDataSource.InvalidResponseCodeException e) {
-            leng = 0;
+            // Response code 416 = read past eof
+            if (e.responseCode == 416)
+                leng = 0;
+            else {
+                Log.e(TAG, CLASS + " Bad Http Response Code:" +e.responseCode
+                    + " " + e.responseMessage);
+                throw e;
+            }
         }
         mTotalLength = mDataSpec.absoluteStreamPosition + leng;
         mCurrentPos = mDataSpec.absoluteStreamPosition;
@@ -112,8 +123,14 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                 }
                 leng2 = mHttpDataSource.open(dataSpec2);
             } catch (HttpDataSource.InvalidResponseCodeException e) {
-
-                leng2 = 0;
+                // Response code 416 = read past eof
+                if (e.responseCode == 416)
+                    leng2 = 0;
+                else {
+                    Log.e(TAG, CLASS + " Bad Http Response Code:" +e.responseCode
+                            + " " + e.responseMessage);
+                    throw e;
+                }
             }
             long totalLength2 = dataSpec2.absoluteStreamPosition + leng2;
             if (totalLength2 > mTotalLength) {

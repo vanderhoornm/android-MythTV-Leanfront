@@ -53,7 +53,7 @@ public class MainActivity extends LeanbackActivity {
         if (context == null)
             context = this;
         // to test another language uncomment this
-//        setAppLocale("es");
+        //        setAppLocale("es");
         if (Settings.getString("pref_backend").length() == 0) {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
@@ -77,19 +77,6 @@ public class MainActivity extends LeanbackActivity {
         super.onDestroy();
         if (context == this)
             context = null;
-    }
-
-    static public void startMainLoader() {
-        MainActivity main = getContext();
-        if (main != null) {
-            main.runOnUiThread(new Runnable() {
-                public void run() {
-                    MainFragment frag = MainFragment.getActiveFragment();
-                    if (frag != null)
-                        frag.startLoader();
-                }
-            });
-        }
     }
 
     @Override

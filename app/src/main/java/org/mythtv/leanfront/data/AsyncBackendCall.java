@@ -38,6 +38,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +52,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     }
 
     private Video mVideo;
-    private long mValue; // Used for bookmark or recordid
+    private long mValue; // Used for bookmark or recordid or file length
     private OnBackendCallListener mBackendCallListener;
     private boolean mWatched;
     private int [] mTasks;
@@ -360,27 +361,33 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     break;
                 case Video.ACTION_FILELENGTH:
+                    // mValue is prior file length to be checked against
+                    // Try 10 times until file length increases.
                     urlString = mVideo.videoUrl;
                     HttpURLConnection urlConnection = null;
                     mFileLength = -1;
-                    try {
+                    for (int counter = 0 ; counter < 5 ; counter++) {
                         try {
+                            // pause 1 second between attempts
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
-                        URL url = new URL(urlString);
-                        urlConnection = (HttpURLConnection) url.openConnection();
-                        urlConnection.addRequestProperty("Cache-Control", "no-cache");
-                        urlConnection.setConnectTimeout(5000);
-                        urlConnection.setReadTimeout(30000);
-                        urlConnection.setRequestMethod("HEAD");
-                        mFileLength = urlConnection.getContentLength();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        if (urlConnection != null)
-                            urlConnection.disconnect();
+                        try {
+                            URL url = new URL(urlString);
+                            urlConnection = (HttpURLConnection) url.openConnection();
+                            urlConnection.addRequestProperty("Cache-Control", "no-cache");
+                            urlConnection.setConnectTimeout(5000);
+                            urlConnection.setReadTimeout(30000);
+                            urlConnection.setRequestMethod("HEAD");
+                            mFileLength = urlConnection.getContentLength();
+                            if (mFileLength > mValue)
+                                break;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (urlConnection != null)
+                                urlConnection.disconnect();
+                        }
                     }
                     break;
                 case Video.ACTION_LIVETV:
@@ -477,7 +484,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             return null;
                         }
                         VideoDbBuilder builder = new VideoDbBuilder(context);
-                        List<ContentValues> contentValuesList = builder.buildMedia(response, 0, ixFound);
+                        List<ContentValues> contentValuesList = new ArrayList<>();
+                        builder.buildMedia(response, 0, ixFound, contentValuesList);
                         ContentValues[] downloadedVideoContentValues =
                                 contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
                         context.getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,

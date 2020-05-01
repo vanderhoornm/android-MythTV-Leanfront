@@ -145,6 +145,14 @@
     <string name="title_are_you_sure">Are you sure?</string>
     <!-- In the below string the %1 is the channel number ans %2 is the callsign   -->
     <string name="channel_item_subtitle">Channel %1$s %2$s</string>
+    <!--Playback error messages-->
+    <string name="pberror_title">Playback Failed.</string>
+    <string name="pberror_out_of_memory">Out of Memory.</string>
+    <string name="pberror_remote">Error occurred in a remote component.</string>
+    <string name="pberror_renderer">Error occurred in a Renderer.</string>
+    <string name="pberror_source">Error loading data from the MediaSource.</string>
+    <string name="pberror_unexpected">Unexpected Runtime Exception</string>
+    <string name="pberror_default">Unknown error.</string>
 
     <!--Words to be stripped from the front of titles for sorting
         Must be in UPPER CASE-->

@@ -471,7 +471,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         fileSize = Long.parseLong(fileSizeStr);
                                     // Skip dummy LiveTV entry
                                     if (fileSize > 1000) {
-                                        Log.d(TAG, CLASS + " Found matching recording " + ixFound + ". RecordedId:" + tmpRecordedId);
+                                        Log.i(TAG, CLASS + " Found matching recording " + ixFound + ". RecordedId:" + tmpRecordedId);
                                         found = true;
                                         break;
                                     }

@@ -72,8 +72,10 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
             leng = mHttpDataSource.open(mDataSpec);
         } catch (HttpDataSource.InvalidResponseCodeException e) {
             // Response code 416 = read past eof
-            if (e.responseCode == 416)
+            if (e.responseCode == 416) {
                 leng = 0;
+                Log.i(TAG, CLASS + " End of file.");
+            }
             else {
                 Log.e(TAG, CLASS + " Bad Http Response Code:" +e.responseCode
                     + " " + e.responseMessage);
@@ -124,8 +126,10 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                 leng2 = mHttpDataSource.open(dataSpec2);
             } catch (HttpDataSource.InvalidResponseCodeException e) {
                 // Response code 416 = read past eof
-                if (e.responseCode == 416)
+                if (e.responseCode == 416) {
                     leng2 = 0;
+                    Log.i(TAG, CLASS + " End of file.");
+                }
                 else {
                     Log.e(TAG, CLASS + " Bad Http Response Code:" +e.responseCode
                             + " " + e.responseMessage);
@@ -133,12 +137,12 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                 }
             }
             long totalLength2 = dataSpec2.absoluteStreamPosition + leng2;
+            Log.d(TAG, CLASS + " Incremental data length:" + leng2);
             if (totalLength2 > mTotalLength) {
                 mTotalLength = totalLength2;
-                leng2 = mHttpDataSource.read(buffer, offset, readLength);
+                leng = mHttpDataSource.read(buffer, offset, readLength);
                 mCurrentPos = dataSpec2.absoluteStreamPosition;
                 mDataSpec = dataSpec2;
-                leng += leng2;
             }
         }
         if (leng > 0)

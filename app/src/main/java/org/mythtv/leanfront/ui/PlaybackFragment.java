@@ -32,6 +32,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
@@ -157,6 +158,9 @@ public class PlaybackFragment extends VideoSupportFragment
     private Action mCurrentAction;
     private long mRecordid = -1;
 
+    private static final String TAG = "lfe";
+    private static final String CLASS = "PlaybackFragment";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -277,6 +281,7 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void initializePlayer() {
+        Log.i(TAG, CLASS + " Initializing Player for " + mVideo.title + " " + mVideo.videoUrl);
         mTrackSelector = new DefaultTrackSelector();
         DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getActivity());
         int extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
@@ -370,11 +375,11 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void play(Video video) {
-
         if (mIsBounded) {
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);
         }
+        Log.i(TAG, CLASS + " Playing offset mSec:" + mPlayerGlue.getOffsetMillis());
 
         mPlayerGlue.setTitle(video.title);
 
@@ -698,6 +703,7 @@ public class PlaybackFragment extends VideoSupportFragment
             && tasks[0] == Video.ACTION_FILELENGTH) {
             long fileLength = taskRunner.getFileLength();
             // If file has got bigger, resume with bigger file
+            Log.i(TAG, CLASS + " File Length changed from " + mFileLength + " to " + fileLength);
             if (mIsPlayResumable) {
                 if (fileLength > mFileLength) {
                     mFileLength = fileLength;
@@ -705,9 +711,11 @@ public class PlaybackFragment extends VideoSupportFragment
                     mBookmark = 0;
                     mOffsetBytes = mDataSource.getCurrentPos();
                     mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
+                    Log.i(TAG, CLASS + " Resuming Playback.");
                     play(mVideo);
                     hideControlsOverlay(false);
                 }
+                else  Log.i(TAG, CLASS + " Playback ending at EOF.");
             }
             mFileLength = fileLength;
             mIsPlayResumable = false;
@@ -933,6 +941,7 @@ public class PlaybackFragment extends VideoSupportFragment
         public void onPlayCompleted() {
             markWatched(true);
             if (mIsBounded) {
+                Log.i(TAG, CLASS + " onPlayCompleted checking File Length.");
                 mIsPlayResumable = true;
                 getFileLength();
             }

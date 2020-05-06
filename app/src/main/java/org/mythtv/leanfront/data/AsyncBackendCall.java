@@ -379,11 +379,13 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             urlConnection.setConnectTimeout(5000);
                             urlConnection.setReadTimeout(30000);
                             urlConnection.setRequestMethod("HEAD");
-                            mFileLength = urlConnection.getContentLength();
+                            String strContentLeng = urlConnection.getHeaderField("Content-Length");
+                            if (strContentLeng != null)
+                                mFileLength = Long.parseLong(strContentLeng);
                             if (mFileLength > mValue)
                                 break;
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (Exception e) {
+                            Log.e(TAG, CLASS + " Exception getting file length.",e);
                         } finally {
                             if (urlConnection != null)
                                 urlConnection.disconnect();

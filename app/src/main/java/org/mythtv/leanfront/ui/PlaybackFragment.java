@@ -704,6 +704,9 @@ public class PlaybackFragment extends VideoSupportFragment
             long fileLength = taskRunner.getFileLength();
             // If file has got bigger, resume with bigger file
             Log.i(TAG, CLASS + " File Length changed from " + mFileLength + " to " + fileLength);
+            if (fileLength == -1) {
+                mPlayerEventListener.handlePlayerError(null, R.string.pberror_file_length_fail);
+            }
             if (mIsPlayResumable) {
                 if (fileLength > mFileLength) {
                     mFileLength = fileLength;
@@ -1100,40 +1103,49 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onPlayerError(ExoPlaybackException error) {
+        public void onPlayerError(ExoPlaybackException ex) {
+            handlePlayerError(ex, -1);
+        }
+
+        private void handlePlayerError(Exception ex, int msgNum) {
             Throwable cause = null;
-            int msgNum = -1;
-            switch(error.type) {
-                case ExoPlaybackException.TYPE_OUT_OF_MEMORY:
-                    msgNum = R.string.pberror_out_of_memory;
-                    cause = error.getOutOfMemoryError();
-                    break;
-                case ExoPlaybackException.TYPE_REMOTE:
-                    msgNum = R.string.pberror_remote;
-                    cause = null;
-                    break;
-                case ExoPlaybackException.TYPE_RENDERER:
-                    msgNum = R.string.pberror_renderer;
-                    cause = error.getRendererException();
-                    break;
-                case ExoPlaybackException.TYPE_SOURCE:
-                    msgNum = R.string.pberror_source;
-                    cause = error.getSourceException();
-                    break;
-                case ExoPlaybackException.TYPE_UNEXPECTED:
-                    msgNum = R.string.pberror_unexpected;
-                    cause = error.getUnexpectedException();
-                    break;
-                default:
-                    msgNum = R.string.pberror_default;
-                    cause = null;
-                    break;
+            if (ex != null && ex instanceof ExoPlaybackException) {
+                ExoPlaybackException error = (ExoPlaybackException)ex;
+                switch (error.type) {
+                    case ExoPlaybackException.TYPE_OUT_OF_MEMORY:
+                        msgNum = R.string.pberror_out_of_memory;
+                        cause = error.getOutOfMemoryError();
+                        break;
+                    case ExoPlaybackException.TYPE_REMOTE:
+                        msgNum = R.string.pberror_remote;
+                        cause = null;
+                        break;
+                    case ExoPlaybackException.TYPE_RENDERER:
+                        msgNum = R.string.pberror_renderer;
+                        cause = error.getRendererException();
+                        break;
+                    case ExoPlaybackException.TYPE_SOURCE:
+                        msgNum = R.string.pberror_source;
+                        cause = error.getSourceException();
+                        break;
+                    case ExoPlaybackException.TYPE_UNEXPECTED:
+                        msgNum = R.string.pberror_unexpected;
+                        cause = error.getUnexpectedException();
+                        break;
+                    default:
+                        msgNum = R.string.pberror_default;
+                        cause = null;
+                        break;
+                }
             }
 
             Context context = getContext();
             if (context != null) {
-                StringBuilder msg = new StringBuilder(context.getString(msgNum));
-                msg.append("\n").append(error.getMessage());
+                StringBuilder msg = new StringBuilder();
+                if (msgNum > -1)
+                    msg.append(context.getString(msgNum));
+                if (ex != null)
+                    msg.append("\n").append(ex.getMessage());
                 if (cause != null)
                     msg.append("\n").append(cause.getMessage());
                 AlertDialog.Builder builder = new AlertDialog.Builder(context,

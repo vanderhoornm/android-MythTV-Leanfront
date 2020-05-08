@@ -27,6 +27,8 @@ package org.mythtv.leanfront.data;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.mythtv.leanfront.R;
@@ -87,7 +89,8 @@ public class VideoDbBuilder {
     public static final String XMLTAG_CALLSIGN = "CallSign";
     public static final String XMLTAG_CHANNELNAME = "ChannelName";
 
-    private static final String TAG = "VideoDbBuilder";
+    private static final String TAG = "lfe";
+    private static final String CLASS = "VideoDbBuilder";
 
     private Context mContext;
 
@@ -336,11 +339,15 @@ public class VideoDbBuilder {
             String channum = channelNode.getString(XMLTAG_CHANNUM);
             String callsign = channelNode.getString(XMLTAG_CALLSIGN);
             String channelname = channelNode.getString(XMLTAG_CHANNELNAME);
+            if (channum == null || channum.length() == 0) {
+                channum = " ";
+            }
             String title;
             float fChannum = -1.0f;
             try {
                 fChannum = Float.parseFloat(channum.replace('-', '.'));
             } catch (NumberFormatException e) {
+
                 fChannum = -1.0f;
             }
             if (fChannum < 0.0f) {

@@ -352,21 +352,21 @@ public class VideoDbBuilder {
             }
             if (fChannum < 0.0f) {
                 // Non numeric channel number
-                title = "Channel " + channum.toUpperCase().charAt(0);
+                title = mContext.getString(R.string.row_header_channels) + " " + channum.toUpperCase().charAt(0);
             }
             else {
                 int start = (((int) fChannum) /100) * 100;
                 int end = start + 99;
                 String spacer;
                 if (fChannum < 1.0f)
-                    spacer = "   ";
+                    spacer = "    ";
                 else if (fChannum < 100.0f)
-                    spacer = "  ";
+                    spacer = "   ";
                 else if (fChannum < 1000.0f)
-                    spacer = " ";
+                    spacer = "  ";
                 else
-                    spacer = "";
-                title = "Channel " + spacer + start + " - " + end;
+                    spacer = " ";
+                title = mContext.getString(R.string.row_header_channels) + spacer + start + " - " + end;
             }
             ContentValues channelValues = new ContentValues();
             channelValues.put(VideoContract.VideoEntry.COLUMN_RECTYPE, rectype);

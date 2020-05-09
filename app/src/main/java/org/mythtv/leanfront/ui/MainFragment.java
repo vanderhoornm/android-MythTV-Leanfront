@@ -700,8 +700,8 @@ public class MainFragment extends BrowseSupportFragment
                         category = data.getString(titleIndex);
                         if (recgroup != null
                             && (getString(R.string.all_title) + "\t").equals(mBaseName)) {
-                            // Do not mix deleted episodes in the All group
-                            if ("Deleted".equals(recgroup)) {
+                            // Do not mix deleted episodes or LiveTV in the All group
+                            if ("Deleted".equals(recgroup) || "LiveTV".equals(recgroup)) {
                                 data.moveToNext();
                                 continue;
                             }

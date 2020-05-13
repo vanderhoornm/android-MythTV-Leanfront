@@ -82,6 +82,10 @@ You can overwrite the recording or video file with the output from one of these 
 
 You can create a user job to run one of these commands after each recording if necessary.
 
+### android.media.MediCodec$CodecException: Error 0x80001001
+
+This is an "unknown error" in OpenMax. I have seen this occurring in the decoding of AC3 audio when using jump forward. This can be avoided by setting android audio options to "surround sound" or selecting ffmpeg audio in leanfront settings.
+
 ## Playback controls (OSD)
 
 ![](PlaybackExample.png)

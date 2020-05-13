@@ -1109,6 +1109,8 @@ public class PlaybackFragment extends VideoSupportFragment
 
         private void handlePlayerError(Exception ex, int msgNum) {
             Throwable cause = null;
+            if (ex != null)
+                Log.e(TAG, CLASS + " Player Error " + mVideo.title + " " + mVideo.videoUrl, ex);
             if (ex != null && ex instanceof ExoPlaybackException) {
                 ExoPlaybackException error = (ExoPlaybackException)ex;
                 switch (error.type) {
@@ -1152,6 +1154,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         R.style.Theme_AppCompat_Dialog_Alert);
                 builder.setTitle(R.string.pberror_title);
                 builder.setMessage(msg);
+                Log.e(TAG, CLASS + " Player Error " + msg);
                 // add a button
                 builder.setPositiveButton(android.R.string.ok, null);
                 builder.setOnDismissListener(

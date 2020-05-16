@@ -1089,6 +1089,7 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     class PlayerEventListener implements Player.EventListener {
+        private int mDialogCount = 0;
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             mIsSpeedChangeConfirmed = true;
@@ -1160,9 +1161,11 @@ public class PlaybackFragment extends VideoSupportFragment
                 builder.setOnDismissListener(
                     new DialogInterface.OnDismissListener() {
                         public void onDismiss(DialogInterface dialog) {
-                                getActivity().finish();
+                                if (--mDialogCount <= 0)
+                                    getActivity().finish();
                             }
                         });
+                mDialogCount++;
                 builder.show();
             }
         }

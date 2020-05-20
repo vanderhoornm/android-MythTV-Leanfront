@@ -114,6 +114,9 @@ public class CardPresenter extends Presenter {
             case MainFragment.TYPE_CHANNEL:
                 defaultIcon = R.drawable.im_live_tv;
                 break;
+            case MainFragment.TYPE_INFO:
+                defaultIcon = R.drawable.im_info;
+                break;
             default:
                 switch (video.rectype) {
                     case VideoContract.VideoEntry.RECTYPE_CHANNEL:

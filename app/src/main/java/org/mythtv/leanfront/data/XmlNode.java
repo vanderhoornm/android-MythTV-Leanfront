@@ -40,6 +40,7 @@ public class XmlNode {
 
     private String name;
     private HashMap<String, XmlNode> childMap = new HashMap<>();
+    private HashMap<String, String> attributeMap = new HashMap<>();
     private String text = null;
     private XmlNode nextSibling;
     private static HashMap<String, String> sHostMap;
@@ -99,6 +100,11 @@ public class XmlNode {
     private static XmlNode parseNode(XmlPullParser parser) throws IOException, XmlPullParserException {
         XmlNode ret = new XmlNode();
         ret.name = parser.getName();
+        int numAttribs = parser.getAttributeCount();
+        for (int ix = 0; ix < numAttribs; ix++) {
+            ret.attributeMap.put(parser.getAttributeName(ix),
+                    parser.getAttributeValue(ix));
+        }
         int eventType = XmlPullParser.START_TAG;
         while (eventType != XmlPullParser.END_TAG) {
             eventType = parser.next();
@@ -208,6 +214,10 @@ public class XmlNode {
     }
 
     public String getString() { return text; }
+
+    public String getAttribute(String name) {
+        return attributeMap.get(name);
+    }
 
     public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
         String ipAndPort = getIpAndPort(hostName);

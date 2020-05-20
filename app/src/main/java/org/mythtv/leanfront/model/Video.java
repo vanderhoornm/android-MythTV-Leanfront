@@ -93,6 +93,8 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_STOP_RECORDING = 20;
     public static final int ACTION_REMOVE_RECORD_RULE = 21;
     public static final int ACTION_CANCEL = 22;
+    public static final int ACTION_BACKEND_INFO = 23;
+    public static final int ACTION_BACKEND_INFO_HTML = 24;
 
 
     private Video(

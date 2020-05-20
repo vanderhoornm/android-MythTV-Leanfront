@@ -34,6 +34,8 @@ import org.mythtv.leanfront.ui.MainActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -59,6 +61,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private long mFileLength = -1;
     private long mRecordId = -1;
     private long mRecordedId = -1;
+    private String mStringResult = null;
+    private XmlNode mXmlResult = null;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -104,9 +108,18 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mRecordedId;
     }
 
+    public String getStringResult() {
+        return mStringResult;
+    }
+
+    public XmlNode getXmlResult() {
+        return mXmlResult;
+    }
+
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
-        boolean isRecording = (mVideo.recGroup != null);
+        boolean isRecording = (mVideo != null && mVideo.recGroup != null);
+        HttpURLConnection urlConnection = null;
         for (int count = 0; count < tasks.length; count++) {
             int task = tasks[count];
             mTasks[count] = task;
@@ -364,7 +377,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     // mValue is prior file length to be checked against
                     // Try 10 times until file length increases.
                     urlString = mVideo.videoUrl;
-                    HttpURLConnection urlConnection = null;
                     mFileLength = -1;
                     for (int counter = 0 ; counter < 5 ; counter++) {
                         try {
@@ -557,6 +569,58 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         Log.e(TAG, CLASS + " Exception Removing Record Rule.", e);
                     }
                     break;
+                case Video.ACTION_BACKEND_INFO:
+                    mXmlResult = null;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Status/GetStatus");
+                        mXmlResult = XmlNode.fetch(urlString, "POST");
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting backend Info.", e);
+                    }
+                    break;
+                case Video.ACTION_BACKEND_INFO_HTML:
+                    InputStream is = null;
+                    urlString = null;
+                    mStringResult = null;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Status/GetStatusHTML");
+                        URL url = new URL(urlString);
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.addRequestProperty("Cache-Control", "no-cache");
+                        urlConnection.setConnectTimeout(5000);
+                        urlConnection.setReadTimeout(30000);
+                        is = urlConnection.getInputStream();
+                        InputStreamReader reader = new InputStreamReader(is);
+                        char[] buffer = new char[1024];
+                        StringBuilder output = new StringBuilder();
+                        int leng = 0;
+                        for ( ; ; ) {
+                            leng = reader.read(buffer, 0, buffer.length);
+                            if (leng == -1)
+                                break;
+                            if (leng > 0)
+                                output.append(buffer, 0, leng);
+                        }
+                        mStringResult = output.toString();
+
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception getting backend status. " + urlString, e);
+                    } finally {
+                        if (urlConnection != null)
+                            urlConnection.disconnect();
+                        if (is != null) {
+                            try {
+                                is.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, CLASS + " Exception on URL: " + urlString, e);
+                            }
+                        }
+                    }
+
+                    break;
+
                 default:
                     break;
             }

@@ -68,9 +68,14 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import android.os.Looper;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsoluteLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -147,6 +152,9 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_SETTINGS = 20;
     // Special Item Type
     public static final int TYPE_REFRESH = 21;
+    // Special Item Type
+    public static final int TYPE_INFO = 22;
+
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
     public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
@@ -156,6 +164,7 @@ public class MainFragment extends BrowseSupportFragment
     private int mSelectedRowType;
     private String mSelectedItemName;
     private int mSelectedItemType;
+    private TextView mUsageView;
 
     static ScheduledExecutorService executor = null;
     private static MythTask mythTask = new MythTask();
@@ -208,6 +217,22 @@ public class MainFragment extends BrowseSupportFragment
             manager.show();
         else
             manager.hide();
+    }
+
+    private void setUsage(int used) {
+        if (mUsageView == null) {
+            View mainView = getView();
+            if (mainView == null)
+                return;
+            ViewGroup grp = mainView.findViewById(R.id.browse_title_group);
+            int height = grp.getHeight();
+            int width = grp.getWidth();
+            mUsageView = new TextView(getContext());
+            mUsageView.setTextSize(16.0f);
+            mUsageView.setPadding(width / 15, height / 3, 0, 0);
+            grp.addView(mUsageView, new AbsoluteLayout.LayoutParams(width / 5, height,0,0));
+        }
+        mUsageView.setText("Disk Usage\n"+used + " %");
     }
 
     // Fetch video list from MythTV into local database
@@ -269,6 +294,9 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch();
         }
+        // Fill in usage
+        new AsyncBackendCall(null, 0L, false,
+                MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
     }
 
     public static void restartMythTask() {
@@ -408,6 +436,42 @@ public class MainFragment extends BrowseSupportFragment
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
                 intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
                 startActivity(intent);
+                break;
+            case Video.ACTION_BACKEND_INFO_HTML:
+                String result = taskRunner.getStringResult();
+                if (result == null)
+                    break;
+                Spanned spanned;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                    spanned = Html.fromHtml(result,Html.FROM_HTML_MODE_COMPACT);
+                else
+                    spanned =  Html.fromHtml(result);
+                AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                        R.style.Theme_AppCompat_Light);
+                builder.setMessage(spanned);
+                builder.show();
+                break;
+            case Video.ACTION_BACKEND_INFO:
+                XmlNode xml = taskRunner.getXmlResult();
+                if (xml != null) {
+                    XmlNode stg = xml.getNode("MachineInfo").getNode("Storage");
+                    XmlNode grp = null;
+                    for (int ix = 0;;ix++) {
+                        grp = stg.getNode("Group",ix);
+                        if (grp == null)
+                            break;
+                        String dir = grp.getAttribute("dir");
+                        if ("TotalDiskSpace".equals(dir))
+                            break;
+                    }
+                    if (grp == null)
+                        break;
+                    String usedStr = grp.getAttribute("used");
+                    String totalStr = grp.getAttribute("total");
+                    long used = Long.parseLong(usedStr);
+                    long total = Long.parseLong(totalStr);
+                    setUsage((int)(used * 100 / total));
+                }
                 break;
 
         }
@@ -928,6 +992,15 @@ public class MainFragment extends BrowseSupportFragment
                 video.type = TYPE_REFRESH;
                 settingsRowAdapter.add(video);
 
+                video = new Video.VideoBuilder()
+                        .id(-1).title(getString(R.string.button_backend_status))
+                        .subtitle("")
+                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                        .progflags("0")
+                        .build();
+                video.type = TYPE_INFO;
+                settingsRowAdapter.add(video);
+
                 if (selectedRowNum == allRowNum) {
                     if (allObjectAdapter == null)
                         selectedItemNum = -1;
@@ -1024,6 +1097,10 @@ public class MainFragment extends BrowseSupportFragment
                     mSelectedRowName = null;
                     setProgressBar(true);
                     startFetch();
+                    break;
+                case TYPE_INFO:
+                    new AsyncBackendCall(null, 0L, false,
+                            MainFragment.this).execute(Video.ACTION_BACKEND_INFO_HTML);
                     break;
             }
         }

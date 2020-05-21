@@ -232,7 +232,7 @@ public class MainFragment extends BrowseSupportFragment
             mUsageView.setPadding(width / 15, height / 3, 0, 0);
             grp.addView(mUsageView, new AbsoluteLayout.LayoutParams(width / 5, height,0,0));
         }
-        mUsageView.setText("Disk Usage\n"+used + " %");
+        mUsageView.setText(getContext().getResources().getString(R.string.title_disk_usage,used));
     }
 
     // Fetch video list from MythTV into local database
@@ -247,7 +247,6 @@ public class MainFragment extends BrowseSupportFragment
     public void startLoader() {
         LoaderManager manager = LoaderManager.getInstance(this);
         manager.initLoader(CATEGORY_LOADER, null, this);
-
     }
 
     @Override
@@ -294,9 +293,6 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch();
         }
-        // Fill in usage
-        new AsyncBackendCall(null, 0L, false,
-                MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
     }
 
     public static void restartMythTask() {
@@ -654,7 +650,9 @@ public class MainFragment extends BrowseSupportFragment
         // gets called every time the screen goes into the BG and this causes
         // the current selection and focus to be lost.
         if (data != null) {
-            long lastLoadTime = System.currentTimeMillis();
+            // Fill in usage
+            new AsyncBackendCall(null, 0L, false,
+                    MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
 
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");

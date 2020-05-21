@@ -144,6 +144,8 @@
     <string name="alert_livetv_message">Recording failed.</string>
     <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
     <string name="title_are_you_sure">Are you sure?</string>
+    <string name="title_disk_usage">Disk Usage\n %1d %%</string>
+    "Disk Usage\n"+used + " %"
     <!-- In the below string the %1 is the channel number ans %2 is the callsign   -->
     <string name="channel_item_subtitle">Channel %1$s %2$s</string>
     <!--Playback error messages-->

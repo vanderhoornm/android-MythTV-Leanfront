@@ -161,9 +161,9 @@ public class MainFragment extends BrowseSupportFragment
     // mBase is the current recgroup or directory being displayed.
     private String mBaseName;
     private String mSelectedRowName;
-    private int mSelectedRowType;
+    private int mSelectedRowType = -1;
     private String mSelectedItemName;
-    private int mSelectedItemType;
+    private int mSelectedItemType = -1;
     private TextView mUsageView;
 
     static ScheduledExecutorService executor = null;
@@ -305,6 +305,10 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onPause() {
         mActiveFragment = null;
+        super.onPause();
+    }
+
+    private void saveSelected() {
         int selectedRowNum = getSelectedPosition();
         mSelectedRowName = null;
         mSelectedRowType = -1;
@@ -327,7 +331,7 @@ public class MainFragment extends BrowseSupportFragment
                 mSelectedItemType = ((ListItem) itemAdapter.get(selectedItemNum)).getItemType();
             }
         }
-        super.onPause();
+
     }
 
     @Override
@@ -443,7 +447,7 @@ public class MainFragment extends BrowseSupportFragment
                 else
                     spanned =  Html.fromHtml(result);
                 AlertDialog.Builder builder = new AlertDialog.Builder(context,
-                        R.style.Theme_AppCompat_Light);
+                        R.style.Theme_AppCompat);
                 builder.setMessage(spanned);
                 builder.show();
                 break;
@@ -653,6 +657,8 @@ public class MainFragment extends BrowseSupportFragment
             // Fill in usage
             new AsyncBackendCall(null, 0L, false,
                     MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
+            if (mSelectedRowName == null)
+                saveSelected();
 
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
@@ -1006,10 +1012,12 @@ public class MainFragment extends BrowseSupportFragment
                         selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
                 }
 
-                SelectionSetter setter = new SelectionSetter(selectedRowNum,selectedItemNum);
+                if (selectedRowNum != -1) {
+                    SelectionSetter setter = new SelectionSetter(selectedRowNum, selectedItemNum);
 
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(setter, 100);
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.postDelayed(setter, 100);
+                }
 
             }
             setProgressBar(false);
@@ -1346,6 +1354,10 @@ public class MainFragment extends BrowseSupportFragment
                 if (selectedItemNum == -1)
                     getHeadersSupportFragment().getView().requestFocus();
             }
+            mSelectedRowName = null;
+            mSelectedRowType = -1;
+            mSelectedItemName = null;
+            mSelectedItemType = -1;
         }
     }
 

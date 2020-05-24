@@ -315,7 +315,7 @@ public class MainFragment extends BrowseSupportFragment
         int selectedItemNum = -1;
         mSelectedItemName = null;
         mSelectedItemType = -1;
-        if (selectedRowNum >= 0) {
+        if (selectedRowNum >= 0 && selectedRowNum < mCategoryRowAdapter.size()) {
             ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
             ListItem headerItem = (ListItem) selectedRow.getHeaderItem();
             mSelectedRowName = headerItem.getName();
@@ -327,8 +327,15 @@ public class MainFragment extends BrowseSupportFragment
                 selectedItemNum = selectedViewHolder.getSelectedPosition();
             if (selectedItemNum >= 0) {
                 ObjectAdapter itemAdapter = selectedRow.getAdapter();
-                mSelectedItemName = ((ListItem) itemAdapter.get(selectedItemNum)).getName();
-                mSelectedItemType = ((ListItem) itemAdapter.get(selectedItemNum)).getItemType();
+                if (itemAdapter != null
+                    && (itemAdapter instanceof SparseArrayObjectAdapter
+                        || selectedItemNum < itemAdapter.size())) {
+                    ListItem item = (ListItem) itemAdapter.get(selectedItemNum);
+                    if (item != null) {
+                        mSelectedItemName = item.getName();
+                        mSelectedItemType = item.getItemType();
+                    }
+                }
             }
         }
 

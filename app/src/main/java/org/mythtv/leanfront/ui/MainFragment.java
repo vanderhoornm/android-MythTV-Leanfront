@@ -368,6 +368,7 @@ public class MainFragment extends BrowseSupportFragment
                 switch (liType) {
                     case TYPE_EPISODE:
                     case TYPE_VIDEO:
+                    case TYPE_SERIES:
                         new AsyncBackendCall(video, 0L, false,
                                 this).execute(Video.ACTION_REFRESH);
                         return true;

@@ -118,7 +118,7 @@ This shows playback position plus time played and total time. While this is focu
 | Up/down | If the picture has been resized, moves the picture up or down. There are three positions, aligned on top, middle, or bottom. For use when you want to cut off the top or bottom of the picture, after zooming to a bigger size. |
 | Audio Track | Rotates among available audio tracks. |
 
-**Note:** To use *slow down* or *speed up* you have to disable digital audio passthrough, by either selecting *Stereo* in Android settings or selecting *FFmpeg* in leanfront settings.
+**Note:** When using *slow down* or *speed up* the program will disable digital audio passthrough if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 
 ### Related videos
 
@@ -204,7 +204,6 @@ Possible additions.
 
 Further development will continue. These are some possible additions.
 
-- Automatically switch to ffmpeg decoding if you use speedup, instead of prompting you to change your settings.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 - Amazon specific search and recommendations.
@@ -217,6 +216,7 @@ The following items will need api changes on the backend
 - Video delete
 - Video bookmarks stored on the backend.
 - Change recording group on a recording.
+- Change display refresh to match video rate.
 
 ## Building
 

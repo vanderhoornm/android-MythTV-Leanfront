@@ -70,7 +70,6 @@
     </string>
 
     <string name="pref_title_settings">MythTV Settings</string>
-    <string name="pref_title_login">Login</string>
     <string name="playback_tag" translatable="false">PLAYBACK_TAG</string>
     <string name="pref_title_backend_ip">IP Address or DNS name</string>
     <string name="pref_title_backend">MythTV Backend</string>

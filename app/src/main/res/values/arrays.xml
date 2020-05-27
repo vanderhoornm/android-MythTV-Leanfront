@@ -17,4 +17,12 @@
         <item>@string/menu_dont_stop_livetv</item>
         <item>@string/menu_stop_livetv</item>
     </string-array>
+
+    <!--Words to be stripped from the front of titles for sorting
+        Must be in UPPER CASE-->
+    <string-array name="title_sort_articles">
+        <item>@string/sort_exclude_1</item>
+        <item>@string/sort_exclude_2</item>
+        <item>@string/sort_exclude_3</item>
+    </string-array>
 </resources>

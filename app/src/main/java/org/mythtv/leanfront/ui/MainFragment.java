@@ -590,6 +590,27 @@ public class MainFragment extends BrowseSupportFragment
         StringBuilder orderby = new StringBuilder();
         StringBuilder selection = new StringBuilder();
         String [] selectionArgs = null;
+
+        /*
+        SQL "order by" is complicated. Below are examples for the various cases
+
+        Top Level list or Videos list
+            CASE WHEN rectype = 3 THEN 1 ELSE rectype END,
+            REPLACE(REPLACE(REPLACE('/'||UPPER(filename),'/THE ','/'),'/A ','/'),'/AN ','/'),
+            recgroup,
+            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
+            starttime asc, airdate asc
+
+        Recording Group list
+            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
+            starttime asc, airdate asc
+
+        LiveTV list
+            CAST (channum as real), channum,
+            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
+            starttime asc, airdate asc
+         */
+
         if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
             // This case will sort channels together with videos
             orderby.append("CASE WHEN ");
@@ -597,7 +618,8 @@ public class MainFragment extends BrowseSupportFragment
             orderby.append(VideoContract.VideoEntry.RECTYPE_CHANNEL);
             orderby.append(" THEN ").append(VideoContract.VideoEntry.RECTYPE_RECORDING);
             orderby.append(" ELSE ").append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" END, ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_FILENAME).append(", ");
+            StringBuilder fnSort = makeTitleSort(VideoContract.VideoEntry.COLUMN_FILENAME, '/');
+            orderby.append(fnSort).append(", ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
         }
         // for Recording Group page, limit selection to those recordings.
@@ -619,14 +641,7 @@ public class MainFragment extends BrowseSupportFragment
             selection.append(VideoContract.VideoEntry.RECTYPE_VIDEO);
         }
 
-        // Sort uppercase title
-        StringBuilder titleSort = new StringBuilder();
-        titleSort.append("'^'||UPPER(").append(VideoContract.VideoEntry.COLUMN_TITLE).append(")");
-        String [] articles = getResources().getStringArray(R.array.title_sort_articles);
-        for (String article : articles) {
-            titleSort.insert(0,"replace(");
-            titleSort.append(",'^").append(article).append(" ','^')");
-        }
+        StringBuilder titleSort = makeTitleSort(VideoContract.VideoEntry.COLUMN_TITLE, '^');
         orderby.append(titleSort).append(", ");
         if ("airdate".equals(seq)) {
             orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
@@ -654,6 +669,33 @@ public class MainFragment extends BrowseSupportFragment
         videoCursorAdapter.setMapper(new VideoCursorMapper());
         return ret;
     }
+
+    /**
+     * Create the Sql to sort with excluding articles "the" "a" etc at the front
+     * or at the front of directory names
+     * @param columnName Column for sorting on
+     * @param delim Delimiter to use - ^ for title and / for directory
+     * @return StringBuilder with resulting phrase for "order by"
+     */
+    StringBuilder makeTitleSort(String columnName, char delim) {
+
+        // Sort uppercase title
+        StringBuilder titleSort = new StringBuilder();
+        titleSort.append("'").append(delim).append("'||UPPER(")
+                .append(columnName).append(")");
+        String[] articles = getResources().getStringArray(R.array.title_sort_articles);
+        for (String article : articles) {
+            if (article != null && article.length() > 0) {
+                titleSort.insert(0, "REPLACE(");
+                titleSort.append(",'").append(delim).append(article)
+                        .append(" ','").append(delim).append("')");
+            }
+        }
+        return titleSort;
+    }
+
+
+
 
     @SuppressLint("SimpleDateFormat")
     @Override

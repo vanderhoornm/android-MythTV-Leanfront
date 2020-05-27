@@ -156,13 +156,10 @@
     <string name="pberror_unexpected">Unexpected Runtime Exception</string>
     <string name="pberror_default">Unknown error.</string>
     <string name="pberror_file_length_fail">Unable to obtain file length.</string>
-
-    <!--Words to be stripped from the front of titles for sorting
+    <!-- Words to exclude from the start titles when sorting.
         Must be in UPPER CASE-->
-    <string-array name="title_sort_articles">
-        <item>THE</item>
-        <item>A</item>
-    </string-array>
-
+    <string name="sort_exclude_1">THE</string>
+    <string name="sort_exclude_2">A</string>
+    <string name="sort_exclude_3">AN</string>
 
 </resources>

@@ -40,9 +40,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     private static final int ID_BACKEND_IP = 1;
     private static final int ID_HTTP_PORT = 2;
-    private static final int ID_BOOKMARK_STRATEGY = 3;
     private static final int ID_BOOKMARK_LOCAL = 5;
-    private static final int ID_BOOKMARK_FPS = 6;
     private static final int ID_PLAYBACK = 7;
     private static final int ID_SKIP_FWD = 8;
     private static final int ID_SKIP_BACK = 9;
@@ -58,11 +56,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_AUDIO_FFMPEG = 19;
     private static final int ID_ARROW_JUMP = 20;
     private static final int ID_LIVETV_DURATION = 21;
+    private static final int ID_FRAMERATE_MATCH = 22;
 
     private SharedPreferences.Editor mEditor;
 
     private GuidedAction mBackendAction;
-    private GuidedAction mBookmarkAction;
     private GuidedAction mSortAction;
     private GuidedAction mAudioAction;
 
@@ -108,28 +106,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<>();
-        String bookmark = Settings.getString("pref_bookmark");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_BOOKMARK_LOCAL)
-                .title(R.string.pref_bookmark_local)
-                .checked("local".equals(bookmark))
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_BOOKMARK_FPS)
-                .title(R.string.pref_title_fps)
-                .description(Settings.getString("pref_fps"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        actions.add(mBookmarkAction = new GuidedAction.Builder(getActivity())
-                .id(ID_BOOKMARK_STRATEGY)
-                .title(R.string.pref_title_bookmark_strategy)
-                .description(bookmarkDesc())
-                .subActions(subActions)
-                .build());
-
-        subActions = new ArrayList<GuidedAction>();
+        String match = Settings.getString("pref_framerate_match");
+        GuidedAction.Builder tmp = new GuidedAction.Builder(getActivity());
+        tmp     .id(ID_FRAMERATE_MATCH)
+                .title(R.string.pref_title_framerate_match)
+                .checked("true".equals(match))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
+        if (android.os.Build.VERSION.SDK_INT < 23)
+            tmp .description(R.string.pref_msg_needs_6_0)
+                .enabled(false);
+        subActions.add(tmp.build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SKIP_FWD)
                 .title(R.string.pref_title_skip_fwd)
@@ -165,13 +151,21 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
+        String bookmark = Settings.getString("pref_bookmark");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_BOOKMARK_LOCAL)
+                .title(R.string.pref_bookmark_local)
+                .checked("local".equals(bookmark))
+                .description(R.string.pref_bookmark_mythtv)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_PLAYBACK)
                 .title(R.string.pref_title_playback)
                 .subActions(subActions)
                 .build());
 
-        subActions = new ArrayList<GuidedAction>();
+        subActions = new ArrayList<>();
         String seq = Settings.getString("pref_seq");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SORT_ORIG_AIRDATE)
@@ -226,15 +220,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         return Settings.getString("pref_backend");
     }
 
-    private int bookmarkDesc() {
-        String bookmark = Settings.getString("pref_bookmark");
-        if ("mythtv".equals(bookmark))
-            return R.string.pref_bookmark_mythtv;
-        if ("local".equals(bookmark))
-            return R.string.pref_bookmark_local;
-        return R.string.dummy_empty_string;
-    }
-
     private String sortDesc() {
         StringBuilder builder = new StringBuilder();
         String seq = Settings.getString("pref_seq");
@@ -275,9 +260,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             case ID_BACKEND_MAC:
                 mEditor.putString("pref_backend_mac",action.getDescription().toString());
                 break;
-            case ID_BOOKMARK_FPS:
-                mEditor.putString("pref_fps",action.getDescription().toString());
-                break;
             case ID_SKIP_FWD:
                 mEditor.putString("pref_skip_fwd",action.getDescription().toString());
                 break;
@@ -309,9 +291,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             case ID_HTTP_PORT:
                 action.setDescription(Settings.getString("pref_http_port"));
                 break;
-            case ID_BOOKMARK_FPS:
-                action.setDescription(Settings.getString("pref_fps"));
-                break;
             case ID_SKIP_FWD:
                 action.setDescription(Settings.getString("pref_skip_fwd"));
                 break;
@@ -337,6 +316,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                     mEditor.putString("pref_bookmark", "local");
                 else
                     mEditor.putString("pref_bookmark", "mythtv");
+                break;
+            case ID_FRAMERATE_MATCH:
+                if (action.isChecked())
+                    mEditor.putString("pref_framerate_match", "true");
+                else
+                    mEditor.putString("pref_framerate_match", "false");
                 break;
             case ID_ARROW_JUMP:
                 if (action.isChecked())
@@ -372,8 +357,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 return false;
         }
         mEditor.apply();
-        mBookmarkAction.setDescription(getActivity().getString(bookmarkDesc()));
-        notifyActionChanged(findActionPositionById(ID_BOOKMARK_STRATEGY));
+        notifyActionChanged(findActionPositionById(ID_PLAYBACK));
         mSortAction.setDescription(sortDesc());
         notifyActionChanged(findActionPositionById(ID_SORT));
         mAudioAction.setDescription(audiodesc());

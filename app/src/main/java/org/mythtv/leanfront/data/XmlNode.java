@@ -219,6 +219,15 @@ public class XmlNode {
         return attributeMap.get(name);
     }
 
+    /**
+     * Convenience method to allow extra data to be stored in a node
+     * @param name
+     * @param value
+     */
+    public void setAttribute(String name, String value) {
+        attributeMap.put(name, value);
+    }
+
     public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
         String ipAndPort = getIpAndPort(hostName);
         String url = "http://" + ipAndPort;

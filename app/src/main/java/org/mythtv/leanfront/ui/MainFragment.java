@@ -293,6 +293,8 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch();
         }
+        // Clear out stream info cache
+        AsyncBackendCall.clearCachedStreamInfo();
     }
 
     public static void restartMythTask() {
@@ -450,7 +452,7 @@ public class MainFragment extends BrowseSupportFragment
                 if (result == null)
                     break;
                 Spanned spanned;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                if (android.os.Build.VERSION.SDK_INT >= 24)
                     spanned = Html.fromHtml(result,Html.FROM_HTML_MODE_COMPACT);
                 else
                     spanned =  Html.fromHtml(result);
@@ -596,7 +598,9 @@ public class MainFragment extends BrowseSupportFragment
 
         Top Level list or Videos list
             CASE WHEN rectype = 3 THEN 1 ELSE rectype END,
-            REPLACE(REPLACE(REPLACE('/'||UPPER(filename),'/THE ','/'),'/A ','/'),'/AN ','/'),
+            CASE WHEN rectype = 2
+             THEN REPLACE(REPLACE(REPLACE('/'||UPPER(filename),'/THE ','/'),'/A ','/'),'/AN ','/')
+             ELSE NULL END,
             recgroup,
             REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
             starttime asc, airdate asc
@@ -618,8 +622,12 @@ public class MainFragment extends BrowseSupportFragment
             orderby.append(VideoContract.VideoEntry.RECTYPE_CHANNEL);
             orderby.append(" THEN ").append(VideoContract.VideoEntry.RECTYPE_RECORDING);
             orderby.append(" ELSE ").append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" END, ");
+            orderby.append("CASE WHEN ");
+            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
+            orderby.append(VideoContract.VideoEntry.RECTYPE_VIDEO).append(" THEN ");
             StringBuilder fnSort = makeTitleSort(VideoContract.VideoEntry.COLUMN_FILENAME, '/');
-            orderby.append(fnSort).append(", ");
+            orderby.append(fnSort);
+            orderby.append(" ELSE NULL END, ");
             orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
         }
         // for Recording Group page, limit selection to those recordings.

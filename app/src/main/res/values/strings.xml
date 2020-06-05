@@ -75,11 +75,9 @@
     <string name="pref_title_backend">MythTV Backend</string>
     <string name="pref_title_myth_port">MythTV Backend Port</string>
     <string name="pref_title_http_port">Status Port</string>
-    <string name="pref_bookmark_mythtv">MythTV based</string>
-    <string name="pref_bookmark_local">Locally Saved</string>
+    <string name="pref_bookmark_mythtv">If Unchecked, Store in MythTV</string>
+    <string name="pref_bookmark_local">Store Bookmarks in Android</string>
     <string name="all_plus_tab">All&#9;</string>
-    <string name="pref_title_bookmark_strategy">Bookmark Strategy</string>
-    <string name="pref_title_fps">Bookmark Default fps</string>
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
     <string name="pref_title_playback">Playback</string>
     <string name="pref_title_skip_back">Skip Back Seconds</string>
@@ -110,6 +108,13 @@
     <string name="pref_seq_ascending">Ascending</string>
     <string name="pref_sort_order">Sort Sequence</string>
     <string name="pref_title_backend_mac">Wakeup MAC Address</string>
+    <string name="pref_ff_title">Audio Decode</string>
+    <string name="pref_audio_auto">Auto select</string>
+    <string name="pref_audio_mediacodec">Mediacodec</string>
+    <string name="pref_audio_ffmpeg">FFmpeg</string>
+    <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
+    <string name="pref_title_framerate_match">Match original frame rate</string>
+    <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
     <!-- In the next 2, %1 in the track number, %2 is the language if known
          in parens e.g (English) or empty string if not known -->
@@ -121,13 +126,14 @@
     <string name="msg_pin_center">Pinned at Center.</string>
     <string name="msg_pin_top">Pinned at Top.</string>
     <string name="msg_pin_bottom">Pinned at Bottom.</string>
+    <string name="msg_unable_get_framerate">Unable to obtain frame rate.
+        Make sure you have the appropriate version of mythbackend or disable
+        frame rate matching.</string>
+    <string name="msg_setting_framerate">Setting refresh rate to %1$.2f.</string>
+    <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate of %1$.2f.</string>
     <string name="button_refresh_lists">Refresh Lists</string>
     <string name="button_backend_status">Backend Status</string>
     <string name="title_livetv_recording">LiveTV</string>
-    <string name="pref_ff_title">Audio Decode</string>
-    <string name="pref_audio_auto">Auto select</string>
-    <string name="pref_audio_mediacodec">Mediacodec</string>
-    <string name="pref_audio_ffmpeg">FFmpeg</string>
     <string name="playback_speed">Playback Speed</string>
     <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>
     <string name="button_zoom">Picture Size</string>
@@ -141,7 +147,6 @@
     <string name="row_header_channels">Channels</string>
     <string name="title_alert_livetv">Live TV</string>
     <string name="alert_livetv_message">Recording failed.</string>
-    <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
     <string name="title_are_you_sure">Are you sure?</string>
     <string name="title_disk_usage">Disk Usage\n %1d %%</string>
     "Disk Usage\n"+used + " %"

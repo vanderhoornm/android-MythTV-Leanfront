@@ -69,8 +69,6 @@ public class Settings {
         mEditor.putString("pref_http_port",str);
         str = mPrefs.getString("pref_bookmark", "mythtv");
         mEditor.putString("pref_bookmark",str);
-        str = mPrefs.getString("pref_fps", "30");
-        mEditor.putString("pref_fps",str);
         str = mPrefs.getString("pref_skip_fwd", "60");
         mEditor.putString("pref_skip_fwd",str);
         str = mPrefs.getString("pref_skip_back", "20");
@@ -87,6 +85,11 @@ public class Settings {
         mEditor.putString("pref_jump",str);
         str = mPrefs.getString("pref_livetv_duration", "60");
         mEditor.putString("pref_livetv_duration",str);
+        if (android.os.Build.VERSION.SDK_INT >= 23)
+            str = mPrefs.getString("pref_framerate_match", "false");
+        else
+            str = "false";
+        mEditor.putString("pref_framerate_match",str);
         mEditor.apply();
     }
 }

@@ -25,6 +25,7 @@
 package org.mythtv.leanfront.ui;
 
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,9 +33,14 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +68,7 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.MythHttpDataSource;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -90,6 +97,7 @@ import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -154,12 +162,17 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
     private int mJump = 60000 * Settings.getInt("pref_jump");
     private String mAudio = Settings.getString("pref_audio");
+    private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
+
     private View mFocusView;
     private Action mCurrentAction;
     private long mRecordid = -1;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "PlaybackFragment";
+
+    private XmlNode mStreamInfo = null;
+    private Dialog mRateBanner = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -307,6 +320,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 mPlaylistActionListener, mRecordid < 0);
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         mPlayerGlue.playWhenPrepared();
+        hideControlsOverlay(false);
 
         play(mVideo);
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
@@ -347,6 +361,22 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
+    private void playWait(int delay) {
+        if (MainFragment.executor != null) {
+            ScheduledFuture<?> sched;
+            sched = MainFragment.executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            play(mVideo);
+                        }
+                    });
+                }
+            }, delay, TimeUnit.MILLISECONDS);
+        }
+    }
+
     private void enableTrack(int trackType, boolean enable) {
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
         if (mti == null)
@@ -375,6 +405,59 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void play(Video video) {
+
+        mVideo = video;
+        if (mFrameMatch && android.os.Build.VERSION.SDK_INT >= 23) {
+            mStreamInfo = AsyncBackendCall.getCachedStreamInfo(mVideo.videoUrl);
+            // If we do not have the stream info - request it and we will be called again.
+            if (mStreamInfo == null) {
+                new AsyncBackendCall(mVideo, 0, mWatched,
+                        this).execute(Video.ACTION_GET_STREAM_INFO);
+                return;
+            }
+            String modeStr = mStreamInfo.getAttribute("LEANFRONT_MODE");
+            int mode = -1;
+            if (modeStr == null) {
+                mode = setupRefreshRate();
+            } else
+                mode = Integer.parseInt(modeStr);
+            if (mode != -1) {
+                Display display = getActivity().getWindowManager().getDefaultDisplay();
+                Display.Mode currMode = display.getMode();
+                if (mode != currMode.getModeId()) {
+                    if (mRateBanner == null) {
+                        // Display banner
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                                R.style.Theme_AppCompat);
+                        float frameRate = Float.parseFloat(mStreamInfo.getAttribute("LEANFRONT_RATE"));
+                        String msg = getContext().getString(R.string.msg_setting_framerate, frameRate);
+                        builder.setMessage(msg);
+                        mRateBanner = builder.show();
+                        TextView messageText = mRateBanner.findViewById(android.R.id.message);
+                        messageText.setGravity(Gravity.CENTER);
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        display.getMetrics(metrics);
+                        int height = metrics.heightPixels;
+                        int padding = height * 5 / 12;
+                        messageText.setPadding(0, padding, 0, padding);
+                        mRateBanner.show();
+                        // show for 2 seconds
+                        playWait(2000);
+                        return;
+                    }
+                    else {
+                        // banner has displayed
+                        mRateBanner.dismiss();
+                        mRateBanner = null;
+                        Window window = getActivity().getWindow();
+                        WindowManager.LayoutParams params = window.getAttributes();
+                        params.preferredDisplayModeId = mode;
+                        window.setAttributes(params);
+                    }
+                }
+            }
+        }
+
         if (mIsBounded) {
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);
@@ -408,6 +491,175 @@ public class PlaybackFragment extends VideoSupportFragment
         // This makes future seeks faster.
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         mPlayerGlue.play();
+    }
+
+    private int setupRefreshRate() {
+        // Setup video frame rate
+        float frameRate = 0.0f;
+        String fieldOrder = null;
+        if (mStreamInfo.getString("Count") == null) {
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    getActivity().getString(R.string.msg_unable_get_framerate),
+                    Toast.LENGTH_LONG);
+            mToast.show();
+        } else {
+            int count = Integer.parseInt(mStreamInfo.getString("Count"));
+            XmlNode streamNode = mStreamInfo.getNode("VideoStreamInfos").getNode("VideoStreamInfo");
+            for (int ix = 0; ix < count && streamNode != null; ix++) {
+                if ("V".equals(streamNode.getString("CodecType"))) {
+                    frameRate = Float.parseFloat(streamNode.getString("FrameRate"));
+                    fieldOrder = streamNode.getString("FieldOrder");
+                    break;
+                }
+                streamNode = streamNode.getNextSibling();
+            }
+        }
+        float ratio = 1.0f;
+        float desiredRefreshRate = 1.0f;
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        float refreshRate = display.getRefreshRate();
+        if (frameRate > 1.0f) {
+            if ("PR".equals(fieldOrder))
+                desiredRefreshRate = frameRate;
+            else {
+                if (frameRate < 35.0f)
+                    // assume interlaced, prefer double rate
+                    desiredRefreshRate = frameRate * 2;
+                else
+                    desiredRefreshRate = frameRate;
+            }
+            ratio = refreshRate / desiredRefreshRate;
+            if (ratio > 1.0f)
+                ratio = 1.0f / ratio;
+        }
+        // try to get ratio as close as possible to 1.0.
+        int setId = -1;
+        float setRate = 0.0f;
+        if (ratio < 1.0f) {
+            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                float matchedRate = 0.0f;
+                float halfRate = 0.0f;
+                float dblRate = 0.0f;
+                int matchedId = -1;
+                int halfId = -1;
+                int dblId = -1;
+                float diffM = 999.0f;
+                float diffH = 999.0f;
+                float diffD = 999.0f;
+                Display.Mode[] modes = display.getSupportedModes();
+                Display.Mode currMode = display.getMode();
+                for (Display.Mode mode : modes) {
+                    if (mode.getPhysicalHeight() != currMode.getPhysicalHeight()
+                            || mode.getPhysicalWidth() != currMode.getPhysicalWidth())
+                        continue;
+                    float rate = mode.getRefreshRate();
+                    ratio = rate / desiredRefreshRate;
+                    float diff = Math.abs(ratio - 1.0f);
+                    if (diff < diffM) {
+                        matchedId = mode.getModeId();
+                        matchedRate = rate;
+                        diffM = diff;
+                    }
+                    diff = Math.abs(ratio - 0.5f);
+                    if (diff < diffH) {
+                        halfId = mode.getModeId();
+                        halfRate = rate;
+                        diffH = diff;
+                    }
+                    diff = Math.abs(ratio - 2.0f);
+                    if (diff < diffD) {
+                        dblId = mode.getModeId();
+                        dblRate = rate;
+                        diffD = diff;
+                    }
+                }
+                if (matchedId > -1 && diffM < 0.005f) {
+                    setId = matchedId;
+                    setRate = matchedRate;
+                }
+                else if (dblId > -1 && diffD < 0.005f) {
+                    setId = dblId;
+                    setRate = dblRate;
+                }
+                else if (halfId > -1 && diffH < 0.005f) {
+                    setId = halfId;
+                    setRate = halfRate;
+                }
+                String msg = null;
+                if (setId == -1)
+                    msg = getActivity().getString(R.string.msg_no_good_refresh,frameRate);
+                if (msg != null) {
+                    if (mToast != null)
+                        mToast.cancel();
+                    mToast = Toast.makeText(getActivity(),
+                            msg,
+                            Toast.LENGTH_LONG);
+                    mToast.show();
+                }
+            }
+
+                // This code would support android sdk < 23, however it is not tested
+                // and few systems use sdk < 23
+//            else {
+//                float matchedRate = 0.0f;
+//                float halfRate = 0.0f;
+//                float dblRate = 0.0f;
+//                float diffM = 999.0f;
+//                float diffH = 999.0f;
+//                float diffD = 999.0f;
+//                float[] rates = display.getSupportedRefreshRates();
+//                for (float rate : rates) {
+//                    ratio = rate / desiredRefreshRate;
+//
+//                    float diff = Math.abs(ratio - 1.0f);
+//                    if (diff < diffM) {
+//                        matchedRate = rate;
+//                        diffM = diff;
+//                    }
+//                    diff = Math.abs(ratio - 0.5f);
+//                    if (diff < diffH) {
+//                        halfRate = rate;
+//                        diffH = diff;
+//                    }
+//                    diff = Math.abs(ratio - 2.0f);
+//                    if (diff < diffD) {
+//                        dblRate = rate;
+//                        diffD = diff;
+//                    }
+//                }
+//                float setRate = 0.0f;
+//                if (matchedRate > 0.0f && diffM < 0.005f)
+//                    setRate = matchedRate;
+//                else if (dblRate > 0.0f && diffD < 0.005f)
+//                    setRate = dblRate;
+//                else if (halfRate > 0.0f && diffH < 0.005f)
+//                    setRate = halfRate;
+//
+//                String msg = null;
+//                if (setRate <= 1.0f)
+//                    msg = getActivity().getString(R.string.msg_no_good_refresh,desiredRefreshRate);
+//                else if (setRate != refreshRate) {
+//                    params.preferredRefreshRate = setRate;
+//                    msg = getActivity().getString(R.string.msg_setting_framerate, setRate);
+//                }
+//                if (msg != null) {
+//                    if (mToast != null)
+//                        mToast.cancel();
+//                    mToast = Toast.makeText(getActivity(),
+//                            msg,
+//                            Toast.LENGTH_LONG);
+//                    mToast.show();
+//                }
+//                if (setRate != refreshRate) {
+//                    window.setAttributes(params);
+//                }
+//            }
+        }
+        mStreamInfo.setAttribute("LEANFRONT_MODE",String.valueOf(setId));
+        mStreamInfo.setAttribute("LEANFRONT_RATE",String.valueOf(setRate));
+        return setId;
     }
 
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
@@ -699,29 +951,34 @@ public class PlaybackFragment extends VideoSupportFragment
         if (getContext() == null)
             return;
         int [] tasks = taskRunner.getTasks();
-        if (tasks != null && tasks.length > 0
-            && tasks[0] == Video.ACTION_FILELENGTH) {
-            long fileLength = taskRunner.getFileLength();
-            // If file has got bigger, resume with bigger file
-            Log.i(TAG, CLASS + " File Length changed from " + mFileLength + " to " + fileLength);
-            if (fileLength == -1) {
-                mPlayerEventListener.handlePlayerError(null, R.string.pberror_file_length_fail);
-            }
-            if (mIsPlayResumable) {
-                if (fileLength > mFileLength) {
-                    mFileLength = fileLength;
-                    mIsBounded = false;
-                    mBookmark = 0;
-                    mOffsetBytes = mDataSource.getCurrentPos();
-                    mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
-                    Log.i(TAG, CLASS + " Resuming Playback.");
-                    play(mVideo);
-                    hideControlsOverlay(false);
+        switch (tasks[0]) {
+            case Video.ACTION_FILELENGTH:
+                long fileLength = taskRunner.getFileLength();
+                // If file has got bigger, resume with bigger file
+                Log.i(TAG, CLASS + " File Length changed from " + mFileLength + " to " + fileLength);
+                if (fileLength == -1) {
+                    mPlayerEventListener.handlePlayerError(null, R.string.pberror_file_length_fail);
                 }
-                else  Log.i(TAG, CLASS + " Playback ending at EOF.");
-            }
-            mFileLength = fileLength;
-            mIsPlayResumable = false;
+                if (mIsPlayResumable) {
+                    if (fileLength > mFileLength) {
+                        mFileLength = fileLength;
+                        mIsBounded = false;
+                        mBookmark = 0;
+                        mOffsetBytes = mDataSource.getCurrentPos();
+                        mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
+                        Log.i(TAG, CLASS + " Resuming Playback.");
+                        play(mVideo);
+                        hideControlsOverlay(false);
+                    }
+                    else Log.i(TAG, CLASS + " Playback ending at EOF.");
+                }
+                mFileLength = fileLength;
+                mIsPlayResumable = false;
+                break;
+            case Video.ACTION_GET_STREAM_INFO:
+                if (mVideo == taskRunner.getVideo())
+                    play(mVideo);
+                break;
         }
     }
 

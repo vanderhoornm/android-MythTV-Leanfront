@@ -58,6 +58,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int chanidIndex;
     private static int channumIndex;
     private static int callsignIndex;
+    private static int storageGroupIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
@@ -85,6 +86,7 @@ public final class VideoCursorMapper extends CursorMapper {
         chanidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
         channumIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
         callsignIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CALLSIGN);
+        storageGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STORAGEGROUP);
     }
 
     @Override
@@ -121,6 +123,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String chanid = cursor.getString(chanidIndex);
         String channum = cursor.getString(channumIndex);
         String callsign = cursor.getString(callsignIndex);
+        String storageGroup = cursor.getString(storageGroupIndex);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
@@ -148,6 +151,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .chanid(chanid)
                 .channum(channum)
                 .callsign(callsign)
+                .storageGroup(storageGroup)
                 .build();
     }
 }

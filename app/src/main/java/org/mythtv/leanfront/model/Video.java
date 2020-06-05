@@ -68,6 +68,7 @@ public final class Video implements Parcelable, ListItem {
     public final String chanid;
     public final String channum;
     public final String callsign;
+    public final String storageGroup;
 
     // Actions used by multiple classes
     public static final int ACTION_SET_BOOKMARK = 6;
@@ -95,7 +96,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_CANCEL = 22;
     public static final int ACTION_BACKEND_INFO = 23;
     public static final int ACTION_BACKEND_INFO_HTML = 24;
-
+    public static final int ACTION_GET_STREAM_INFO = 25;
 
     private Video(
             final long id,
@@ -121,7 +122,8 @@ public final class Video implements Parcelable, ListItem {
             final String progflags,
             final String chanid,
             final String channum,
-            final String callsign) {
+            final String callsign,
+            final String storageGroup) {
         this.id = id;
         this.rectype = rectype;
         this.title = title;
@@ -146,6 +148,7 @@ public final class Video implements Parcelable, ListItem {
         this.chanid = chanid;
         this.channum = channum;
         this.callsign = callsign;
+        this.storageGroup = storageGroup;
     }
 
     protected Video(Parcel in) {
@@ -173,6 +176,7 @@ public final class Video implements Parcelable, ListItem {
         chanid = in.readString();
         channum = in.readString();
         callsign = in.readString();
+        storageGroup = in.readString();
     }
 
     public static final Creator<Video> CREATOR = new Creator<Video>() {
@@ -222,6 +226,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(chanid);
         dest.writeString(channum);
         dest.writeString(callsign);
+        dest.writeString(storageGroup);
     }
 
     @Override
@@ -284,6 +289,7 @@ public final class Video implements Parcelable, ListItem {
         private String chanid;
         private String channum;
         private String callsign;
+        private String storageGroup;
 
         public VideoBuilder id(long id) {
             this.id = id;
@@ -406,6 +412,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder storageGroup(String storageGroup) {
+            this.storageGroup = storageGroup;
+            return this;
+        }
+
         public Video buildFromMediaDesc(MediaDescription desc) {
             return new Video(
                     Long.parseLong(desc.getMediaId()),
@@ -418,7 +429,7 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    "","","","","","","","","","","","","",""
+                    "","","","","","","","","","","","","","",""
             );
         }
 
@@ -447,7 +458,8 @@ public final class Video implements Parcelable, ListItem {
                      progflags,
                     chanid,
                     channum,
-                    callsign
+                    callsign,
+                    storageGroup
             );
         }
     }

@@ -271,11 +271,11 @@ public class VideoDbBuilder {
             }
             String cardImageURL = null;
             String dbFileName = null;
+            dbFileName = videoFileName;
             if (phase == 0) { // Recordings
                 cardImageURL = baseUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
             }
             if (phase == 1) { // Videos
-                dbFileName = videoFileName;
                 cardImageURL = coverArtUrl;
             }
             String season = programNode.getString(XMLTAG_SEASON);

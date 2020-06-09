@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -79,6 +80,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     //cache for stream info. cleared in MainFragment.
     private static HashMap<String, XmlNode> mStreamInfoCache = new HashMap<>();
+    private static long mTimeAdjustment = 0;
 
     public AsyncBackendCall(Video videoA, long valueA, boolean watched,
             OnBackendCallListener backendCallListener) {
@@ -142,7 +144,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             MainActivity main = MainActivity.getContext();
             boolean found;
             XmlNode response;
-            String urlString;
+            String urlString = null;
             Context context = MainActivity.getContext();
             switch (task) {
                 case Video.ACTION_REFRESH:
@@ -416,7 +418,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     mVideo = null;
                     try {
                         // Get values needed to set up recording
-                        Date startTime = new Date();
+                        Date startTime = new Date(System.currentTimeMillis() + mTimeAdjustment);
                         // 3 hours
                         String pref = Settings.getString("pref_livetv_duration");
                         int duration = 60;
@@ -580,6 +582,20 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting backend Info.", e);
                     }
+                    if (mXmlResult != null) {
+                        String dateStr = mXmlResult.getAttribute("ISODate");
+                        if (dateStr != null) {
+                            SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                            try {
+                                Date backendTime = dbFormat.parse(dateStr + "+0000");
+                                mTimeAdjustment = backendTime.getTime() - System.currentTimeMillis();
+                                Log.i(TAG, CLASS + " Time difference " + mTimeAdjustment + " milliseconds");
+                            } catch (ParseException e) {
+                                Log.e(TAG, CLASS + " Exception getting backend time " + urlString, e);
+                            }
+                        }
+                    }
+
                     break;
                 case Video.ACTION_BACKEND_INFO_HTML:
                     InputStream is = null;

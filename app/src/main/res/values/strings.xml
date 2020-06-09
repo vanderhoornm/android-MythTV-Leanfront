@@ -98,6 +98,7 @@
     <string name="menu_mark_watched">Mark as Watched</string>
     <string name="menu_remove_bookmark">Remove Bookmark</string>
     <string name="menu_stop_recording">Stop Recording</string>
+    <string name="menu_view_description">View Description</string>
     <string name="menu_dont_stop_recording">Don\'t Stop Recording</string>
     <string name="menu_stop_livetv">Stop Live TV</string>
     <string name="menu_dont_stop_livetv">Don\'t Stop Live TV</string>

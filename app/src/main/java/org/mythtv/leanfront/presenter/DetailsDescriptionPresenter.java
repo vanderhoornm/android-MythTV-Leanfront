@@ -32,6 +32,7 @@ import org.mythtv.leanfront.model.Video;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -55,24 +56,33 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
         if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
             || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
             mViewHolder.getTitle().setText(mVideo.title);
-            StringBuilder subtitle = new StringBuilder();
-            // possible characters for watched - "👁" "⏿" "👀"
-            int progflags = Integer.parseInt(mVideo.progflags);
-            if ((progflags & Video.FL_WATCHED) != 0)
-                subtitle.append("\uD83D\uDC41");
-            if (mVideo.season != null && mVideo.season.compareTo("0") > 0) {
-                subtitle.append('S').append(mVideo.season).append('E').append(mVideo.episode)
-                        .append(' ');
-            }
-            subtitle.append(mVideo.subtitle);
+            String subtitle = getSubtitle();
             mViewHolder.getSubtitle().setText(subtitle);
+            String description = getDescription();
+            mViewHolder.getBody().setText(description);
+        }
+        else if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+            mViewHolder.getTitle().setText(mVideo.channel);
+
+            mViewHolder.getSubtitle().setText(
+                    String.format(context.getString(R.string.channel_item_subtitle), mVideo.channum, mVideo.callsign));
+            mViewHolder.getBody().setText("");
+
+        }
+    }
+    public String getDescription() {
+        if (mVideo == null)
+            return null;
+        Context context = mViewHolder.getBody().getContext();
+        if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
             StringBuilder description = new StringBuilder();
 
             // 2018-05-23T00:00:00Z
             try {
                 // Date Recorded
                 SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
-                java.text.DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(context);
+                DateFormat outFormat = android.text.format.DateFormat.getMediumDateFormat(context);
                 String recDate = null;
                 if (mVideo.starttime != null) {
                     Date date = dbFormat.parse(mVideo.starttime + "+0000");
@@ -107,16 +117,30 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 e.printStackTrace();
             }
             description.append(mVideo.description);
-            mViewHolder.getBody().setText(description);
+            return description.toString();
         }
-        else if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
-            mViewHolder.getTitle().setText(mVideo.channel);
+        return null;
+    }
 
-            mViewHolder.getSubtitle().setText(
-                    String.format(context.getString(R.string.channel_item_subtitle), mVideo.channum, mVideo.callsign));
-            mViewHolder.getBody().setText("");
+    public String getSubtitle() {
+        if (mVideo == null)
+            return null;
+        Context context = mViewHolder.getBody().getContext();
+        if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
 
+            StringBuilder subtitle = new StringBuilder();
+            // possible characters for watched - "👁" "⏿" "👀"
+            int progflags = Integer.parseInt(mVideo.progflags);
+            if ((progflags & Video.FL_WATCHED) != 0)
+                subtitle.append("\uD83D\uDC41");
+            if (mVideo.season != null && mVideo.season.compareTo("0") > 0) {
+                subtitle.append('S').append(mVideo.season).append('E').append(mVideo.episode)
+                        .append(' ');
+            }
+            subtitle.append(mVideo.subtitle);
+            return subtitle.toString();
         }
-
+        return null;
     }
 }

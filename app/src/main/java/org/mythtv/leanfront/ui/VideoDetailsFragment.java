@@ -350,7 +350,19 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 break;
             case Video.ACTION_CANCEL:
                 break;
+            case Video.ACTION_VIEW_DESCRIPTION:
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                        R.style.Theme_AppCompat);
+                String msg = mSelectedVideo.title + "\n"
+                    + mDetailsDescriptionPresenter.getSubtitle() + "\n"
+                        + mDetailsDescriptionPresenter.getDescription();
+                builder.setMessage(msg);
+                builder.show();
+                break;
             case Video.ACTION_OTHER:
+                if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_RECORDING
+                        && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_VIDEO)
+                    break;
                 prompts = new ArrayList<>();
                 actions = new ArrayList<>();
                 if (mSelectedVideo.recGroup != null) {
@@ -391,6 +403,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 } catch (ParseException e) {
                     Log.e(TAG, CLASS + " Exception parsing endtime.", e);
                 }
+
+                // View Description
+                prompts.add(getString(R.string.menu_view_description));
+                actions.add(new Action(Video.ACTION_VIEW_DESCRIPTION));
                 break;
 
             default:

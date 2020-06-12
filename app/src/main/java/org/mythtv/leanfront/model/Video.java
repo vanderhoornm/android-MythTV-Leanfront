@@ -71,33 +71,34 @@ public final class Video implements Parcelable, ListItem {
     public final String storageGroup;
 
     // Actions used by multiple classes
-    public static final int ACTION_SET_BOOKMARK = 6;
-    public static final int ACTION_SET_WATCHED = 7;
-    public static final int ACTION_PLAY = 1;
-    public static final int ACTION_PLAY_FROM_BOOKMARK = 2;
-    public static final int ACTION_DELETE = 3;
-    public static final int ACTION_UNDELETE = 4;
-    public static final int ACTION_REFRESH = 5;
-    public static final int ACTION_OTHER = 6;
-    public static final int ACTION_WATCHED = 7;
-    public static final int ACTION_UNWATCHED = 8;
-    public static final int ACTION_REMOVE_BOOKMARK = 9;
-    public static final int ACTION_ZOOM = 10;
-    public static final int ACTION_ASPECT = 11;
-    public static final int ACTION_FILELENGTH = 12;
-    public static final int ACTION_SPEEDUP = 13;
-    public static final int ACTION_SLOWDOWN = 14;
-    public static final int ACTION_PIVOT = 15;
-    public static final int ACTION_AUDIOTRACK = 16;
-    public static final int ACTION_LIVETV = 17;
-    public static final int ACTION_QUERY_STOP_RECORDING = 19;
-    public static final int ACTION_STOP_RECORDING = 20;
-    public static final int ACTION_REMOVE_RECORD_RULE = 21;
-    public static final int ACTION_CANCEL = 22;
-    public static final int ACTION_BACKEND_INFO = 23;
-    public static final int ACTION_BACKEND_INFO_HTML = 24;
-    public static final int ACTION_GET_STREAM_INFO = 25;
-    public static final int ACTION_VIEW_DESCRIPTION = 26;
+    public static final int ACTION_PLAY                 =  1;
+    public static final int ACTION_PLAY_FROM_BOOKMARK   =  2;
+    public static final int ACTION_DELETE               =  3;
+    public static final int ACTION_DELETE_AND_RERECORD  =  4;
+    public static final int ACTION_UNDELETE             =  5;
+    public static final int ACTION_REFRESH              =  6;
+    public static final int ACTION_OTHER                =  7;
+    public static final int ACTION_WATCHED              =  8;
+    public static final int ACTION_UNWATCHED            =  9;
+    public static final int ACTION_SET_BOOKMARK         = 10;
+    public static final int ACTION_REMOVE_BOOKMARK      = 11;
+    public static final int ACTION_SET_WATCHED          = 12;
+    public static final int ACTION_ZOOM                 = 13;
+    public static final int ACTION_ASPECT               = 14;
+    public static final int ACTION_FILELENGTH           = 15;
+    public static final int ACTION_SPEEDUP              = 16;
+    public static final int ACTION_SLOWDOWN             = 17;
+    public static final int ACTION_PIVOT                = 18;
+    public static final int ACTION_AUDIOTRACK           = 19;
+    public static final int ACTION_LIVETV               = 20;
+    public static final int ACTION_QUERY_STOP_RECORDING = 21;
+    public static final int ACTION_STOP_RECORDING       = 22;
+    public static final int ACTION_REMOVE_RECORD_RULE   = 23;
+    public static final int ACTION_CANCEL               = 24;
+    public static final int ACTION_BACKEND_INFO         = 25;
+    public static final int ACTION_BACKEND_INFO_HTML    = 26;
+    public static final int ACTION_GET_STREAM_INFO      = 27;
+    public static final int ACTION_VIEW_DESCRIPTION     = 28;
 
     private Video(
             final long id,

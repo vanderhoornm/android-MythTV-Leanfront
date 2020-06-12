@@ -310,6 +310,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         this)
                         .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
                 break;
+            case Video.ACTION_DELETE_AND_RERECORD:
+                new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
+                        this)
+                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE_AND_RERECORD, Video.ACTION_REFRESH);
+                break;
             case Video.ACTION_UNDELETE:
                 new AsyncBackendCall(mSelectedVideo, mBookmark, mWatched,
                         this)
@@ -372,6 +377,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     } else {
                         prompts.add(getString(R.string.menu_delete));
                         actions.add(new Action(Video.ACTION_DELETE));
+                        prompts.add(getString(R.string.menu_delete_rerecord));
+                        actions.add(new Action(Video.ACTION_DELETE_AND_RERECORD));
                     }
                 }
 

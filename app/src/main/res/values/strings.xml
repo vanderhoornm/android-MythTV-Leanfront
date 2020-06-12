@@ -94,6 +94,7 @@
     <string name="button_other_2">Actions</string>
     <string name="menu_undelete">Undelete</string>
     <string name="menu_delete">Delete</string>
+    <string name="menu_delete_rerecord">Delete and Allow Rerecord</string>
     <string name="menu_mark_unwatched">Mark as Unwatched</string>
     <string name="menu_mark_watched">Mark as Watched</string>
     <string name="menu_remove_bookmark">Remove Bookmark</string>

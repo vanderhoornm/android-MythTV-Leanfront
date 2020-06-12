@@ -146,6 +146,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             XmlNode response;
             String urlString = null;
             Context context = MainActivity.getContext();
+            boolean allowRerecord = false;
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mValue = 0;
@@ -266,6 +267,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         e.printStackTrace();
                     }
                     break;
+                case Video.ACTION_DELETE_AND_RERECORD:
+                    allowRerecord = true;
                 case Video.ACTION_DELETE:
                     // Delete recording
                     // If already deleted do not delete again.
@@ -274,7 +277,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     try {
                         urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                 "/Dvr/DeleteRecording?RecordedId="
-                                        + mVideo.recordedid);
+                                        + mVideo.recordedid
+                                        + "&AllowRerecord=" + allowRerecord);
                         response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
                             main.getMainFragment().startFetch();

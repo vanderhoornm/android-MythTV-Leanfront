@@ -24,7 +24,6 @@
 
 package org.mythtv.leanfront.ui;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -702,10 +701,6 @@ public class MainFragment extends BrowseSupportFragment
         return titleSort;
     }
 
-
-
-
-    @SuppressLint("SimpleDateFormat")
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // the mLoadStarted check is needed because for some reason onLoadFinished

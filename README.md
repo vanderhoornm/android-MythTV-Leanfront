@@ -27,6 +27,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Selection of alternate audio tracks during playback.
 - Playback from slave backends is now supported.
 - Playing of Live TV is now supported.
+- Synchronization of TV refresh rate to match frame rate.
 
 ## Main Screen
 
@@ -45,6 +46,10 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 - When playing a recording in progress or Live TV, the half-second audio loss will happen 5 seconds after each transition between "unknown duration" and actual duration shown. 
+
+### Frame Rate Synchronization.
+
+ This requires a version of mythbackend that supports the GetStreamInfo method. That is currently only supported in master version (v32-Pre) after commit a2af89101b dated 2020/06/05. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick this setting is independent of the same-named setting in the Fire TV settings. It will work in leanfront whether or not you have selected it in Fire TV settings. However it only works in leanfront if you have selected Display - Video Resolution to "Auto" in the Fire TV settings.
 
 ## Live TV
 

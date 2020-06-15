@@ -28,6 +28,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 
 import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
 
@@ -68,9 +69,13 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         ImageView iconView = rootView.findViewById(R.id.header_icon);
         Drawable icon;
         String name = headerItem.getName();
+
+        ObjectAdapter adapter = ((ListRow)item).getAdapter();
+        int count = adapter.size();
         switch (headerItem.getItemType()) {
             case MainFragment.TYPE_SETTINGS:
                 icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
+                count = 0;
                 break;
             case MainFragment.TYPE_VIDEODIR:
             case MainFragment.TYPE_VIDEODIR_ALL:
@@ -80,8 +85,9 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             case MainFragment.TYPE_RECGROUP_ALL:
             case MainFragment.TYPE_TOP_ALL:
             case MainFragment.TYPE_SERIES:
-                if ("LiveTV".equals(name))
+                if ("LiveTV".equals(name)) {
                     icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);
+                }
                 else
                     icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
                 break;
@@ -97,6 +103,10 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         TextView label = rootView.findViewById(R.id.header_label);
         label.setText(headerItem.getName());
         label.setTextColor(rootView.getResources().getColor(R.color.header_text));
+
+        TextView countView = rootView.findViewById(R.id.header_count);
+        if (countView != null && count > 0)
+            countView.setText(String.valueOf(count));
     }
 
     @Override

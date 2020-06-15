@@ -220,6 +220,10 @@ public class XmlNode {
         return attributeMap.get(name);
     }
 
+    public String getName() {
+        return name;
+    }
+
     /**
      * Convenience method to allow extra data to be stored in a node
      * @param name

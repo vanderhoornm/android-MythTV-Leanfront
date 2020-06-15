@@ -368,6 +368,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     @Override
     public void onPause() {
         super.onPause();
-        MainActivity.getContext().getMainFragment().startFetch();
+        MainActivity.getContext().getMainFragment().startFetch(-1, null);
     }
 }

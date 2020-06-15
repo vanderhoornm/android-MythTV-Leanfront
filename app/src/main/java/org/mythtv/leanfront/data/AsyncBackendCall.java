@@ -246,8 +246,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             String newEndtime = recorded.getString(XMLTAGS_ENDTIME);
 
                             if (main != null && !Objects.equals(mVideo.endtime, newEndtime)) {
-                                mVideo.endtime = recorded.getString(XMLTAGS_ENDTIME);
-                                main.getMainFragment().startFetch();
+                                mVideo.endtime = newEndtime;
+                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
                             }
                         }
                         else {
@@ -261,6 +261,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             else
                                 watched = "0";
                             mVideo.progflags = watched;
+                            if (main != null) {
+                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO, mVideo.recordedid);
+                            }
                         }
                     } catch(IOException | XmlPullParserException e){
                         mValue = 0;
@@ -281,7 +284,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + "&AllowRerecord=" + allowRerecord);
                         response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
-                            main.getMainFragment().startFetch();
+                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -296,7 +299,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + mVideo.recordedid);
                         response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
-                            main.getMainFragment().startFetch();
+                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -363,20 +366,25 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
                 case Video.ACTION_SET_WATCHED:
                     try {
-                        if (isRecording)
+                        int type;
+                        if (isRecording) {
                             // set recording watched
                             urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                                "/Dvr/UpdateRecordedWatchedStatus?RecordedId="
-                                        + mVideo.recordedid + "&Watched=" + mWatched);
-                        else
+                                    "/Dvr/UpdateRecordedWatchedStatus?RecordedId="
+                                            + mVideo.recordedid + "&Watched=" + mWatched);
+                            type = VideoContract.VideoEntry.RECTYPE_RECORDING;
+                        }
+                        else {
                             // set video watched
                             urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                     "/Video/UpdateVideoWatchedStatus?Id="
                                             + mVideo.recordedid + "&Watched=" + mWatched);
+                            type = VideoContract.VideoEntry.RECTYPE_VIDEO;
+                        }
                         response = XmlNode.fetch(urlString, "POST");
                         String result = response.getString();
                         if (main != null)
-                            main.getMainFragment().startFetch();
+                            main.getMainFragment().startFetch(type, mVideo.recordedid);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }

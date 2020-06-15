@@ -234,11 +234,21 @@ public class MainFragment extends BrowseSupportFragment
         mUsageView.setText(getContext().getResources().getString(R.string.title_disk_usage,used));
     }
 
-    // Fetch video list from MythTV into local database
-    public void startFetch() {
+    /**
+     * Fetch video list
+     *
+     * @param rectype Set to -1 to fetch all, or to either
+     *                VideoContract.VideoEntry.RECTYPE_RECORDING or
+     *                VideoContract.VideoEntry.RECTYPE_VIDEO for just one
+     * @param recordedId Set to null to fetch all, or to recordedId for just one.
+     *
+     */
+    public void startFetch(int rectype, String recordedId) {
         mFetchTime = System.currentTimeMillis();
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+        serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);
+        serviceIntent.putExtra(FetchVideoService.RECORDEDID, recordedId);
         getActivity().startService(serviceIntent);
     }
 
@@ -290,7 +300,7 @@ public class MainFragment extends BrowseSupportFragment
         mWasInBackground = false;
         // If it's been more than an hour, refresh
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
-            startFetch();
+            startFetch(-1, null);
         }
         // Clear out stream info cache
         AsyncBackendCall.clearCachedStreamInfo();
@@ -1155,7 +1165,7 @@ public class MainFragment extends BrowseSupportFragment
                     mSelectedRowType = -1;
                     mSelectedRowName = null;
                     setProgressBar(true);
-                    startFetch();
+                    startFetch(-1, null);
                     break;
                 case TYPE_INFO:
                     new AsyncBackendCall(null, 0L, false,
@@ -1305,7 +1315,7 @@ public class MainFragment extends BrowseSupportFragment
                     return;
                 activity.runOnUiThread(new Runnable() {
                     public void run() {
-                        MainActivity.getContext().getMainFragment().startFetch();
+                        MainActivity.getContext().getMainFragment().startFetch(-1, null);
                     }
                 });
             }

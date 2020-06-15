@@ -45,6 +45,8 @@ import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
  */
 public class FetchVideoService extends IntentService {
     private static final String TAG = "FetchVideoService";
+    public static final String RECORDEDID = "RecordedId";
+    public static final String RECTYPE = "RecType";
 
     /**
      * Creates an IntentService with a default name for the worker thread.
@@ -55,42 +57,52 @@ public class FetchVideoService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
+        int recType = workIntent.getIntExtra(RECTYPE, -1);
+        String recordedId = workIntent.getStringExtra(RECORDEDID);
 
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
 
         try {
-            long fetchTime = 0;
-            do {
-                fetchTime = System.currentTimeMillis();
-
+            String[] urls;
+            if (recordedId == null) {
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
                 // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
-                String[] urls = {
+                urls = new String[] {
                         mythApiUrl(null, "/Dvr/GetRecordedList"),
                         mythApiUrl(null, "/Video/GetVideoList"),
-                        mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true")};
-                List<ContentValues> contentValuesList = new ArrayList<>();
-                for (int i = 0; i < urls.length; i++) {
-                    String url = urls[i];
-                    if (url != null) {
-                        // This call expects recordings to be 0, videos to be 1, channels to be 2
-                        builder.fetch(url, i, contentValuesList);
-                    }
+                        mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true")
+                };
+            }
+            else {
+                urls = new String[2];
+                if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                    urls[0] = mythApiUrl(null, "/Dvr/GetRecorded?RecordedId=" + recordedId);
+                if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO)
+                    urls[1] = mythApiUrl(null, "/Video/GetVideo?Id=" + recordedId);
+            }
+            List<ContentValues> contentValuesList = new ArrayList<>();
+            for (int i = 0; i < urls.length; i++) {
+                String url = urls[i];
+                if (url != null) {
+                    // This call expects recordings to be 0, videos to be 1, channels to be 2
+                    builder.fetch(url, i, contentValuesList);
                 }
-                ContentValues[] downloadedVideoContentValues =
-                        contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-                VideoDbHelper dbh = new VideoDbHelper(this);
-                SQLiteDatabase db = dbh.getWritableDatabase();
+            }
+            ContentValues[] downloadedVideoContentValues =
+                    contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+            VideoDbHelper dbh = new VideoDbHelper(this);
+            SQLiteDatabase db = dbh.getWritableDatabase();
+            if (recordedId == null)
                 db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-                db.close();
-                getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                        downloadedVideoContentValues);
-                // Repeat if another fetch request came in while we were fetching
-            }  while(MainFragment.mFetchTime > fetchTime);
+            else
+                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                            + " WHERE RECORDEDID = '" + recordedId + "'"); //delete one row in a table
+            db.close();
+            getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                    downloadedVideoContentValues);
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
-            Log.e(TAG, "Error occurred in downloading videos");
-            e.printStackTrace();
+            Log.e(TAG, "Error occurred in downloading videos", e);
         }
     }
 }

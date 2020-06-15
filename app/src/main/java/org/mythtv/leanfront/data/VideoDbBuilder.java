@@ -145,10 +145,15 @@ public class VideoDbBuilder {
         XmlNode programNode = null;
         for (; ; ) {
             if (programNode == null) {
-                int ixWant = 0;;
-                if (ixSingle >= 0)
-                    ixWant = ixSingle;
-                programNode = xmlFull.getNode(tagsProgram, ixWant);
+                // Here we allow for the xml to cintains just one program or video.
+                if (tagsProgram[tagsProgram.length-1].equals(xmlFull.getName()))
+                    programNode = xmlFull;
+                else {
+                    int ixWant = 0;
+                    if (ixSingle >= 0)
+                        ixWant = ixSingle;
+                    programNode = xmlFull.getNode(tagsProgram, ixWant);
+                }
             }
             else
                 programNode = programNode.getNextSibling();

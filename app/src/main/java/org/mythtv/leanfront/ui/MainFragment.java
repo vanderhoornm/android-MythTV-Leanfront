@@ -239,16 +239,20 @@ public class MainFragment extends BrowseSupportFragment
      *
      * @param rectype Set to -1 to fetch all, or to either
      *                VideoContract.VideoEntry.RECTYPE_RECORDING or
-     *                VideoContract.VideoEntry.RECTYPE_VIDEO for just one
-     * @param recordedId Set to null to fetch all, or to recordedId for just one.
+     *                VideoContract.VideoEntry.RECTYPE_VIDEO
+     * @param recordedId Set to null, or recordedId if only one to be refreshed
+     * @param recGroup Set to a recordimng group if only that one is to
+     *                 be refreshed
      *
      */
-    public void startFetch(int rectype, String recordedId) {
-        mFetchTime = System.currentTimeMillis();
+    public void startFetch(int rectype, String recordedId, String recGroup) {
+        if (rectype == -1)
+            mFetchTime = System.currentTimeMillis();
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
         serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);
         serviceIntent.putExtra(FetchVideoService.RECORDEDID, recordedId);
+        serviceIntent.putExtra(FetchVideoService.RECGROUP, recGroup);
         getActivity().startService(serviceIntent);
     }
 
@@ -300,7 +304,7 @@ public class MainFragment extends BrowseSupportFragment
         mWasInBackground = false;
         // If it's been more than an hour, refresh
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
-            startFetch(-1, null);
+            startFetch(-1, null, null);
         }
         // Clear out stream info cache
         AsyncBackendCall.clearCachedStreamInfo();
@@ -1165,7 +1169,16 @@ public class MainFragment extends BrowseSupportFragment
                     mSelectedRowType = -1;
                     mSelectedRowName = null;
                     setProgressBar(true);
-                    startFetch(-1, null);
+                    int recType = -1;
+                    String recGroup = null;
+                    if (mType == TYPE_RECGROUP) {
+                        recType = VideoContract.VideoEntry.RECTYPE_RECORDING;
+                        if (!mBaseName.endsWith("\t"))
+                            recGroup = mBaseName;
+                    }
+                    if (mType == TYPE_VIDEODIR)
+                        recType = VideoContract.VideoEntry.RECTYPE_VIDEO;
+                    startFetch(recType, null, recGroup);
                     break;
                 case TYPE_INFO:
                     new AsyncBackendCall(null, 0L, false,
@@ -1315,7 +1328,7 @@ public class MainFragment extends BrowseSupportFragment
                     return;
                 activity.runOnUiThread(new Runnable() {
                     public void run() {
-                        MainActivity.getContext().getMainFragment().startFetch(-1, null);
+                        MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
                     }
                 });
             }

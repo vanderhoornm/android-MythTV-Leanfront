@@ -35,6 +35,7 @@ import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
@@ -63,6 +64,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private GuidedAction mBackendAction;
     private GuidedAction mSortAction;
     private GuidedAction mAudioAction;
+
+    private String mPriorBackend;
+    private String mPriorHttpPort;
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
@@ -366,8 +370,19 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     }
 
     @Override
+    public void onResume() {
+        mPriorBackend = Settings.getString("pref_backend");
+        mPriorHttpPort =  Settings.getString("pref_http_port");
+        super.onResume();
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
-        MainActivity.getContext().getMainFragment().startFetch(-1, null);
+        if (!Objects.equals(mPriorBackend, Settings.getString("pref_backend"))
+          || !Objects.equals(mPriorHttpPort, Settings.getString("pref_http_port")))
+            MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
+        mPriorBackend = null;
+        mPriorHttpPort = null;
     }
 }

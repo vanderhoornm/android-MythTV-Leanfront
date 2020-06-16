@@ -247,7 +247,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                             if (main != null && !Objects.equals(mVideo.endtime, newEndtime)) {
                                 mVideo.endtime = newEndtime;
-                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
+                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                                        mVideo.recordedid, null);
                             }
                         }
                         else {
@@ -262,7 +263,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 watched = "0";
                             mVideo.progflags = watched;
                             if (main != null) {
-                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO, mVideo.recordedid);
+                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO,
+                                        mVideo.recordedid, null);
                             }
                         }
                     } catch(IOException | XmlPullParserException e){
@@ -284,7 +286,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + "&AllowRerecord=" + allowRerecord);
                         response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
-                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
+                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                                    mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -299,7 +302,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + mVideo.recordedid);
                         response = XmlNode.fetch(urlString, "POST");
                         if (main != null)
-                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING, mVideo.recordedid);
+                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                                    mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -384,7 +388,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         response = XmlNode.fetch(urlString, "POST");
                         String result = response.getString();
                         if (main != null)
-                            main.getMainFragment().startFetch(type, mVideo.recordedid);
+                            main.getMainFragment().startFetch(type, mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }

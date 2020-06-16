@@ -34,6 +34,7 @@ import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,7 @@ public class FetchVideoService extends IntentService {
     private static final String TAG = "FetchVideoService";
     public static final String RECORDEDID = "RecordedId";
     public static final String RECTYPE = "RecType";
+    public static final String RECGROUP = "RecGroup";
 
     /**
      * Creates an IntentService with a default name for the worker thread.
@@ -59,26 +61,39 @@ public class FetchVideoService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         int recType = workIntent.getIntExtra(RECTYPE, -1);
         String recordedId = workIntent.getStringExtra(RECORDEDID);
+        String recGroup = workIntent.getStringExtra(RECGROUP);
+
+        if (recType != VideoContract.VideoEntry.RECTYPE_RECORDING)
+            recGroup = null;
 
         VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
 
         try {
-            String[] urls;
-            if (recordedId == null) {
+            String[] urls = new String[3];
+            if (recType == -1) {
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
                 // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
-                urls = new String[] {
-                        mythApiUrl(null, "/Dvr/GetRecordedList"),
-                        mythApiUrl(null, "/Video/GetVideoList"),
-                        mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true")
-                };
+                urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList");
+                urls[1] = mythApiUrl(null, "/Video/GetVideoList");
+                urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
             }
-            else {
-                urls = new String[2];
-                if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING)
+            else if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                if (recordedId != null)
                     urls[0] = mythApiUrl(null, "/Dvr/GetRecorded?RecordedId=" + recordedId);
-                if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO)
+                else if (recGroup != null) {
+                    urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList?RecGroup="
+                            + URLEncoder.encode(recGroup, "UTF-8"));
+                    if ("LiveTV".equals(recGroup))
+                        urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
+                }
+                else
+                    urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList");
+            }
+            else if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                if (recordedId != null)
                     urls[1] = mythApiUrl(null, "/Video/GetVideo?Id=" + recordedId);
+                else
+                    urls[1] = mythApiUrl(null, "/Video/GetVideoList");
             }
             List<ContentValues> contentValuesList = new ArrayList<>();
             for (int i = 0; i < urls.length; i++) {
@@ -92,11 +107,25 @@ public class FetchVideoService extends IntentService {
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
             VideoDbHelper dbh = new VideoDbHelper(this);
             SQLiteDatabase db = dbh.getWritableDatabase();
-            if (recordedId == null)
+            if (recType == -1)
                 db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-            else
-                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
-                            + " WHERE RECORDEDID = '" + recordedId + "'"); //delete one row in a table
+            else {
+                if (recordedId == null && recGroup == null)
+                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                            + " WHERE RECTYPE = '" + recType + "'");
+                else if (recordedId != null)
+                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                            + " WHERE RECORDEDID = '" + recordedId
+                            + "' AND RECTYPE = '" + recType + "'");
+                else if (recGroup != null) {
+                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                            + " WHERE RECGROUP = '" + recGroup.replace("'", "''")
+                            + "' AND RECTYPE = '" + recType + "'");
+                    if ("LiveTV".equals(recGroup))
+                        db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                                + " WHERE RECTYPE = '" + VideoContract.VideoEntry.RECTYPE_CHANNEL + "'");
+                }
+            }
             db.close();
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);

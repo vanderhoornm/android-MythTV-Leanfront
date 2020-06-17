@@ -31,12 +31,26 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ## Main Screen
 
-- A list of recording groups is displayed on the left with titles in the group in a scrolling row on the right. Select a group and press enter to open the screen with that group's contents.
+- A list of recording groups is displayed on the left with titles in the group in a scrolling row on the right. Next to each icon on the left is a number that represents the number of entries on the right in that row. This is not necessarily the same as the number of recordings because on the main screen there is one entry per series. Select a group and press enter to open the screen with that group's contents. Once a group is open there is one entry per episode.
 - The LiveTV group shows recordings already made from Live TV as well as channels available to watch live.
 - There is a row for "All" at the top.
 - After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
 - There is a row labeled "Settings" at the bottom. select "Settings" and press enter to see and update program settings.
-- There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. Note that the list is also refreshed after using Settings. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
+
+### Refresh
+
+There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
+
+If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. Run the following from a command line:
+
+```
+mysql -u <UserName> -p <DatabaseName>
+CREATE INDEX recordedartwork_ix1 ON recordedartwork (inetref);
+quit
+```
+UserName and DatabaseName can be found in the file .mythtv/config.xml. You will be prompted for the database password, which can also be found in .mythtv/config.xml.
+
+Creating this index changed the refresh time on my system from 38 seconds to 4 seconds, so it can make a big difference.
 
 ## Playback
 

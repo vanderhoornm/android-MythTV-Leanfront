@@ -63,7 +63,7 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 
 ### Frame Rate Synchronization.
 
- This requires a version of mythbackend that supports the GetStreamInfo method. That is currently only supported in master version (v32-Pre) after commit a2af89101b dated 2020/06/05. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick this setting is independent of the same-named setting in the Fire TV settings. It will work in leanfront whether or not you have selected it in Fire TV settings. However it only works in leanfront if you have selected Display - Video Resolution to "Auto" in the Fire TV settings.
+ This requires a version of mythbackend that supports the GetStreamInfo method. That is currently only supported in master version (v32-Pre) after commit a2af89101b dated 2020/06/05. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
 
 ## Live TV
 

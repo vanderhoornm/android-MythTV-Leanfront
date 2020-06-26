@@ -161,7 +161,7 @@ public class MainFragment extends BrowseSupportFragment
     private String mBaseName;
     private String mSelectedRowName;
     private int mSelectedRowType = -1;
-    private String mSelectedItemName;
+    private String mSelectedItemId;
     private int mSelectedItemType = -1;
     private TextView mUsageView;
 
@@ -267,6 +267,11 @@ public class MainFragment extends BrowseSupportFragment
         // Final initialization, modifying UI elements.
         super.onActivityCreated(savedInstanceState);
 
+        if (savedInstanceState != null) {
+            mSelectedRowName = savedInstanceState.getString("SELECTEDROWNAME");
+            mSelectedItemId = savedInstanceState.getString("SELECTEDITEMID");
+            mSelectedItemType = savedInstanceState.getInt("SELECTEDITEMTYPE", -1);
+        }
         // Prepare the manager that maintains the same background image between activities.
         prepareBackgroundManager();
 
@@ -320,16 +325,13 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onPause() {
         mActiveFragment = null;
+        saveSelected();
         super.onPause();
     }
 
     private void saveSelected() {
         int selectedRowNum = getSelectedPosition();
-        mSelectedRowName = null;
-        mSelectedRowType = -1;
         int selectedItemNum = -1;
-        mSelectedItemName = null;
-        mSelectedItemType = -1;
         if (selectedRowNum >= 0 && selectedRowNum < mCategoryRowAdapter.size()) {
             ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
             ListItem headerItem = (ListItem) selectedRow.getHeaderItem();
@@ -345,15 +347,25 @@ public class MainFragment extends BrowseSupportFragment
                 if (itemAdapter != null
                     && (itemAdapter instanceof SparseArrayObjectAdapter
                         || selectedItemNum < itemAdapter.size())) {
-                    ListItem item = (ListItem) itemAdapter.get(selectedItemNum);
+                    Video item = (Video) itemAdapter.get(selectedItemNum);
                     if (item != null) {
-                        mSelectedItemName = item.getName();
+                        mSelectedItemId = item.recordedid;
                         mSelectedItemType = item.getItemType();
                     }
                 }
             }
         }
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (outState != null) {
+            outState.putString("SELECTEDROWNAME", mSelectedRowName);
+            outState.putString("SELECTEDITEMID", mSelectedItemId);
+            outState.putInt("SELECTEDITEMTYPE", mSelectedItemType);
+        }
     }
 
     @Override
@@ -677,6 +689,10 @@ public class MainFragment extends BrowseSupportFragment
                     .append(ascdesc);
         }
 
+        // Add recordedid to sort for in case of duplicates or split recordings
+        orderby.append(", ").append(VideoContract.VideoEntry.COLUMN_RECORDEDID).append(" ")
+                .append(ascdesc);
+
         Loader ret = new CursorLoader(
                 getContext(),
                 VideoContract.VideoEntry.CONTENT_URI, // Table to query
@@ -724,7 +740,7 @@ public class MainFragment extends BrowseSupportFragment
             // Fill in usage
             new AsyncBackendCall(null, 0L, false,
                     MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
-            if (mSelectedRowName == null)
+            if (mActiveFragment == this)
                 saveSelected();
 
             String seq = Settings.getString("pref_seq");
@@ -813,7 +829,7 @@ public class MainFragment extends BrowseSupportFragment
                     mCategoryRowAdapter.add(row);
                     rootRowNum = mCategoryRowAdapter.size() - 1;
                     if (mSelectedRowType == TYPE_VIDEODIR
-                            && (mSelectedRowName == null || mSelectedRowName.length() == 0))
+                            && Objects.equals(rootTitle,mSelectedRowName))
                         selectedRowNum = rootRowNum;
                 }
 
@@ -983,7 +999,7 @@ public class MainFragment extends BrowseSupportFragment
                         rowObjectAdapter.add(tVideo);
                         if (selectedRowNum == currentRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(mSelectedItemName,video.getName()))
+                                    && Objects.equals(mSelectedItemId,video.recordedid))
                                 selectedItemNum = rowObjectAdapter.size() - 1;
                         }
                     }
@@ -994,8 +1010,8 @@ public class MainFragment extends BrowseSupportFragment
                         rootObjectAdapter.add(video);
                         if (selectedRowNum == rootRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(video.getName(),mSelectedItemName))
-                                selectedItemNum = rowObjectAdapter.size() - 1;
+                                    && Objects.equals(video.recordedid,mSelectedItemId))
+                                selectedItemNum = rootObjectAdapter.size() - 1;
                         }
                     }
 
@@ -1030,7 +1046,7 @@ public class MainFragment extends BrowseSupportFragment
 
                         if (selectedRowNum == allRowNum) {
                             if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(video.getName(),mSelectedItemName))
+                                    && Objects.equals(video.recordedid,mSelectedItemId))
                                 selectedItemNum = position;
                         }
                     }
@@ -1430,10 +1446,6 @@ public class MainFragment extends BrowseSupportFragment
                 if (selectedItemNum == -1)
                     getHeadersSupportFragment().getView().requestFocus();
             }
-            mSelectedRowName = null;
-            mSelectedRowType = -1;
-            mSelectedItemName = null;
-            mSelectedItemType = -1;
         }
     }
 

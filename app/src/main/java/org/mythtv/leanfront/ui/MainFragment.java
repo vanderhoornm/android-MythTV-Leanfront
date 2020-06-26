@@ -476,11 +476,13 @@ public class MainFragment extends BrowseSupportFragment
                 String result = taskRunner.getStringResult();
                 if (result == null)
                     break;
+                // Get rid of span elements, which are pop=ups and should not be displayed here
+                String fix = result.replaceAll("<span>.+</span>","");
                 Spanned spanned;
                 if (android.os.Build.VERSION.SDK_INT >= 24)
-                    spanned = Html.fromHtml(result,Html.FROM_HTML_MODE_COMPACT);
+                    spanned = Html.fromHtml(fix,Html.FROM_HTML_MODE_COMPACT);
                 else
-                    spanned =  Html.fromHtml(result);
+                    spanned =  Html.fromHtml(fix);
                 AlertDialog.Builder builder = new AlertDialog.Builder(context,
                         R.style.Theme_AppCompat);
                 builder.setMessage(spanned);

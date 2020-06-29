@@ -979,6 +979,7 @@ public class MainFragment extends BrowseSupportFragment
                     if (itemType == TYPE_VIDEODIR)
                         video = new Video.VideoBuilder()
                                 .id(-1).title(itemname)
+                                .recordedid(itemname)
                                 .subtitle("")
                                 .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
                                 .progflags("0")

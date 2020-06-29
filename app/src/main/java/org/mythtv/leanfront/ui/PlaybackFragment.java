@@ -1346,7 +1346,12 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     class PlayerEventListener implements Player.EventListener {
-        private int mDialogCount = 0;
+        private int mDialogStatus = 0;
+        private static final int DIALOG_NONE   = 0;
+        private static final int DIALOG_ACTIVE = 1;
+        private static final int DIALOG_EXIT   = 2;
+        private static final int DIALOG_RETRY  = 3;
+
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             mIsSpeedChangeConfirmed = true;
@@ -1406,26 +1411,49 @@ public class PlaybackFragment extends VideoSupportFragment
                     msg.append(context.getString(msgNum));
                 if (ex != null)
                     msg.append("\n").append(ex.getMessage());
+                if (mDialogStatus == DIALOG_NONE) {
+                    AlertDialogListener listener = new AlertDialogListener();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                            R.style.Theme_AppCompat_Dialog_Alert);
+                    builder.setTitle(R.string.pberror_title);
+                    builder.setMessage(msg);
+                    // add a button
+                    builder.setPositiveButton(R.string.pberror_button_continue, listener);
+                    builder.setNegativeButton(R.string.pberror_button_exit, listener);
+                    builder.setOnDismissListener(
+                            new DialogInterface.OnDismissListener() {
+                                public void onDismiss(DialogInterface dialog) {
+                                    if (mDialogStatus != DIALOG_RETRY)
+                                        getActivity().finish();
+                                    mDialogStatus = DIALOG_NONE;
+                                }
+                            });
+                    builder.show();
+                    mDialogStatus = DIALOG_ACTIVE;
+                }
                 if (cause != null)
                     msg.append("\n").append(cause.getMessage());
-                AlertDialog.Builder builder = new AlertDialog.Builder(context,
-                        R.style.Theme_AppCompat_Dialog_Alert);
-                builder.setTitle(R.string.pberror_title);
-                builder.setMessage(msg);
                 Log.e(TAG, CLASS + " Player Error " + msg);
-                // add a button
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(
-                    new DialogInterface.OnDismissListener() {
-                        public void onDismiss(DialogInterface dialog) {
-                                if (--mDialogCount <= 0)
-                                    getActivity().finish();
-                            }
-                        });
-                mDialogCount++;
-                builder.show();
             }
         }
+
+        class AlertDialogListener implements DialogInterface.OnClickListener {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        mDialogStatus = DIALOG_RETRY;
+                        mBookmark = mPlayerGlue.getSavedCurrentPosition();
+                        play(mVideo);
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        mDialogStatus = DIALOG_EXIT;
+                        break;
+                }
+            }
+        }
+
     }
+
 
 }

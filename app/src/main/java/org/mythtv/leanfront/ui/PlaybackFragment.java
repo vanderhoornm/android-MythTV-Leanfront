@@ -457,7 +457,6 @@ public class PlaybackFragment extends VideoSupportFragment
                 }
             }
         }
-
         if (mIsBounded) {
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);
@@ -1351,6 +1350,7 @@ public class PlaybackFragment extends VideoSupportFragment
         private static final int DIALOG_ACTIVE = 1;
         private static final int DIALOG_EXIT   = 2;
         private static final int DIALOG_RETRY  = 3;
+        private long mTimeLastError = 0;
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
@@ -1411,29 +1411,61 @@ public class PlaybackFragment extends VideoSupportFragment
                     msg.append(context.getString(msgNum));
                 if (ex != null)
                     msg.append("\n").append(ex.getMessage());
-                if (mDialogStatus == DIALOG_NONE) {
-                    AlertDialogListener listener = new AlertDialogListener();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context,
-                            R.style.Theme_AppCompat_Dialog_Alert);
-                    builder.setTitle(R.string.pberror_title);
-                    builder.setMessage(msg);
-                    // add a button
-                    builder.setPositiveButton(R.string.pberror_button_continue, listener);
-                    builder.setNegativeButton(R.string.pberror_button_exit, listener);
-                    builder.setOnDismissListener(
-                            new DialogInterface.OnDismissListener() {
-                                public void onDismiss(DialogInterface dialog) {
-                                    if (mDialogStatus != DIALOG_RETRY)
-                                        getActivity().finish();
-                                    mDialogStatus = DIALOG_NONE;
-                                }
-                            });
-                    builder.show();
-                    mDialogStatus = DIALOG_ACTIVE;
-                }
+                String alertMsg = msg.toString();
                 if (cause != null)
                     msg.append("\n").append(cause.getMessage());
                 Log.e(TAG, CLASS + " Player Error " + msg);
+                // if we are near the end
+                long currPos = mPlayerGlue.getSavedCurrentPosition();
+                long duration = mPlayerGlue.getSavedDuration();
+                boolean failAtStart = duration <= 0 || currPos <= 0;
+                boolean failAtEnd = !failAtStart && Math.abs(duration - currPos) < 2000;
+                if (mDialogStatus == DIALOG_NONE) {
+                    long now = System.currentTimeMillis();
+                    // If there has been over 10 seconds since last error report
+                    // try to recover from error by playing on.
+                    if (failAtEnd
+                        || (mTimeLastError < now - 10000 && !failAtStart)) {
+                        if (mToast != null)
+                            mToast.cancel();
+                        mToast = Toast.makeText(getActivity(),
+                                getActivity().getString(msgNum),
+                                Toast.LENGTH_LONG);
+                        mToast.show();
+                        // if we are at the end - just end playback
+                        if (failAtEnd)
+                            markWatched(true);
+                        else {
+                            // Try to continue playback
+                            mBookmark = currPos;
+                            play(mVideo);
+                        }
+                    }
+                    else {
+                        // More than 1 error per minute or fail at start
+                        // Alert message for user
+                        // to decide on continuing.
+                        AlertDialogListener listener = new AlertDialogListener();
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.pberror_title);
+                        builder.setMessage(alertMsg);
+                        // add a button
+                        builder.setPositiveButton(R.string.pberror_button_continue, listener);
+                        builder.setNegativeButton(R.string.pberror_button_exit, listener);
+                        builder.setOnDismissListener(
+                                new DialogInterface.OnDismissListener() {
+                                    public void onDismiss(DialogInterface dialog) {
+                                        if (mDialogStatus != DIALOG_RETRY)
+                                            getActivity().finish();
+                                        mDialogStatus = DIALOG_NONE;
+                                    }
+                                });
+                        builder.show();
+                        mDialogStatus = DIALOG_ACTIVE;
+                    }
+                    mTimeLastError = now;
+                }
             }
         }
 

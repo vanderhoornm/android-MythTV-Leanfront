@@ -104,7 +104,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     // Skip means go to next or previous track
     // Skip is disallowed when playing Live TV
     private boolean mAllowSkip;
-    private long mSavedCurrentPosition;
+    private long mSavedCurrentPosition = -1;
+    private long mSavedDuration = -1;
 
     public VideoPlayerGlue(
             Context context,
@@ -329,7 +330,13 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         long duration = getDuration();
         if (duration >= 0)
             duration += mOffsetMillis;
+        if (duration > 0)
+            mSavedDuration = duration;
         return duration;
+    }
+
+    public long getSavedDuration() {
+        return mSavedDuration;
     }
 
     public long getOffsetMillis() {

@@ -41,7 +41,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
 
-If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. Run the following from a command line:
+If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
+
+To create the index, run the following from a command line:
 
 ```
 mysql -u <UserName> -p <DatabaseName>
@@ -101,9 +103,9 @@ You can overwrite the recording or video file with the output from one of these 
 
 You can create a user job to run one of these commands after each recording if necessary.
 
-### android.media.MediCodec$CodecException: Error 0x80001001
+### Error handling
 
-This is an "unknown error" in OpenMax. I have seen this occurring in the decoding of AC3 audio when using jump forward. This can be avoided by setting android audio options to "surround sound" or selecting ffmpeg audio in leanfront settings.
+Playback errors sometimes occur, often when skipping forward, but also at other times. The program will try to recover from the error and display a brief message that there was an error. If errors continue, it will show a dialog box where you can choose to continue or exit. The "continue" option will attempt to bypass the error. This may not always succeed. Playback errors are logged, and you can see the log messages using the procedure in "Debugging" below.
 
 ### Debugging
 

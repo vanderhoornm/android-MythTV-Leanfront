@@ -127,7 +127,9 @@
     <string name="msg_subtitle_off">Subtitle Disabled.</string>
     <string name="msg_pin_center">Pinned at Center.</string>
     <string name="msg_pin_top">Pinned at Top.</string>
+    <string name="msg_pin_near_top">Pinned near Top.</string>
     <string name="msg_pin_bottom">Pinned at Bottom.</string>
+    <string name="msg_pin_near_bottom">Pinned near Bottom.</string>
     <string name="msg_unable_get_framerate">Unable to obtain frame rate.
         Make sure you have the appropriate version of mythbackend or disable
         frame rate matching.</string>

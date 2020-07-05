@@ -21,9 +21,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Subtitles (Closed captions) are supported.
 - At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
 - You can play in-progress recordings and the application will follow the progress as the recording continues.
-- Video playback is exclusively via hardware assisted mediacodec.
+- Video playback is exclusively via hardware assisted Mediacodec.
 - Audio playback is supported using mediacodec (hardware) or ffmpeg (software). By default it will use mediacodec if it can, and will switch to ffmpeg if there is a media format not supported by mediacodec. There is a setting where you can change this default and force either mediacodec or ffmpeg.
-- Audio playback supports digital passthrough for AC3 and other digital formats if they are supported on your sound system. It also supports downmix to stereo if you do not have a system that supports AC3.
+- Audio playback supports digital pass-through for AC3 and other digital formats if they are supported on your sound system. It also supports down-mix to stereo if you do not have a system that supports AC3.
 - Selection of alternate audio tracks during playback.
 - Playback from slave backends is now supported.
 - Playing of Live TV is now supported.
@@ -65,7 +65,7 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 
 ### Frame Rate Synchronization.
 
- This requires a version of mythbackend that supports the GetStreamInfo method. That is currently supported in master from v32-Pre-540-ga2af89101b dated 2020/06/05 or fixes/31 from v31.0-68-gade713f98c dated 2020/06/26. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
+ If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. This requires a version of mythbackend that supports the GetStreamInfo method. That is currently supported in master from v32-Pre-540-ga2af89101b dated 2020/06/05 or fixes/31 from v31.0-68-gade713f98c dated 2020/06/26. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
 
 ## Live TV
 
@@ -82,7 +82,7 @@ Notes:
 - If you set the Live TV recording time too short you will have to keep restarting LiveTV. If you set it too long, your request may fail if there is another recording scheduled during that time and that causes a conflict.
 - If you have playback problems that you have to fix with ffmpeg or mkvmerge (see section "Problems" below), then this LiveTV feature will not work for you.
 - LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age
-- If you exit LivetV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
+- If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
 
 ## Problems
@@ -154,7 +154,7 @@ This shows playback position plus time played and total time. While this is focu
 | Up/down | If the picture has been resized, moves the picture up or down. There are three positions, aligned on top, middle, or bottom. For use when you want to cut off the top or bottom of the picture, after zooming to a bigger size. |
 | Audio Track | Rotates among available audio tracks. |
 
-**Note:** When using *slow down* or *speed up* the program will disable digital audio passthrough if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
+**Note:** When using *slow down* or *speed up* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 
 ### Related videos
 
@@ -252,7 +252,6 @@ The following items will need api changes on the backend
 - Video delete
 - Video bookmarks stored on the backend.
 - Change recording group on a recording.
-- Change display refresh to match video rate.
 
 ## Building
 
@@ -269,6 +268,10 @@ The following items will need api changes on the backend
 Start up the app. There is an entry on the main screen at the end called "settings". There you need to enter the backend ip address. There are other options available here.
 
 If using backend earlier than fixes/30 of Nov 12 2019 or Master of October 31 2019, make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
+
+## Internationalization
+
+The source code will support multiple languages. Currently only the default language, English, is included. If anybody reading this is fluent in another language and would like volunteer to translate the strings and messages, please contact me. To get an idea of the amount of work, the list of strings is at https://github.com/bennettpeter/android-MythTV-Leanfront/blob/master/app/src/main/res/values/strings.xml . These would need to be translated, except for the ones marked translatable="false". You can email me or create an issue from https://github.com/bennettpeter/android-MythTV-Leanfront/issues . I will put together instructions on how to update the translations.
 
 ## License
 

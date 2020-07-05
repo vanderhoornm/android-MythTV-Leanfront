@@ -132,7 +132,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mScaleIndex = SCALE_DEFAULT_INDEX;
     private float mScaleX = 1.0f;
     private float mScaleY = 1.0f;
-    private static float[] PIVOTY_VALUES = {0.5f, 0.0f, 1.0f};
+    private static float[] PIVOTY_VALUES = {0.5f, 0.25f, 0.0f, 1.0f, 0.75f};
     private int mPivotYIndex = 0;
     private float mPivotY = 0.5f;
     private static final float[] SPEED_VALUES = {0.5f, 0.75f, 0.9f, 1.0f,

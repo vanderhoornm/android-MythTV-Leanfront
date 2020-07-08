@@ -379,6 +379,7 @@ public class VideoDbBuilder {
             channelValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, channum + " " + channelname + " " + callsign);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CHANID, chanid);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CHANNUM, channum);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_RECORDEDID, chanid);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CALLSIGN, callsign);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channelname);
             channelValues.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, "0");

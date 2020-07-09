@@ -48,7 +48,7 @@ public class MainActivity extends LeanbackActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Settings.init(this);
+        Settings.init(getApplicationContext());
         setContentView(R.layout.main);
         if (context == null)
             context = this;

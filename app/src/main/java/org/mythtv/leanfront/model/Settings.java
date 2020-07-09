@@ -31,7 +31,6 @@ public class Settings {
     private static Settings mSingleton;
 
     private Settings() {
-
     }
 
     public static void init(Context context) {
@@ -46,11 +45,14 @@ public class Settings {
     }
 
     public static String getString(String key) {
-        return mSingleton.mPrefs.getString(key, "");
+        if (mSingleton != null && mSingleton.mPrefs != null)
+            return mSingleton.mPrefs.getString(key, "");
+        else
+            return "";
     }
 
     public static int getInt(String key) {
-        String str = mSingleton.mPrefs.getString(key, "").trim();
+        String str = getString(key).trim();
         if (str.length() == 0)
             return 0;
         try {

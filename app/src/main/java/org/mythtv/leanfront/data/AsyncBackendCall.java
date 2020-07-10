@@ -36,6 +36,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -150,90 +151,94 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mValue = 0;
-                    found = false;
                     try {
                         if (context == null)
                             return null;
+                        // If there is a local bookmark always use it before checking
+                        // for a MythTV bookmark.
+
+                        // Look for a local bookmark
+                        VideoDbHelper dbh = new VideoDbHelper(context);
+                        SQLiteDatabase db = dbh.getReadableDatabase();
+
+                        // Define a projection that specifies which columns from the database
+                        // you will actually use after this query.
+                        String[] projection = {
+                                VideoContract.StatusEntry._ID,
+                                VideoContract.StatusEntry.COLUMN_VIDEO_URL,
+                                VideoContract.StatusEntry.COLUMN_LAST_USED,
+                                VideoContract.StatusEntry.COLUMN_BOOKMARK
+                        };
+
+                        // Filter results
+                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                        String[] selectionArgs = {mVideo.videoUrl};
+
+                        Cursor cursor = db.query(
+                                VideoContract.StatusEntry.TABLE_NAME,   // The table to query
+                                projection,             // The array of columns to return (pass null to get all)
+                                selection,              // The columns for the WHERE clause
+                                selectionArgs,          // The values for the WHERE clause
+                                null,                   // don't group the rows
+                                null,                   // don't filter by row groups
+                                null               // The sort order
+                        );
+
+                        // We expect one or zero results, never more than one.
+                        if (cursor.moveToNext()) {
+                            int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
+                            mValue = cursor.getLong(colno);
+                        }
+                        cursor.close();
+                        db.close();
+
                         String pref = Settings.getString("pref_bookmark");
-                        if (isRecording && ("mythtv".equals(pref) || "auto".equals(pref))) {
-                            // look for a mythtv bookmark
-                            urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                                    "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
-                                            + mVideo.recordedid);
-                            XmlNode bkmrkData = XmlNode.fetch(urlString, null);
-                            try {
-                                mValue = Long.parseLong(bkmrkData.getString());
-                            } catch (NumberFormatException e) {
-                                e.printStackTrace();
-                                mValue = -1;
-                            }
-                            // sanity check bookmark - between 0 and 24 hrs.
-                            // note -1 means a bookmark but no seek table
-                            // older version of service returns garbage value when there is
-                            // no seek table.
-                            if (mValue > 24 * 60 * 60 * 1000 || mValue < 0)
-                                mValue = -1;
-                            else
-                                found = true;
-                            if (mValue == -1) {
-                                // look for a position bookmark (for recording with no seek table)
+                        XmlNode bkmrkData = null;
+
+                        // If no local bookmark was found look for one on MythTV
+                        if (mValue <= 0 && ("mythtv".equals(pref) || "auto".equals(pref))) {
+                            if (isRecording) {
                                 urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                                        "/Dvr/GetSavedBookmark?OffsetType=position&RecordedId="
+                                        "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
                                                 + mVideo.recordedid);
-                                bkmrkData = XmlNode.fetch(urlString, null);
+                                bkmrkData = XmlNode.safeFetch(urlString, null);
+                                try {
+                                    mValue = Long.parseLong(bkmrkData.getString());
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    mValue = -1;
+                                }
+                                // sanity check bookmark - between 0 and 24 hrs.
+                                // note -1 means a bookmark but no seek table
+                                // older version of service returns garbage value when there is
+                                // no seek table.
+                                if (mValue > 24 * 60 * 60 * 1000 || mValue < 0)
+                                    mValue = -1;
+                            }
+                            if (mValue == -1 || !isRecording) {
+                                // look for a position bookmark (for recording with no seek table)
+                                if (isRecording)
+                                    urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                            "/Dvr/GetSavedBookmark?OffsetType=frame&RecordedId="
+                                                    + mVideo.recordedid);
+                                else
+                                    urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                            "/Video/GetSavedBookmark?Id="
+                                                    + mVideo.recordedid);
+                                bkmrkData = XmlNode.safeFetch(urlString, null);
                                 long pos = 0;
                                 try {
                                     pos = Long.parseLong(bkmrkData.getString());
-                                    if (pos > 24 * 60 * 60 * 1000 || pos < 0)
-                                        pos = 0;
-                                    else
-                                        found = true;
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
                                     pos = 0;
                                 }
                                 float fps = getAvgFps();
                                 mValue = pos * 100000 / (long)(fps * 100.0f);
+                                // sanity check bookmark - between 0 and 24 hrs.
+                                if (mValue > 24 * 60 * 60 * 1000 || mValue < 0)
+                                    mValue = 0;
                             }
-                        }
-                        if (!isRecording || "local".equals(pref) || !found) {
-                            // default to none
-                            mValue = 0;
-                            // Look for a local bookmark
-                            VideoDbHelper dbh = new VideoDbHelper(context);
-                            SQLiteDatabase db = dbh.getReadableDatabase();
-
-                            // Define a projection that specifies which columns from the database
-                            // you will actually use after this query.
-                            String[] projection = {
-                                    VideoContract.StatusEntry._ID,
-                                    VideoContract.StatusEntry.COLUMN_VIDEO_URL,
-                                    VideoContract.StatusEntry.COLUMN_LAST_USED,
-                                    VideoContract.StatusEntry.COLUMN_BOOKMARK
-                            };
-
-                            // Filter results
-                            String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                            String[] selectionArgs = {mVideo.videoUrl};
-
-                            Cursor cursor = db.query(
-                                    VideoContract.StatusEntry.TABLE_NAME,   // The table to query
-                                    projection,             // The array of columns to return (pass null to get all)
-                                    selection,              // The columns for the WHERE clause
-                                    selectionArgs,          // The values for the WHERE clause
-                                    null,                   // don't group the rows
-                                    null,                   // don't filter by row groups
-                                    null               // The sort order
-                            );
-
-                            // We expect one or zero results, never more than one.
-                            if (cursor.moveToNext()) {
-                                int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
-                                    mValue = cursor.getLong(colno);
-                            }
-                            cursor.close();
-                            db.close();
-
                         }
                         if (isRecording) {
                             // Find out rec group
@@ -312,58 +317,71 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     try {
                         found = false;
                         String pref = Settings.getString("pref_bookmark");
-                        if (isRecording && ("mythtv".equals(pref)||"auto".equals(pref))) {
+                        if ("mythtv".equals(pref)||"auto".equals(pref)) {
                             // store a mythtv bookmark
-                            urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                                    "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                            + mVideo.recordedid + "&Offset=" + mValue);
-                            response = XmlNode.fetch(urlString, "POST");
-                            String result = response.getString();
-                            if ("true".equals(result))
-                                found = true;
-                            else {
+                            if (isRecording) {
+                                urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                        "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
+                                                + mVideo.recordedid + "&Offset=" + mValue);
+                                response = XmlNode.safeFetch(urlString, "POST");
+                                String result = response.getString();
+                                if ("true".equals(result))
+                                    found = true;
+                            }
+                            if (!found) {
                                 float fps = getAvgFps();
                                 // store a mythtv position bookmark (in case there is no seek table)
                                 long posBkmark = mValue * (long)(fps * 100.0f) / 100000;
-                                urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                                        "/Dvr/SetSavedBookmark?RecordedId="
-                                                + mVideo.recordedid + "&Offset=" + posBkmark);
-                                response = XmlNode.fetch(urlString, "POST");
-                                result = response.getString();
+                                if (isRecording)
+                                    urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                            "/Dvr/SetSavedBookmark?RecordedId="
+                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                else
+                                    urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                            "/Video/SetSavedBookmark?Id="
+                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                response = XmlNode.safeFetch(urlString, "POST");
+                                String result = response.getString();
+                                if ("true".equals(result))
+                                    found = true;
                             }
                         }
-                        if (!isRecording || "local".equals(pref) || !found) {
-                            // Use local bookmark
-
-                            // Gets the data repository in write mode
-                            VideoDbHelper dbh = new VideoDbHelper(main);
-                            SQLiteDatabase db = dbh.getWritableDatabase();
-
-                            // Create a new map of values, where column names are the keys
-                            ContentValues values = new ContentValues();
-                            Date now = new Date();
-                            values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
-                            values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, mValue);
-
-                            // First try an update
-                            String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                            String[] selectionArgs = {mVideo.videoUrl};
-
-                            int sqlCount = db.update(
-                                    VideoContract.StatusEntry.TABLE_NAME,
-                                    values,
-                                    selection,
-                                    selectionArgs);
-
-                            if (sqlCount == 0) {
-                                // Try an insert instead
-                                values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
-                                // Insert the new row, returning the primary key value of the new row
-                                long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
-                                        null, values);
-                            }
-                            db.close();
+                        // If bookmark was updated on MythTV, reset local one to 0.
+                        long localBkmark = 0;
+                        if (!found) {
+                            localBkmark = mValue;
                         }
+
+                        // Update local bookmark
+
+                        // Gets the data repository in write mode
+                        VideoDbHelper dbh = new VideoDbHelper(main);
+                        SQLiteDatabase db = dbh.getWritableDatabase();
+
+                        // Create a new map of values, where column names are the keys
+                        ContentValues values = new ContentValues();
+                        Date now = new Date();
+                        values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
+                        values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, localBkmark);
+
+                        // First try an update
+                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                        String[] selectionArgs = {mVideo.videoUrl};
+
+                        int sqlCount = db.update(
+                                VideoContract.StatusEntry.TABLE_NAME,
+                                values,
+                                selection,
+                                selectionArgs);
+
+                        if (sqlCount == 0 && localBkmark > 0) {
+                            // Try an insert instead
+                            values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
+                            // Insert the new row, returning the primary key value of the new row
+                            long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
+                                    null, values);
+                        }
+                        db.close();
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -677,14 +695,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                     + mVideo.storageGroup
                                     + "&FileName="
                                     + URLEncoder.encode(mVideo.filename, "UTF-8"));
-                    result = XmlNode.fetch(urlString, null);
-                } catch (Exception e) {
-                    Log.e(TAG, CLASS + " Exception Getting stream Info.", e);
+                    result = XmlNode.safeFetch(urlString, null);
+                    mStreamInfoCache.put(mVideo.videoUrl, result);
                 }
-                // For a failure, put an empty node
-                if (result == null)
-                    result = new XmlNode();
-                mStreamInfoCache.put(mVideo.videoUrl, result);
+                catch(Exception ex) {
+                        Log.e(TAG, CLASS + " Exception getting Stream Info.",ex);
+                }
             }
         }
         return result;

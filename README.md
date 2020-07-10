@@ -10,12 +10,13 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - This application uses the MythTV Service API to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend from v29 onwards. It may work on older versions if the APIs are available on the MythTV backend.
 - Voice search within the application is supported.
 - With backend on master or recent MythTV v30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
-- Bookmarks are supported. Bookmarks can be stored on MythTV (for recordings) or on the local leanback frontend (for recordings or videos). In cases where there is no seek table the system stores the bookmark on MythTV based on an assumed frame rate. The frame rate can be set in the Settings page. If the frame rate set is different from the actual frame rate, the location of the bookmark set here will be incorrect when viewed from mythfrontend. Note that video bookmarks will always be stored locally.
+- Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend (for recordings or videos). In order to store bookmarks for videos on MythTV you need backend version v32-Pre-658-g48557d32c2 or later. If you have an earlier version that does not support the Video/GetSavedBookmark and Video/SetSavedBookmark methods, the bookmarks for videos will be stored locally on the android device.
+- There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching seperately and at different places in the recordings, they can keep track of bookmarks separately. 
 - The "Watched" flag is set if you get to the end of the recording during playback. To ensure it is set, press forward to get to the end before exiting playback.
 - There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options. There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
 - There is a zoom icon and an aspect icon so that you can expand letterbox recordings and correct wrongly stretched recordings.
 - There is an icon to pin the enlargement to the top, middle or bottom. If you want to hide a ticker at the bottom, you can pin to the top then enlarge, which will leave the top in place and enlarge downwards so that the ticker is off screen.
-- Videos do not currently support deletion or bookmarks stored on MythTV. Bookmarks for videos are stored locally on the android tv device.
+- Videos do not currently support deletion.
 - Wakeup of master backend is supported via setup.
 - Sort order of recordings can be customized.
 - Subtitles (Closed captions) are supported.
@@ -66,6 +67,14 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 ### Frame Rate Synchronization.
 
  If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. This requires a version of mythbackend that supports the GetStreamInfo method. That is currently supported in master from v32-Pre-540-ga2af89101b dated 2020/06/05 or fixes/31 from v31.0-68-gade713f98c dated 2020/06/26. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
+
+### Bookmarks.
+
+Bookmarks in a recording or video can be stored in the android device or in the MythTV backend. In Settings, Playback you can select an option to store them locally. On versions of mythbackend before v32-Pre-658-g48557d32c2, video bookmarks are always stored locally.
+
+If local bookmarks are not selected:
+
+- Upon playback, if there is a local bookmark, it will be used. This can happen if you changed your local bookmarks setting after having already stored some local bookmarks. When exiting playback the bookmark will be stored on MythTV and the local bookmark erased. This can also happen if you upgrade your mythbackend to a version later than v32-Pre-658-g48557d32c2, the local video bookmarks will be used but will be cleared and set in MythTV from then on.
 
 ## Live TV
 
@@ -250,7 +259,6 @@ The following items will need api changes on the backend
 
 - Video scan
 - Video delete
-- Video bookmarks stored on the backend.
 - Change recording group on a recording.
 
 ## Building

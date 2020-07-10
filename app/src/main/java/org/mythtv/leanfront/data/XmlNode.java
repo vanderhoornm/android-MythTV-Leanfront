@@ -36,7 +36,8 @@ import java.util.HashMap;
 
 
 public class XmlNode {
-    private static final String TAG = "XmlNode";
+    private static final String TAG = "lfe";
+    private static final String CLASS = "XmlNode";
 
     private String name;
     private HashMap<String, XmlNode> childMap = new HashMap<>();
@@ -50,7 +51,7 @@ public class XmlNode {
         String backendIP = Settings.getString("pref_backend");
         String mainPort = Settings.getString("pref_http_port");
         if (backendIP == null || mainPort == null) {
-            Log.e(TAG, "Backend port or IP address not specified");
+            Log.e(TAG, CLASS + " Backend port or IP address not specified");
             return null;
         }
         if (!backendIP.equals(sBackendIP)) {
@@ -162,12 +163,22 @@ public class XmlNode {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    Log.e(TAG, "XML feed closed: " + urlString, e);
+                    Log.e(TAG, CLASS + " XML feed closed: " + urlString, e);
                 }
             }
         }
         return ret;
     }
+
+    public static XmlNode safeFetch(String urlString, String requestMethod) {
+        try {
+            return fetch(urlString,requestMethod);
+        } catch(IOException | XmlPullParserException e) {
+            Log.i(TAG, CLASS + " Unsupported url " + urlString);
+            return new XmlNode();
+        }
+    }
+
 
     public XmlNode getNode(String[] tag, int index) {
         XmlNode node = this;

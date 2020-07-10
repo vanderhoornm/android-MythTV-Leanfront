@@ -116,6 +116,9 @@ import java.util.concurrent.TimeUnit;
 public class MainFragment extends BrowseSupportFragment
         implements LoaderManager.LoaderCallbacks<Cursor>, AsyncBackendCall.OnBackendCallListener {
 
+    private static final String TAG = "lfe";
+    private static final String CLASS = "MainFragment";
+
     private static final int BACKGROUND_UPDATE_DELAY = 300;
     private final Handler mHandler = new Handler();
     private ArrayObjectAdapter mCategoryRowAdapter;
@@ -1375,7 +1378,7 @@ public class MainFragment extends BrowseSupportFragment
             byte[] macaddr = new byte[6];
 
             if (tokens.length != 6) {
-                Log.e("wakeBackend","WakeOnLan("+backendMac+"): Incorrect MAC length");
+                Log.e(TAG, CLASS + " wakeBackend WakeOnLan("+backendMac+"): Incorrect MAC length");
                 return false;
             }
 
@@ -1384,7 +1387,7 @@ public class MainFragment extends BrowseSupportFragment
                 try {
                     macaddr[y] = (byte) Integer.parseInt(tokens[y], 16);
                 } catch (NumberFormatException e) {
-                    Log.e("wakeBackend","WakeOnLan("+backendMac+"): Invalid MAC address");
+                    Log.e(TAG, CLASS +" wakeBackend WakeOnLan("+backendMac+"): Invalid MAC address");
                     return false;
                 }
 
@@ -1394,8 +1397,7 @@ public class MainFragment extends BrowseSupportFragment
                 for (int y = 0; y < 6; y++)
                     msg[msglen++] = macaddr[y];
 
-            Log.i("wakeBackend",
-                    "WakeOnLan(): Sending WOL packet to "+backendMac);
+            Log.i(TAG, CLASS + " wakeBackend WakeOnLan(): Sending WOL packet to "+backendMac);
 
             try {
                 DatagramPacket DpSend = new DatagramPacket(msg, msg.length, InetAddress.getByName("255.255.255.255"), 9);

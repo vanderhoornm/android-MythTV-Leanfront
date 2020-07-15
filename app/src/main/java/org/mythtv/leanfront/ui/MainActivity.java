@@ -24,11 +24,13 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.fragment.app.Fragment;
@@ -43,6 +45,9 @@ import java.util.Locale;
  */
 public class MainActivity extends LeanbackActivity {
 
+    private static final String TAG = "lfe";
+    private static final String CLASS = "MainActivity";
+
     static MainActivity context = null;
     MainFragment mainFragment = null;
     @Override
@@ -52,6 +57,11 @@ public class MainActivity extends LeanbackActivity {
         setContentView(R.layout.main);
         if (context == null)
             context = this;
+        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+        int memoryClass = am.getMemoryClass();
+        int lMemoryClass = am.getLargeMemoryClass();
+        Log.i(TAG, CLASS + " memoryClass:" + memoryClass +" lMemoryClass:" + lMemoryClass);
+
         // to test another language uncomment this
         //        setAppLocale("es");
         if (Settings.getString("pref_backend").length() == 0) {

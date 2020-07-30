@@ -548,8 +548,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         SQLiteDatabase db = dbh.getReadableDatabase();
 
                         // Filter results
-                        String selection = VideoContract.VideoEntry.COLUMN_RECORDEDID + " = " + mRecordedId;
-
+                        String selection = VideoContract.VideoEntry.COLUMN_RECORDEDID + " = " + mRecordedId
+                                + " AND " + VideoContract.VideoEntry.COLUMN_RECTYPE
+                                           + " = " + VideoContract.VideoEntry.RECTYPE_RECORDING;
                         Cursor cursor = db.query(
                                 VideoContract.VideoEntry.TABLE_NAME,   // The table to query
                                 null,             // The array of columns to return (pass null to get all)

@@ -7,26 +7,26 @@ import androidx.leanback.widget.Presenter;
 
 import org.mythtv.leanfront.model.GuideSlot;
 
-public class TextCardPresenter extends Presenter {
+public class IconCardPresenter extends Presenter {
     private Context mContext;
 
-    public TextCardPresenter(Context context) {
+    public IconCardPresenter(Context context) {
         super();
         mContext = context;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
-        return new ViewHolder(new TextCardView(mContext));
+        return new ViewHolder(new IconCardView(mContext));
     }
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        ((TextCardView)viewHolder.view).updateUi((GuideSlot) item);
+        ((IconCardView)viewHolder.view).updateUi((GuideSlot) item);
     }
 
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
-        ((TextCardView)viewHolder.view).updateUi(null);
+        ((IconCardView)viewHolder.view).updateUi(null);
     }
 }

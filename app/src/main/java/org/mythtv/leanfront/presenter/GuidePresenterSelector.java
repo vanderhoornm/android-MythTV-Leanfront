@@ -7,12 +7,10 @@ import androidx.leanback.widget.PresenterSelector;
 
 import org.mythtv.leanfront.model.GuideSlot;
 
-import java.util.HashMap;
-
-public class CardPresenterSelector extends PresenterSelector {
+public class GuidePresenterSelector extends PresenterSelector {
 
     private final Context mContext;
-    public CardPresenterSelector(Context context) {
+    public GuidePresenterSelector(Context context) {
         mContext = context;
     }
 
@@ -21,8 +19,9 @@ public class CardPresenterSelector extends PresenterSelector {
         if (item instanceof GuideSlot) {
             GuideSlot slot = (GuideSlot) item;
             switch (slot.cellType) {
-                case GuideSlot.CELL_TIMESELECTOR:
-                    return new TextCardPresenter(mContext);
+                case GuideSlot.CELL_LEFTARROW:
+                case GuideSlot.CELL_RIGHTARROW:
+                    return new IconCardPresenter(mContext);
                 default:
                     return new TextCardPresenter(mContext);
             }

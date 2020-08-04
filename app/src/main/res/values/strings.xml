@@ -173,5 +173,9 @@
     <string name="sort_exclude_3">AN</string>
     <string name="pberror_button_continue">Continue</string>
     <string name="pberror_button_exit">Exit</string>
-
+    <string name="title_grid_time">Grid Time:</string>
+    <string name="note_program_continuation">(cont)</string>
+    <string name="title_select_timeslot">Select Time Slot</string>
+    <string name="title_manage_recordings">Manage Recordings</string>
+    <string name="title_program_guide">Program Guide</string>
 </resources>

@@ -2,6 +2,7 @@ package org.mythtv.leanfront.model;
 
 import android.content.Context;
 
+import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.ui.GuideFragment;
 
 import java.text.DateFormat;
@@ -25,6 +26,8 @@ public class GuideSlot {
     public static final int CELL_CHANNEL = 2;
     public static final int CELL_PROGRAM = 3;
     public static final int CELL_TIMESELECTOR = 4;
+    public static final int CELL_LEFTARROW = 5;
+    public static final int CELL_RIGHTARROW = 6;
     private static DateFormat timeFormatter;
     private static DateFormat dateFormatter;
     private static DateFormat dayFormatter;
@@ -60,7 +63,7 @@ public class GuideSlot {
                 build.append(timeFormatter.format(timeSlot)).append(" - ").append(timeFormatter.format(endTime));
             }
             else if (cellType == CELL_TIMESELECTOR && timeSlot != null) {
-                build.append("Grid Time:\n")
+                build.append(context.getString(R.string.title_grid_time)).append('\n')
                   .append(dayFormatter.format(timeSlot))
                   .append(dateFormatter.format(timeSlot)).append(' ')
                   .append(timeFormatter.format(timeSlot)).append('\n');
@@ -79,7 +82,7 @@ public class GuideSlot {
                         build.append(program.subTitle);
                 }
                 if (!titleDone) {
-                    build.append(program.title).append(" (cont)");
+                    build.append(program.title).append(' ').append(context.getString(R.string.note_program_continuation));
                 }
                 if (program2 != null) {
                     build.append('\n').append("2. ");

@@ -34,7 +34,7 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(getResources().getColor(R.color.fastlane_background));
-        setTitle("Manage Recordings");
+        setTitle(getString(R.string.title_manage_recordings));
 //        setOnSearchClickedListener(new View.OnClickListener()  // TODO
         prepareEntranceTransition();
     }
@@ -47,7 +47,7 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
     }
 
     private void createRows() {
-        HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, "Program Guide");
+        HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, getString(R.string.title_program_guide));
         PageRow pageRow1 = new PageRow(headerItem1);
         mRowsAdapter.add(pageRow1);
     }

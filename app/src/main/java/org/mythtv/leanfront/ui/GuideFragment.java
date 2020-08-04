@@ -27,6 +27,7 @@ import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Program;
 import org.mythtv.leanfront.model.Video;
+import org.mythtv.leanfront.presenter.GuidePresenterSelector;
 import org.mythtv.leanfront.presenter.TextCardPresenter;
 
 import java.text.DateFormat;
@@ -52,6 +53,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private static DateFormat mDayFormatter;
     private GregorianCalendar mTimeSelectCalendar;
     private AlertDialog mDialog;
+    private boolean mLoadInProgress;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,10 +70,11 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
     private void setupAdapter() {
         VerticalGridPresenter presenter = new VerticalGridPresenter(ZOOM_FACTOR);
-        presenter.setNumberOfColumns(TIMESLOTS+1);
+        // 1 cell per timeslot plus 1 for channel and two for arrows
+        presenter.setNumberOfColumns(TIMESLOTS+3);
         setGridPresenter(presenter);
 
-        mGuideAdapter = new ArrayObjectAdapter(new TextCardPresenter(getContext()));
+        mGuideAdapter = new ArrayObjectAdapter(new GuidePresenterSelector(getContext()));
         setAdapter(mGuideAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
@@ -81,10 +84,18 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     Object item,
                     RowPresenter.ViewHolder rowViewHolder,
                     Row row) {
+                if (mLoadInProgress)
+                    return;
                 GuideSlot card = (GuideSlot)item;
                 if (card.cellType == card.CELL_TIMESELECTOR)
                     showTimeSelector();
-                else
+                else if (card.cellType == card.CELL_LEFTARROW) {
+                    mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
+                    setupGridData();
+                } else if (card.cellType == card.CELL_RIGHTARROW) {
+                        mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
+                        setupGridData();
+                } else
                     Toast.makeText(getActivity(),
                         "Clicked on something",
                         Toast.LENGTH_SHORT).show();
@@ -103,7 +114,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                 R.style.Theme_AppCompat_Dialog_Alert);
         AlertDialogListener listener = new AlertDialogListener();
-        builder.setTitle("Select Time Slot")
+        builder.setTitle(R.string.title_select_timeslot)
                 .setView(R.layout.time_select_layout);
         builder.setPositiveButton(android.R.string.ok, listener);
         builder.setNegativeButton(android.R.string.cancel, listener);
@@ -174,6 +185,9 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     }
 
     private void setupGridData() {
+        if (mLoadInProgress)
+            return;
+        mLoadInProgress = true;
         Date gridEndTime = new Date(mGridStartTime.getTime() + TIMESLOT_SIZE * TIMESLOTS * 60000);
         loadCells();
         AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
@@ -187,6 +201,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     /**
      * Preload the grid with timeslots for each channel.
      * TIMESLOT_SIZE minutes for each cell.
+     * 1 cell per timeslot plus 1 for channel and two for arrows
      */
     private void loadCells() {
         mGuideAdapter.clear();
@@ -220,9 +235,14 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 orderby.toString()               // The sort order
         );
 
+        // arrow slots
+        GuideSlot leftArrowSlot = new GuideSlot(GuideSlot.CELL_LEFTARROW);
+        GuideSlot rightArrowSlot = new GuideSlot(GuideSlot.CELL_RIGHTARROW);
+
         // Counter to ensure new time row every few rows.
         int tsRowCount = 0;
-        setupTimeRow();
+        setupTimeRow(leftArrowSlot, rightArrowSlot);
+
 
         int colSubt = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         int colChId = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
@@ -236,6 +256,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             // channel slot at front
             GuideSlot slot = new GuideSlot(chanId, chanDetails);
             mGuideAdapter.add(slot);
+            mGuideAdapter.add(leftArrowSlot);
             mChanArray.put(chanId,mGuideAdapter.size());
             for (int i = 0; i< TIMESLOTS; i++) {
                 int position;
@@ -249,28 +270,30 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     default:
                         position = GuideSlot.POS_MIDDLE;
                 }
-                slot = new GuideSlot(GuideSlot.CELL_PROGRAM, position, mTimeRow[i+1].timeSlot);
+                slot = new GuideSlot(GuideSlot.CELL_PROGRAM, position, mTimeRow[i+2].timeSlot);
                 mGuideAdapter.add(slot);
             }
+            mGuideAdapter.add(rightArrowSlot);
         }
         cursor.close();
         db.close();
     }
 
-    private void setupTimeRow() {
-        mTimeRow = new GuideSlot[TIMESLOTS + 2];
-        int ix = 0;
-        // blank slot at front
-        mTimeRow[ix++] = new GuideSlot(GuideSlot.CELL_TIMESELECTOR);
-        mTimeRow[ix-1].timeSlot = mGridStartTime;
-        for (int i = 0; i< TIMESLOTS + 1; i++) {
-            mTimeRow[ix++] = new GuideSlot(GuideSlot.CELL_TIMESLOT,0,
-                    new Date( mGridStartTime.getTime() + i * TIMESLOT_SIZE * 60000));
+    private void setupTimeRow(GuideSlot leftArrowSlot, GuideSlot rightArrowSlot) {
+        mTimeRow = new GuideSlot[TIMESLOTS + 3];
+        // time selector slot at front
+        mTimeRow[0] = new GuideSlot(GuideSlot.CELL_TIMESELECTOR);
+        mTimeRow[0].timeSlot = mGridStartTime;
+        mTimeRow[1] = leftArrowSlot;
+        for (int ix = 0; ix< TIMESLOTS; ix++) {
+            mTimeRow[ix+2] = new GuideSlot(GuideSlot.CELL_TIMESLOT,0,
+                    new Date( mGridStartTime.getTime() + ix * TIMESLOT_SIZE * 60000));
         }
+        mTimeRow[TIMESLOTS+2] = rightArrowSlot;
     }
 
     private void addTimeRow() {
-        for (int i = 0; i< TIMESLOTS + 1; i++)
+        for (int i = 0; i < mTimeRow.length; i++)
             mGuideAdapter.add(mTimeRow[i]);
     }
 
@@ -285,6 +308,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     }
 
     void loadGuideData(XmlNode result) {
+        mLoadInProgress = false;
         if (result == null)
             return;
         XmlNode programNode = null;

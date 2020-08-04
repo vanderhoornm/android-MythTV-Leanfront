@@ -88,6 +88,7 @@
             android:launchMode="singleTask"
             android:resizeableActivity="true" />
         <activity android:name="org.mythtv.leanfront.ui.SearchActivity" />
+        <activity android:name="org.mythtv.leanfront.ui.ManageRecordingsActivity"/>
 
         <!-- Provides search suggestions for keywords against video metadata. -->
         <provider

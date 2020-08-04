@@ -156,6 +156,7 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_REFRESH = 21;
     // Special Item Type
     public static final int TYPE_INFO = 22;
+    public static final int TYPE_MANAGE = 23;
 
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
@@ -1094,6 +1095,15 @@ public class MainFragment extends BrowseSupportFragment
                 video.type = TYPE_INFO;
                 settingsRowAdapter.add(video);
 
+                video = new Video.VideoBuilder()
+                        .id(-1).title(getString(R.string.button_manage_recordings))
+                        .subtitle("")
+                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                        .progflags("0")
+                        .build();
+                video.type = TYPE_MANAGE;
+                settingsRowAdapter.add(video);
+
                 if (selectedRowNum == allRowNum) {
                     if (allObjectAdapter == null)
                         selectedItemNum = -1;
@@ -1205,6 +1215,10 @@ public class MainFragment extends BrowseSupportFragment
                 case TYPE_INFO:
                     new AsyncBackendCall(null, 0L, false,
                             MainFragment.this).execute(Video.ACTION_BACKEND_INFO_HTML);
+                    break;
+                case TYPE_MANAGE:
+                    intent = new Intent(context, ManageRecordingsActivity.class);
+                    startActivity(intent);
                     break;
             }
         }

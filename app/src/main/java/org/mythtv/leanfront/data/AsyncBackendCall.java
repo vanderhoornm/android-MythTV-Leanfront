@@ -66,6 +66,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private long mRecordedId = -1;
     private String mStringResult = null;
     private XmlNode mXmlResult = null;
+    private Date mStartTime;
+    private Date mEndTime;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -121,6 +123,14 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public XmlNode getXmlResult() {
         return mXmlResult;
+    }
+
+    public void setStartTime(Date mStartTime) {
+        this.mStartTime = mStartTime;
+    }
+
+    public void setEndTime(Date mEndTime) {
+        this.mEndTime = mEndTime;
     }
 
     public static XmlNode getCachedStreamInfo(String videoUrl) {
@@ -676,6 +686,22 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                 case Video.ACTION_GET_STREAM_INFO:
                     mXmlResult = getStreamInfo();
+                    break;
+
+                case Video.ACTION_GUIDE:
+                    try {
+                        SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                        sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Guide/GetProgramList?StartTime="
+                                        + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8")
+                                        + "&EndTime=" + URLEncoder.encode(sdfUTC.format(mEndTime), "UTF-8")
+                                        + "&Details=1");
+                        mXmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting Guide.", e);
+                    }
+
                     break;
 
                 default:

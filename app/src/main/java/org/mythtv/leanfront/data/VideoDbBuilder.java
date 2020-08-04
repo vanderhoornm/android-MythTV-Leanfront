@@ -94,6 +94,11 @@ public class VideoDbBuilder {
 
     private Context mContext;
 
+    // 2018-05-23T00:00:00Z
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+    private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+
     /**
      * Default constructor that can be used for tests
      */
@@ -185,18 +190,13 @@ public class VideoDbBuilder {
                 channel = programNode.getString(XMLTAGS_CHANNELNAME);
                 airdate = programNode.getString(XMLTAG_AIRDATE);
                 starttime = programNode.getString(XMLTAG_STARTTIME);
-                // 2018-05-23T00:00:00Z
-                @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
-                @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                 String startTS = recordingNode.getString(XMLTAG_STARTTS);
                 endtime = recordingNode.getString(XMLTAG_ENDTS);
                 long startTimeSecs = 0;
                 try {
-                    Date dateStart = format.parse(startTS + "+0000");
-                    Date dateEnd = format.parse(endtime + "+0000");
+                    Date dateStart = dateFormat.parse(startTS + "+0000");
+                    Date dateEnd = dateFormat.parse(endtime + "+0000");
                     startTimeSecs = dateStart.getTime();
                     duration = (dateEnd.getTime() - startTimeSecs);
                 } catch (ParseException e) {
@@ -207,7 +207,7 @@ public class VideoDbBuilder {
                         && startTimeSecs != 0) {
                     TimeZone tz = TimeZone.getDefault();
                     startTimeSecs += tz.getOffset(startTimeSecs);
-                    airdate = dbFormat.format(new Date(startTimeSecs));
+                    airdate = dbDateFormat.format(new Date(startTimeSecs));
                 }
                 progflags = programNode.getString(XMLTAG_PROGFLAGS);
             }

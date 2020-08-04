@@ -137,6 +137,7 @@
     <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate of %1$.2f.</string>
     <string name="button_refresh_lists">Refresh Lists</string>
     <string name="button_backend_status">Backend Status</string>
+    <string name="button_manage_recordings">Manage Recordings</string>
     <string name="title_livetv_recording">LiveTV</string>
     <string name="playback_speed">Playback Speed</string>
     <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>

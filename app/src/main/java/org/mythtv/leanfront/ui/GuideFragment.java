@@ -42,7 +42,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     public static final int TIMESLOT_SIZE = 30; //minutes
     public static final int TIME_ROW_INTERVAL = 8;
     public static final int DATE_RANGE = 21;
-    private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_SMALL;
+    private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
     private ArrayObjectAdapter mGuideAdapter;
     private Date mGridStartTime;
     // map chanid to position in object adapter

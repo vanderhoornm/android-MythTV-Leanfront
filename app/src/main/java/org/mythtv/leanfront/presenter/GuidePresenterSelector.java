@@ -10,8 +10,14 @@ import org.mythtv.leanfront.model.GuideSlot;
 public class GuidePresenterSelector extends PresenterSelector {
 
     private final Context mContext;
-    public GuidePresenterSelector(Context context) {
+    private IconCardPresenter mIconCardPresenter;
+    private TextCardPresenter mTextCardPresenter;
+
+    public GuidePresenterSelector(Context context)
+    {
         mContext = context;
+        mIconCardPresenter = new IconCardPresenter(context);
+        mTextCardPresenter = new TextCardPresenter(context);
     }
 
     @Override
@@ -21,9 +27,9 @@ public class GuidePresenterSelector extends PresenterSelector {
             switch (slot.cellType) {
                 case GuideSlot.CELL_LEFTARROW:
                 case GuideSlot.CELL_RIGHTARROW:
-                    return new IconCardPresenter(mContext);
+                    return mIconCardPresenter;
                 default:
-                    return new TextCardPresenter(mContext);
+                    return mTextCardPresenter;
             }
         }
 

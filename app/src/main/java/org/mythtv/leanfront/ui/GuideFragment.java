@@ -54,6 +54,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private GregorianCalendar mTimeSelectCalendar;
     private AlertDialog mDialog;
     private boolean mLoadInProgress;
+    private int mSelectedPosition;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,13 +88,17 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 if (mLoadInProgress)
                     return;
                 GuideSlot card = (GuideSlot)item;
-                if (card.cellType == card.CELL_TIMESELECTOR)
+                if (card.cellType == card.CELL_TIMESELECTOR) {
+                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                     showTimeSelector();
+                }
                 else if (card.cellType == card.CELL_LEFTARROW) {
                     mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
+                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                     setupGridData();
                 } else if (card.cellType == card.CELL_RIGHTARROW) {
                         mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
+                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                         setupGridData();
                 } else
                     Toast.makeText(getActivity(),
@@ -364,6 +369,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             }
             mGuideAdapter.notifyArrayItemRangeChanged(adapterPos+startPos, endPos-startPos);
         }
+        mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition);
+        mSelectedPosition = 0;
     }
 
 

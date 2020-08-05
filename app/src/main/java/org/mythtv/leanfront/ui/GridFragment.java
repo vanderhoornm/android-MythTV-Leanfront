@@ -23,7 +23,7 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
 
     private ObjectAdapter mAdapter;
     private VerticalGridPresenter mGridPresenter;
-    private VerticalGridPresenter.ViewHolder mGridViewHolder;
+    protected VerticalGridPresenter.ViewHolder mGridViewHolder;
     private OnItemViewSelectedListener mOnItemViewSelectedListener;
     private OnItemViewClickedListener mOnItemViewClickedListener;
     private int mSelectedPosition = -1;

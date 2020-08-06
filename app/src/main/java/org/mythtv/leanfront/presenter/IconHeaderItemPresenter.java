@@ -73,8 +73,8 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         ObjectAdapter adapter = ((ListRow)item).getAdapter();
         int count = adapter.size();
         switch (headerItem.getItemType()) {
-            case MainFragment.TYPE_SETTINGS:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_settings, null);
+            case MainFragment.TYPE_TOOLS:
+                icon = rootView.getResources().getDrawable(R.drawable.ic_tools, null);
                 count = 0;
                 break;
             case MainFragment.TYPE_VIDEODIR:

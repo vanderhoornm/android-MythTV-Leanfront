@@ -108,6 +108,9 @@ public class CardPresenter extends Presenter {
             case MainFragment.TYPE_VIDEODIR:
                 defaultIcon = R.drawable.im_folder;
                 break;
+            case MainFragment.TYPE_SETTINGS:
+                defaultIcon = R.drawable.ic_settings;
+                break;
             case MainFragment.TYPE_REFRESH:
                 defaultIcon = R.drawable.im_refresh;
                 break;

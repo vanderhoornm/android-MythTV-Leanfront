@@ -135,6 +135,7 @@
         frame rate matching.</string>
     <string name="msg_setting_framerate">Setting refresh rate to %1$.2f.</string>
     <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate of %1$.2f.</string>
+    <string name="button_Settings">Settings</string>
     <string name="button_refresh_lists">Refresh Lists</string>
     <string name="button_backend_status">Backend Status</string>
     <string name="button_manage_recordings">Manage Recordings</string>
@@ -150,6 +151,7 @@
     <string name="button_audiotrack">Change Audio Track</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
+    <string name="row_header_tools">Tools</string>
     <string name="title_alert_livetv">Live TV</string>
     <string name="alert_livetv_message">Recording failed.</string>
     <string name="title_are_you_sure">Are you sure?</string>

@@ -118,7 +118,6 @@
             android:enabled="false" />
 
         <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
-            android:exported="true"
             android:theme="@style/Theme.Leanback.GuidedStep"
             android:windowSoftInputMode="adjustPan"
             />

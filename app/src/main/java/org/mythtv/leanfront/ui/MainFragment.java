@@ -151,12 +151,12 @@ public class MainFragment extends BrowseSupportFragment
     // Type applicable to row or cell
     public static final int TYPE_CHANNEL_ALL = 11;
     // Special row type
-    public static final int TYPE_SETTINGS = 20;
+    public static final int TYPE_TOOLS = 20;
     // Special Item Type
-    public static final int TYPE_REFRESH = 21;
-    // Special Item Type
-    public static final int TYPE_INFO = 22;
-    public static final int TYPE_MANAGE = 23;
+    public static final int TYPE_SETTINGS = 21;
+    public static final int TYPE_REFRESH = 22;
+    public static final int TYPE_INFO = 23;
+    public static final int TYPE_MANAGE = 24;
 
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
@@ -1069,22 +1069,31 @@ public class MainFragment extends BrowseSupportFragment
                     mCategoryRowAdapter.add(row);
                 }
 
-                // Create a row for this special case with more samples.
-                MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.personal_settings),
-                        TYPE_SETTINGS,mBaseName);
+                // Create a row for tools.
+                MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.row_header_tools),
+                        TYPE_TOOLS,mBaseName);
                 CardPresenter presenter = new CardPresenter();
-                ArrayObjectAdapter settingsRowAdapter = new ArrayObjectAdapter(presenter);
-                row = new ListRow(gridHeader, settingsRowAdapter);
+                ArrayObjectAdapter toolsRowAdapter = new ArrayObjectAdapter(presenter);
+                row = new ListRow(gridHeader, toolsRowAdapter);
                 mCategoryRowAdapter.add(row);
 
                 Video video = new Video.VideoBuilder()
+                        .id(-1).title(getString(R.string.button_Settings))
+                        .subtitle("")
+                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                        .progflags("0")
+                        .build();
+                video.type = TYPE_SETTINGS;
+                toolsRowAdapter.add(video);
+
+                video = new Video.VideoBuilder()
                         .id(-1).title(getString(R.string.button_refresh_lists))
                         .subtitle("")
                         .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
                         .progflags("0")
                         .build();
                 video.type = TYPE_REFRESH;
-                settingsRowAdapter.add(video);
+                toolsRowAdapter.add(video);
 
                 video = new Video.VideoBuilder()
                         .id(-1).title(getString(R.string.button_backend_status))
@@ -1093,7 +1102,7 @@ public class MainFragment extends BrowseSupportFragment
                         .progflags("0")
                         .build();
                 video.type = TYPE_INFO;
-                settingsRowAdapter.add(video);
+                toolsRowAdapter.add(video);
 
                 video = new Video.VideoBuilder()
                         .id(-1).title(getString(R.string.button_manage_recordings))
@@ -1102,7 +1111,7 @@ public class MainFragment extends BrowseSupportFragment
                         .progflags("0")
                         .build();
                 video.type = TYPE_MANAGE;
-                settingsRowAdapter.add(video);
+                toolsRowAdapter.add(video);
 
                 if (selectedRowNum == allRowNum) {
                     if (allObjectAdapter == null)
@@ -1197,6 +1206,10 @@ public class MainFragment extends BrowseSupportFragment
                                     .toBundle();
                     context.startActivity(intent, bundle);
                     break;
+                case TYPE_SETTINGS:
+                    intent = new Intent(context, SettingsActivity.class);
+                    startActivity(intent);
+                    break;
                 case TYPE_REFRESH:
                     mSelectedRowType = -1;
                     mSelectedRowName = null;
@@ -1246,9 +1259,6 @@ public class MainFragment extends BrowseSupportFragment
             Intent intent;
             int type = headerItem.getItemType();
             switch (type) {
-                case MainFragment.TYPE_SETTINGS:
-                    intent = new Intent(context, SettingsActivity.class);
-                    break;
                 case MainFragment.TYPE_RECGROUP:
                 case MainFragment.TYPE_TOP_ALL:
                     intent = new Intent(context, MainActivity.class);

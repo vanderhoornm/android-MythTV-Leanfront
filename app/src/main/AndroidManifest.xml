@@ -89,6 +89,12 @@
             android:resizeableActivity="true" />
         <activity android:name="org.mythtv.leanfront.ui.SearchActivity" />
         <activity android:name="org.mythtv.leanfront.ui.ManageRecordingsActivity"/>
+        <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
+            android:theme="@style/Theme.Leanback.GuidedStep"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name="org.mythtv.leanfront.ui.EditScheduleActivity"
+            android:theme="@style/Theme.Leanback.GuidedStep"
+            android:windowSoftInputMode="adjustPan" />
 
         <!-- Provides search suggestions for keywords against video metadata. -->
         <provider
@@ -116,11 +122,6 @@
         <service
             android:name="org.mythtv.leanfront.recommendation.UpdateRecommendationsService"
             android:enabled="false" />
-
-        <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
-            android:theme="@style/Theme.Leanback.GuidedStep"
-            android:windowSoftInputMode="adjustPan"
-            />
     </application>
 
 </manifest>

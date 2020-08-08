@@ -3,16 +3,27 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="256dp"
+    android:layout_height="52dp">
 
     <TextView
         android:id="@+id/card_text"
-        android:layout_width="256dp"
-        android:layout_height="52dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:ellipsize="end"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/card_text_status"
+        android:layout_width="128dp"
+        android:layout_height="18dp"
+        android:ellipsize="marquee"
+        android:gravity="right"
+        android:singleLine="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

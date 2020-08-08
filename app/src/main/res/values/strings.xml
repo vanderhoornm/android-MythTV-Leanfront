@@ -180,4 +180,8 @@
     <string name="title_select_timeslot">Select Time Slot</string>
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
+
+    <string name="msg_edit_schedule">Edit Schedule for %1$s</string>
+    <string name="msg_edit_schedule2">Edit Schedule for %1$s (2)</string>
+
 </resources>

@@ -2,6 +2,7 @@ package org.mythtv.leanfront.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -28,7 +29,6 @@ import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Program;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.GuidePresenterSelector;
-import org.mythtv.leanfront.presenter.TextCardPresenter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
+public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener{
 
     public static final int TIMESLOTS = 8;
     public static final int TIMESLOT_SIZE = 30; //minutes
@@ -55,6 +55,9 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private AlertDialog mDialog;
     private boolean mLoadInProgress;
     private int mSelectedPosition;
+
+    private static final int ACTION_EDIT_1 = 1;
+    private static final int ACTION_EDIT_2 = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,15 +100,76 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                     setupGridData();
                 } else if (card.cellType == card.CELL_RIGHTARROW) {
-                        mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
-                        setupGridData();
+                    mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
+                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                    setupGridData();
+                } else if (card.cellType == card.CELL_PROGRAM) {
+                    programClicked(card);
                 } else
                     Toast.makeText(getActivity(),
                         "Clicked on something",
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void programClicked(GuideSlot card) {
+        String[] prompts = new String[10];
+        int[] actions = new int[10];
+        int counter = 0;
+        if (card.program != null) {
+            prompts[counter] = getContext().getString(R.string.msg_edit_schedule, card.program.title);
+            actions[counter] = ACTION_EDIT_1;
+            ++counter;
+        }
+        if (card.program2 != null) {
+            prompts[counter] = getContext().getString(R.string.msg_edit_schedule2, card.program2.title);
+            actions[counter] = ACTION_EDIT_2;
+            ++counter;
+        }
+
+        if (counter == 1) {
+            actionRequest(card,actions[0]);
+        } else if (counter > 1) {
+            final String[] finalPrompts = new String[counter];
+            final int[] finalActions = new int[counter];
+            for (int i = 0; i < counter; i++) {
+                finalPrompts[i] = prompts[i];
+                finalActions[i] = actions[i];
+            }
+            String alertTitle = getContext().getString(R.string.title_program_guide);
+            // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                    R.style.Theme_AppCompat_Dialog_Alert);
+            builder .setTitle(alertTitle)
+                    .setItems(finalPrompts,
+                            (dialog, which) -> {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                if (which < finalActions.length) {
+                                    actionRequest(card,finalActions[which]);
+                                }
+                            });
+            builder.show();
+        }
+    }
+
+    private void actionRequest(GuideSlot card, int action) {
+        Intent intent;
+        switch (action) {
+            case ACTION_EDIT_1:
+                intent = new Intent(getContext(), EditScheduleActivity.class);
+                intent.putExtra(EditScheduleActivity.CHANID, card.program.chanId);
+                intent.putExtra(EditScheduleActivity.STARTTIME, card.program.startTime);
+                startActivity(intent);
+                break;
+            case ACTION_EDIT_2:
+                intent = new Intent(getContext(), EditScheduleActivity.class);
+                intent.putExtra(EditScheduleActivity.CHANID, card.program2.chanId);
+                intent.putExtra(EditScheduleActivity.STARTTIME, card.program2.startTime);
+                startActivity(intent);
+                break;
+        }
     }
 
     private void showTimeSelector() {
@@ -168,6 +232,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         dateSpin.setSelection(dateSelection);
         timeSpin.setSelection(timeSelection);
     }
+
 
 
     class AlertDialogListener implements DialogInterface.OnClickListener {

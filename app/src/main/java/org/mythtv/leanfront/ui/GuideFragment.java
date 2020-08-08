@@ -182,11 +182,19 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                 R.style.Theme_AppCompat_Dialog_Alert);
-        AlertDialogListener listener = new AlertDialogListener();
         builder.setTitle(R.string.title_select_timeslot)
                 .setView(R.layout.time_select_layout);
-        builder.setPositiveButton(android.R.string.ok, listener);
-        builder.setNegativeButton(android.R.string.cancel, listener);
+        builder.setPositiveButton(android.R.string.ok,
+            (dialog, which) -> {
+                Spinner dateSpin = mDialog.findViewById(R.id.date_select);
+                Spinner timeSpin = mDialog.findViewById(R.id.time_select);
+                long newStartTime = mTimeSelectCalendar.getTimeInMillis()
+                        + dateSpin.getSelectedItemPosition() * 24*60*60*1000
+                        + timeSpin.getSelectedItemPosition() * TIMESLOT_SIZE * 60 * 1000;
+                mGridStartTime = new Date(newStartTime);
+                setupGridData();
+            } );
+        builder.setNegativeButton(android.R.string.cancel, null);
         mDialog = builder.create();
         mDialog.show();
         Spinner dateSpin=mDialog.findViewById(R.id.date_select);
@@ -233,27 +241,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         timeSpin.setSelection(timeSelection);
     }
 
-
-
-    class AlertDialogListener implements DialogInterface.OnClickListener {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which) {
-                case DialogInterface.BUTTON_POSITIVE:
-                    Spinner dateSpin = mDialog.findViewById(R.id.date_select);
-                    Spinner timeSpin = mDialog.findViewById(R.id.time_select);
-                    long newStartTime = mTimeSelectCalendar.getTimeInMillis()
-                        + dateSpin.getSelectedItemPosition() * 24*60*60*1000
-                        + timeSpin.getSelectedItemPosition() * TIMESLOT_SIZE * 60 * 1000;
-                    mGridStartTime = new Date(newStartTime);
-                    setupGridData();
-                    break;
-                case DialogInterface.BUTTON_NEGATIVE:
-                    break;
-            }
-        }
-    }
-
     private void setupGridData() {
         if (mLoadInProgress)
             return;
@@ -266,7 +253,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         call.setEndTime(gridEndTime);
         call.execute(Video.ACTION_GUIDE);
     }
-
 
     /**
      * Preload the grid with timeslots for each channel.

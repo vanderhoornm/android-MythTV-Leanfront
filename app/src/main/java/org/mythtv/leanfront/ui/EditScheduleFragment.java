@@ -29,7 +29,10 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.XmlNode;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -37,15 +40,40 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
 
     private int mChanId;
     private Date mStartTime;
+    private XmlNode mProgDetails;
+    private XmlNode mRecordSchedule;
+    private static DateFormat timeFormatter;
+    private static DateFormat dateFormatter;
+    private static DateFormat dayFormatter;
+
+
+    public EditScheduleFragment(XmlNode progDetails, XmlNode recordSchedule) {
+        mProgDetails = progDetails;
+        mRecordSchedule = recordSchedule;
+    }
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
+        if (timeFormatter == null) {
+            timeFormatter = android.text.format.DateFormat.getTimeFormat(getContext());
+            dateFormatter = android.text.format.DateFormat.getLongDateFormat(getContext());
+            dayFormatter = new SimpleDateFormat("EEE ");
+        }
         Activity activity = getActivity();
-        String title = "Edit Recording Rule";
-        String breadcrumb = "breadcrumb";
-        String description = "description";
+        String title = mProgDetails.getString("Title");
+        StringBuilder dateTime = new StringBuilder();
+        dateTime.append(dayFormatter.format(mStartTime))
+            .append(dateFormatter.format(mStartTime)).append(' ')
+            .append(timeFormatter.format(mStartTime));
+        StringBuilder details = new StringBuilder();
+        String subTitle = mProgDetails.getString("SubTitle");
+        if (subTitle != null)
+            details.append(subTitle).append("\n");
+        String desc = mProgDetails.getString("Description");
+        if (desc != null)
+            details.append(desc);
         Drawable icon = activity.getDrawable(R.drawable.ic_voicemail);
-        return new GuidanceStylist.Guidance(title, description, breadcrumb, icon);
+        return new GuidanceStylist.Guidance(title, details.toString(), dateTime.toString(), icon);
     }
 
     @Override

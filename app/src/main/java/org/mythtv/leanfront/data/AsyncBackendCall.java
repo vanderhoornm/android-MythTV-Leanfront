@@ -36,7 +36,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -68,6 +67,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private XmlNode mXmlResult = null;
     private Date mStartTime;
     private Date mEndTime;
+    private int mId;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -131,6 +131,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public void setEndTime(Date mEndTime) {
         this.mEndTime = mEndTime;
+    }
+
+    public void setId(int id) {
+        this.mId = id;
     }
 
     public static XmlNode getCachedStreamInfo(String videoUrl) {
@@ -704,6 +708,29 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                     break;
 
+                case Video.ACTION_GETPROGRAMDETAILS:
+                    try {
+                        SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                        sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Guide/GetProgramDetails?ChanId=" + mId
+                                        + "&StartTime=" + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8"));
+                        mXmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting Program Details.", e);
+                    }
+
+                    break;
+                case Video.ACTION_GETRECORDSCHEDULE:
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordSchedule?RecordId=" + mId);
+                        mXmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting Record Schedule.", e);
+                    }
+
+                    break;
                 default:
                     break;
             }

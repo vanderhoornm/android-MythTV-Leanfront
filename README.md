@@ -263,7 +263,8 @@ The following items will need api changes on the backend
 
 ## Building
 
-- Download and install [Android Studio][studio]. Also download the latest ndk and Cmake from within android studio. Note that android studio version 3.6.2 expects NDK version 20.0.5594570 which is not the latest. Look in the "Build" tab for a message about this. If you encounter this, switch to the requested NDK version.
+- Download and install [Android Studio][studio]. Also download the latest ndk and Cmake from within android studio. Look in the "Build" tab for a message about this. If you encounter this, switch to the requested NDK version.
+- Note the ndk version is referenced in the app/build.gradle file. You need to either download the version that is specified there or else update there to match the version you downloaded.
 - In the $HOME/Android directory create a link to the ndk, for example android-ndk -> Sdk/ndk/20.0.5594570
 - In the app/src/main/jni/ directory, run download_ffmpeg.sh and build_ffmpeg.sh.
 - Open the project in [Android Studio][studio].

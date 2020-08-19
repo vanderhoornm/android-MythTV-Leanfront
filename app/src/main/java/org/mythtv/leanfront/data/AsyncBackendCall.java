@@ -64,10 +64,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private long mRecordId = -1;
     private long mRecordedId = -1;
     private String mStringResult = null;
-    private XmlNode mXmlResult = null;
+    private ArrayList<XmlNode> mXmlResults = new ArrayList<>();
     private Date mStartTime;
     private Date mEndTime;
     private int mId;
+    private String mName;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -121,8 +122,16 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mStringResult;
     }
 
-    public XmlNode getXmlResult() {
-        return mXmlResult;
+    public XmlNode getXmlResult()
+    {
+        if (mXmlResults.size() > 0)
+            return mXmlResults.get(0);
+        else
+            return null;
+    }
+
+    public ArrayList<XmlNode> getXmlResults() {
+        return mXmlResults;
     }
 
     public void setStartTime(Date mStartTime) {
@@ -136,6 +145,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     public void setId(int id) {
         this.mId = id;
     }
+
+    public void setName(String name) {
+        this.mName = name;
+    }
+
 
     public static XmlNode getCachedStreamInfo(String videoUrl) {
         synchronized (mStreamInfoCache) {
@@ -162,6 +176,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             String urlString = null;
             Context context = MainActivity.getContext();
             boolean allowRerecord = false;
+            XmlNode xmlResult = null;
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mValue = 0;
@@ -623,16 +638,15 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     break;
                 case Video.ACTION_BACKEND_INFO:
-                    mXmlResult = null;
                     try {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Status/GetStatus");
-                        mXmlResult = XmlNode.fetch(urlString, "POST");
+                        xmlResult = XmlNode.fetch(urlString, "POST");
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting backend Info.", e);
                     }
-                    if (mXmlResult != null) {
-                        String dateStr = mXmlResult.getAttribute("ISODate");
+                    if (xmlResult != null) {
+                        String dateStr = xmlResult.getAttribute("ISODate");
                         if (dateStr != null) {
                             SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
                             try {
@@ -644,7 +658,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             }
                         }
                     }
-
+                    mXmlResults.add(xmlResult);
                     break;
                 case Video.ACTION_BACKEND_INFO_HTML:
                     InputStream is = null;
@@ -689,7 +703,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
 
                 case Video.ACTION_GET_STREAM_INFO:
-                    mXmlResult = getStreamInfo();
+                    mXmlResults.add(getStreamInfo());
                     break;
 
                 case Video.ACTION_GUIDE:
@@ -701,11 +715,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8")
                                         + "&EndTime=" + URLEncoder.encode(sdfUTC.format(mEndTime), "UTF-8")
                                         + "&Details=1");
-                        mXmlResult = XmlNode.fetch(urlString, null);
+                        xmlResult = XmlNode.fetch(urlString, null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting Guide.", e);
                     }
-
+                    mXmlResults.add(xmlResult);
                     break;
 
                 case Video.ACTION_GETPROGRAMDETAILS:
@@ -715,24 +729,63 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Guide/GetProgramDetails?ChanId=" + mId
                                         + "&StartTime=" + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8"));
-                        mXmlResult = XmlNode.fetch(urlString, null);
+                        xmlResult = XmlNode.fetch(urlString, null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting Program Details.", e);
                     }
-
+                    mXmlResults.add(xmlResult);
                     break;
+
                 case Video.ACTION_GETRECORDSCHEDULE:
+                    // Note - this needs either mId or mName filled in, for
+                    // a record rule or a template
                     try {
-                        urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordSchedule?RecordId=" + mId);
-                        mXmlResult = XmlNode.fetch(urlString, null);
+                        StringBuilder urlBuilder = new StringBuilder
+                                (XmlNode.mythApiUrl(null,
+                                        "/Dvr/GetRecordSchedule?"));
+                        if (mId > 0)
+                            urlBuilder.append("RecordId=").append(mId);
+                        else
+                            urlBuilder.append("Template=").append(mName);
+                        xmlResult = XmlNode.fetch(urlBuilder.toString(), null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting Record Schedule.", e);
                     }
+                    mXmlResults.add(xmlResult);
+                    break;
 
-                    break;
                 default:
-                    break;
+                    String method = null;
+                    switch (task) {
+                        case Video.ACTION_GETPLAYGROUPLIST:
+                            method = "GetPlayGroupList";
+                            break;
+                        case Video.ACTION_GETRECGROUPLIST:
+                            method = "GetRecGroupList";
+                            break;
+                        case Video.ACTION_GETRECSTORAGEGROUPLIST:
+                            method = "GetRecStorageGroupList";
+                            break;
+                        case Video.ACTION_GETINPUTLIST:
+                            method = "GetInputList";
+                            break;
+                        case Video.ACTION_GETRECORDSCHEDULELIST:
+                            method = "GetRecordScheduleList";
+                            break;
+                        case Video.ACTION_GETRECRULEFILTERLIST:
+                            method = "GetRecRuleFilterList";
+                            break;
+                    }
+                    if (method == null)
+                        break;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                        "/Dvr/" + method);
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception In " + method, e);
+                    }
+                    mXmlResults.add(xmlResult);
             }
         }
         return null;

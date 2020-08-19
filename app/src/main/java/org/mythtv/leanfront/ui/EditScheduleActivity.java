@@ -33,12 +33,11 @@ import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 
 public class EditScheduleActivity extends FragmentActivity implements AsyncBackendCall.OnBackendCallListener {
-
-    private XmlNode mProgDetails;
 
     public static final String CHANID = "CHANID";
     public static final String STARTTIME = "STARTTIME";
@@ -51,7 +50,14 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
                 this);
         call.setId(chanId);
         call.setStartTime(startTime);
-        call.execute(Video.ACTION_GETPROGRAMDETAILS);
+        call.execute(
+                Video.ACTION_GETPROGRAMDETAILS,
+                Video.ACTION_GETRECORDSCHEDULELIST,
+                Video.ACTION_GETPLAYGROUPLIST,
+                Video.ACTION_GETRECGROUPLIST,
+                Video.ACTION_GETRECSTORAGEGROUPLIST,
+                Video.ACTION_GETINPUTLIST,
+                Video.ACTION_GETRECRULEFILTERLIST);
     }
 
     @Override
@@ -59,25 +65,11 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_GETPROGRAMDETAILS:
-                mProgDetails = taskRunner.getXmlResult();
-                if (mProgDetails != null) {
-                    int recordId = Integer.parseInt(mProgDetails.getNode("Recording").getString("RecordId"));
-                    if (recordId > 0) {
-                        AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
-                                this);
-                        call.setId(recordId);
-                        call.execute(Video.ACTION_GETRECORDSCHEDULE);
-                    }
-                    else
-                        GuidedStepSupportFragment.addAsRoot(this,
-                                new EditScheduleFragment(mProgDetails, null), android.R.id.content);
-                }
-                break;
-            case Video.ACTION_GETRECORDSCHEDULE:
-                XmlNode recordSchedule = taskRunner.getXmlResult();
+                ArrayList<XmlNode> resultsList = taskRunner.getXmlResults();
                 GuidedStepSupportFragment.addAsRoot(this,
-                        new EditScheduleFragment(mProgDetails, recordSchedule), android.R.id.content);
+                        new EditScheduleFragment(resultsList), android.R.id.content);
                 break;
+
         }
 
     }

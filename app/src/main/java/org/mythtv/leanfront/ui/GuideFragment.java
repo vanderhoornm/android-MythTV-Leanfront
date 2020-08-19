@@ -1,7 +1,6 @@
 package org.mythtv.leanfront.ui;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,7 +25,6 @@ import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.GuideSlot;
-import org.mythtv.leanfront.model.Program;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.GuidePresenterSelector;
 
@@ -375,7 +373,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 programNode = programNode.getNextSibling();
             if (programNode == null)
                 break;
-            Program program = new Program(programNode);
+            GuideSlot.Program program = new GuideSlot.Program(programNode);
             int adapterPos = mChanArray.get(program.chanId,-1);
             if (adapterPos == -1)
                 continue;

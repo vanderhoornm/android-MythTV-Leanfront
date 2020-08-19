@@ -32,6 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 
@@ -227,7 +230,42 @@ public class XmlNode {
 
     public String getString() { return text; }
 
-    public String getAttribute(String name) {
+    public int getInt(int defaultValue) {
+        int result = defaultValue;
+        if (text != null) {
+            try {
+                result = Integer.parseInt(text);
+            } catch (NumberFormatException e) {
+                result = defaultValue;
+            }
+        }
+        return result;
+    }
+
+    public boolean getBoolean() {
+        boolean result = false;
+        if (text != null)
+            result = Boolean.getBoolean(text);
+        return result;
+    }
+
+
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+
+    public Date getDate() {
+        Date result = null;
+        if (text !=  null) {
+            try {
+                result = dateFormat.parse(text + "+0000");
+            } catch (ParseException e) {
+                result = null;
+            }
+        }
+        return result;
+    }
+
+
+        public String getAttribute(String name) {
         return attributeMap.get(name);
     }
 

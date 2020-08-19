@@ -26,6 +26,7 @@ public class TextCardView extends BaseCardView {
     public void updateUi(GuideSlot card) {
         TextView cardText = findViewById(R.id.card_text);
         TextView statusText = findViewById(R.id.card_text_status);
+        int bgColor = Color.DKGRAY;
         if (card == null) {
             cardText.setText(null);
             setBackgroundColor(Color.DKGRAY);
@@ -39,23 +40,24 @@ public class TextCardView extends BaseCardView {
                 status = (status == null ? "(2)" : status + '/') + card.program2.recordingStatus;
             statusText.setText(status);
             if (card.cellType == card.CELL_TIMESLOT)
-                setBackgroundColor(COLOR_TIMESLOT);
+                bgColor = COLOR_TIMESLOT;
             else if (card.cellType == card.CELL_CHANNEL)
-                setBackgroundColor(COLOR_CHANNEL);
+                bgColor = COLOR_CHANNEL;
             else if (card.cellType == card.CELL_PROGRAM && card.program != null) {
                 if ("WillRecord".equals(card.program.recordingStatus)
                     || card.program2 != null
                         && "WillRecord".equals(card.program2.recordingStatus))
-                    setBackgroundColor(COLOR_WILLRECORD);
+                    bgColor = COLOR_WILLRECORD;
                 else if (card.program.recordingStatus == null
                         && (card.program2 == null
                             || card.program2.recordingStatus == null))
-                    setBackgroundColor(COLOR_PROGRAM);
+                    bgColor = COLOR_PROGRAM;
                 else
-                    setBackgroundColor(COLOR_WONTRECORD);
+                    bgColor = COLOR_WONTRECORD;
             }
-            else
-                setBackgroundColor(Color.DKGRAY);
+            setBackgroundColor(bgColor);
+            if (status != null)
+                statusText.setBackgroundColor(bgColor);
         }
     }
 

@@ -102,6 +102,12 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_GUIDE                = 29;
     public static final int ACTION_GETPROGRAMDETAILS    = 30;
     public static final int ACTION_GETRECORDSCHEDULE    = 31;
+    public static final int ACTION_GETPLAYGROUPLIST     = 32;
+    public static final int ACTION_GETRECGROUPLIST      = 33;
+    public static final int ACTION_GETRECSTORAGEGROUPLIST  = 34;
+    public static final int ACTION_GETINPUTLIST         = 35;
+    public static final int ACTION_GETRECORDSCHEDULELIST = 36;
+    public static final int ACTION_GETRECRULEFILTERLIST  = 37;
 
     private Video(
             final long id,

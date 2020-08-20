@@ -21,11 +21,15 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.SparseArray;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
@@ -51,8 +55,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
     private SparseArray<String> mInputList = new SparseArray<>();
     private ArrayList<String> mRecRuleFilterList;
     private int mGroupId;
-    private List<GuidedAction> mMainActions;
+//    private List<GuidedAction> mMainActions;
     private ArrayList<ActionGroup> mGroupList = new ArrayList<>();
+    private String mNewValueText;
 
     private static DateFormat timeFormatter;
     private static DateFormat dateFormatter;
@@ -106,6 +111,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
             mRecordRule = new RecordRule().mergeTemplate(defaultTemplate);
         if (mProgDetails != null)
             mRecordRule.mergeProgram(mProgDetails);
+        if (mRecordRule.type == null)
+            mRecordRule.type = "Not Recording";
 
         // Lists
         mPlayGroupList = getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST
@@ -170,7 +177,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
             dateFormatter = android.text.format.DateFormat.getLongDateFormat(getContext());
             dayFormatter = new SimpleDateFormat("EEE ");
         }
-        setupData();
+        if (mRecordRule == null)
+            setupData();
         Activity activity = getActivity();
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
@@ -191,7 +199,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
-        mMainActions = mainActions;
+        if (mRecordRule == null)
+            setupData();
+//        mMainActions = mainActions;
         int[] prompts = {
                 R.string.sched_type_not, R.string.sched_type_this,
                 R.string.sched_type_one, R.string.sched_type_all};
@@ -199,11 +209,33 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                 "Not Recording", "Single Record",
                 "Record One", "Record All"};
         ActionGroup group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
-                prompts, stringValues,"Not Recording");
+                prompts, stringValues, mRecordRule.type, false);
         mainActions.add(group.mGuidedAction);
         mGroupList.add(group);
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
-                prompts, stringValues,"Not Recording");
+
+        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_rec_group,
+                null, mRecGroupList.toArray(new String[mRecGroupList.size()+1]),
+                mRecordRule.recGroup, true);
+        mainActions.add(group.mGuidedAction);
+        mGroupList.add(group);
+
+        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_play_group,
+                null, mPlayGroupList.toArray(new String[mPlayGroupList.size()]),
+                mRecordRule.playGroup, false);
+        mainActions.add(group.mGuidedAction);
+        mGroupList.add(group);
+
+        group = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_start_offset,
+                null, null,
+                mRecordRule.startOffset);
+        mainActions.add(group.mGuidedAction);
+        mGroupList.add(group);
+
+        group = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_end_offset,
+                null, null,
+                mRecordRule.endOffset);
+        mainActions.add(group.mGuidedAction);
+        mGroupList.add(group);
 
 
     }
@@ -216,6 +248,41 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
         return super.onSubGuidedActionClicked(action);
     }
 
+    @Override
+    public long onGuidedActionEditedAndProceed(GuidedAction action) {
+        int id = (int) action.getId();
+        int group = id / 100;
+        mGroupList.get(group).onGuidedActionEditedAndProceed(action);
+        return GuidedAction.ACTION_ID_CURRENT;
+    }
+
+     private void promptForNewValue(GuidedAction action, String initValue) {
+        mNewValueText = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(R.string.sched_new_entry);
+        EditText input = new EditText(getContext());
+        input.setText(initValue);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mNewValueText = input.getText().toString();
+                onSubGuidedActionClicked(action);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+
+
     // Handles groups of checkboxes or radiobuttons.
     private class ActionGroup {
         int mActionType;
@@ -227,31 +294,39 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
         int mSubActionCount;
         int mIntResult = -1;
         String mStringResult;
+        boolean mEditLast;
         int mSelectedPrompt = -1;
         GuidedAction mGuidedAction;
 
         ActionGroup(int actionType, int title, int[] prompts, int[] intValues,
-                    String[] stringValues, String currStringValue, int currIntValue) {
+                    String[] stringValues, String currStringValue, int currIntValue, boolean editLast) {
             mActionType = actionType;
             mIntValues = intValues;
             mStringValues = stringValues;
             mPrompts = prompts;
             mIntResult = currIntValue;
             mStringResult = currStringValue;
+            if (mStringValues != null)
+                mEditLast = editLast;
             mId = mGroupId++ * 100 + 1;
             int subId = mId;
 
             if (intValues != null)
                 mSubActionCount = intValues.length;
-            else
+            else if (stringValues != null)
                 mSubActionCount = stringValues.length;
+            else
+                mSubActionCount = 0;
 
             List<GuidedAction> subActions = new ArrayList<>();
-            Context context = getContext();
             for (int ix = 0; ix < mSubActionCount; ix++) {
                 GuidedAction.Builder builder = new GuidedAction.Builder(getActivity())
                         .id(++subId);
-                if (mPrompts != null)
+                if (mEditLast && ix == mSubActionCount-1) {
+//                    builder.descriptionEditable(true); // editable actions cannot be checked
+                    builder.title(R.string.sched_new_entry);
+                }
+                else if (mPrompts != null)
                     builder.title(mPrompts[ix]);
                 else if (mStringValues != null)
                     builder.title(mStringValues[ix]);
@@ -288,29 +363,46 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                 else if (mStringResult != null)
                     builder.description(mStringResult);
             }
-            builder.subActions(subActions);
+            else if (mActionType == ACTIONTYPE_NUMERIC) {
+                builder.description(String.valueOf(mIntResult));
+                builder.descriptionEditable(true);
+                builder.descriptionEditInputType
+                        (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+            }
+            if (mSubActionCount > 0)
+                builder.subActions(subActions);
             mGuidedAction = builder.build();
         }
 
         ActionGroup(int actionType, int title, @NonNull int[] prompts, @NonNull int[] intValues,
                     int currIntValue) {
             this(actionType, title, prompts, intValues,
-                    null, null, currIntValue);
+                    null, null, currIntValue, false);
         }
 
         ActionGroup(int actionType, int title, int[] prompts,
-                    @NonNull  String[] stringValues, String currStringValue) {
+                    @NonNull  String[] stringValues, String currStringValue, boolean allowCreateNew) {
             this(actionType, title, prompts, null,
-                    stringValues, currStringValue, -1);
+                    stringValues, currStringValue, -1, allowCreateNew);
         }
 
         public void onSubGuidedActionClicked(GuidedAction action) {
             int id = (int) action.getId();
             int ix = (id % 100) - 2;
+            int groupIx = id / 100;
             if (action.isChecked()) {
                 if (mActionType == ACTIONTYPE_CHECKBOXES)
                     mIntResult |= (2 ^ ix);
                 else if (mActionType == ACTIONTYPE_RADIOBNS) {
+//                    ActionGroup group = mGroupList.get(groupIx);
+                    if (mEditLast && ix == mStringValues.length-1) {
+                        if (mNewValueText == null)
+                            promptForNewValue(action, mStringValues[mStringValues.length - 1]);
+                        else
+                            mStringValues[mStringValues.length-1] = mNewValueText;
+                        mNewValueText = null;
+                        action.setDescription(mStringValues[mStringValues.length-1]);
+                    }
                     mSelectedPrompt = ix;
                     if (mIntValues != null)
                         mIntResult = mIntValues[ix];
@@ -329,5 +421,18 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                     mIntResult &= (-1 - 2 ^ ix);
             }
         }
+
+        public void onGuidedActionEditedAndProceed(GuidedAction action) {
+            if (mActionType == ACTIONTYPE_NUMERIC) {
+                try {
+                    mIntResult = Integer.parseInt(action.getDescription().toString().trim());
+                }
+                catch(Exception e) {
+                    mIntResult = 0;
+                }
+                action.setDescription(String.valueOf(mIntResult));
+            }
+        }
+
     }
 }

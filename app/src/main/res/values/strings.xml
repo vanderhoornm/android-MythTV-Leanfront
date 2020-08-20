@@ -191,6 +191,10 @@
     <string name="sched_type_one">Record Only One Showing</string>
     <string name="sched_type_all">Record All Showings</string>
     <string name="sched_rec_group">Recording Group</string>
+    <string name="sched_play_group">Playback Group</string>
+    <string name="sched_start_offset">Start Offset in minutes</string>
+    <string name="sched_end_offset">End Offset in minutes</string>
+    <string name="sched_new_entry">Create New Entry</string>
 
 
 </resources>

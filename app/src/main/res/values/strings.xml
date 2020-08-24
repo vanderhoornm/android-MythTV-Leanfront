@@ -195,6 +195,52 @@
     <string name="sched_start_offset">Start Offset in minutes</string>
     <string name="sched_end_offset">End Offset in minutes</string>
     <string name="sched_new_entry">Create New Entry</string>
+    <string name="sched_repeats">Repeat Episodes</string>
+    <string name="sched_new_and_repeat">Record New and Repeat Episodes</string>
+    <string name="sched_new_only">Record New Episodes Only</string>
+    <string name="sched_priority">Priority</string>
+    <string name="sched_input">Input</string>
+    <string name="sched_dupmethod">Duplicate Match Method</string>
+    <string name="sched_dup_none">Don\'t Match Duplicates</string>
+    <string name="sched_dup_s_and_d">Match Using Subtitle &amp; Description</string>
+    <string name="sched_dup_s_then_d">Match Using Subtitle Then Description</string>
+    <string name="sched_dup_s">Match Duplicates Using Subtitle</string>
+    <string name="sched_dup_d">Match Duplicates Using Description</string>
+    <string name="sched_active">Active</string>
+    <string name="sched_active_msg">Recording Rule is Active</string>
+    <string name="sched_inactive_msg">Recording Rule is Inactive</string>
+    <string name="sched_dupscope">Duplicate Search Scope</string>
+    <string name="sched_dup_both">Current and Previous Recordings</string>
+    <string name="sched_dup_curr">Current Recordings Only</string>
+    <string name="sched_dup_prev">Previous Recordings Only</string>
+    <string name="sched_filters">Filter Options</string>
+    <string name="sched_rec_profile">Recording Profile</string>
+    <string name="sched_recprof_default">Default</string>
+    <string name="sched_recprof_livetv">Live TV</string>
+    <string name="sched_recprof_highq">High Quality</string>
+    <string name="sched_recprof_lowq">Low Quality</string>
+    <string name="sched_storage_grp">Storage Group</string>
+    <string name="sched_max_to_keep">Maximum Number of Episodes to Keep</string>
+    <string name="sched_max_newest">Deletion on Maximum Episodes</string>
+    <string name="sched_max_dont">Don\'t Record if this Would Exceed the Max Episodes</string>
+    <string name="sched_max_delete">Delete Oldest if this Would Exceed the Max Episodes</string>
+    <string name="sched_auto_expire">Auto Expire</string>
+    <string name="sched_auto_expire_off">Don\'t Allow Recordings to Auto Expire</string>
+    <string name="sched_auto_expire_on">Allow Recordings to Auto Expire</string>
+    <string name="sched_pp_title">Post Processing Options</string>
+    <string name="sched_pp_commflag">Automatically Commercial Flag Recordings</string>
+    <string name="sched_pp_metadata">Automatically Look up MetaData</string>
+    <string name="sched_pp_transcode">Automatically Transcode Recordings</string>
+    <string name="sched_pp_job1">Run User job 1</string>
+    <string name="sched_pp_job2">Run User job 2</string>
+    <string name="sched_pp_job3">Run User job 3</string>
+    <string name="sched_pp_job4">Run User job 4</string>
+    <string name="sched_metadata_type">Movie Metadata</string>
+    <string name="sched_metadata_type_tv">Use TV Metadata from www.thetvdb.com</string>
+    <string name="sched_metadata_type_movie">Use Movie Metadata from www.themoviedb.org</string>
+    <string name="sched_metadata_id">Series Id or Movie Id</string>
+    <string name="sched_use_template">Use Template</string>
+
 
 
 </resources>

@@ -245,7 +245,7 @@ public class XmlNode {
     public boolean getBoolean() {
         boolean result = false;
         if (text != null)
-            result = Boolean.getBoolean(text);
+            result = "true".equalsIgnoreCase(text);
         return result;
     }
 

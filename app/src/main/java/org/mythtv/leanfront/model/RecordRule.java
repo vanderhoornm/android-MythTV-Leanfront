@@ -34,6 +34,7 @@ public class RecordRule {
     public int     endOffset;
     public String  dupMethod;
     public String  dupIn;
+    public boolean newEpisOnly;
     public int     filter;
     public String  recProfile;
     public String  recGroup;
@@ -76,6 +77,7 @@ public class RecordRule {
         season = programNode.getNode("Season").getInt(0);
         episode = programNode.getNode("Episode").getInt(0);
         inetref = programNode.getString("Inetref");
+        recordId = programNode.getNode("Recording").getNode("RecordId").getInt(0);
         return this;
     }
 
@@ -106,6 +108,14 @@ public class RecordRule {
         endOffset = scheduleNode.getNode("EndOffset").getInt(0);
         dupMethod = scheduleNode.getString("DupMethod");
         dupIn = scheduleNode.getString("DupIn");
+        // cater for bug in services.
+        if ("Unknown".equals(dupIn)) {
+            dupIn = "All Recordings";
+            newEpisOnly = true;
+        }
+        XmlNode node = scheduleNode.getNode("NewEpisOnly");
+        if (node != null)
+            newEpisOnly = node.getBoolean();
         filter = scheduleNode.getNode("Filter").getInt(0);
         recProfile = scheduleNode.getString("RecProfile");
         recGroup = scheduleNode.getString("RecGroup");
@@ -141,7 +151,6 @@ public class RecordRule {
             findTime = program.findTime;
             season = program.season;
             episode = program.episode;
-            inetref = program.inetref;
         }
         return this;
     }
@@ -155,6 +164,7 @@ public class RecordRule {
             endOffset = template.endOffset;
             dupMethod = template.dupMethod;
             dupIn = template.dupIn;
+            newEpisOnly = template.newEpisOnly;
             filter = template.filter;
             recProfile = template.recProfile;
             recGroup = template.recGroup;

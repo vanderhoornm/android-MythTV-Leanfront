@@ -56,8 +56,7 @@ public class TextCardView extends BaseCardView {
                     bgColor = COLOR_WONTRECORD;
             }
             setBackgroundColor(bgColor);
-            if (status != null)
-                statusText.setBackgroundColor(bgColor);
+            statusText.setBackgroundColor(bgColor);
         }
     }
 

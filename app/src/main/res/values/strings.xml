@@ -192,14 +192,15 @@
     <string name="sched_type_all">Record All Showings</string>
     <string name="sched_rec_group">Recording Group</string>
     <string name="sched_play_group">Playback Group</string>
-    <string name="sched_start_offset">Start Offset in minutes</string>
-    <string name="sched_end_offset">End Offset in minutes</string>
+    <string name="sched_start_offset">Number of Extra Minutes Record at Start</string>
+    <string name="sched_end_offset">Number of Extra Minutes Record at End</string>
     <string name="sched_new_entry">Create New Entry</string>
-    <string name="sched_repeats">Repeat Episodes</string>
+    <string name="sched_repeats">New Episodes Only</string>
     <string name="sched_new_and_repeat">Record New and Repeat Episodes</string>
     <string name="sched_new_only">Record New Episodes Only</string>
+    <string name="sched_new_unsupported">Upgrade your backed to support this</string>
     <string name="sched_priority">Priority</string>
-    <string name="sched_input">Input</string>
+    <string name="sched_input">Preferred Input</string>
     <string name="sched_dupmethod">Duplicate Match Method</string>
     <string name="sched_dup_none">Don\'t Match Duplicates</string>
     <string name="sched_dup_s_and_d">Match Using Subtitle &amp; Description</string>
@@ -240,7 +241,9 @@
     <string name="sched_metadata_type_movie">Use Movie Metadata from www.themoviedb.org</string>
     <string name="sched_metadata_id">Series Id or Movie Id</string>
     <string name="sched_use_template">Use Template</string>
-
+    <string name="sched_save_button">Save</string>
+    <string name="sched_template_applied">Template %1s was applied.</string>
+    <string name="sched_failed">ERROR: Failed to create schedule rule.</string>
 
 
 </resources>

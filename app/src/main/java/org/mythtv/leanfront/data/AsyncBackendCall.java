@@ -27,6 +27,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.RecordRule;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
@@ -69,6 +70,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private Date mEndTime;
     private int mId;
     private String mName;
+    private RecordRule mRecordRule;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -92,6 +94,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         mValue = valueA;
         mBackendCallListener = backendCallListener;
         mWatched = watched;
+    }
+
+    public AsyncBackendCall(OnBackendCallListener backendCallListener) {
+        mBackendCallListener = backendCallListener;
     }
 
     public long getBookmark() {
@@ -150,6 +156,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         this.mName = name;
     }
 
+    public void setRecordRule(RecordRule recordRule) {
+        this.mRecordRule = recordRule;
+    }
 
     public static XmlNode getCachedStreamInfo(String videoUrl) {
         synchronized (mStreamInfoCache) {
@@ -750,6 +759,79 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         xmlResult = XmlNode.fetch(urlBuilder.toString(), null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting Record Schedule.", e);
+                    }
+                    mXmlResults.add(xmlResult);
+                    break;
+
+                case Video.ACTION_ADD_OR_UPDATERECRULE:
+                    try {
+                        SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
+                        String baseURL;
+                        if (mRecordRule.recordId == 0)
+                            baseURL = "/Dvr/AddRecordSchedule?";
+                        else
+                            baseURL = "/Dvr/UpdateRecordSchedule?RecordId="
+                                    + mRecordRule.recordId + "&";
+                        StringBuilder urlBuilder = new StringBuilder
+                                (XmlNode.mythApiUrl(null,
+                                        baseURL));
+                        urlBuilder.append("Title=").append(URLEncoder.encode(mRecordRule.title, "UTF-8"))
+                                .append("&Subtitle=").append(URLEncoder.encode(mRecordRule.subtitle, "UTF-8"))
+                                .append("&Description=").append(URLEncoder.encode(mRecordRule.description, "UTF-8"))
+                                .append("&StartTime=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.startTime), "UTF-8"))
+                                .append("&EndTime=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.endTime), "UTF-8"))
+                                .append("&SeriesId=").append(mRecordRule.seriesId)
+                                .append("&ProgramId=").append(mRecordRule.programId)
+                                .append("&ChanId=").append(mRecordRule.chanId)
+                                .append("&Station=").append(URLEncoder.encode(mRecordRule.station, "UTF-8"))
+                                .append("&FindDay=").append(mRecordRule.findDay)
+                                .append("&FindTime=").append(URLEncoder.encode(mRecordRule.findTime, "UTF-8"))
+                                .append("&Inactive=").append(mRecordRule.inactive)
+                                .append("&Season=").append(mRecordRule.season)
+                                .append("&Episode=").append(mRecordRule.episode)
+                                .append("&Type=").append(URLEncoder.encode(mRecordRule.type,"UTF-8"))
+                                .append("&SearchType=").append(URLEncoder.encode(mRecordRule.searchType,"UTF-8"))
+                                .append("&RecPriority=").append(mRecordRule.recPriority)
+                                .append("&PreferredInput=").append(mRecordRule.preferredInput)
+                                .append("&StartOffset=").append(mRecordRule.startOffset)
+                                .append("&EndOffset=").append(mRecordRule.endOffset)
+                                .append("&DupMethod=").append(URLEncoder.encode(mRecordRule.dupMethod,"UTF-8"))
+                                .append("&DupIn=").append(URLEncoder.encode(mRecordRule.dupIn,"UTF-8"))
+                                .append("&NewEpisOnly=").append(mRecordRule.newEpisOnly)
+                                .append("&Filter=").append(mRecordRule.filter)
+                                .append("&RecProfile=").append(URLEncoder.encode(mRecordRule.recProfile,"UTF-8"))
+                                .append("&RecGroup=").append(URLEncoder.encode(mRecordRule.recGroup,"UTF-8"))
+                                .append("&StorageGroup=").append(URLEncoder.encode(mRecordRule.storageGroup,"UTF-8"))
+                                .append("&PlayGroup=").append(URLEncoder.encode(mRecordRule.playGroup,"UTF-8"))
+                                .append("&AutoExpire=").append(mRecordRule.autoExpire)
+                                .append("&MaxEpisodes=").append(mRecordRule.maxEpisodes)
+                                .append("&MaxNewest=").append(mRecordRule.maxNewest)
+                                .append("&AutoCommflag=").append(mRecordRule.autoCommflag)
+                                .append("&AutoTranscode=").append(mRecordRule.autoTranscode)
+                                .append("&AutoMetaLookup=").append(mRecordRule.autoMetaLookup)
+                                .append("&AutoUserJob1=").append(mRecordRule.autoUserJob1)
+                                .append("&AutoUserJob2=").append(mRecordRule.autoUserJob2)
+                                .append("&AutoUserJob3=").append(mRecordRule.autoUserJob3)
+                                .append("&AutoUserJob4=").append(mRecordRule.autoUserJob4)
+                                .append("&Transcoder=").append(mRecordRule.transcoder);
+                        xmlResult = XmlNode.fetch(urlBuilder.toString(), "POST");
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Updating Record Schedule.", e);
+                    }
+                    mXmlResults.add(xmlResult);
+                    break;
+
+                case Video.ACTION_DELETERECRULE:
+                    try {
+                        if (mRecordRule.recordId > 0) {
+                            String url = XmlNode.mythApiUrl(null,
+                                    "/Dvr/RemoveRecordSchedule?RecordId=" + mRecordRule.recordId);
+                            xmlResult = XmlNode.fetch(url, "POST");
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception removing Record Schedule.", e);
                     }
                     mXmlResults.add(xmlResult);
                     break;

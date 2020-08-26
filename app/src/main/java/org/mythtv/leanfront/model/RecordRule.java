@@ -25,7 +25,7 @@ public class RecordRule {
     public boolean inactive;
     public int     season;
     public int     episode;
-    public String  inetref;
+    public String  inetref = "";
     public String  type;
     public String  searchType;
     public int     recPriority;
@@ -111,7 +111,8 @@ public class RecordRule {
         // cater for bug in services.
         if ("Unknown".equals(dupIn)) {
             dupIn = "All Recordings";
-            newEpisOnly = true;
+            // do not set this because we cannot update it with bug.
+//            newEpisOnly = true;
         }
         XmlNode node = scheduleNode.getNode("NewEpisOnly");
         if (node != null)
@@ -158,6 +159,7 @@ public class RecordRule {
     public RecordRule mergeTemplate(RecordRule template) {
         if (template != null) {
             inactive = template.inactive;
+            searchType = template.searchType;
             recPriority = template.recPriority;
             preferredInput = template.preferredInput;
             startOffset = template.startOffset;

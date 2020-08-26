@@ -21,11 +21,14 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.util.SparseArray;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -34,15 +37,19 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.RecordRule;
+import org.mythtv.leanfront.model.Video;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class EditScheduleFragment extends GuidedStepSupportFragment {
+
+public class EditScheduleFragment extends GuidedStepSupportFragment implements AsyncBackendCall.OnBackendCallListener {
 
     private RecordRule mProgDetails;
     private RecordRule mRecordRule;
@@ -57,6 +64,30 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
     private ArrayList<ActionGroup> mGroupList = new ArrayList<>();
     private String mNewValueText;
 
+    private ActionGroup mGpType;
+    private ActionGroup mGpRecGroup;
+    private ActionGroup mGpActive;
+    private ActionGroup mGpPlayGroup;
+    private ActionGroup mGpStartOffset;
+    private ActionGroup mGpEndOffset;
+    private ActionGroup mGpNewEpisOnly;
+    private ActionGroup mGpRecPriority;
+    private ActionGroup mGpPreferredInput;
+    private ActionGroup mGpDupMethod;
+    private ActionGroup mGpDupIn;
+    private ActionGroup mGpFilter;
+    private ActionGroup mGpRecProfile;
+    private ActionGroup mGpStorageGroup;
+    private ActionGroup mGpMaxEpisodes;
+    private ActionGroup mGpMaxNewest;
+    private ActionGroup mGpAutoExpire;
+    private ActionGroup mGpPostProc;
+    private ActionGroup mGpInetRefType;
+    private ActionGroup mGpInetRefNum;
+    private ActionGroup mGpUseTemplate;
+    private ActionGroup mGpSaveButton;
+    private ActionGroup mGpCancelButton;
+
     private static DateFormat timeFormatter;
     private static DateFormat dateFormatter;
     private static DateFormat dayFormatter;
@@ -66,6 +97,11 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
     private static final int ACTIONTYPE_NUMERIC = 3;
     private static final int ACTIONTYPE_NUMERIC_UNSIGNED = 4;
     private static final int ACTIONTYPE_BOOLEAN = 5;
+    private static final int ACTIONTYPE_BUTTON = 6;
+    private static final int ACTIONTYPE_BUTTONS = 7;
+
+    private static final String TAG = "lfe";
+    private static final String CLASS = "EditScheduleFragment";
 
 
     public EditScheduleFragment(ArrayList<XmlNode> detailsList) {
@@ -246,117 +282,127 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
 
         int ix;
 
-        ActionGroup group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
+        // Type
+        mGpType = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
                 sTypePrompts, sTypeValues, mRecordRule.type, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpType.mGuidedAction);
+        mGroupList.add(mGpType);
 
         // Recording Group
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_rec_group,
+        mGpRecGroup = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_rec_group,
                 null, mRecGroupList.toArray(new String[mRecGroupList.size()+1]),
                 mRecordRule.recGroup, true);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpRecGroup.mGuidedAction);
+        mGroupList.add(mGpRecGroup);
 
         // Active
-        group = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_active,
+        mGpActive = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_active,
                 sActivePrompts, ! mRecordRule.inactive);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpActive.mGuidedAction);
+        mGroupList.add(mGpActive);
 
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_play_group,
+        // Playback Group
+        mGpPlayGroup = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_play_group,
                 null, mPlayGroupList.toArray(new String[mPlayGroupList.size()]),
                 mRecordRule.playGroup, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpPlayGroup.mGuidedAction);
+        mGroupList.add(mGpPlayGroup);
 
-        group = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_start_offset,
+        // Start Offset
+        mGpStartOffset = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_start_offset,
                 mRecordRule.startOffset);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpStartOffset.mGuidedAction);
+        mGroupList.add(mGpStartOffset);
 
-        group = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_end_offset,
+        // End Offset
+        mGpEndOffset = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_end_offset,
                 mRecordRule.endOffset);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpEndOffset.mGuidedAction);
+        mGroupList.add(mGpEndOffset);
 
-        group = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_repeats,
+        // New Episodes Only
+        mGpNewEpisOnly = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_repeats,
                 sRepeatPrompts, mRecordRule.newEpisOnly);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpNewEpisOnly.mGuidedAction);
+        mGroupList.add(mGpNewEpisOnly);
+        if (mDetailsList.get(1).getNode("RecRules")
+                .getNode("RecRule").getNode("NewEpisOnly") == null) {
+            mGpNewEpisOnly.mGuidedAction.setEnabled(false);
+            mGpNewEpisOnly.mGuidedAction.setDescription
+                    (getContext().getString(R.string.sched_new_unsupported));
+        }
 
-        group = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_priority,
+        // Record Priority
+        mGpRecPriority = new ActionGroup(ACTIONTYPE_NUMERIC, R.string.sched_priority,
                 mRecordRule.recPriority);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpRecPriority.mGuidedAction);
+        mGroupList.add(mGpRecPriority);
 
-        // inputs - intvalues
+        // Preferred Input
         String [] stringPrompts = new String[mInputList.size()];
         int [] intValues = new int[mInputList.size()];
         for (ix = 0 ; ix < mInputList.size(); ix++) {
             stringPrompts[ix] = mInputList.valueAt(ix);
             intValues[ix] = mInputList.keyAt(ix);
         }
-
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_input,
-                 stringPrompts, intValues, mRecordRule.recPriority);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mGpPreferredInput = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_input,
+                 stringPrompts, intValues, mRecordRule.preferredInput);
+        mainActions.add(mGpPreferredInput.mGuidedAction);
+        mGroupList.add(mGpPreferredInput);
 
         // Duplicate Match Method
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_dupmethod,
+        mGpDupMethod = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_dupmethod,
                 sDupMethodPrompts, sDupMethodValues, mRecordRule.dupMethod, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpDupMethod.mGuidedAction);
+        mGroupList.add(mGpDupMethod);
 
         // Dup Scope
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_dupscope,
+        mGpDupIn = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_dupscope,
                 sDupScopePrompts, sDupScopeValues, mRecordRule.dupIn, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpDupIn.mGuidedAction);
+        mGroupList.add(mGpDupIn);
 
         // Filters
         stringPrompts = new String[mRecRuleFilterList.size()];
         stringPrompts = mRecRuleFilterList.toArray(stringPrompts);
-        group = new ActionGroup(ACTIONTYPE_CHECKBOXES, R.string.sched_filters,
+        mGpFilter = new ActionGroup(ACTIONTYPE_CHECKBOXES, R.string.sched_filters,
                 null, stringPrompts, mRecordRule.filter);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpFilter.mGuidedAction);
+        mGroupList.add(mGpFilter);
 
         // Recording profile
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_rec_profile,
+        mGpRecProfile = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_rec_profile,
                 sRecProfilePrompts, sRecProfileValues, mRecordRule.recProfile, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpRecProfile.mGuidedAction);
+        mGroupList.add(mGpRecProfile);
 
         // Storage Group
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_storage_grp,
+        mGpStorageGroup = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_storage_grp,
                 null, mRecStorageGroupList.toArray(new String[mRecStorageGroupList.size()]),
                 mRecordRule.storageGroup, false);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpStorageGroup.mGuidedAction);
+        mGroupList.add(mGpStorageGroup);
 
         // Max to keep
-        group = new ActionGroup(ACTIONTYPE_NUMERIC_UNSIGNED, R.string.sched_max_to_keep,
+        mGpMaxEpisodes = new ActionGroup(ACTIONTYPE_NUMERIC_UNSIGNED, R.string.sched_max_to_keep,
                 mRecordRule.maxEpisodes);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpMaxEpisodes.mGuidedAction);
+        mGroupList.add(mGpMaxEpisodes);
 
         // Max Newest
-        group = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_max_newest,
+        mGpMaxNewest = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_max_newest,
                 sNewestPrompts, mRecordRule.maxNewest);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpMaxNewest.mGuidedAction);
+        mGroupList.add(mGpMaxNewest);
 
         // Auto Expire
-        group = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_auto_expire,
+        mGpAutoExpire = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_auto_expire,
                 sAutoExpirePrompts, mRecordRule.autoExpire);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpAutoExpire.mGuidedAction);
+        mGroupList.add(mGpAutoExpire);
 
         // post Processing
         int ppVal = 0;
-        ix = 0;
         ppVal |= mRecordRule.autoCommflag   ? 1 << 0 : 0;
         ppVal |= mRecordRule.autoMetaLookup ? 1 << 1 : 0;
         ppVal |= mRecordRule.autoTranscode  ? 1 << 2 : 0;
@@ -365,18 +411,18 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
         ppVal |= mRecordRule.autoUserJob3   ? 1 << 5 : 0;
         ppVal |= mRecordRule.autoUserJob4   ? 1 << 6 : 0;
 
-        group = new ActionGroup(ACTIONTYPE_CHECKBOXES, R.string.sched_pp_title,
+        mGpPostProc = new ActionGroup(ACTIONTYPE_CHECKBOXES, R.string.sched_pp_title,
                 sPostProcPrompts, (String[])null, ppVal);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpPostProc.mGuidedAction);
+        mGroupList.add(mGpPostProc);
 
         // Metadata type ttvdb.py_ or tmdb3.py_
         boolean mdVal = mRecordRule.inetref != null && mRecordRule.inetref.startsWith("tmdb3.py_");
 
-        group = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_metadata_type,
+        mGpInetRefType = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_metadata_type,
                 sMetaDataPrompts, mdVal);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpInetRefType.mGuidedAction);
+        mGroupList.add(mGpInetRefType);
 
         // Metadata number
         int id = 0;
@@ -390,10 +436,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                 }
             }
         }
-        group = new ActionGroup(ACTIONTYPE_NUMERIC_UNSIGNED, R.string.sched_metadata_id,
+        mGpInetRefNum = new ActionGroup(ACTIONTYPE_NUMERIC_UNSIGNED, R.string.sched_metadata_id,
                 id);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpInetRefNum.mGuidedAction);
+        mGroupList.add(mGpInetRefNum);
 
         // Use Template
         stringPrompts = new String[mTemplateList.size()];
@@ -405,20 +451,170 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
             intValues[ix] = ix;
         }
 
-        group = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_use_template,
+        mGpUseTemplate = new ActionGroup(ACTIONTYPE_BUTTONS, R.string.sched_use_template,
                 stringPrompts, intValues, -1);
-        mainActions.add(group.mGuidedAction);
-        mGroupList.add(group);
+        mainActions.add(mGpUseTemplate.mGuidedAction);
+        mGroupList.add(mGpUseTemplate);
+
+    }
+
+    @Override
+    public void onCreateButtonActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
+        // Save Button
+        mGpSaveButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_save_button);
+        actions.add(mGpSaveButton.mGuidedAction);
+        mGroupList.add(mGpSaveButton);
+
+        mGpCancelButton = new ActionGroup(ACTIONTYPE_BUTTON, android.R.string.cancel);
+        actions.add(mGpCancelButton.mGuidedAction);
+        mGroupList.add(mGpCancelButton);
+    }
+
+    private void updateRecordRule() {
+        mRecordRule.type = mGpType.mStringResult;
+        mRecordRule.recGroup = mGpRecGroup.mStringResult;
+        mRecordRule.inactive = (mGpActive.mIntResult == 0);
+        mRecordRule.playGroup = mGpPlayGroup.mStringResult;
+        mRecordRule.startOffset = mGpStartOffset.mIntResult;
+        mRecordRule.endOffset = mGpEndOffset.mIntResult;
+        mRecordRule.newEpisOnly = (mGpNewEpisOnly.mIntResult != 0);
+        mRecordRule.recPriority = mGpRecPriority.mIntResult;
+        mRecordRule.preferredInput = mGpPreferredInput.mIntResult;
+        mRecordRule.dupMethod = mGpDupMethod.mStringResult;
+        mRecordRule.dupIn = mGpDupIn.mStringResult;
+        mRecordRule.filter = mGpFilter.mIntResult;
+        mRecordRule.recProfile = mGpRecProfile.mStringResult;
+        mRecordRule.storageGroup = mGpStorageGroup.mStringResult;
+        mRecordRule.maxEpisodes = mGpMaxEpisodes.mIntResult;
+        mRecordRule.maxNewest = (mGpMaxNewest.mIntResult != 0);
+        mRecordRule.autoExpire = (mGpAutoExpire.mIntResult != 0);
+        mRecordRule.autoCommflag = (mGpPostProc.mIntResult & (1 << 0)) != 0;
+        mRecordRule.autoMetaLookup = (mGpPostProc.mIntResult & (1 << 1)) != 0;
+        mRecordRule.autoTranscode = (mGpPostProc.mIntResult & (1 << 2)) != 0;
+        mRecordRule.autoUserJob1 = (mGpPostProc.mIntResult & (1 << 3)) != 0;
+        mRecordRule.autoUserJob2 = (mGpPostProc.mIntResult & (1 << 4)) != 0;
+        mRecordRule.autoUserJob3 = (mGpPostProc.mIntResult & (1 << 5)) != 0;
+        mRecordRule.autoUserJob4 = (mGpPostProc.mIntResult & (1 << 6)) != 0;
+        if (mGpInetRefNum.mIntResult > 0) {
+            String prefix;
+            if (mGpInetRefType.mIntResult == 0)
+                prefix = "ttvdb.py_";
+            else
+                prefix = "tmdb3.py_";
+            mRecordRule.inetref = prefix + mGpInetRefNum.mIntResult;
+        }
+        else
+            mRecordRule.inetref = null;
+
+        AsyncBackendCall call = new AsyncBackendCall(this);
+        call.setRecordRule(mRecordRule);
+        if ("Not Recording". equals(mRecordRule.type)) {
+            if (mRecordRule.recordId > 0)
+                call.execute(Video.ACTION_DELETERECRULE);
+            else
+                getActivity().finish();
+        }
+        else
+            call.execute(Video.ACTION_ADD_OR_UPDATERECRULE);
+    }
+
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        if (taskRunner == null)
+            return;
+        int [] tasks = taskRunner.getTasks();
+        switch (tasks[0]) {
+            case Video.ACTION_ADD_OR_UPDATERECRULE:
+            case Video.ACTION_DELETERECRULE:
+                XmlNode response = taskRunner.getXmlResult();
+                String result = null;
+                if (response != null)
+                    result = response.getString();
+                if (result == null) {
+                    Toast.makeText(getContext(),R.string.sched_failed, Toast.LENGTH_LONG).show();
+                } else {
+                    Log.i(TAG, CLASS + " Recording scheduled, Response:" + result);
+                    getActivity().finish();
+                }
+                break;
+        }
+    }
 
 
 
+    private void mergeTemplate(RecordRule template) {
+
+/*
+        inactive = template.inactive;
+        recPriority = template.recPriority;
+        preferredInput = template.preferredInput;
+        startOffset = template.startOffset;
+        endOffset = template.endOffset;
+        dupMethod = template.dupMethod;
+        dupIn = template.dupIn;
+        newEpisOnly = template.newEpisOnly;
+        filter = template.filter;
+        recProfile = template.recProfile;
+        recGroup = template.recGroup;
+        storageGroup = template.storageGroup;
+        playGroup = template.playGroup;
+        autoExpire = template.autoExpire;
+        maxEpisodes = template.maxEpisodes;
+        maxNewest = template.maxNewest;
+        autoCommflag = template.autoCommflag;
+        autoTranscode = template.autoTranscode;
+        autoMetaLookup = template.autoMetaLookup;
+        autoUserJob1 = template.autoUserJob1;
+        autoUserJob2 = template.autoUserJob2;
+        autoUserJob3 = template.autoUserJob3;
+        autoUserJob4 = template.autoUserJob4;
+        transcoder = template.transcoder;
+*/
+
+        mGpActive.setValue(!template.inactive);
+        mGpRecPriority.setValue(template.recPriority);
+        mGpPreferredInput.setValue(template.preferredInput);
+        mGpStartOffset.setValue(template.startOffset);
+        mGpEndOffset.setValue(template.endOffset);
+        mGpDupMethod.setValue(template.dupMethod);
+        mGpDupIn.setValue((template.dupIn));
+        mGpNewEpisOnly.setValue(template.newEpisOnly);
+        mGpFilter.setValue(template.filter);
+        mGpRecProfile.setValue(template.recProfile);
+        mGpRecGroup.setValue(template.recGroup);
+        mGpStorageGroup.setValue((template.storageGroup));
+        mGpPlayGroup.setValue(template.playGroup);
+        mGpAutoExpire.setValue(template.autoExpire);
+        mGpMaxEpisodes.setValue(template.maxEpisodes);
+        mGpMaxNewest.setValue(template.maxNewest);
+        // post Processing
+        int ppVal = 0;
+        ppVal |= template.autoCommflag   ? 1 << 0 : 0;
+        ppVal |= template.autoMetaLookup ? 1 << 1 : 0;
+        ppVal |= template.autoTranscode  ? 1 << 2 : 0;
+        ppVal |= template.autoUserJob1   ? 1 << 3 : 0;
+        ppVal |= template.autoUserJob2   ? 1 << 4 : 0;
+        ppVal |= template.autoUserJob3   ? 1 << 5 : 0;
+        ppVal |= template.autoUserJob4   ? 1 << 6 : 0;
+        mGpPostProc.setValue(ppVal);
+        mRecordRule.transcoder = template.transcoder;
     }
 
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
         int id = (int) action.getId();
         int group = id / 100;
-        return mGroupList.get(group).onSubGuidedActionClicked(action);
+        ActionGroup acGrp = mGroupList.get(group);
+        boolean ret = acGrp.onSubGuidedActionClicked(action);
+        if (acGrp == mGpUseTemplate) {
+            RecordRule template = mTemplateList.get(acGrp.mSelectedPrompt);
+            mergeTemplate(template);
+            acGrp.mGuidedAction.setDescription
+                (getContext().getString(R.string.sched_template_applied,
+                        acGrp.mStringValues[acGrp.mSelectedPrompt]));
+            notifyActionChanged(findActionPositionById(acGrp.mId));
+        }
+        return ret;
     }
 
     @Override
@@ -433,8 +629,13 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
     public void onGuidedActionClicked(GuidedAction action) {
         int id = (int) action.getId();
         int group = id / 100;
-        mGroupList.get(group).onGuidedActionClicked(action);
+        ActionGroup acGrp = mGroupList.get(group);
+        acGrp.onGuidedActionClicked(action);
         super.onGuidedActionClicked(action);
+        if (acGrp == mGpSaveButton)
+            updateRecordRule();
+        else if (acGrp == mGpCancelButton)
+            getActivity().finish();;
     }
 
     private void promptForNewValue(GuidedAction action, String initValue) {
@@ -461,8 +662,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
         });
         builder.show();
     }
-
-
 
     // Handles groups of checkboxes or radiobuttons.
     private class ActionGroup {
@@ -506,7 +705,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                 GuidedAction.Builder builder = new GuidedAction.Builder(getActivity())
                         .id(++subId);
                 if (mEditLast && ix == mSubActionCount-1) {
-//                    builder.descriptionEditable(true); // editable actions cannot be checked
                     builder.title(R.string.sched_new_entry);
                 }
                 else if (mPrompts != null)
@@ -570,19 +768,116 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
             mGuidedAction = builder.build();
         }
 
-        /**
-         * Constructor for list of integer values
-         * @param actionType   ACTIONTYPE_RADIOBNS
-         * @param title        title
-         * @param prompts      array: string id prompt for each value.
-         * @param intValues    array: Int values.
-         * @param currIntValue initial value
-         */
-        ActionGroup(int actionType, int title, @NonNull int[] prompts, @NonNull int[] intValues,
-                    int currIntValue) {
-            this(actionType, title, prompts, intValues,
-                    null, null, currIntValue, false);
+        public void setValue(int intValue) {
+/*
+            private static final int ACTIONTYPE_RADIOBNS = 1;
+            private static final int ACTIONTYPE_CHECKBOXES = 2;
+            private static final int ACTIONTYPE_NUMERIC = 3;
+            private static final int ACTIONTYPE_NUMERIC_UNSIGNED = 4;
+            private static final int ACTIONTYPE_BOOLEAN = 5;
+            private static final int ACTIONTYPE_BUTTON = 6;
+*/
+            List<GuidedAction> subActionList;
+            GuidedAction action;
+            switch(mActionType) {
+                case ACTIONTYPE_RADIOBNS:
+                    // mIntValues must be filled in
+                    if (mIntValues == null)
+                        break;
+                    mSelectedPrompt = -1;
+                    for (int ix = 0; ix < mIntValues.length; ix++) {
+                        if (intValue == mIntValues[ix]) {
+                            mSelectedPrompt = ix;
+                            break;
+                        }
+                    }
+                    if (mSelectedPrompt == -1)
+                        break;
+                    subActionList = mGuidedAction.getSubActions();
+                    for (GuidedAction a : subActionList)
+                        a.setChecked(false);
+                    action = subActionList.get(mSelectedPrompt);
+                    action.setChecked(true);
+                    mIntResult = intValue;
+                    if (mStringValues != null)
+                        mStringResult = mStringValues[mSelectedPrompt];
+                    if (mPrompts != null)
+                        mGuidedAction.setDescription(getContext().getString(mPrompts[mSelectedPrompt]));
+                    else
+                        mGuidedAction.setDescription(mStringResult);
+                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    break;
+                case ACTIONTYPE_BOOLEAN:
+                    mIntResult = intValue;
+                    mGuidedAction.setChecked(mIntResult != 0);
+                    mGuidedAction.setDescription(getContext().getString(mPrompts[mIntResult]));
+                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    break;
+                case ACTIONTYPE_NUMERIC:
+                case ACTIONTYPE_NUMERIC_UNSIGNED:
+                    mIntResult = intValue;
+                    mGuidedAction.setDescription(String.valueOf(mIntResult));
+                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    break;
+                case ACTIONTYPE_CHECKBOXES:
+                    mIntResult = intValue;
+                    subActionList = mGuidedAction.getSubActions();
+                    for (int ix = 0; ix < subActionList.size(); ix++) {
+                        boolean checked = ((mIntResult & (1 << ix)) != 0);
+                        GuidedAction subAction = subActionList.get(ix);
+                        subAction.setChecked(checked);
+                    }
+            }
         }
+
+        public void setValue(String strValue) {
+            switch(mActionType) {
+                case ACTIONTYPE_RADIOBNS:
+                    // mStringValues must be filled in
+                    if (mStringValues == null)
+                        break;
+                    mSelectedPrompt = -1;
+                    for (int ix = 0; ix < mStringValues.length; ix++) {
+                        if (Objects.equals(strValue, mStringValues[ix])) {
+                            mSelectedPrompt = ix;
+                            break;
+                        }
+                    }
+                    if (mSelectedPrompt == -1)
+                        break;
+                    List<GuidedAction> subActionList = mGuidedAction.getSubActions();
+                    for (GuidedAction action : subActionList)
+                        action.setChecked(false);
+                    GuidedAction action = subActionList.get(mSelectedPrompt);
+                    action.setChecked(true);
+                    mStringResult = strValue;
+                    if (mPrompts != null)
+                        mGuidedAction.setDescription(getContext().getString(mPrompts[mSelectedPrompt]));
+                    else
+                        mGuidedAction.setDescription(mStringResult);
+                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    break;
+            }
+
+        }
+
+        public void setValue(boolean bValue) {
+            setValue(bValue ? 1 : 0);
+        }
+
+//        /**
+//         * Constructor for list of integer values
+//         * @param actionType   ACTIONTYPE_RADIOBNS
+//         * @param title        title
+//         * @param prompts      array: string id prompt for each value.
+//         * @param intValues    array: Int values.
+//         * @param currIntValue initial value
+//         */
+//        ActionGroup(int actionType, int title, @NonNull int[] prompts, @NonNull int[] intValues,
+//                    int currIntValue) {
+//            this(actionType, title, prompts, intValues,
+//                    null, null, currIntValue, false);
+//        }
 
         /**
          * Constructor for one numeric input value
@@ -654,17 +949,28 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                     currBoolValue ? 1 : 0, false);
         }
 
+        /**
+         * Constructor for save button
+         * @param actionType     ACTIONTYPE_BUTTON
+         * @param title          title
+         */
+        ActionGroup(int actionType, int title) {
+            this(actionType, title, null, null,
+                    null, null,
+                    -1, false);
+        }
+
         public boolean onSubGuidedActionClicked(GuidedAction action) {
             int id = (int) action.getId();
             int ix = (id % 100) - 2;
-//            int groupIx = id / 100;
+            mSelectedPrompt = ix;
             if (action.isChecked()) {
                 if (mActionType == ACTIONTYPE_CHECKBOXES) {
                     mIntResult |= (1 << ix);
                     return false;
                 }
-                else if (mActionType == ACTIONTYPE_RADIOBNS) {
-//                    ActionGroup group = mGroupList.get(groupIx);
+                else if (mActionType == ACTIONTYPE_RADIOBNS
+                        || mActionType == ACTIONTYPE_BUTTONS) {
                     if (mEditLast && ix == mStringValues.length-1) {
                         if (mNewValueText == null)
                             promptForNewValue(action, mStringValues[mStringValues.length - 1]);
@@ -673,13 +979,16 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                         mNewValueText = null;
                         action.setDescription(mStringValues[mStringValues.length-1]);
                     }
-                    mSelectedPrompt = ix;
+
                     if (mIntValues != null)
                         mIntResult = mIntValues[ix];
                     if (mStringValues != null)
                         mStringResult = mStringValues[ix];
                     if (mPrompts != null) {
-                        mGuidedAction.setDescription(getContext().getString(mPrompts[ix]));
+                        String s = getContext().getString(mPrompts[ix]);
+                        mGuidedAction.setDescription(s);
+                        if (mStringValues == null)
+                            mStringResult = s;
                     } else if (mStringValues != null) {
                         mGuidedAction.setDescription(mStringResult);
                     }
@@ -706,6 +1015,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment {
                     mIntResult = 0;
                 }
                 action.setDescription(String.valueOf(mIntResult));
+                notifyActionChanged(findActionPositionById(action.getId()));
             }
         }
 

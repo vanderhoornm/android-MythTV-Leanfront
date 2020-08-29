@@ -17,9 +17,19 @@ public class TextCardView extends BaseCardView {
     public static final int COLOR_WILLRECORD = 0xff005500;
     public static final int COLOR_WONTRECORD = 0xff671313;
 
-    public TextCardView(Context context) {
+    private int mType;
+    public static final int TYPE_SMALL = 1;
+    public static final int TYPE_LARGE = 2;
+
+    public TextCardView(Context context, int type) {
         super(context);
-        LayoutInflater.from(getContext()).inflate(R.layout.text_card, this);
+        mType = type;
+        int layout;
+        if (mType == TYPE_LARGE)
+            layout = R.layout.text_card_large;
+        else
+            layout = R.layout.text_card;
+        LayoutInflater.from(getContext()).inflate(layout, this);
         setFocusable(true);
     }
 
@@ -39,11 +49,13 @@ public class TextCardView extends BaseCardView {
             if (card.program2 != null && card.program2.recordingStatus != null)
                 status = (status == null ? "(2)" : status + '/') + card.program2.recordingStatus;
             statusText.setText(status);
-            if (card.cellType == card.CELL_TIMESLOT)
+            if (card.cellType == GuideSlot.CELL_TIMESLOT)
                 bgColor = COLOR_TIMESLOT;
-            else if (card.cellType == card.CELL_CHANNEL)
+            else if (card.cellType == GuideSlot.CELL_CHANNEL)
                 bgColor = COLOR_CHANNEL;
-            else if (card.cellType == card.CELL_PROGRAM && card.program != null) {
+            else if (card.program != null
+                && (card.cellType == GuideSlot.CELL_PROGRAM
+                    || card.cellType == GuideSlot.CELL_SEARCHRESULT)) {
                 if ("WillRecord".equals(card.program.recordingStatus)
                     || card.program2 != null
                         && "WillRecord".equals(card.program2.recordingStatus))

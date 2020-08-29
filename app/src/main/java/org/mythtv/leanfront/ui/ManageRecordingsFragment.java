@@ -1,7 +1,11 @@
 package org.mythtv.leanfront.ui;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
@@ -34,8 +38,18 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(getResources().getColor(R.color.fastlane_background));
+        // Set search icon color.
+        setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
         setTitle(getString(R.string.title_manage_recordings));
 //        setOnSearchClickedListener(new View.OnClickListener()  // TODO
+        setOnSearchClickedListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
         prepareEntranceTransition();
     }
 

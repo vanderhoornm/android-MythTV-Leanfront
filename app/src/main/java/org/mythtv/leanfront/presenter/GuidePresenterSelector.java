@@ -17,7 +17,7 @@ public class GuidePresenterSelector extends PresenterSelector {
     {
         mContext = context;
         mIconCardPresenter = new IconCardPresenter(context);
-        mTextCardPresenter = new TextCardPresenter(context);
+        mTextCardPresenter = new TextCardPresenter(TextCardView.TYPE_SMALL);
     }
 
     @Override

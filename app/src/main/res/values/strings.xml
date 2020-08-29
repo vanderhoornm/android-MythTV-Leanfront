@@ -43,23 +43,17 @@
 
     <string name="search_results">Search results for \'%1$s\'</string>
     <string name="no_search_results">No search results found for \'%1$s\'</string>
-
-    <!-- Error messages -->
-
-    <string name="videos_loading_error">Failed to load videos. Please check your network connection.</string>
-
-    <!-- Global Search -->
-    <!-- The action label for global search -->
     <string name="global_search" translatable="false">GLOBALSEARCH</string>
-
-    <!-- The label for use as a searchable item -->
     <string name="search_label">MythTV</string>
-
-    <!-- The hint text that appears in the search box. -->
     <string name="search_hint">Search for videos and recordings</string>
-
-    <!-- The description that will show up in the search settings for this source.  -->
     <string name="settings_description">MythTV Search Settings</string>
+
+    <string name="search_result_videos">Recording and Video Results for \'%1$s\'</string>
+    <string name="search_result_no_videos">No Recording and Video Results found for \'%1$s\'</string>
+    <string name="search_result_progs">Program Guide Results for \'%1$s\'</string>
+    <string name="search_result_progs_500">First 500 Program Guide Results for \'%1$s\'</string>
+    <string name="search_result_no_progs">No Program Guide Results found for \'%1$s\'</string>
+
 
     <string name="mobile_welcome_title">Welcome to MythTV leanfront</string>
     <string name="mobile_welcome_description">
@@ -243,7 +237,13 @@
     <string name="sched_use_template">Use Template</string>
     <string name="sched_save_button">Save</string>
     <string name="sched_template_applied">Template %1s was applied.</string>
-    <string name="sched_failed">ERROR: Failed to create schedule rule.</string>
+    <string name="sched_failed">ERROR: Failed to Update Schedule.</string>
+    <string name="sched_updated">Record Schedule Successfully Updated</string>
+
+    <string name="menu_changes">Unsaved Changes</string>
+    <string name="menu_save_changes">Save Changes Before Exiting</string>
+    <string name="menu_continue_editing">Continue Editing</string>
+    <string name="menu_exit_nosave">Exit Without Saving</string>
 
 
 </resources>

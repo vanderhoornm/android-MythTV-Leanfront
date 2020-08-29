@@ -30,6 +30,8 @@ public class GuideSlot {
     public static final int CELL_TIMESELECTOR = 4;
     public static final int CELL_LEFTARROW = 5;
     public static final int CELL_RIGHTARROW = 6;
+    public static final int CELL_SEARCHRESULT = 7;
+
     private static DateFormat timeFormatter;
     private static DateFormat dateFormatter;
     private static DateFormat dayFormatter;
@@ -60,35 +62,42 @@ public class GuideSlot {
         StringBuilder build = new StringBuilder();
         try {
             boolean titleDone = false;
-            if (cellType == CELL_TIMESLOT && timeSlot != null) {
+            if (chanDetails != null
+                && (cellType == CELL_CHANNEL || cellType == CELL_SEARCHRESULT))
+                build.append(chanDetails).append("\n");
+            if (timeSlot != null && cellType == CELL_TIMESLOT) {
                 Date endTime = new Date(timeSlot.getTime() + GuideFragment.TIMESLOT_SIZE *60000);
                 build.append(timeFormatter.format(timeSlot)).append(" - ").append(timeFormatter.format(endTime));
             }
-            else if (cellType == CELL_TIMESELECTOR && timeSlot != null) {
+            if (timeSlot != null && cellType == CELL_SEARCHRESULT)
+                build.append(dayFormatter.format(timeSlot))
+                    .append(dateFormatter.format(timeSlot)).append(' ')
+                    .append(timeFormatter.format(timeSlot)).append('\n');
+            if (timeSlot != null && cellType == CELL_TIMESELECTOR) {
                 build.append(context.getString(R.string.title_grid_time)).append('\n')
                   .append(dayFormatter.format(timeSlot))
                   .append(dateFormatter.format(timeSlot)).append(' ')
                   .append(timeFormatter.format(timeSlot)).append('\n');
             }
-            else if (cellType == CELL_CHANNEL && chanDetails != null)
-                build.append(chanDetails);
-            else if (program != null){
-                if (program2 != null)
-                    build.append("1. ");
-                titleDone = getTitle(build, program);
-                if (titleDone && program2 == null) {
-                    build.append('\n');
-                    if (program.season > 0 && program.episode > 0)
-                        build.append('S').append(program.season).append('E').append(program.episode).append(' ');
-                    if (program.subTitle != null)
-                        build.append(program.subTitle);
+            if (cellType == CELL_PROGRAM || cellType == CELL_SEARCHRESULT) {
+                if (program != null) {
+                    if (program2 != null)
+                        build.append("1. ");
+                    titleDone = getTitle(build, program);
+                    if (titleDone && program2 == null) {
+                        build.append('\n');
+                        if (program.season > 0 && program.episode > 0)
+                            build.append('S').append(program.season).append('E').append(program.episode).append(' ');
+                        if (program.subTitle != null)
+                            build.append(program.subTitle);
+                    }
                 }
                 if (!titleDone) {
                     build.append(program.title).append(' ').append(context.getString(R.string.note_program_continuation));
                 }
                 if (program2 != null) {
                     build.append('\n').append("2. ");
-                    getTitle(build,program2);
+                    getTitle(build, program2);
                 }
             }
         } catch (Exception e) {
@@ -100,10 +109,13 @@ public class GuideSlot {
     private boolean getTitle(StringBuilder build, Program program) {
         boolean titleDone = false;
         if (program != null) {
-            long timeSetStart = (program.startTime.getTime() - timeSlot.getTime());
-            if (timeSetStart < 0 && (position == POS_LEFT)
-                    || timeSetStart > 0) {
-                build.append("(").append(timeFormatter.format(program.startTime)).append(") ");
+            long timeSetStart = 0;
+            if (timeSlot != null) {
+                timeSetStart = (program.startTime.getTime() - timeSlot.getTime());
+                if (timeSetStart < 0 && (position == POS_LEFT)
+                        || timeSetStart > 0) {
+                    build.append("(").append(timeFormatter.format(program.startTime)).append(") ");
+            }
                 build.append(program.title);
                 titleDone = true;
             }

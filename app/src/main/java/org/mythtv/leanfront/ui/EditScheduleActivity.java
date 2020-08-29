@@ -39,6 +39,8 @@ import java.util.Date;
 
 public class EditScheduleActivity extends FragmentActivity implements AsyncBackendCall.OnBackendCallListener {
 
+    private EditScheduleFragment mEditFragment;
+
     public static final String CHANID = "CHANID";
     public static final String STARTTIME = "STARTTIME";
     @Override
@@ -67,10 +69,17 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
             case Video.ACTION_GETPROGRAMDETAILS:
                 ArrayList<XmlNode> resultsList = taskRunner.getXmlResults();
                 GuidedStepSupportFragment.addAsRoot(this,
-                        new EditScheduleFragment(resultsList), android.R.id.content);
+                     mEditFragment = new EditScheduleFragment(resultsList), android.R.id.content);
                 break;
 
         }
 
     }
+
+    @Override
+    public void onBackPressed() {
+        if (mEditFragment.canEnd())
+            super.onBackPressed();
+    }
+
 }

@@ -21,7 +21,6 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
@@ -63,6 +62,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private int mGroupId;
     private ArrayList<ActionGroup> mGroupList = new ArrayList<>();
     private String mNewValueText;
+    private boolean mIsDirty;
 
     private ActionGroup mGpType;
     private ActionGroup mGpRecGroup;
@@ -105,7 +105,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
 
 
     public EditScheduleFragment(ArrayList<XmlNode> detailsList) {
-
         /*
             Details are in this order
                 Video.ACTION_GETPROGRAMDETAILS,
@@ -120,6 +119,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     }
 
     private void setupData() {
+        mIsDirty = false;
         RecordRule defaultTemplate = null;
         XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
         if (progDetailsNode != null)
@@ -207,6 +207,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
+
         if (timeFormatter == null) {
             timeFormatter = android.text.format.DateFormat.getTimeFormat(getContext());
             dateFormatter = android.text.format.DateFormat.getLongDateFormat(getContext());
@@ -279,7 +280,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
         if (mRecordRule == null)
             setupData();
-
         int ix;
 
         // Type
@@ -456,17 +456,17 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         mainActions.add(mGpUseTemplate.mGuidedAction);
         mGroupList.add(mGpUseTemplate);
 
-    }
-
-    @Override
-    public void onCreateButtonActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
+//    }
+//
+//    @Override
+//    public void onCreateButtonActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
         // Save Button
         mGpSaveButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_save_button);
-        actions.add(mGpSaveButton.mGuidedAction);
+        mainActions.add(mGpSaveButton.mGuidedAction);
         mGroupList.add(mGpSaveButton);
 
         mGpCancelButton = new ActionGroup(ACTIONTYPE_BUTTON, android.R.string.cancel);
-        actions.add(mGpCancelButton.mGuidedAction);
+        mainActions.add(mGpCancelButton.mGuidedAction);
         mGroupList.add(mGpCancelButton);
     }
 
@@ -533,6 +533,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 if (result == null) {
                     Toast.makeText(getContext(),R.string.sched_failed, Toast.LENGTH_LONG).show();
                 } else {
+                    Toast.makeText(getContext(),R.string.sched_updated, Toast.LENGTH_LONG).show();
                     Log.i(TAG, CLASS + " Recording scheduled, Response:" + result);
                     getActivity().finish();
                 }
@@ -570,6 +571,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         autoUserJob4 = template.autoUserJob4;
         transcoder = template.transcoder;
 */
+        mIsDirty = true;
 
         mGpActive.setValue(!template.inactive);
         mGpRecPriority.setValue(template.recPriority);
@@ -661,6 +663,38 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             }
         });
         builder.show();
+    }
+
+    boolean canEnd() {
+        // No save needed if deleting a non-existing rule
+        if (mRecordRule.recordId == 0 && "Not Recording".equals(mGpType.mStringResult))
+            return true;
+        if (mIsDirty) {
+            // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                    R.style.Theme_AppCompat_Dialog_Alert);
+            builder
+                    .setTitle(R.string.menu_changes)
+                    .setItems(R.array.prompt_save_changes,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    // 0 = save, 1 = continue, 2 = exit
+                                    switch (which) {
+                                        case 0:
+                                            updateRecordRule();
+                                            break;
+                                        case 2:
+                                            getActivity().finish();
+                                            break;
+                                    }
+                                }
+                            });
+            builder.show();
+            return false;
+        }
+        return true;
     }
 
     // Handles groups of checkboxes or radiobuttons.
@@ -964,6 +998,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             int id = (int) action.getId();
             int ix = (id % 100) - 2;
             mSelectedPrompt = ix;
+            mIsDirty = true;
             if (action.isChecked()) {
                 if (mActionType == ACTIONTYPE_CHECKBOXES) {
                     mIntResult |= (1 << ix);
@@ -1008,6 +1043,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         public void onGuidedActionEditedAndProceed(GuidedAction action) {
             if (mActionType == ACTIONTYPE_NUMERIC
                 || mActionType == ACTIONTYPE_NUMERIC_UNSIGNED) {
+                mIsDirty = true;
                 try {
                     mIntResult = Integer.parseInt(action.getDescription().toString().trim());
                 }
@@ -1021,6 +1057,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
 
         public void onGuidedActionClicked(GuidedAction action) {
             if (mActionType == ACTIONTYPE_BOOLEAN) {
+                mIsDirty = true;
                 mIntResult = action.isChecked() ? 1 : 0;
                 action.setDescription(getContext().getString(mPrompts[mIntResult]));
                 notifyActionChanged(findActionPositionById(action.getId()));

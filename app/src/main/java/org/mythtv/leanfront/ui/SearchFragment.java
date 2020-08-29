@@ -24,12 +24,7 @@
 
 package org.mythtv.leanfront.ui;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,7 +40,6 @@ import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
-import androidx.leanback.widget.SpeechRecognitionCallback;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
@@ -56,17 +50,22 @@ import android.widget.Toast;
 
 import org.mythtv.leanfront.BuildConfig;
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.XmlNode;
+import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
+import org.mythtv.leanfront.presenter.TextCardPresenter;
+import org.mythtv.leanfront.presenter.TextCardView;
 
 /*
  * This class demonstrates how to do in-app search
  */
 public class SearchFragment extends SearchSupportFragment
         implements SearchSupportFragment.SearchResultProvider,
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, AsyncBackendCall.OnBackendCallListener {
     private static final String TAG = "lfe";
     private static final String CLASS = "SearchFragment";
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -81,6 +80,8 @@ public class SearchFragment extends SearchSupportFragment
 
     private int mSearchLoaderId = 1;
     private boolean mResultsFound = false;
+    private ArrayObjectAdapter mGuideAdapter;
+    private boolean mGuideInProgress = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,30 +92,6 @@ public class SearchFragment extends SearchSupportFragment
 
         setSearchResultProvider(this);
         setOnItemViewClickedListener(new ItemViewClickedListener());
-        if (DEBUG) {
-            Log.d(TAG, CLASS + " User is initiating a search. Do we have RECORD_AUDIO permission? " +
-                hasPermission(Manifest.permission.RECORD_AUDIO));
-        }
-        if (!hasPermission(Manifest.permission.RECORD_AUDIO)) {
-            if (DEBUG) {
-                Log.d(TAG, CLASS + " Does not have RECORD_AUDIO, using SpeechRecognitionCallback");
-            }
-            // SpeechRecognitionCallback is not required and if not provided recognition will be
-            // handled using internal speech recognizer, in which case you must have RECORD_AUDIO
-            // permission
-            setSpeechRecognitionCallback(new SpeechRecognitionCallback() {
-                @Override
-                public void recognizeSpeech() {
-                    try {
-                        startActivityForResult(getRecognizerIntent(), REQUEST_SPEECH);
-                    } catch (ActivityNotFoundException e) {
-                        Log.e(TAG, CLASS + " Cannot find activity for speech recognizer", e);
-                    }
-                }
-            });
-        } else if (DEBUG) {
-            Log.d(TAG, CLASS + " We DO have RECORD_AUDIO");
-        }
     }
 
     @Override
@@ -124,60 +101,52 @@ public class SearchFragment extends SearchSupportFragment
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_SPEECH:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        setSearchQuery(data, true);
-                        break;
-                    default:
-                        // If recognizer is canceled or failed, keep focus on the search orb
-                        if (FINISH_ON_RECOGNIZER_CANCELED) {
-                            if (!hasResults()) {
-                                if (DEBUG) Log.v(TAG, CLASS + " Voice search canceled");
-                                getView().findViewById(R.id.lb_search_bar_speech_orb).requestFocus();
-                            }
-                        }
-                        break;
-                }
-                break;
-        }
-    }
-
-    @Override
     public ObjectAdapter getResultsAdapter() {
         return mRowsAdapter;
     }
 
+    /**
+     * onQueryTextChange
+     * Return false because we do not want to search after each keystroke
+     * @param newQuery
+     * @return
+     */
+
     @Override
     public boolean onQueryTextChange(String newQuery) {
-        if (DEBUG) Log.i(TAG, CLASS + String.format(" Search text changed: %s", newQuery));
-        loadQuery(newQuery);
-        return true;
+        return false;
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
         if (DEBUG) Log.i(TAG, CLASS + String.format(" Search text submitted: %s", query));
-        loadQuery(query);
+        if (query.length() >= 3)
+            loadQuery(query);
         return true;
     }
 
-    public boolean hasResults() {
+    public boolean hasResults()
+    {
         return mRowsAdapter.size() > 0 && mResultsFound;
-    }
-
-    private boolean hasPermission(final String permission) {
-        final Context context = getActivity();
-        return PackageManager.PERMISSION_GRANTED == context.getPackageManager().checkPermission(
-                permission, context.getPackageName());
     }
 
     private void loadQuery(String query) {
         if (!TextUtils.isEmpty(query) && !"nil".equals(query)) {
+            mRowsAdapter.clear();
             mQuery = query;
+            mResultsFound = false;
             getLoaderManager().initLoader(mSearchLoaderId++, null, this);
+            searchGuide();
+        }
+    }
+
+    private void searchGuide() {
+        // Search Program Guide
+        if (!mGuideInProgress) {
+            AsyncBackendCall call = new AsyncBackendCall(this);
+            call.setStringParameter(mQuery);
+            call.execute(Video.ACTION_SEARCHGUIDE);
+            mGuideInProgress = true;
         }
     }
 
@@ -201,19 +170,20 @@ public class SearchFragment extends SearchSupportFragment
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // Do not refresh on a reload
+        if (mRowsAdapter.size() > 0)
+            return;
         int titleRes;
         if (cursor == null || cursor.isClosed())
             return;
         if (cursor.moveToFirst()) {
             mResultsFound = true;
-            titleRes = R.string.search_results;
+            titleRes = R.string.search_result_videos;
         } else {
-            mResultsFound = false;
-            titleRes = R.string.no_search_results;
+            titleRes = R.string.search_result_no_videos;
         }
         mVideoCursorAdapter.changeCursor(cursor);
-        HeaderItem header = new HeaderItem(getString(titleRes, mQuery));
-        mRowsAdapter.clear();
+        HeaderItem header = new HeaderItem(getContext().getString(titleRes,mQuery));
         ListRow row = new ListRow(header, mVideoCursorAdapter);
         mRowsAdapter.add(row);
     }
@@ -221,6 +191,55 @@ public class SearchFragment extends SearchSupportFragment
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mVideoCursorAdapter.changeCursor(null);
+    }
+
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        int [] tasks = taskRunner.getTasks();
+        switch (tasks[0]) {
+            case Video.ACTION_SEARCHGUIDE:
+                mGuideInProgress = false;
+                loadGuideData(taskRunner.getXmlResult());
+                break;
+        }
+    }
+
+    void loadGuideData(XmlNode result) {
+        if (result == null)
+            return;
+        ArrayObjectAdapter guideAdapter = new ArrayObjectAdapter(new TextCardPresenter(TextCardView.TYPE_LARGE));
+        XmlNode programNode = null;
+        for (; ; ) {
+            if (programNode == null)
+                programNode = result.getNode("Programs").getNode("Program");
+            else
+                programNode = programNode.getNextSibling();
+            if (programNode == null)
+                break;
+            GuideSlot.Program program = new GuideSlot.Program(programNode);
+            String channum = programNode.getNode("Channel").getString("ChanNum");
+            String channelname = programNode.getNode("Channel").getString("ChannelName");
+            String callsign = programNode.getNode("Channel").getString("CallSign");
+            String chanDetails = channum + " " + channelname + " " + callsign;
+            GuideSlot slot = new GuideSlot(program.chanId, chanDetails);
+            slot.cellType = GuideSlot.CELL_SEARCHRESULT;
+            slot.timeSlot = program.startTime;
+            slot.program = program;
+            guideAdapter.add(slot);
+        }
+        int titleRes;
+        if (guideAdapter.size() > 0) {
+            mResultsFound = true;
+            if (guideAdapter.size() == 500)
+                titleRes = R.string.search_result_progs_500;
+            else
+                titleRes = R.string.search_result_progs;
+        }
+        else
+            titleRes = R.string.search_result_no_progs;
+        HeaderItem header = new HeaderItem(getContext().getString(titleRes,mQuery));
+        Row row = new ListRow(header, guideAdapter);
+        mRowsAdapter.add(row);
     }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
@@ -238,8 +257,14 @@ public class SearchFragment extends SearchSupportFragment
                         ((ImageCardView) itemViewHolder.view).getMainImageView(),
                         VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
                 getActivity().startActivity(intent, bundle);
+            } else if (item instanceof GuideSlot) {
+                GuideSlot card = (GuideSlot) item;
+                Intent intent = new Intent(getContext(), EditScheduleActivity.class);
+                intent.putExtra(EditScheduleActivity.CHANID, card.program.chanId);
+                intent.putExtra(EditScheduleActivity.STARTTIME, card.program.startTime);
+                startActivity(intent);
             } else {
-                Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Click", Toast.LENGTH_SHORT).show();
             }
         }
     }

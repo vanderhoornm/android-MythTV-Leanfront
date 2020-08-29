@@ -81,32 +81,31 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
             @Override
-            public void onItemClicked(
-                    Presenter.ViewHolder itemViewHolder,
-                    Object item,
-                    RowPresenter.ViewHolder rowViewHolder,
-                    Row row) {
+            public void onItemClicked(Presenter.ViewHolder itemViewHolder,
+                    Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
                 if (mLoadInProgress)
                     return;
                 GuideSlot card = (GuideSlot)item;
-                if (card.cellType == card.CELL_TIMESELECTOR) {
-                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
-                    showTimeSelector();
+                switch (card.cellType) {
+                    case GuideSlot.CELL_TIMESELECTOR:
+                    case GuideSlot.CELL_TIMESLOT:
+                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        showTimeSelector();
+                        break;
+                    case GuideSlot.CELL_LEFTARROW:
+                        mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
+                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        setupGridData();
+                        break;
+                    case GuideSlot.CELL_RIGHTARROW:
+                        mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
+                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        setupGridData();
+                        break;
+                    case GuideSlot.CELL_PROGRAM:
+                        programClicked(card);
+                        break;
                 }
-                else if (card.cellType == card.CELL_LEFTARROW) {
-                    mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
-                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
-                    setupGridData();
-                } else if (card.cellType == card.CELL_RIGHTARROW) {
-                    mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
-                    mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
-                    setupGridData();
-                } else if (card.cellType == card.CELL_PROGRAM) {
-                    programClicked(card);
-                } else
-                    Toast.makeText(getActivity(),
-                        "Clicked on something",
-                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -297,7 +296,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         int tsRowCount = 0;
         setupTimeRow(leftArrowSlot, rightArrowSlot);
 
-
         int colSubt = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         int colChId = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
         while (cursor.moveToNext()) {
@@ -418,7 +416,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             }
             mGuideAdapter.notifyArrayItemRangeChanged(adapterPos+startPos, endPos-startPos);
         }
-        mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition);
+        mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition, 10);
         mSelectedPosition = 0;
     }
 

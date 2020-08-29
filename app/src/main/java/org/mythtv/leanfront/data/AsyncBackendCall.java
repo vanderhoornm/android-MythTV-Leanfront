@@ -71,6 +71,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private int mId;
     private String mName;
     private RecordRule mRecordRule;
+    private String mStringParameter;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -158,6 +159,14 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public void setRecordRule(RecordRule recordRule) {
         this.mRecordRule = recordRule;
+    }
+
+    public void setStringParameter(String stringParameter) {
+        this.mStringParameter = stringParameter;
+    }
+
+    public String getStringParameter() {
+        return mStringParameter;
     }
 
     public static XmlNode getCachedStreamInfo(String videoUrl) {
@@ -819,6 +828,18 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         xmlResult = XmlNode.fetch(urlBuilder.toString(), "POST");
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Updating Record Schedule.", e);
+                    }
+                    mXmlResults.add(xmlResult);
+                    break;
+
+                case Video.ACTION_SEARCHGUIDE:
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Guide/GetProgramList?Sort=starttime&count=500&TitleFilter="
+                                        + URLEncoder.encode(mStringParameter, "UTF-8"));
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting Guide.", e);
                     }
                     mXmlResults.add(xmlResult);
                     break;

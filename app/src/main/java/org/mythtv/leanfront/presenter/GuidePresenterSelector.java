@@ -11,13 +11,13 @@ public class GuidePresenterSelector extends PresenterSelector {
 
     private final Context mContext;
     private IconCardPresenter mIconCardPresenter;
-    private TextCardPresenter mTextCardPresenter;
+    private GuideCardPresenter mGuideCardPresenter;
 
     public GuidePresenterSelector(Context context)
     {
         mContext = context;
         mIconCardPresenter = new IconCardPresenter(context);
-        mTextCardPresenter = new TextCardPresenter(TextCardView.TYPE_SMALL);
+        mGuideCardPresenter = new GuideCardPresenter(GuideCardView.TYPE_SMALL);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class GuidePresenterSelector extends PresenterSelector {
                 case GuideSlot.CELL_RIGHTARROW:
                     return mIconCardPresenter;
                 default:
-                    return mTextCardPresenter;
+                    return mGuideCardPresenter;
             }
         }
 

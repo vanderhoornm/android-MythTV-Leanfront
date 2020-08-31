@@ -786,28 +786,31 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         StringBuilder urlBuilder = new StringBuilder
                                 (XmlNode.mythApiUrl(null,
                                         baseURL));
-                        urlBuilder.append("Title=").append(URLEncoder.encode(mRecordRule.title, "UTF-8"))
-                                .append("&Subtitle=").append(URLEncoder.encode(mRecordRule.subtitle, "UTF-8"))
-                                .append("&Description=").append(URLEncoder.encode(mRecordRule.description, "UTF-8"))
+                        urlBuilder.append("Title=").append(URLEncoder.encode(nvl(mRecordRule.title), "UTF-8"))
+                                .append("&Subtitle=").append(URLEncoder.encode(nvl(mRecordRule.subtitle), "UTF-8"))
+                                .append("&Description=").append(URLEncoder.encode(nvl(mRecordRule.description), "UTF-8"))
+                                .append("&Category=").append(URLEncoder.encode(nvl(mRecordRule.category), "UTF-8"))
                                 .append("&StartTime=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.startTime), "UTF-8"))
                                 .append("&EndTime=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.endTime), "UTF-8"))
-                                .append("&SeriesId=").append(mRecordRule.seriesId)
-                                .append("&ProgramId=").append(mRecordRule.programId)
+                                .append("&SeriesId=").append(nvl(mRecordRule.seriesId))
+                                .append("&ProgramId=").append(nvl(mRecordRule.programId))
                                 .append("&ChanId=").append(mRecordRule.chanId)
-                                .append("&Station=").append(URLEncoder.encode(mRecordRule.station, "UTF-8"))
+                                .append("&Station=").append(URLEncoder.encode(nvl(mRecordRule.station), "UTF-8"))
                                 .append("&FindDay=").append(mRecordRule.findDay)
-                                .append("&FindTime=").append(URLEncoder.encode(mRecordRule.findTime, "UTF-8"))
+                                .append("&FindTime=").append(URLEncoder.encode(nvl(mRecordRule.findTime), "UTF-8"))
+                                .append("&ParentId=").append(mRecordRule.parentId)
                                 .append("&Inactive=").append(mRecordRule.inactive)
                                 .append("&Season=").append(mRecordRule.season)
                                 .append("&Episode=").append(mRecordRule.episode)
+                                .append("&Inetref=").append(URLEncoder.encode(nvl(mRecordRule.inetref),"UTF-8"))
                                 .append("&Type=").append(URLEncoder.encode(mRecordRule.type,"UTF-8"))
                                 .append("&SearchType=").append(URLEncoder.encode(mRecordRule.searchType,"UTF-8"))
                                 .append("&RecPriority=").append(mRecordRule.recPriority)
                                 .append("&PreferredInput=").append(mRecordRule.preferredInput)
                                 .append("&StartOffset=").append(mRecordRule.startOffset)
                                 .append("&EndOffset=").append(mRecordRule.endOffset)
-                                .append("&DupMethod=").append(URLEncoder.encode(mRecordRule.dupMethod,"UTF-8"))
-                                .append("&DupIn=").append(URLEncoder.encode(mRecordRule.dupIn,"UTF-8"))
+                                .append("&DupMethod=").append(URLEncoder.encode(nvl(mRecordRule.dupMethod),"UTF-8"))
+                                .append("&DupIn=").append(URLEncoder.encode(nvl(mRecordRule.dupIn),"UTF-8"))
                                 .append("&NewEpisOnly=").append(mRecordRule.newEpisOnly)
                                 .append("&Filter=").append(mRecordRule.filter)
                                 .append("&RecProfile=").append(URLEncoder.encode(mRecordRule.recProfile,"UTF-8"))
@@ -825,6 +828,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 .append("&AutoUserJob3=").append(mRecordRule.autoUserJob3)
                                 .append("&AutoUserJob4=").append(mRecordRule.autoUserJob4)
                                 .append("&Transcoder=").append(mRecordRule.transcoder);
+                        if (mRecordRule.lastRecorded != null)
+                            urlBuilder.append("&LastRecorded=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.lastRecorded), "UTF-8"));
                         xmlResult = XmlNode.fetch(urlBuilder.toString(), "POST");
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Updating Record Schedule.", e);
@@ -855,6 +860,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         Log.e(TAG, CLASS + " Exception removing Record Schedule.", e);
                     }
                     mXmlResults.add(xmlResult);
+                    break;
+
+                case Video.ACTION_DUMMY:
+                    mXmlResults.add(null);
                     break;
 
                 default:
@@ -892,6 +901,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             }
         }
         return null;
+    }
+
+    public static String nvl(String value) {
+        if (value == null)
+            return "";
+        return value;
     }
 
     private XmlNode getStreamInfo() {

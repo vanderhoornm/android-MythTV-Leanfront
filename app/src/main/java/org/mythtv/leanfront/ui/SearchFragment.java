@@ -57,8 +57,8 @@ import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
-import org.mythtv.leanfront.presenter.TextCardPresenter;
-import org.mythtv.leanfront.presenter.TextCardView;
+import org.mythtv.leanfront.presenter.GuideCardPresenter;
+import org.mythtv.leanfront.presenter.GuideCardView;
 
 /*
  * This class demonstrates how to do in-app search
@@ -207,7 +207,7 @@ public class SearchFragment extends SearchSupportFragment
     void loadGuideData(XmlNode result) {
         if (result == null)
             return;
-        ArrayObjectAdapter guideAdapter = new ArrayObjectAdapter(new TextCardPresenter(TextCardView.TYPE_LARGE));
+        ArrayObjectAdapter guideAdapter = new ArrayObjectAdapter(new GuideCardPresenter(GuideCardView.TYPE_LARGE));
         XmlNode programNode = null;
         for (; ; ) {
             if (programNode == null)

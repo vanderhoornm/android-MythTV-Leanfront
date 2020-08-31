@@ -40,20 +40,31 @@ import java.util.Date;
 public class EditScheduleActivity extends FragmentActivity implements AsyncBackendCall.OnBackendCallListener {
 
     private EditScheduleFragment mEditFragment;
+    private int mRecordId;
 
     public static final String CHANID = "CHANID";
     public static final String STARTTIME = "STARTTIME";
+    public static final String RECORDID = "RECORDID";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int chanId = getIntent().getIntExtra(EditScheduleActivity.CHANID, 0);
-        Date startTime = (Date) getIntent().getSerializableExtra(EditScheduleActivity.STARTTIME);
+        int chanId = getIntent().getIntExtra(CHANID, 0);
+        Date startTime = (Date) getIntent().getSerializableExtra(STARTTIME);
+        mRecordId = getIntent().getIntExtra(RECORDID,0);
         AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
                 this);
-        call.setId(chanId);
-        call.setStartTime(startTime);
+        int firstCall;
+        if (chanId != 0 && startTime != null) {
+            firstCall = 0;
+            call.setId(chanId);
+            call.setStartTime(startTime);
+            firstCall = Video.ACTION_GETPROGRAMDETAILS;
+        } else if (mRecordId != 0) {
+            firstCall = Video.ACTION_DUMMY;
+        } else
+            return;
         call.execute(
-                Video.ACTION_GETPROGRAMDETAILS,
+                firstCall,
                 Video.ACTION_GETRECORDSCHEDULELIST,
                 Video.ACTION_GETPLAYGROUPLIST,
                 Video.ACTION_GETRECGROUPLIST,
@@ -67,9 +78,11 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_GETPROGRAMDETAILS:
+            case Video.ACTION_DUMMY:
                 ArrayList<XmlNode> resultsList = taskRunner.getXmlResults();
                 GuidedStepSupportFragment.addAsRoot(this,
-                     mEditFragment = new EditScheduleFragment(resultsList), android.R.id.content);
+                     mEditFragment = new EditScheduleFragment(resultsList,mRecordId),
+                         android.R.id.content);
                 break;
 
         }

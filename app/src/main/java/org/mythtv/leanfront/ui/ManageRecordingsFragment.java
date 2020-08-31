@@ -20,6 +20,8 @@ import org.mythtv.leanfront.R;
 public class ManageRecordingsFragment extends BrowseSupportFragment {
 
     private static int HEADER_ID_GUIDE = 1;
+    private static int HEADER_ID_RECRULES = 2;
+
     private ArrayObjectAdapter mRowsAdapter;
     private BackgroundManager mBackgroundManager;
 
@@ -41,7 +43,6 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         // Set search icon color.
         setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
         setTitle(getString(R.string.title_manage_recordings));
-//        setOnSearchClickedListener(new View.OnClickListener()  // TODO
         setOnSearchClickedListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -64,6 +65,9 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, getString(R.string.title_program_guide));
         PageRow pageRow1 = new PageRow(headerItem1);
         mRowsAdapter.add(pageRow1);
+        HeaderItem headerItem2 = new HeaderItem(HEADER_ID_RECRULES, getString(R.string.title_rec_rules));
+        PageRow pageRow2 = new PageRow(headerItem2);
+        mRowsAdapter.add(pageRow2);
     }
 
     private static class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactory {
@@ -80,8 +84,11 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
             if (row.getHeaderItem().getId() == HEADER_ID_GUIDE) {
                 return new GuideFragment();
             }
-
-            throw new IllegalArgumentException(String.format("Invalid row %s", rowObj));
+            if (row.getHeaderItem().getId() == HEADER_ID_RECRULES) {
+                return new RecRulesFragment();
+            }
+//            throw new IllegalArgumentException(String.format("Invalid row %s", rowObj));
+            return null;
         }
     }
 

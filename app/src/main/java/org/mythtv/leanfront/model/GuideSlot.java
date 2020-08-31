@@ -92,7 +92,7 @@ public class GuideSlot {
                             build.append(program.subTitle);
                     }
                 }
-                if (!titleDone) {
+                if (!titleDone && program != null) {
                     build.append(program.title).append(' ').append(context.getString(R.string.note_program_continuation));
                 }
                 if (program2 != null) {

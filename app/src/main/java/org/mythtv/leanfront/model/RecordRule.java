@@ -1,6 +1,10 @@
 package org.mythtv.leanfront.model;
 
+import android.content.Context;
+
+import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.XmlNode;
+import org.mythtv.leanfront.ui.EditScheduleFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,6 +55,8 @@ public class RecordRule {
     public boolean autoUserJob3;
     public boolean autoUserJob4;
     public int     transcoder;
+    public Date    lastRecorded;
+
 
     private static final String TAG = "lfe";
     private static final String CLASS = "RecordSchedule";
@@ -133,6 +139,7 @@ public class RecordRule {
         autoUserJob3 = scheduleNode.getNode("AutoUserJob3").getBoolean();
         autoUserJob4 = scheduleNode.getNode("AutoUserJob4").getBoolean();
         transcoder = scheduleNode.getNode("Transcoder").getInt(0);
+        lastRecorded = scheduleNode.getNode("LastRecorded").getDate();
         return this;
     }
 
@@ -185,6 +192,23 @@ public class RecordRule {
             transcoder = template.transcoder;
         }
         return this;
+    }
+
+
+    public String getCardText(Context context) {
+        StringBuilder build = new StringBuilder();
+        int statusRes;
+        if (inactive)
+            statusRes = R.string.sched_inactive;
+        else
+            statusRes = R.string.sched_active;
+//        String typeString = EditScheduleFragment.translateType(context, type);
+//        if (typeString == null)
+//            typeString = type;
+        build.append(title).append("\n")
+            .append(type).append(" - ")
+            .append(context.getString(statusRes));
+        return build.toString();
     }
 
 }

@@ -10,7 +10,7 @@ import androidx.leanback.widget.BaseCardView;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.GuideSlot;
 
-public class TextCardView extends BaseCardView {
+public class GuideCardView extends BaseCardView {
     public static final int COLOR_TIMESLOT = 0xff265990;
     public static final int COLOR_CHANNEL = 0xff202a49;
     public static final int COLOR_PROGRAM = 0xff673300;
@@ -21,7 +21,7 @@ public class TextCardView extends BaseCardView {
     public static final int TYPE_SMALL = 1;
     public static final int TYPE_LARGE = 2;
 
-    public TextCardView(Context context, int type) {
+    public GuideCardView(Context context, int type) {
         super(context);
         mType = type;
         int layout;

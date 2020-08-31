@@ -20,6 +20,7 @@
 package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -63,6 +64,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private ArrayList<ActionGroup> mGroupList = new ArrayList<>();
     private String mNewValueText;
     private boolean mIsDirty;
+    private int mRecordId;
 
     private ActionGroup mGpType;
     private ActionGroup mGpRecGroup;
@@ -104,7 +106,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private static final String CLASS = "EditScheduleFragment";
 
 
-    public EditScheduleFragment(ArrayList<XmlNode> detailsList) {
+    public EditScheduleFragment(ArrayList<XmlNode> detailsList, int recordId) {
         /*
             Details are in this order
                 Video.ACTION_GETPROGRAMDETAILS,
@@ -116,21 +118,27 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 Video.ACTION_GETRECRULEFILTERLIST
          */
         mDetailsList = detailsList;
+        mRecordId= recordId;
     }
 
     private void setupData() {
         mIsDirty = false;
         RecordRule defaultTemplate = null;
-        XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
-        if (progDetailsNode != null)
-            mProgDetails = new RecordRule().fromProgram(progDetailsNode);
+        if (mRecordId == 0) {
+            XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
+            if (progDetailsNode != null) {
+                mProgDetails = new RecordRule().fromProgram(progDetailsNode);
+                mRecordId = mProgDetails.recordId;
+            }
+        }
+
         XmlNode recRulesNode = mDetailsList.get(1) // ACTION_GETRECORDSCHEDULELIST
                 .getNode("RecRules");
         if (recRulesNode != null) {
             XmlNode recRuleNode = recRulesNode.getNode("RecRule");
             while (recRuleNode != null) {
                 int id = Integer.parseInt(recRuleNode.getString("Id"));
-                if (id == mProgDetails.recordId)
+                if (id == mRecordId)
                     mRecordRule = new RecordRule().fromSchedule(recRuleNode);
                 String type = recRuleNode.getString("Type");
                 if ("Recording Template".equals(type)) {
@@ -142,8 +150,16 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 recRuleNode = recRuleNode.getNextSibling();
             }
         }
-        if (mRecordRule == null)
+        if (mRecordRule == null) {
+            if (mRecordId != 0) {
+                // Record no longer exists
+                Toast.makeText(getContext(),R.string.msg_rec_rule_gone, Toast.LENGTH_LONG)
+                        .show();
+                getActivity().finish();
+                return;
+            }
             mRecordRule = new RecordRule().mergeTemplate(defaultTemplate);
+        }
         if (mProgDetails != null)
             mRecordRule.mergeProgram(mProgDetails);
         if (mRecordRule.type == null)
@@ -215,11 +231,14 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         }
         if (mRecordRule == null)
             setupData();
+        if (mRecordRule == null)
+            return new GuidanceStylist.Guidance(null,null,null,null);
         Activity activity = getActivity();
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
-        dateTime.append(mRecordRule.station).append(' ')
-                .append(dayFormatter.format(mRecordRule.startTime))
+        if (mRecordRule.station != null)
+        dateTime.append(mRecordRule.station).append(' ');
+        dateTime.append(dayFormatter.format(mRecordRule.startTime))
                 .append(dateFormatter.format(mRecordRule.startTime)).append(' ')
                 .append(timeFormatter.format(mRecordRule.startTime));
         StringBuilder details = new StringBuilder();
@@ -233,12 +252,12 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         return new GuidanceStylist.Guidance(title, details.toString(), dateTime.toString(), icon);
     }
 
-    static final int[] sTypePrompts = {
-            R.string.sched_type_not, R.string.sched_type_this,
-            R.string.sched_type_one, R.string.sched_type_all};
-    static final String[] sTypeValues = {
-            "Not Recording", "Single Record",
-            "Record One", "Record All"};
+//    static final int[] sTypePrompts = {
+//            R.string.sched_type_not, R.string.sched_type_this,
+//            R.string.sched_type_one, R.string.sched_type_all};
+//    static final String[] sTypeValues = {
+//            "Not Recording", "Single Record",
+//            "Record One", "Record All"};
     static final int[] sRepeatPrompts = {
             R.string.sched_new_and_repeat, R.string.sched_new_only};
     static final int[] sActivePrompts = {
@@ -276,15 +295,78 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     static final int [] sMetaDataPrompts = {
             R.string.sched_metadata_type_tv, R.string.sched_metadata_type_movie };
 
+//    public static String translateType(Context context, String type) {
+//        String result = null;
+//        for (int ix = 0; ix < sTypeValues.length; ix++) {
+//            if (sTypeValues[ix].equals(type)) {
+//                result = context.getString(sTypePrompts[ix]);
+//                break;
+//            }
+//        }
+//        return result;
+//    }
+//
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
         if (mRecordRule == null)
             setupData();
+        if (mRecordRule == null)
+            return;
         int ix;
 
+        // Type options depend on what is being done
+        // Logic from ScheduleEditor::Load, values from recordintypes.cpp
+        // toDescription(RecordingType rectype) and toRawString(RecordingType rectype)
+        ArrayList<Integer> typePrompts = new ArrayList<>();
+        ArrayList<String> typeOptions = new ArrayList<>();
+
+        if ("Recording Template".equalsIgnoreCase(mRecordRule.type)) {
+            if (! "Default".equalsIgnoreCase(mRecordRule.category)) {
+                typePrompts.add(R.string.sched_type_del_template);
+                typeOptions.add("Not Recording");
+            }
+            typePrompts.add(R.string.sched_type_mod_template);
+            typeOptions.add("Recording Template");
+        }
+        else if ("Override Recording".equalsIgnoreCase(mRecordRule.type)) {
+            typePrompts.add(R.string.sched_type_del_override);
+            typeOptions.add("Not Recording");
+            typePrompts.add(R.string.sched_type_rec_override);
+            typeOptions.add("Override Recording");
+            typePrompts.add(R.string.sched_type_dont_rec_override);
+            typeOptions.add("Do not Record");
+        }
+        else {
+            boolean hasChannel = (mRecordRule.station != null);
+            boolean isManual = "Manual Search".equalsIgnoreCase(mRecordRule.searchType);
+            typePrompts.add(R.string.sched_type_not);
+            typeOptions.add("Not Recording");
+            if (hasChannel) {
+                typePrompts.add(R.string.sched_type_this);
+                typeOptions.add("Single Record");
+            }
+            if (!isManual) {
+                typePrompts.add(R.string.sched_type_one);
+                typeOptions.add("Record One");
+            }
+            if (!hasChannel || isManual) {
+                typePrompts.add(R.string.sched_type_weekly);
+                typeOptions.add("Record Weekly");
+                typePrompts.add(R.string.sched_type_daily);
+                typeOptions.add("Record Daily");
+            }
+            if (!isManual) {
+                typePrompts.add(R.string.sched_type_all);
+                typeOptions.add("Record All");
+            }
+        }
+        int [] intTypePrompts = new int[typePrompts.size()];
+        for (ix = 0; ix < intTypePrompts.length; ix++)
+            intTypePrompts[ix] = typePrompts.get(ix);
         // Type
         mGpType = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
-                sTypePrompts, sTypeValues, mRecordRule.type, false);
+                intTypePrompts, typeOptions.toArray(new String[typeOptions.size()]),
+                mRecordRule.type, false);
         mainActions.add(mGpType.mGuidedAction);
         mGroupList.add(mGpType);
 

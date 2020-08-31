@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.util.SparseIntArray;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -41,7 +40,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     public static final int TIME_ROW_INTERVAL = 8;
     public static final int DATE_RANGE = 21;
     private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
-    private ArrayObjectAdapter mGuideAdapter;
+    private ArrayObjectAdapter mGridAdapter;
     private Date mGridStartTime;
     // map chanid to position in object adapter
     private SparseIntArray mChanArray = new SparseIntArray();
@@ -52,7 +51,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private GregorianCalendar mTimeSelectCalendar;
     private AlertDialog mDialog;
     private boolean mLoadInProgress;
-    private int mSelectedPosition;
+    private int mGridSelectedPosition;
+    private boolean isResumed;
 
     private static final int ACTION_EDIT_1 = 1;
     private static final int ACTION_EDIT_2 = 2;
@@ -76,8 +76,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         presenter.setNumberOfColumns(TIMESLOTS+3);
         setGridPresenter(presenter);
 
-        mGuideAdapter = new ArrayObjectAdapter(new GuidePresenterSelector(getContext()));
-        setAdapter(mGuideAdapter);
+        mGridAdapter = new ArrayObjectAdapter(new GuidePresenterSelector(getContext()));
+        setAdapter(mGridAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
             @Override
@@ -89,17 +89,17 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 switch (card.cellType) {
                     case GuideSlot.CELL_TIMESELECTOR:
                     case GuideSlot.CELL_TIMESLOT:
-                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                         showTimeSelector();
                         break;
                     case GuideSlot.CELL_LEFTARROW:
                         mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                         setupGridData();
                         break;
                     case GuideSlot.CELL_RIGHTARROW:
                         mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        mSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                         setupGridData();
                         break;
                     case GuideSlot.CELL_PROGRAM:
@@ -257,7 +257,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
      * 1 cell per timeslot plus 1 for channel and two for arrows
      */
     private void loadCells() {
-        mGuideAdapter.clear();
+        mGridAdapter.clear();
         VideoDbHelper dbh = new VideoDbHelper(getContext());
         SQLiteDatabase db = dbh.getReadableDatabase();
 
@@ -307,9 +307,9 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             int chanId = cursor.getInt(colChId);
             // channel slot at front
             GuideSlot slot = new GuideSlot(chanId, chanDetails);
-            mGuideAdapter.add(slot);
-            mGuideAdapter.add(leftArrowSlot);
-            mChanArray.put(chanId,mGuideAdapter.size());
+            mGridAdapter.add(slot);
+            mGridAdapter.add(leftArrowSlot);
+            mChanArray.put(chanId,mGridAdapter.size());
             for (int i = 0; i< TIMESLOTS; i++) {
                 int position;
                 switch (i) {
@@ -323,9 +323,9 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                         position = GuideSlot.POS_MIDDLE;
                 }
                 slot = new GuideSlot(GuideSlot.CELL_PROGRAM, position, mTimeRow[i+2].timeSlot);
-                mGuideAdapter.add(slot);
+                mGridAdapter.add(slot);
             }
-            mGuideAdapter.add(rightArrowSlot);
+            mGridAdapter.add(rightArrowSlot);
         }
         cursor.close();
         db.close();
@@ -346,7 +346,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
     private void addTimeRow() {
         for (int i = 0; i < mTimeRow.length; i++)
-            mGuideAdapter.add(mTimeRow[i]);
+            mGridAdapter.add(mTimeRow[i]);
     }
 
 
@@ -359,9 +359,23 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        isResumed = true;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        isResumed = false;
+    }
+
     void loadGuideData(XmlNode result) {
         mLoadInProgress = false;
         if (result == null)
+            return;
+        if (!isResumed)
             return;
         XmlNode programNode = null;
         for (; ; ) {
@@ -402,7 +416,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 ++endPos;
 
             for (int ix = adapterPos+startPos; ix < adapterPos+endPos; ix++) {
-                GuideSlot slot = (GuideSlot)mGuideAdapter.get(ix);
+                GuideSlot slot = (GuideSlot)mGridAdapter.get(ix);
                 if (slot.program == null)
                     slot.program = program;
                 else if (slot.program2 == null) {
@@ -414,10 +428,10 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     }
                 }
             }
-            mGuideAdapter.notifyArrayItemRangeChanged(adapterPos+startPos, endPos-startPos);
+            mGridAdapter.notifyArrayItemRangeChanged(adapterPos+startPos, endPos-startPos);
         }
-        mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition, 10);
-        mSelectedPosition = 0;
+        mGridViewHolder.getGridView().setSelectedPosition(mGridSelectedPosition, 10);
+        mGridSelectedPosition = 0;
     }
 
 

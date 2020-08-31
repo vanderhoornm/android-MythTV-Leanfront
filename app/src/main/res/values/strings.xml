@@ -174,9 +174,13 @@
     <string name="title_select_timeslot">Select Time Slot</string>
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
+    <string name="title_rec_rules">Recording Rules</string>
 
     <string name="msg_edit_schedule">Edit Schedule for %1$s</string>
     <string name="msg_edit_schedule2">Edit Schedule for %1$s (2)</string>
+
+    <string name="msg_rec_rule_gone">Recording Rule no longer exists.</string>
+
 
     <string name="sched_input_any">Any Input</string>
     <string name="sched_type">Schedule Type</string>
@@ -184,6 +188,14 @@
     <string name="sched_type_this">Record Only This Showing</string>
     <string name="sched_type_one">Record Only One Showing</string>
     <string name="sched_type_all">Record All Showings</string>
+    <string name="sched_type_del_template">Delete this recording rule template</string>
+    <string name="sched_type_mod_template">Modify this recording rule template</string>
+    <string name="sched_type_del_override">Record this showing with normal options</string>
+    <string name="sched_type_rec_override">Record this showing with override options</string>
+    <string name="sched_type_dont_rec_override">Do not record this showing</string>
+    <string name="sched_type_weekly">Record one showing every week</string>
+    <string name="sched_type_daily">Record one showing every day</string>
+
     <string name="sched_rec_group">Recording Group</string>
     <string name="sched_play_group">Playback Group</string>
     <string name="sched_start_offset">Number of Extra Minutes Record at Start</string>
@@ -202,6 +214,7 @@
     <string name="sched_dup_s">Match Duplicates Using Subtitle</string>
     <string name="sched_dup_d">Match Duplicates Using Description</string>
     <string name="sched_active">Active</string>
+    <string name="sched_inactive">Inactive</string>
     <string name="sched_active_msg">Recording Rule is Active</string>
     <string name="sched_inactive_msg">Recording Rule is Inactive</string>
     <string name="sched_dupscope">Duplicate Search Scope</string>

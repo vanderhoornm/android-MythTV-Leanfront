@@ -115,9 +115,9 @@ public class GuideSlot {
                 if (timeSetStart < 0 && (position == POS_LEFT)
                         || timeSetStart > 0) {
                     build.append("(").append(timeFormatter.format(program.startTime)).append(") ");
-            }
-                build.append(program.title);
-                titleDone = true;
+                    build.append(program.title);
+                    titleDone = true;
+                }
             }
             if (!titleDone && timeSetStart == 0) {
                 build.append(program.title);

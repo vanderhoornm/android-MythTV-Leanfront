@@ -20,7 +20,6 @@
 package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -252,12 +251,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         return new GuidanceStylist.Guidance(title, details.toString(), dateTime.toString(), icon);
     }
 
-//    static final int[] sTypePrompts = {
-//            R.string.sched_type_not, R.string.sched_type_this,
-//            R.string.sched_type_one, R.string.sched_type_all};
-//    static final String[] sTypeValues = {
-//            "Not Recording", "Single Record",
-//            "Record One", "Record All"};
     static final int[] sRepeatPrompts = {
             R.string.sched_new_and_repeat, R.string.sched_new_only};
     static final int[] sActivePrompts = {
@@ -295,17 +288,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     static final int [] sMetaDataPrompts = {
             R.string.sched_metadata_type_tv, R.string.sched_metadata_type_movie };
 
-//    public static String translateType(Context context, String type) {
-//        String result = null;
-//        for (int ix = 0; ix < sTypeValues.length; ix++) {
-//            if (sTypeValues[ix].equals(type)) {
-//                result = context.getString(sTypePrompts[ix]);
-//                break;
-//            }
-//        }
-//        return result;
-//    }
-//
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
         if (mRecordRule == null)
@@ -539,14 +521,16 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         mGroupList.add(mGpUseTemplate);
 
 //    }
-//
+//    Uncomment here to add the save and cancel buttons on the right instead of below.
 //    @Override
 //    public void onCreateButtonActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
+
         // Save Button
         mGpSaveButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_save_button);
         mainActions.add(mGpSaveButton.mGuidedAction);
         mGroupList.add(mGpSaveButton);
 
+        // Cancel button
         mGpCancelButton = new ActionGroup(ACTIONTYPE_BUTTON, android.R.string.cancel);
         mainActions.add(mGpCancelButton.mGuidedAction);
         mGroupList.add(mGpCancelButton);
@@ -627,32 +611,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
 
     private void mergeTemplate(RecordRule template) {
 
-/*
-        inactive = template.inactive;
-        recPriority = template.recPriority;
-        preferredInput = template.preferredInput;
-        startOffset = template.startOffset;
-        endOffset = template.endOffset;
-        dupMethod = template.dupMethod;
-        dupIn = template.dupIn;
-        newEpisOnly = template.newEpisOnly;
-        filter = template.filter;
-        recProfile = template.recProfile;
-        recGroup = template.recGroup;
-        storageGroup = template.storageGroup;
-        playGroup = template.playGroup;
-        autoExpire = template.autoExpire;
-        maxEpisodes = template.maxEpisodes;
-        maxNewest = template.maxNewest;
-        autoCommflag = template.autoCommflag;
-        autoTranscode = template.autoTranscode;
-        autoMetaLookup = template.autoMetaLookup;
-        autoUserJob1 = template.autoUserJob1;
-        autoUserJob2 = template.autoUserJob2;
-        autoUserJob3 = template.autoUserJob3;
-        autoUserJob4 = template.autoUserJob4;
-        transcoder = template.transcoder;
-*/
         mIsDirty = true;
 
         mGpActive.setValue(!template.inactive);
@@ -885,14 +843,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         }
 
         public void setValue(int intValue) {
-/*
-            private static final int ACTIONTYPE_RADIOBNS = 1;
-            private static final int ACTIONTYPE_CHECKBOXES = 2;
-            private static final int ACTIONTYPE_NUMERIC = 3;
-            private static final int ACTIONTYPE_NUMERIC_UNSIGNED = 4;
-            private static final int ACTIONTYPE_BOOLEAN = 5;
-            private static final int ACTIONTYPE_BUTTON = 6;
-*/
             List<GuidedAction> subActionList;
             GuidedAction action;
             switch(mActionType) {
@@ -980,20 +930,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         public void setValue(boolean bValue) {
             setValue(bValue ? 1 : 0);
         }
-
-//        /**
-//         * Constructor for list of integer values
-//         * @param actionType   ACTIONTYPE_RADIOBNS
-//         * @param title        title
-//         * @param prompts      array: string id prompt for each value.
-//         * @param intValues    array: Int values.
-//         * @param currIntValue initial value
-//         */
-//        ActionGroup(int actionType, int title, @NonNull int[] prompts, @NonNull int[] intValues,
-//                    int currIntValue) {
-//            this(actionType, title, prompts, intValues,
-//                    null, null, currIntValue, false);
-//        }
 
         /**
          * Constructor for one numeric input value

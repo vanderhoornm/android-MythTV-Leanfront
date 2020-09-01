@@ -29,6 +29,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Playback from slave backends is now supported.
 - Playing of Live TV is now supported.
 - Synchronization of TV refresh rate to match frame rate.
+- Display Program Guide, create recording rules, update recording rules.
 
 ## Main Screen
 
@@ -36,11 +37,15 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - The LiveTV group shows recordings already made from Live TV as well as channels available to watch live.
 - There is a row for "All" at the top.
 - After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
-- There is a row labeled "Settings" at the bottom. select "Settings" and press enter to see and update program settings.
+- There is a row labeled "Tools" at the bottom. There are various options available there.
+
+### Settings
+
+The settings icon on the tools row allows setup of the backedn ip address and a number of options for this copy of leanfront.
 
 ### Refresh
 
-There is a "Refresh" icon on the settings row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
+There is a "Refresh" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
 
 If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
 
@@ -54,6 +59,10 @@ quit
 UserName and DatabaseName can be found in the file .mythtv/config.xml. You will be prompted for the database password, which can also be found in .mythtv/config.xml.
 
 Creating this index changed the refresh time on my system from 38 seconds to 4 seconds, so it can make a big difference.
+
+### Backend Status
+
+The backend status icon of the tools row shows a page with current backend info.
 
 ## Playback
 
@@ -93,6 +102,26 @@ Notes:
 - LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age
 - If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
+
+## Manage recordings
+
+An icon in the Tools row brings up a section where you can view the program guide, and setup and modify recording rules.
+
+### Program Guide Page
+
+In the program guide
+ 
+- Select a new date and time for the guide: Press enter on any of the cells that show the time.
+- Move to the next or prior page of guide data: Press enter on any of the arrow cells.
+- Schedule a recording or modify the recording: Press enter on any cell that lists a program.
+
+### Recording Rules Page
+
+All recording rules are listed. Press enter on any rule to modify it.
+
+## Search
+
+The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can enter to schedule or modify recordings.
 
 ## Problems
 

@@ -119,6 +119,10 @@ In the program guide
 
 All recording rules are listed. Press enter on any rule to modify it.
 
+### Rule updating
+
+The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions that prevents this from working.
+
 ## Search
 
 The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can enter to schedule or modify recordings.
@@ -281,8 +285,6 @@ Further development will continue. These are some possible additions.
 - Allow search from android home screen.
 - Allow recommendations from android home screen.
 - Amazon specific search and recommendations.
-- Program guide.
-- Create recording rules.
 
 The following items will need api changes on the backend
 

@@ -59,7 +59,7 @@ public class GuideCardView extends BaseCardView {
         int bgColor = Color.DKGRAY;
         if (card == null) {
             cardText.setText(null);
-            setBackgroundColor(Color.DKGRAY);
+            statusText.setText(null);
         }
         else {
             cardText.setText(card.getGuideText(getContext()));
@@ -87,9 +87,9 @@ public class GuideCardView extends BaseCardView {
                 else
                     bgColor = COLOR_WONTRECORD;
             }
-            setBackgroundColor(bgColor);
-            statusText.setBackgroundColor(bgColor);
         }
+        setBackgroundColor(bgColor);
+        statusText.setBackgroundColor(bgColor);
     }
 
 }

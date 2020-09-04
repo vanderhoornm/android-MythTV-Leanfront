@@ -866,6 +866,14 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     mXmlResults.add(null);
                     break;
 
+                case Video.ACTION_PAUSE:
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
                 default:
                     String method = null;
                     switch (task) {
@@ -886,6 +894,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             break;
                         case Video.ACTION_GETRECRULEFILTERLIST:
                             method = "GetRecRuleFilterList";
+                            break;
+                        case Video.ACTION_GETUPCOMINGLIST:
+                            method = "GetUpcomingList";
                             break;
                     }
                     if (method == null)

@@ -175,6 +175,7 @@
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
     <string name="title_rec_rules">Recording Rules</string>
+    <string name="title_upcoming">Upcoming Recordings</string>
 
     <string name="msg_edit_schedule">Edit Schedule for %1$s</string>
     <string name="msg_edit_schedule2">Edit Schedule for %1$s (2)</string>

@@ -154,8 +154,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 // Record no longer exists
                 Toast.makeText(getContext(),R.string.msg_rec_rule_gone, Toast.LENGTH_LONG)
                         .show();
-                getActivity().finish();
-                return;
             }
             mRecordRule = new RecordRule().mergeTemplate(defaultTemplate);
         }

@@ -17,6 +17,7 @@
  * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 package org.mythtv.leanfront.ui;
 
 import android.content.Intent;
@@ -37,7 +38,7 @@ import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.RecRuleCardPresenter;
 import org.mythtv.leanfront.presenter.RecRuleCardView;
 
-public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
+public class UpcomingFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
 
     private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
     private final int NUMBER_COLUMNS = 3;
@@ -51,6 +52,12 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         super.onCreate(savedInstanceState);
         setupAdapter();
         getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setupGridData();
     }
 
     private void setupAdapter() {
@@ -68,15 +75,9 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
                 if (mLoadInProgress)
                     return;
                 RecordRule card = (RecordRule)item;
-                        recRuleClicked(card);
+                recRuleClicked(card);
             }
         });
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        setupGridData();
     }
 
     private void recRuleClicked(RecordRule card) {
@@ -94,9 +95,9 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         mLoadInProgress = true;
         AsyncBackendCall call = new AsyncBackendCall(this);
         if (mDoingUpdate)
-            call.execute(Video.ACTION_PAUSE, Video.ACTION_GETRECORDSCHEDULELIST);
+            call.execute(Video.ACTION_PAUSE, Video.ACTION_GETUPCOMINGLIST);
         else
-            call.execute(Video.ACTION_GETRECORDSCHEDULELIST);
+            call.execute(Video.ACTION_GETUPCOMINGLIST);
         mDoingUpdate = false;
     }
 
@@ -105,29 +106,30 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_PAUSE:
-            case Video.ACTION_GETRECORDSCHEDULELIST:
+            case Video.ACTION_GETUPCOMINGLIST:
                 loadData(taskRunner.getXmlResult());
         }
     }
 
     void loadData(XmlNode result) {
         mLoadInProgress = false;
+        mGridAdapter.clear();
         if (result == null)
             return;
         if (!isStarted)
             return;
-        mGridAdapter.clear();
-        XmlNode recRuleNode = null;
+        XmlNode programNode = null;
         for (; ; ) {
-            if (recRuleNode == null)
-                recRuleNode = result.getNode("RecRules").getNode("RecRule");
+            if (programNode == null)
+                programNode = result.getNode("Programs").getNode("Program");
             else
-                recRuleNode = recRuleNode.getNextSibling();
-            if (recRuleNode == null)
+                programNode = programNode.getNextSibling();
+            if (programNode == null)
                 break;
-            RecordRule rule = new RecordRule().fromSchedule(recRuleNode);
+            RecordRule rule = new RecordRule().fromProgram(programNode);
             mGridAdapter.add(rule);
         }
+//        int size = mGridAdapter.size();
         while (mGridAdapter.size() % NUMBER_COLUMNS != 0)
             mGridAdapter.add(null);
     }

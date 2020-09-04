@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2019-2020 Peter Bennett
+ *
+ * This file is part of MythTV-leanfront.
+ *
+ * MythTV-leanfront is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * MythTV-leanfront is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package org.mythtv.leanfront.ui;
 
 import android.content.Context;
@@ -42,6 +61,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
     private ArrayObjectAdapter mGridAdapter;
     private Date mGridStartTime;
+    private long mPriorGridStartTime;
     // map chanid to position in object adapter
     private SparseIntArray mChanArray = new SparseIntArray();
     private GuideSlot [] mTimeRow;
@@ -51,8 +71,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private GregorianCalendar mTimeSelectCalendar;
     private AlertDialog mDialog;
     private boolean mLoadInProgress;
-    private int mGridSelectedPosition;
-    private boolean isResumed;
+    private boolean mDoingUpdate;
 
     private static final int ACTION_EDIT_1 = 1;
     private static final int ACTION_EDIT_2 = 2;
@@ -67,7 +86,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mGridStartTime = new Date(startTime);
         setupAdapter();
         getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
-        setupGridData();
     }
 
     private void setupAdapter() {
@@ -86,20 +104,19 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 if (mLoadInProgress)
                     return;
                 GuideSlot card = (GuideSlot)item;
+                if (card == null)
+                    return;
                 switch (card.cellType) {
                     case GuideSlot.CELL_TIMESELECTOR:
                     case GuideSlot.CELL_TIMESLOT:
-                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
                         showTimeSelector();
                         break;
                     case GuideSlot.CELL_LEFTARROW:
-                        mGridStartTime.setTime(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        mGridStartTime = new Date(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
                         setupGridData();
                         break;
                     case GuideSlot.CELL_RIGHTARROW:
-                        mGridStartTime.setTime(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        mGridSelectedPosition = mGridViewHolder.getGridView().getSelectedPosition();
+                        mGridStartTime = new Date(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
                         setupGridData();
                         break;
                     case GuideSlot.CELL_PROGRAM:
@@ -108,6 +125,12 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 }
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setupGridData();
     }
 
     private void programClicked(GuideSlot card) {
@@ -153,6 +176,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
     private void actionRequest(GuideSlot card, int action) {
         Intent intent;
+        mDoingUpdate = true;
         switch (action) {
             case ACTION_EDIT_1:
                 intent = new Intent(getContext(), EditScheduleActivity.class);
@@ -244,11 +268,14 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mLoadInProgress = true;
         Date gridEndTime = new Date(mGridStartTime.getTime() + TIMESLOT_SIZE * TIMESLOTS * 60000);
         loadCells();
-        AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
-                this);
+        AsyncBackendCall call = new AsyncBackendCall(this);
         call.setStartTime(mGridStartTime);
         call.setEndTime(gridEndTime);
-        call.execute(Video.ACTION_GUIDE);
+        if (mDoingUpdate)
+            call.execute(Video.ACTION_PAUSE, Video.ACTION_GUIDE);
+        else
+            call.execute(Video.ACTION_GUIDE);
+        mDoingUpdate = false;
     }
 
     /**
@@ -257,7 +284,11 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
      * 1 cell per timeslot plus 1 for channel and two for arrows
      */
     private void loadCells() {
-        mGridAdapter.clear();
+        if (mPriorGridStartTime > 0) {
+            updateCells();
+            return;
+        }
+        mPriorGridStartTime = mGridStartTime.getTime();
         VideoDbHelper dbh = new VideoDbHelper(getContext());
         SQLiteDatabase db = dbh.getReadableDatabase();
 
@@ -331,6 +362,25 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         db.close();
     }
 
+    private void updateCells() {
+        // Update Time row
+        mTimeRow[0].timeSlot = mGridStartTime;
+        for (int ix = 0; ix< TIMESLOTS; ix++) {
+            mTimeRow[ix+2].timeSlot =
+                    new Date( mGridStartTime.getTime() + ix * TIMESLOT_SIZE * 60000);
+        }
+        // Clear out program cells
+        for (int ix = 0 ; ix < mGridAdapter.size(); ix++) {
+            GuideSlot slot = (GuideSlot)mGridAdapter.get(ix);
+            int iPos = ix % (TIMESLOTS+3);
+            if (slot.cellType == GuideSlot.CELL_PROGRAM) {
+                slot.program = null;
+                slot.program2 = null;
+                slot.timeSlot = mTimeRow[iPos].timeSlot;
+            }
+        }
+    }
+
     private void setupTimeRow(GuideSlot leftArrowSlot, GuideSlot rightArrowSlot) {
         mTimeRow = new GuideSlot[TIMESLOTS + 3];
         // time selector slot at front
@@ -355,27 +405,16 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_GUIDE:
+            case Video.ACTION_PAUSE:
                 loadGuideData(taskRunner.getXmlResult());
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        isResumed = true;
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        isResumed = false;
     }
 
     void loadGuideData(XmlNode result) {
         mLoadInProgress = false;
         if (result == null)
             return;
-        if (!isResumed)
+        if (!isStarted)
             return;
         XmlNode programNode = null;
         for (; ; ) {
@@ -428,11 +467,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     }
                 }
             }
-            mGridAdapter.notifyArrayItemRangeChanged(adapterPos+startPos, endPos-startPos);
         }
-        mGridViewHolder.getGridView().setSelectedPosition(mGridSelectedPosition, 10);
-        mGridSelectedPosition = 0;
+        mGridAdapter.notifyArrayItemRangeChanged(0, mGridAdapter.size()-1);
     }
-
 
 }

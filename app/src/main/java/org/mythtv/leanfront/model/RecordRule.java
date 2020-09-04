@@ -4,8 +4,8 @@ import android.content.Context;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.XmlNode;
-import org.mythtv.leanfront.ui.EditScheduleFragment;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -56,13 +56,22 @@ public class RecordRule {
     public boolean autoUserJob4;
     public int     transcoder;
     public Date    lastRecorded;
+    public String  recordingStatus;
 
+    public boolean isFromProgram;
+    public boolean isFromSchedule;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "RecordSchedule";
     private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
+    private static DateFormat timeFormatter;
+    private static DateFormat dateFormatter;
+    private static DateFormat dayFormatter;
+
+
     public RecordRule fromProgram(XmlNode programNode) {
+        isFromProgram = true;
         title = programNode.getString("Title");
         subtitle = programNode.getString("SubTitle");
         description = programNode.getString("Description");
@@ -84,10 +93,14 @@ public class RecordRule {
         episode = programNode.getNode("Episode").getInt(0);
         inetref = programNode.getString("Inetref");
         recordId = programNode.getNode("Recording").getNode("RecordId").getInt(0);
+        recordingStatus = programNode.getNode("Recording").getString("Status");
+        if ("Unknown".equals(recordingStatus))
+            recordingStatus = null; // save storage
         return this;
     }
 
     public RecordRule fromSchedule(XmlNode scheduleNode) {
+        isFromSchedule = true;
         recordId = scheduleNode.getNode("Id").getInt(0);
         parentId = scheduleNode.getNode("ParentId").getInt(0);
         title = scheduleNode.getString("Title");
@@ -197,17 +210,29 @@ public class RecordRule {
 
     public String getCardText(Context context) {
         StringBuilder build = new StringBuilder();
-        int statusRes;
-        if (inactive)
-            statusRes = R.string.sched_inactive;
-        else
-            statusRes = R.string.sched_active;
-//        String typeString = EditScheduleFragment.translateType(context, type);
-//        if (typeString == null)
-//            typeString = type;
-        build.append(title).append("\n")
-            .append(type).append(" - ")
-            .append(context.getString(statusRes));
+        if (isFromSchedule) {
+            int statusRes;
+            if (inactive)
+                statusRes = R.string.sched_inactive;
+            else
+                statusRes = R.string.sched_active;
+            build.append(title).append("\n")
+                    .append(type).append(" - ")
+                    .append(context.getString(statusRes));
+        }
+        if (isFromProgram) {
+            if (timeFormatter == null) {
+                timeFormatter = android.text.format.DateFormat.getTimeFormat(context);
+                dateFormatter = android.text.format.DateFormat.getLongDateFormat(context);
+                dayFormatter = new SimpleDateFormat("EEE ");
+            }
+            build.append(dayFormatter.format(startTime))
+                    .append(dateFormatter.format(startTime)).append(' ')
+                    .append(timeFormatter.format(startTime)).append('\n')
+                    .append(title);
+            if (subtitle != null)
+                build.append("\n").append(subtitle);
+        }
         return build.toString();
     }
 

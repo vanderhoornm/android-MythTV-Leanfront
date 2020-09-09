@@ -230,11 +230,12 @@ public class XmlNode {
 
     public String getString() { return text; }
 
-    public int getInt(int defaultValue) {
+    public int getInt(String tag, int defaultValue) {
         int result = defaultValue;
-        if (text != null) {
+        String strValue = getString(tag);
+        if (strValue != null) {
             try {
-                result = Integer.parseInt(text);
+                result = Integer.parseInt(strValue);
             } catch (NumberFormatException e) {
                 result = defaultValue;
             }

@@ -174,7 +174,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             if (inputsNode != null) {
                 XmlNode inputNode = inputsNode.getNode("Input");
                 while (inputNode != null) {
-                    int id = inputNode.getNode("Id").getInt(-1);
+                    int id = inputNode.getInt("Id",-1);
                     String displayName = inputNode.getString("DisplayName");
                     if (id > 0)
                         mInputList.put(id, displayName);
@@ -189,7 +189,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             if (filtersNode != null) {
                 XmlNode filterNode = filtersNode.getNode("RecRuleFilter");
                 while (filterNode != null) {
-                    int id = filterNode.getNode("Id").getInt(-1);
+                    int id = filterNode.getInt("Id",-1);
                     String description = filterNode.getString("Description");
                     for (int ix = mRecRuleFilterList.size(); ix <= id; ix++)
                         mRecRuleFilterList.add(null);

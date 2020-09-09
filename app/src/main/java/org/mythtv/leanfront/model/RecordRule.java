@@ -82,7 +82,7 @@ public class RecordRule {
         endTime = programNode.getNode("EndTime").getDate();
         seriesId = programNode.getString("SeriesId");
         programId = programNode.getString("ProgramId");
-        chanId = programNode.getNode("Channel").getNode("ChanId").getInt(0);
+        chanId = programNode.getNode("Channel").getInt("ChanId",0);
         station = programNode.getNode("Channel").getString("CallSign");
         chanNum = programNode.getNode("Channel").getString("ChanNum");
         channelName = programNode.getNode("Channel").getString("ChannelName");
@@ -93,10 +93,10 @@ public class RecordRule {
             findDay = 0;
         findTime = timeFormat.format(startTime);
         // inactive
-        season = programNode.getNode("Season").getInt(0);
-        episode = programNode.getNode("Episode").getInt(0);
+        season = programNode.getInt("Season",0);
+        episode = programNode.getInt("Episode",0);
         inetref = programNode.getString("Inetref");
-        recordId = programNode.getNode("Recording").getNode("RecordId").getInt(0);
+        recordId = programNode.getNode("Recording").getInt("RecordId",0);
         recordingStatus = programNode.getNode("Recording").getString("Status");
         if ("Unknown".equals(recordingStatus))
             recordingStatus = null; // save storage
@@ -105,8 +105,8 @@ public class RecordRule {
 
     public RecordRule fromSchedule(XmlNode scheduleNode) {
         isFromSchedule = true;
-        recordId = scheduleNode.getNode("Id").getInt(0);
-        parentId = scheduleNode.getNode("ParentId").getInt(0);
+        recordId = scheduleNode.getInt("Id",0);
+        parentId = scheduleNode.getInt("ParentId",0);
         title = scheduleNode.getString("Title");
         subtitle = scheduleNode.getString("SubTitle");
         description = scheduleNode.getString("Description");
@@ -115,20 +115,20 @@ public class RecordRule {
         endTime = scheduleNode.getNode("EndTime").getDate();
         seriesId = scheduleNode.getString("SeriesId");
         programId = scheduleNode.getString("ProgramId");
-        chanId = scheduleNode.getNode("ChanId").getInt(0);
+        chanId = scheduleNode.getInt("ChanId",0);
         station = scheduleNode.getString("CallSign");
-        findDay = scheduleNode.getNode("FindDay").getInt(0);
+        findDay = scheduleNode.getInt("FindDay",0);
         findTime = scheduleNode.getString("FindTime");
         inactive = scheduleNode.getNode("Inactive").getBoolean();
-        season = scheduleNode.getNode("Season").getInt(0);
-        episode = scheduleNode.getNode("Episode").getInt(0);
+        season = scheduleNode.getInt("Season",0);
+        episode = scheduleNode.getInt("Episode",0);
         inetref = scheduleNode.getString("Inetref");
         type = scheduleNode.getString("Type");
         searchType = scheduleNode.getString("SearchType");
-        recPriority = scheduleNode.getNode("RecPriority").getInt(0);
-        preferredInput = scheduleNode.getNode("PreferredInput").getInt(0);
-        startOffset = scheduleNode.getNode("StartOffset").getInt(0);
-        endOffset = scheduleNode.getNode("EndOffset").getInt(0);
+        recPriority = scheduleNode.getInt("RecPriority",0);
+        preferredInput = scheduleNode.getInt("PreferredInput",0);
+        startOffset = scheduleNode.getInt("StartOffset",0);
+        endOffset = scheduleNode.getInt("EndOffset",0);
         dupMethod = scheduleNode.getString("DupMethod");
         dupIn = scheduleNode.getString("DupIn");
         // cater for bug in services.
@@ -140,13 +140,13 @@ public class RecordRule {
         XmlNode node = scheduleNode.getNode("NewEpisOnly");
         if (node != null)
             newEpisOnly = node.getBoolean();
-        filter = scheduleNode.getNode("Filter").getInt(0);
+        filter = scheduleNode.getInt("Filter",0);
         recProfile = scheduleNode.getString("RecProfile");
         recGroup = scheduleNode.getString("RecGroup");
         storageGroup = scheduleNode.getString("StorageGroup");
         playGroup = scheduleNode.getString("PlayGroup");
         autoExpire = scheduleNode.getNode("AutoExpire").getBoolean();
-        maxEpisodes = scheduleNode.getNode("MaxEpisodes").getInt(0);
+        maxEpisodes = scheduleNode.getInt("MaxEpisodes",0);
         maxNewest = scheduleNode.getNode("MaxNewest").getBoolean();
         autoCommflag = scheduleNode.getNode("AutoCommflag").getBoolean();
         autoTranscode = scheduleNode.getNode("AutoTranscode").getBoolean();
@@ -155,7 +155,7 @@ public class RecordRule {
         autoUserJob2 = scheduleNode.getNode("AutoUserJob2").getBoolean();
         autoUserJob3 = scheduleNode.getNode("AutoUserJob3").getBoolean();
         autoUserJob4 = scheduleNode.getNode("AutoUserJob4").getBoolean();
-        transcoder = scheduleNode.getNode("Transcoder").getInt(0);
+        transcoder = scheduleNode.getInt("Transcoder",0);
         lastRecorded = scheduleNode.getNode("LastRecorded").getDate();
         return this;
     }

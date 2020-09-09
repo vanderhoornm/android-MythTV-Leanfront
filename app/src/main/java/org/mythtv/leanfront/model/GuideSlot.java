@@ -147,8 +147,8 @@ public class GuideSlot {
                 endTime = dateFormat.parse(programNode.getString("EndTime") + "+0000");
                 title = programNode.getString("Title");
                 subTitle = programNode.getString("SubTitle");
-                season = Integer.parseInt(programNode.getString("Season"));
-                episode = Integer.parseInt(programNode.getString("Episode"));
+                season = programNode.getInt("Season",0);
+                episode = programNode.getInt("Episode",0);
                 recordingStatus = programNode.getNode("Recording").getString("Status");
                 if ("Unknown".equals(recordingStatus))
                     recordingStatus = null; // save storage

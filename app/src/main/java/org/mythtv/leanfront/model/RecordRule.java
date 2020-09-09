@@ -23,6 +23,8 @@ public class RecordRule {
     public String  seriesId;
     public String  programId;
     public int     chanId;
+    public String  chanNum;
+    public String  channelName;
     public String  station;
     public int     findDay = -1;
     public String  findTime;
@@ -82,6 +84,8 @@ public class RecordRule {
         programId = programNode.getString("ProgramId");
         chanId = programNode.getNode("Channel").getNode("ChanId").getInt(0);
         station = programNode.getNode("Channel").getString("CallSign");
+        chanNum = programNode.getNode("Channel").getString("ChanNum");
+        channelName = programNode.getNode("Channel").getString("ChannelName");
         GregorianCalendar cal = new GregorianCalendar();
         cal.setTime(startTime);
         findDay = cal.get(GregorianCalendar.DAY_OF_WEEK);
@@ -168,6 +172,8 @@ public class RecordRule {
             programId = program.programId;
             chanId = program.chanId;
             station = program.station;
+            chanNum = program.chanNum;
+            channelName = program.channelName;
             findDay = program.findDay;
             findTime = program.findTime;
             season = program.season;
@@ -226,6 +232,10 @@ public class RecordRule {
                 dateFormatter = android.text.format.DateFormat.getLongDateFormat(context);
                 dayFormatter = new SimpleDateFormat("EEE ");
             }
+
+            String chanDetails = chanNum + " " + channelName + " " + station;
+            build.append(chanDetails).append("\n");
+
             build.append(dayFormatter.format(startTime))
                     .append(dateFormatter.format(startTime)).append(' ')
                     .append(timeFormatter.format(startTime)).append('\n')

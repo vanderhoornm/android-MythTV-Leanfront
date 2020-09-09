@@ -65,7 +65,7 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
         presenter.setNumberOfColumns(NUMBER_COLUMNS);
         setGridPresenter(presenter);
 
-        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_SMALL));
+        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_LARGE));
         setAdapter(mGridAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {

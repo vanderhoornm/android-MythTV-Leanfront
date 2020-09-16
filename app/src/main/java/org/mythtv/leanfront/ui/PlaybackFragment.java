@@ -73,31 +73,31 @@ import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
+import org.mythtv.leanfront.player.MyExtractorsFactory;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.ssa.SsaDecoder;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -164,6 +164,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private String mAudio = Settings.getString("pref_audio");
     private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
 
+    SsaDecoder ssadec;
     private View mFocusView;
     private Action mCurrentAction;
     private long mRecordid = -1;
@@ -295,8 +296,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private void initializePlayer() {
         Log.i(TAG, CLASS + " Initializing Player for " + mVideo.title + " " + mVideo.videoUrl);
-        mTrackSelector = new DefaultTrackSelector();
-        DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getActivity());
+        mTrackSelector = new DefaultTrackSelector(getContext());
+//        mTrackSelector = new DefaultTrackSelector();
+        DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getContext());
         int extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
         if ("mediacodec".equals(mAudio))
             extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
@@ -304,7 +306,10 @@ public class PlaybackFragment extends VideoSupportFragment
             extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
-        mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
+//        mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
+        SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);
+        builder.setTrackSelector(mTrackSelector);
+        mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
@@ -319,9 +324,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
                 mPlaylistActionListener, mRecordid < 0);
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
-        mPlayerGlue.playWhenPrepared();
         hideControlsOverlay(false);
-
         play(mVideo);
         ArrayObjectAdapter mRowsAdapter = initializeRelatedVideosRow();
         setAdapter(mRowsAdapter);
@@ -344,15 +347,16 @@ public class PlaybackFragment extends VideoSupportFragment
                             if (mAudioSelection != -2)
                                 mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
                                         0, 0, true, false);
-                            else {
-                                // disable and enable to fix audio sync
-                                enableTrack(C.TRACK_TYPE_AUDIO, false);
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException e) {
-                                }
-                                enableTrack(C.TRACK_TYPE_AUDIO, true);
-                            }
+                            // This may not be needed with new Exoplayer release
+//                            else {
+//                                // disable and enable to fix audio sync
+//                                enableTrack(C.TRACK_TYPE_AUDIO, false);
+//                                try {
+//                                    Thread.sleep(100);
+//                                } catch (InterruptedException e) {
+//                                }
+//                                enableTrack(C.TRACK_TYPE_AUDIO, true);
+//                            }
 
                         }
                     });
@@ -377,21 +381,22 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    private void enableTrack(int trackType, boolean enable) {
-        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-        if (mti == null)
-            return;
-
-        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
-            if (mti.getRendererType(rendIx) == trackType) {
-                mTrackSelector.setParameters(
-                        mTrackSelector
-                                .buildUponParameters()
-                                .setRendererDisabled(rendIx, !enable)
-                );
-            }
-        }
-    }
+    // Unused
+//    private void enableTrack(int trackType, boolean enable) {
+//        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+//        if (mti == null)
+//            return;
+//
+//        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
+//            if (mti.getRendererType(rendIx) == trackType) {
+//                mTrackSelector.setParameters(
+//                        mTrackSelector
+//                                .buildUponParameters()
+//                                .setRendererDisabled(rendIx, !enable)
+//                );
+//            }
+//        }
+//    }
 
     private void releasePlayer() {
         if (mPlayer != null) {
@@ -481,7 +486,10 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayerGlue.setSubtitle(subtitle);
         prepareMediaForPlaying(Uri.parse(video.videoUrl));
 
-        mPlayerGlue.seekTo(mBookmark);
+        if (mBookmark > 0)
+            mPlayerGlue.seekTo(mBookmark);
+        else
+            mPlayerGlue.seekTo(100);
         // disable and enable audio to fix sync errors
         audioFix();
         // set desired playback speed
@@ -489,7 +497,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.setPlaybackParameters(parms);
         // This makes future seeks faster.
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
-        mPlayerGlue.play();
+        mPlayerGlue.playWhenPrepared();
     }
 
     private int setupRefreshRate() {
@@ -667,11 +675,14 @@ public class PlaybackFragment extends VideoSupportFragment
         getFileLength();
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
+        MyExtractorsFactory extFactory = new MyExtractorsFactory();
         ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
                 (mDsFactory,
-                        new DefaultExtractorsFactory());
-        mMediaSource = pmf.createMediaSource(mediaSourceUri);
-        mPlayer.prepare(mMediaSource);
+                        extFactory);
+        MediaItem item = MediaItem.fromUri(mediaSourceUri);
+        mMediaSource = pmf.createMediaSource(item);
+        mPlayer.setMediaSource(mMediaSource);
+        mPlayer.prepare();
     }
 
 
@@ -822,6 +833,7 @@ public class PlaybackFragment extends VideoSupportFragment
         ArrayList<Integer> renderList = new ArrayList<>();
         ArrayList<Format> formatList = new ArrayList<>();
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+        boolean isPlaying = mPlayerGlue.isPlaying();
         if (mti == null)
             return -1;
         for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
@@ -873,6 +885,7 @@ public class PlaybackFragment extends VideoSupportFragment
                     .setSelectionOverride(selection[0], tga, ovr);
             if (disable)
                 parms = parms.setRendererDisabled(selection[0], false);
+            // This line causes playback to pause when enabling subtitle
             mTrackSelector.setParameters(parms);
             String language = formatList.get(trackSelection).language;
             if (language == null)
@@ -905,6 +918,11 @@ public class PlaybackFragment extends VideoSupportFragment
             mToast = Toast.makeText(getActivity(),
                     msg, Toast.LENGTH_LONG);
             mToast.show();
+        }
+        // For some reason changing the subtitle pauses playback. This fixes that.
+        if (trackType == C.TRACK_TYPE_TEXT && isPlaying) {
+            mPlayerGlue.pause();
+            mPlayerGlue.play();
         }
         return trackSelection;
     }

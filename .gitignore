@@ -39,3 +39,4 @@ build/
 # Peter
 app/.cxx/
 app/src/main/jni/ffmpeg/
+app/src/main/jnilibs/

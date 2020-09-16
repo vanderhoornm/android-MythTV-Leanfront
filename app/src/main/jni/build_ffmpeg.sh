@@ -30,10 +30,14 @@ set -e
 
 cd "$scriptpath"
 
+# Clear old builds
+rm -rf ffmpeg/android-libs/*
+
 FFMPEG_EXT_PATH="$PWD"
 NDK_PATH=$HOME/Android/android-ndk
 HOST_PLATFORM="linux-x86_64"
 ENABLED_DECODERS=(mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw)
+# --enable-avresample no longer needed
 COMMON_OPTIONS="
     --target-os=android
     --disable-static
@@ -47,7 +51,6 @@ COMMON_OPTIONS="
     --disable-postproc
     --disable-avfilter
     --disable-symver
-    --enable-avresample
     --enable-swresample
     "
 TOOLCHAIN_PREFIX="${NDK_PATH}/toolchains/llvm/prebuilt/${HOST_PLATFORM}/bin"
@@ -111,3 +114,10 @@ make clean
 make -j4
 make install-libs
 make clean
+
+cd "$scriptpath"
+rm -rf ../jnilibs
+mkdir ../jnilibs
+cp -a ffmpeg/android-libs/* ../jnilibs/
+
+echo "ffmpeg build successfully completed"

@@ -91,13 +91,15 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.text.ssa.SsaDecoder;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -164,7 +166,6 @@ public class PlaybackFragment extends VideoSupportFragment
     private String mAudio = Settings.getString("pref_audio");
     private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
 
-    SsaDecoder ssadec;
     private View mFocusView;
     private Action mCurrentAction;
     private long mRecordid = -1;
@@ -314,7 +315,20 @@ public class PlaybackFragment extends VideoSupportFragment
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
         if (textComponent != null && mSubtitles != null)
-            textComponent.addTextOutput(mSubtitles);
+            // Code to work around "non-breaking space" bug in Exoplayer
+            // Can be removed when that is fixed in ExoPlayer
+            textComponent.addTextOutput(cues -> {
+                    ArrayList<Cue> newCues = new ArrayList<>();
+                        for (Cue cue: cues) {
+                            Cue.Builder cueBuilder = cue.buildUpon();
+                            String newText = new String(cue.text.toString());
+                            newText = newText.replace("\\h"," ");
+                            cueBuilder.setText(newText);
+                            newCues.add(cueBuilder.build());
+                        }
+                    mSubtitles.onCues(newCues);
+            }
+            );
 
         mPlayerEventListener = new PlayerEventListener();
         mPlayer.addListener(mPlayerEventListener);

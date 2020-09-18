@@ -11,7 +11,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Voice search within the application is supported.
 - With backend on master or recent MythTV v30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
 - Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend (for recordings or videos). In order to store bookmarks for videos on MythTV you need backend version v32-Pre-658-g48557d32c2 or later or v31.0-73-g7bf1284867 or later. If you have an earlier version that does not support the Video/GetSavedBookmark and Video/SetSavedBookmark methods, the bookmarks for videos will be stored locally on the android device.
-- There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching seperately and at different places in the recordings, they can keep track of bookmarks separately. 
+- There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching separately and at different places in the recordings, they can keep track of bookmarks separately. 
 - The "Watched" flag is set if you get to the end of the recording during playback. To ensure it is set, press forward to get to the end before exiting playback.
 - There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options. There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
 - There is a zoom icon and an aspect icon so that you can expand letterbox recordings and correct wrongly stretched recordings.
@@ -41,7 +41,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ### Settings
 
-The settings icon on the tools row allows setup of the backedn ip address and a number of options for this copy of leanfront.
+The settings icon on the tools row allows setup of the backend ip address and a number of options for this copy of leanfront.
 
 ### Refresh
 
@@ -66,12 +66,10 @@ The backend status icon of the tools row shows a page with current backend info.
 
 ## Playback
 
-- When starting playback, after 5 seconds there is a half-second loss of audio. This is a workaround for an audio sync problem and is not a bug.
 - Pressing Enter, up or down brings up the OSD playback controls. Note if you have enabled up/down jumping then up and down will cause a jump instead.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
-- When playing a recording in progress or Live TV, the half-second audio loss will happen 5 seconds after each transition between "unknown duration" and actual duration shown. 
 
 ### Frame Rate Synchronization.
 
@@ -125,7 +123,7 @@ The page that updates recording rules is similar to the corresponding pages in m
 
 ## Search
 
-The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can enter to schedule or modify recordings.
+The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can enter to schedule or modify recordings. Note that to use voice search on Amazon Fire Stick you have to right arrow into the text entry field, then press the microphone button. Otherwise pressing the microphone button searches Amazon instead.
 
 ## Problems
 
@@ -255,7 +253,6 @@ or a keyboard.
 These may be addressed in a future release.
 
 - The *Master Backend Override* setting does not work. It is ignored.
-- There is no support at present for showing program listings or scheduling recordings.
 - Moving recordings to new recording groups is not supported.
 - Metadata input and update are not supported.
 - Request of video file scan is not supported.

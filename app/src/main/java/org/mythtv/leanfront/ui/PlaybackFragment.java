@@ -87,6 +87,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
+import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
@@ -1420,6 +1421,16 @@ public class PlaybackFragment extends VideoSupportFragment
                     case ExoPlaybackException.TYPE_RENDERER:
                         msgNum = R.string.pberror_renderer;
                         cause = error.getRendererException();
+                        // handle error caused by selecting an unsupported audio track
+                        if (cause instanceof MediaCodecRenderer.DecoderInitializationException) {
+                            String mimeType = ((MediaCodecRenderer.DecoderInitializationException) cause).mimeType;
+                            if (mimeType != null && mimeType.startsWith("audio")) {
+                                // select the next audio track instead
+                                mPlaylistActionListener.onAudioTrack();
+                                // reset timer so that it does not display error dialog.
+                                mTimeLastError = 0;
+                            }
+                        }
                         break;
                     case ExoPlaybackException.TYPE_SOURCE:
                         msgNum = R.string.pberror_source;
@@ -1474,9 +1485,8 @@ public class PlaybackFragment extends VideoSupportFragment
                         }
                     }
                     else {
-                        // More than 1 error per minute or fail at start
-                        // Alert message for user
-                        // to decide on continuing.
+                        // More than 1 error per 10 seconds or fail at start.
+                        // Alert message for user to decide on continuing.
                         AlertDialogListener listener = new AlertDialogListener();
                         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                                 R.style.Theme_AppCompat_Dialog_Alert);

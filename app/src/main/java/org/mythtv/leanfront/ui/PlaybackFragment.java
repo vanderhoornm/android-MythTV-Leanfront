@@ -1407,6 +1407,8 @@ public class PlaybackFragment extends VideoSupportFragment
             Throwable cause = null;
             if (ex != null)
                 Log.e(TAG, CLASS + " Player Error " + mVideo.title + " " + mVideo.videoUrl, ex);
+            long now = System.currentTimeMillis();
+            boolean audioTrackChange = false;
             if (ex != null && ex instanceof ExoPlaybackException) {
                 ExoPlaybackException error = (ExoPlaybackException)ex;
                 switch (error.type) {
@@ -1422,13 +1424,15 @@ public class PlaybackFragment extends VideoSupportFragment
                         msgNum = R.string.pberror_renderer;
                         cause = error.getRendererException();
                         // handle error caused by selecting an unsupported audio track
-                        if (cause instanceof MediaCodecRenderer.DecoderInitializationException) {
+                        if (mTimeLastError < now - 10000
+                            && cause instanceof MediaCodecRenderer.DecoderInitializationException) {
                             String mimeType = ((MediaCodecRenderer.DecoderInitializationException) cause).mimeType;
                             if (mimeType != null && mimeType.startsWith("audio")) {
                                 // select the next audio track instead
                                 mPlaylistActionListener.onAudioTrack();
                                 // reset timer so that it does not display error dialog.
                                 mTimeLastError = 0;
+                                audioTrackChange = true;
                             }
                         }
                         break;
@@ -1464,7 +1468,6 @@ public class PlaybackFragment extends VideoSupportFragment
                 boolean failAtStart = duration <= 0 || currPos <= 0;
                 boolean failAtEnd = !failAtStart && Math.abs(duration - currPos) < 2000;
                 if (mDialogStatus == DIALOG_NONE) {
-                    long now = System.currentTimeMillis();
                     // If there has been over 10 seconds since last error report
                     // try to recover from error by playing on.
                     if (failAtEnd
@@ -1483,6 +1486,8 @@ public class PlaybackFragment extends VideoSupportFragment
                             mBookmark = currPos;
                             play(mVideo);
                         }
+                        if (!audioTrackChange)
+                            mTimeLastError = now;
                     }
                     else {
                         // More than 1 error per 10 seconds or fail at start.
@@ -1505,8 +1510,8 @@ public class PlaybackFragment extends VideoSupportFragment
                                 });
                         builder.show();
                         mDialogStatus = DIALOG_ACTIVE;
+                        mTimeLastError = 0;
                     }
-                    mTimeLastError = now;
                 }
             }
         }

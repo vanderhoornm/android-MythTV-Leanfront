@@ -26,7 +26,6 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-import com.google.android.exoplayer2.extractor.ts.TsExtractor;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
@@ -52,7 +51,7 @@ public class MyExtractorsFactory implements ExtractorsFactory {
 
     private void updateExtractors(Extractor[] exts) {
         for (int ix = 0; ix < exts.length; ix++) {
-            if (exts[ix] instanceof TsExtractor) {
+            if (exts[ix] instanceof com.google.android.exoplayer2.extractor.ts.TsExtractor) {
                 List<Format> closedCaptionFormats = new ArrayList<>();
                 closedCaptionFormats.add(
                         new Format.Builder()

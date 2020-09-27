@@ -58,6 +58,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_ARROW_JUMP = 20;
     private static final int ID_LIVETV_DURATION = 21;
     private static final int ID_FRAMERATE_MATCH = 22;
+    private static final int ID_SUBTITLE_SIZE = 23;
 
     private SharedPreferences.Editor mEditor;
 
@@ -163,6 +164,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .description(R.string.pref_bookmark_mythtv)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_SUBTITLE_SIZE)
+                .title(R.string.pref_title_subtitle_size)
+                .description(Settings.getString("pref_subtitle_size"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_PLAYBACK)
                 .title(R.string.pref_title_playback)
@@ -259,7 +267,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 notifyActionChanged(findActionPositionById(ID_BACKEND));
                 break;
             case ID_HTTP_PORT:
-                mEditor.putString("pref_http_port",action.getDescription().toString());
+                mEditor.putString("pref_http_port",
+                    validateNumber(action, 1, 65535, 6544));
                 break;
             case ID_BACKEND_MAC:
                 mEditor.putString("pref_backend_mac",action.getDescription().toString());
@@ -274,13 +283,36 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 mEditor.putString("pref_jump",action.getDescription().toString());
                 break;
             case ID_LIVETV_DURATION:
-                mEditor.putString("pref_livetv_duration",action.getDescription().toString());
+                mEditor.putString("pref_livetv_duration",
+                        validateNumber(action, 30, 240, 60));
+                break;
+            case ID_SUBTITLE_SIZE:
+                mEditor.putString("pref_subtitle_size",
+                        validateNumber(action, 25, 300, 100));
                 break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
         mEditor.apply();
         return GuidedAction.ACTION_ID_CURRENT;
+    }
+
+    private static String validateNumber(GuidedAction action, int min, int max, int defValue) {
+        String s;
+        int i;
+        s = action.getDescription().toString();
+        try {
+            i = Integer.parseInt(s);
+        } catch (Exception e) {
+            i = defValue;
+        }
+        if (i < min)
+            i = min;
+        else if (i > max)
+            i = max;
+        s = String.valueOf(i);
+        action.setDescription(s);
+        return s;
     }
 
     @Override
@@ -306,6 +338,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_LIVETV_DURATION:
                 action.setDescription(Settings.getString("pref_livetv_duration"));
+                break;
+            case ID_SUBTITLE_SIZE:
+                action.setDescription(Settings.getString("pref_subtitle_size"));
                 break;
         }
     }

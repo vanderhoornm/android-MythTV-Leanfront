@@ -93,7 +93,6 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
-import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
@@ -166,6 +165,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mJump = 60000 * Settings.getInt("pref_jump");
     private String mAudio = Settings.getString("pref_audio");
     private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
+    private int mSubtitleSize =  Settings.getInt("pref_subtitle_size");
 
     private View mFocusView;
     private Action mCurrentAction;
@@ -316,6 +316,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
         if (textComponent != null && mSubtitles != null)
+            mSubtitles.setFractionalTextSize
+                    (SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * mSubtitleSize / 100.0f);
             // Code to work around "non-breaking space" bug in Exoplayer
             // Can be removed when that is fixed in ExoPlayer
             textComponent.addTextOutput(cues -> {
@@ -363,16 +365,15 @@ public class PlaybackFragment extends VideoSupportFragment
                                 mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
                                         0, 0, true, false);
                             // This may not be needed with new Exoplayer release
-//                            else {
-//                                // disable and enable to fix audio sync
-//                                enableTrack(C.TRACK_TYPE_AUDIO, false);
-//                                try {
-//                                    Thread.sleep(100);
-//                                } catch (InterruptedException e) {
-//                                }
-//                                enableTrack(C.TRACK_TYPE_AUDIO, true);
-//                            }
-
+                            else {
+                                // disable and enable to fix audio sync
+                                enableTrack(C.TRACK_TYPE_AUDIO, false);
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                }
+                                enableTrack(C.TRACK_TYPE_AUDIO, true);
+                            }
                         }
                     });
                 }
@@ -396,22 +397,21 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    // Unused
-//    private void enableTrack(int trackType, boolean enable) {
-//        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-//        if (mti == null)
-//            return;
-//
-//        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
-//            if (mti.getRendererType(rendIx) == trackType) {
-//                mTrackSelector.setParameters(
-//                        mTrackSelector
-//                                .buildUponParameters()
-//                                .setRendererDisabled(rendIx, !enable)
-//                );
-//            }
-//        }
-//    }
+    private void enableTrack(int trackType, boolean enable) {
+        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+        if (mti == null)
+            return;
+
+        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
+            if (mti.getRendererType(rendIx) == trackType) {
+                mTrackSelector.setParameters(
+                        mTrackSelector
+                                .buildUponParameters()
+                                .setRendererDisabled(rendIx, !enable)
+                );
+            }
+        }
+    }
 
     private void releasePlayer() {
         if (mPlayer != null) {

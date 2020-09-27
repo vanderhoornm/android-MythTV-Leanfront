@@ -92,6 +92,8 @@ public class Settings {
         else
             str = "false";
         mEditor.putString("pref_framerate_match",str);
+        str = mPrefs.getString("pref_subtitle_size", "100");
+        mEditor.putString("pref_subtitle_size",str);
         mEditor.apply();
     }
 }

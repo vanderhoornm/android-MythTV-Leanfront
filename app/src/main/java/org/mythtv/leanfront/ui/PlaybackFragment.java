@@ -157,8 +157,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean mIsBounded = true;
     private long mOffsetBytes = 0;
     private boolean mIsPlayResumable;
-    private boolean mIsSpeedChangeConfirmed = false;
-    private ScheduledFuture<?> mSchedCheckSpeed;
+//    private boolean mIsSpeedChangeConfirmed = false;
+//    private ScheduledFuture<?> mSchedCheckSpeed;
     // Settings
     private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
@@ -1095,6 +1095,31 @@ public class PlaybackFragment extends VideoSupportFragment
         view.setScaleY(mScaleY);
     }
 
+    private void fixSpeed() {
+        long duration = mPlayerGlue.myGetDuration();
+        if (duration > 0 || !mIsBounded) {
+            // If we cannot change speed, switch to ffmpeg audio.
+            if (!"ffmpeg".equals(mAudio)) {
+                mAudio = "ffmpeg";
+                mBookmark = mPlayerGlue.getCurrentPosition();
+                mIsBounded = true;
+                mOffsetBytes = 0;
+                mPlayerGlue.setOffsetMillis(0);
+                mPlayer.stop(true);
+                initializePlayer();
+                return;
+            }
+            mSpeedIndex = SPEED_1_INDEX;
+            mSpeed = SPEED_VALUES[mSpeedIndex];
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    getActivity().getString(R.string.msg_unable_speed),
+                    Toast.LENGTH_LONG);
+            mToast.show();
+        }
+    }
+
     /**
      * Opens the video details page when a related video has been clicked.
      */
@@ -1300,46 +1325,23 @@ public class PlaybackFragment extends VideoSupportFragment
             mSpeed = SPEED_VALUES[mSpeedIndex];
             PlaybackParameters parms = new PlaybackParameters(mSpeed);
             mPlayer.setPlaybackParameters(parms);
-            mIsSpeedChangeConfirmed = false;
-            if (mSchedCheckSpeed != null && !mSchedCheckSpeed.isDone())
-                mSchedCheckSpeed.cancel(false);
-            if (MainFragment.executor != null) {
-                mSchedCheckSpeed = MainFragment.executor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        getActivity().runOnUiThread(new Runnable() {
-                            public void run() {
-                                long duration = mPlayerGlue.myGetDuration();
-                                if (!mIsSpeedChangeConfirmed &&
-                                        (duration > 0 || !mIsBounded)) {
-                                    // If we cannot change speed, switch to ffmpeg audio.
-                                    if (!"ffmpeg".equals(mAudio)) {
-                                        mAudio = "ffmpeg";
-                                        mBookmark = mPlayerGlue.getCurrentPosition();
-                                        mIsBounded = true;
-                                        mOffsetBytes = 0;
-                                        mPlayerGlue.setOffsetMillis(0);
-                                        mPlayer.stop(true);
-                                        initializePlayer();
-                                        return;
-                                    }
-                                    PlaybackParameters playbackParameters = mPlayer.getPlaybackParameters();
-                                    if (playbackParameters.speed != 1.0f)
-                                        return;
-                                    mSpeedIndex = SPEED_1_INDEX;
-                                    mSpeed = SPEED_VALUES[mSpeedIndex];
-                                    if (mToast != null)
-                                        mToast.cancel();
-                                    mToast = Toast.makeText(getActivity(),
-                                            getActivity().getString(R.string.msg_unable_speed),
-                                            Toast.LENGTH_LONG);
-                                    mToast.show();
-                                }
-                            }
-                        });
-                    }
-                } , 1000, TimeUnit.MILLISECONDS);
-            }
+            // This chunk no longer necessary with new version of ExoPlayer
+//            mIsSpeedChangeConfirmed = false;
+//            if (mSchedCheckSpeed != null && !mSchedCheckSpeed.isDone())
+//                mSchedCheckSpeed.cancel(false);
+//            if (MainFragment.executor != null) {
+//                mSchedCheckSpeed = MainFragment.executor.schedule(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        getActivity().runOnUiThread(new Runnable() {
+//                            public void run() {
+//                                if (!mIsSpeedChangeConfirmed)
+//                                        fixSpeed();
+//                            }
+//                        });
+//                    }
+//                } , 1000, TimeUnit.MILLISECONDS);
+//            }
         }
 
         @Override
@@ -1387,7 +1389,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-            mIsSpeedChangeConfirmed = true;
+//            mIsSpeedChangeConfirmed = true;
             int stretchPerc = Math.round(playbackParameters.speed * 100.0f);
             StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_speed))
                     .append(" ").append(stretchPerc).append("%");
@@ -1396,6 +1398,8 @@ public class PlaybackFragment extends VideoSupportFragment
             mToast = Toast.makeText(getActivity(),
                     msg, Toast.LENGTH_LONG);
             mToast.show();
+            if (playbackParameters.speed == 1.0f && mSpeed != 1.0f)
+                fixSpeed();
         }
 
         @Override

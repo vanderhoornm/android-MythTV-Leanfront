@@ -323,8 +323,12 @@ public class PlaybackFragment extends VideoSupportFragment
             textComponent.addTextOutput(cues -> {
                     ArrayList<Cue> newCues = new ArrayList<>();
                         for (Cue cue: cues) {
+                            if (cue == null)
+                                continue;
                             Cue.Builder cueBuilder = cue.buildUpon();
-                            String newText = new String(cue.text.toString());
+                            if (cue.text == null)
+                                continue;
+                            String newText = cue.text.toString();
                             newText = newText.replace("\\h"," ");
                             cueBuilder.setText(newText);
                             newCues.add(cueBuilder.build());

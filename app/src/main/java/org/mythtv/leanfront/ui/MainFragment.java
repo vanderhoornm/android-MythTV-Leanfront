@@ -495,7 +495,12 @@ public class MainFragment extends BrowseSupportFragment
             case Video.ACTION_BACKEND_INFO:
                 XmlNode xml = taskRunner.getXmlResult();
                 if (xml != null) {
-                    XmlNode stg = xml.getNode("MachineInfo").getNode("Storage");
+                    XmlNode mach = xml.getNode("MachineInfo");
+                    if (mach == null)
+                        break;
+                    XmlNode stg = mach.getNode("Storage");
+                    if (stg == null)
+                        break;
                     XmlNode grp = null;
                     for (int ix = 0;;ix++) {
                         grp = stg.getNode("Group",ix);

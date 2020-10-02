@@ -93,6 +93,9 @@ public class VideoDbBuilder {
     private static final String CLASS = "VideoDbBuilder";
 
     private Context mContext;
+    private boolean mBackendOverride;
+    private String mMasterServer;
+
 
     // 2018-05-23T00:00:00Z
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
@@ -106,8 +109,28 @@ public class VideoDbBuilder {
 
     }
 
-    public VideoDbBuilder(Context mContext) {
-        this.mContext = mContext;
+    public VideoDbBuilder(Context context) {
+        this.mContext = context;
+        try {
+            String url = XmlNode.mythApiUrl(null, "/Myth/GetSetting?key=MasterBackendOverride&Default=0&HostName=_GLOBAL_");
+            XmlNode result = XmlNode.fetch(url, null);
+            String resultValue = result.getString();
+            mBackendOverride = ("1".equals(resultValue));
+            mMasterServer = null;
+            if (mBackendOverride) {
+                url = XmlNode.mythApiUrl(null, "/Myth/GetSetting?key=MasterServerName&Default=0&HostName=_GLOBAL_");
+                result = XmlNode.fetch(url, null);
+                resultValue = result.getString();
+                // cater for old version where MasterServerName is not valued
+                if ("0".equals(resultValue))
+                    mBackendOverride = false;
+                else
+                    mMasterServer = resultValue;
+            }
+        } catch (IOException | XmlPullParserException e) {
+            e.printStackTrace();
+            mBackendOverride = false;
+        }
     }
 
     /**
@@ -146,7 +169,7 @@ public class VideoDbBuilder {
             return;
         }
         // Art urls have to be off main backend
-        String baseArtUrl = XmlNode.mythApiUrl(null, null);
+        String baseMasterUrl = XmlNode.mythApiUrl(null, null);
         XmlNode programNode = null;
         for (; ; ) {
             if (programNode == null) {
@@ -237,14 +260,20 @@ public class VideoDbBuilder {
             String hostName = null;
             String fanArtUrl = null;
             String prodYear = null;
+            String baseHostUrl = null;
             if (phase == 0 || phase == 1) {
                 recordedid = recordingNode.getString(tagRecordedId);
                 title = programNode.getString(XMLTAG_TITLE);
-                hostName = recordingNode.getString(XMLTAG_HOSTNAME);
+                // These next three lines cause chaos.!!!
+                if (phase == 0 && mBackendOverride)  // Recordings
+                    hostName = mMasterServer;
+                else
+                    hostName = recordingNode.getString(XMLTAG_HOSTNAME);
                 subtitle = programNode.getString(XMLTAG_SUBTITLE);
                 description = programNode.getString(XMLTAG_DESCRIPTION);
                 videoFileName = recordingNode.getString(XMLTAG_FILENAME);
                 baseUrl = XmlNode.mythApiUrl(hostName, null);
+                baseHostUrl = XmlNode.mythApiUrl(recordingNode.getString(XMLTAG_HOSTNAME), null);
                 videoUrl = baseUrl + "/Content/GetFile?StorageGroup="
                         + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName, "UTF-8");
                 XmlNode artInfoNode = null;
@@ -256,7 +285,7 @@ public class VideoDbBuilder {
                     if (artInfoNode == null)
                         break;
                     String artType = artInfoNode.getString(XMLTAG_ARTTYPE);
-                    String artUrl = baseArtUrl + artInfoNode.getString(XMLTAG_ARTURL);
+                    String artUrl = baseMasterUrl + artInfoNode.getString(XMLTAG_ARTURL);
                     int equ = artUrl.lastIndexOf('=');
                     if (equ > 0) {
                         String fileName = artUrl.substring(equ + 1);
@@ -278,7 +307,7 @@ public class VideoDbBuilder {
             String dbFileName = null;
             dbFileName = videoFileName;
             if (phase == 0) { // Recordings
-                cardImageURL = baseUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
+                cardImageURL = baseHostUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
             }
             if (phase == 1) { // Videos
                 cardImageURL = coverArtUrl;

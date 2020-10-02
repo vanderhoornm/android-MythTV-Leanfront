@@ -30,6 +30,8 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Playing of Live TV is now supported.
 - Synchronization of TV refresh rate to match frame rate.
 - Display Program Guide, create recording rules, update recording rules.
+- The *Master Backend Override* setting is now supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
+
 
 ## Main Screen
 
@@ -252,7 +254,6 @@ or a keyboard.
 
 These may be addressed in a future release.
 
-- The *Master Backend Override* setting does not work. It is ignored.
 - Moving recordings to new recording groups is not supported.
 - Metadata input and update are not supported.
 - Request of video file scan is not supported.

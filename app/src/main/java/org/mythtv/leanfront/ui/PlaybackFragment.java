@@ -323,15 +323,19 @@ public class PlaybackFragment extends VideoSupportFragment
             textComponent.addTextOutput(cues -> {
                     ArrayList<Cue> newCues = new ArrayList<>();
                         for (Cue cue: cues) {
-                            if (cue == null)
-                                continue;
-                            Cue.Builder cueBuilder = cue.buildUpon();
-                            if (cue.text == null)
-                                continue;
-                            String newText = cue.text.toString();
-                            newText = newText.replace("\\h"," ");
-                            cueBuilder.setText(newText);
-                            newCues.add(cueBuilder.build());
+                            if (cue != null && cue.text != null) {
+                                String newText = cue.text.toString();
+                                if (newText.contains("\\h")) {
+                                    Cue.Builder cueBuilder = cue.buildUpon();
+                                    newText = newText.replace("\\h", " ");
+                                    cueBuilder.setText(newText);
+                                    newCues.add(cueBuilder.build());
+                                }
+                                else
+                                    newCues.add(cue);
+                            }
+                            else
+                                newCues.add(cue);
                         }
                     mSubtitles.onCues(newCues);
             }

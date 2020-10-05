@@ -41,8 +41,8 @@ import java.io.IOException;
 /* package */ final class TsDurationReader {
 
     // Peter added here
-    private static final int TIMESTAMP_SEARCH_BYTES_START = 1200 * TsExtractor.TS_PACKET_SIZE;
-    private static final int TIMESTAMP_SEARCH_BYTES_END = 600 * TsExtractor.TS_PACKET_SIZE;
+    private static final int TIMESTAMP_SEARCH_BYTES_START = 2600 * TsExtractor.TS_PACKET_SIZE;
+    private static final int TIMESTAMP_SEARCH_BYTES_END = 2600 * TsExtractor.TS_PACKET_SIZE;
 
     private final TimestampAdjuster pcrTimestampAdjuster;
     private final ParsableByteArray packetBuffer;

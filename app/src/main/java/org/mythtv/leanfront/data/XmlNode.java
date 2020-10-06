@@ -85,6 +85,11 @@ public class XmlNode {
         return hostIpAndPort;
     }
 
+    public static void clearCache() {
+        sBackendIP = null;
+        sHostMap = new HashMap<>();
+    }
+
     public static XmlNode parseStream(InputStream in) throws XmlPullParserException, IOException {
         XmlPullParser parser = Xml.newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);

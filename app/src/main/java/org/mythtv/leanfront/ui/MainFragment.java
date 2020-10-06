@@ -185,6 +185,8 @@ public class MainFragment extends BrowseSupportFragment
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
+            // Clear ip address cache
+            XmlNode.clearCache();
             VideoDbHelper dbh = new VideoDbHelper(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
             // delete stale entries from bookmark table

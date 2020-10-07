@@ -68,14 +68,14 @@ public class XmlNode {
             String urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendServerAddr&HostName="
                             + hostname);
-            XmlNode response = XmlNode.fetch(urlString, "POST");
+            XmlNode response = XmlNode.fetch(urlString, null);
             String hostIp = response.getString();
             if (hostIp == null)
                 hostIp = backendIP;
             urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendStatusPort&HostName="
                             + hostname);
-            response = XmlNode.fetch(urlString, "POST");
+            response = XmlNode.fetch(urlString, null);
             String port = response.getString();
             if (port == null)
                 port = mainPort;

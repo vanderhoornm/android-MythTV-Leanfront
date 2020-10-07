@@ -659,7 +659,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     try {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Status/GetStatus");
-                        xmlResult = XmlNode.fetch(urlString, "POST");
+                        xmlResult = XmlNode.fetch(urlString, null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting backend Info.", e);
                     }

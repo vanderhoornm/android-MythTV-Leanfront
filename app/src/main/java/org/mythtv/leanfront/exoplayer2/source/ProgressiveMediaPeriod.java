@@ -759,6 +759,12 @@ import java.util.Map;
 //      }
 //    }
 
+    // If all streams have an upstream format we can finish preparing.
+    // If there is a video and an audio stream with upstream format
+    // and there is one single stream without upstream format, it is likely
+    // an audio stream with no data. Set it to a dummy mime type of
+    // audio/null so that playback can continue.
+
     int nullStream = -1;
     int nullStreamCount = 0;
     boolean videoFound = false;

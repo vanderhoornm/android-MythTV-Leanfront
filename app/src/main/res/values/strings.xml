@@ -139,8 +139,7 @@
     <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>
     <string name="button_zoom">Picture Size</string>
     <string name="button_aspect">Stretch Horizontally</string>
-    <string name="button_slowdown">Slow Down</string>
-    <string name="button_speedup">Speed Up</string>
+    <string name="button_speedup">Change Playback Speed</string>
     <string name="button_pivot">Move Up/Down</string>
     <string name="button_cc">Closed Captions</string>
     <string name="button_audiotrack">Change Audio Track</string>
@@ -173,6 +172,7 @@
     <string name="title_grid_time">Grid Time:</string>
     <string name="note_program_continuation">(cont)</string>
     <string name="title_select_timeslot">Select Time Slot</string>
+    <string name="title_select_speed">Select Playback Speed</string>
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
     <string name="title_rec_rules">Recording Rules</string>

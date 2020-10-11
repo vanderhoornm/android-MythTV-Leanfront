@@ -37,10 +37,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -136,12 +138,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private static float[] PIVOTY_VALUES = {0.5f, 0.25f, 0.0f, 1.0f, 0.75f};
     private int mPivotYIndex = 0;
     private float mPivotY = 0.5f;
-    private static final float[] SPEED_VALUES = {0.5f, 0.75f, 0.9f, 1.0f,
-            1.1f, 1.25f, 1.5f, 1.75f,
-            2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
-    private static final int SPEED_1_INDEX = 3;
-    private int mSpeedIndex = SPEED_1_INDEX;
-    private float mSpeed = SPEED_VALUES[SPEED_1_INDEX];
+    private static final float SPEED_START_VALUE = 1.0f;
+    private float mSpeed = SPEED_START_VALUE;
     private Toast mToast = null;
     private SubtitleView mSubtitles;
     // for these selections, -2 = default, -1 = disabled,
@@ -219,6 +217,9 @@ public class PlaybackFragment extends VideoSupportFragment
         if ((Util.SDK_INT <= 23 || mPlayer == null)) {
             initializePlayer();
         }
+        // To prevent dimming when showing controls.
+        // This also make controls difficult to see on light videos
+//        setBackgroundType(BG_NONE);
     }
 
     /**
@@ -1053,12 +1054,12 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     public void resetSpeed() {
-        mSpeedIndex = SPEED_1_INDEX;
-        mPlaylistActionListener.onSpeed(0);
+        mSpeed = SPEED_START_VALUE;
+        mPlaylistActionListener.onSpeed();
     }
 
     public boolean isSpeededUp() {
-        return mSpeedIndex > SPEED_1_INDEX;
+        return mSpeed > SPEED_START_VALUE;
     }
 
     public PlaylistActionListener getPlaylistActionListener() {
@@ -1116,8 +1117,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 initializePlayer();
                 return;
             }
-            mSpeedIndex = SPEED_1_INDEX;
-            mSpeed = SPEED_VALUES[mSpeedIndex];
+            mSpeed = SPEED_START_VALUE;
             if (mToast != null)
                 mToast.cancel();
             mToast = Toast.makeText(getActivity(),
@@ -1314,41 +1314,63 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onSpeed(int increment) {
-            int newix = mSpeedIndex + increment;
-            if (newix >= SPEED_VALUES.length || newix < 0) {
-                PlaybackParameters playbackParameters = mPlayer.getPlaybackParameters();
-                int stretchPerc = Math.round(playbackParameters.speed * 100.0f);
-                StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_speed))
-                        .append(" ").append(stretchPerc).append("%");
-                if (mToast != null)
-                    mToast.cancel();
-                mToast = Toast.makeText(getActivity(),
-                        msg, Toast.LENGTH_LONG);
-                mToast.show();
-                return;
-            }
-            mSpeedIndex = newix;
-            mSpeed = SPEED_VALUES[mSpeedIndex];
-            PlaybackParameters parms = new PlaybackParameters(mSpeed);
-            mPlayer.setPlaybackParameters(parms);
-            // This chunk no longer necessary with new version of ExoPlayer
-//            mIsSpeedChangeConfirmed = false;
-//            if (mSchedCheckSpeed != null && !mSchedCheckSpeed.isDone())
-//                mSchedCheckSpeed.cancel(false);
-//            if (MainFragment.executor != null) {
-//                mSchedCheckSpeed = MainFragment.executor.schedule(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        getActivity().runOnUiThread(new Runnable() {
-//                            public void run() {
-//                                if (!mIsSpeedChangeConfirmed)
-//                                        fixSpeed();
-//                            }
-//                        });
-//                    }
-//                } , 1000, TimeUnit.MILLISECONDS);
-//            }
+        public void onSpeed() {
+            showSpeedSelector();
+        }
+
+        private void showSpeedSelector() {
+            AlertDialog dialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                    R.style.Theme_AppCompat_Dialog_Alert);
+            builder.setTitle(R.string.title_select_speed)
+                    .setView(R.layout.leanback_preference_widget_seekbar);
+            dialog = builder.create();
+            dialog.show();
+            WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+            lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+            dialog.getWindow().setAttributes(lp);
+            SeekBar seekBar = dialog.findViewById(R.id.seekbar);
+            seekBar.setMax(800);
+            seekBar.setProgress(Math.round(mSpeed * 100.0f));
+            TextView seekValue = dialog.findViewById(R.id.seekbar_value);
+            seekValue.setText( (int)(mSpeed * 100.0f) + " %");
+            dialog.setOnKeyListener(
+                (DialogInterface dlg, int keyCode, KeyEvent event) -> {
+                    switch (keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            dlg.dismiss();
+                            return true;
+                    }
+                    if (event.getAction() != KeyEvent.ACTION_DOWN)
+                        return false;
+                    int value;
+                    switch(keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_LEFT:
+                            value = seekBar.getProgress();
+                            if (value > 10)
+                                value -= 10;
+                            else
+                                return true;
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_RIGHT:
+                            value = seekBar.getProgress();
+                            if (value <= 790)
+                                value += 10;
+                            else
+                                return true;
+                            break;
+                        default:
+                            return false;
+                    }
+                    seekBar.setProgress(value);
+                    seekValue.setText(String.valueOf(value) + " %");
+                    mSpeed = (float) value * 0.01f;
+                    PlaybackParameters parms = new PlaybackParameters(mSpeed);
+                    mPlayer.setPlaybackParameters(parms);
+                    return true;
+                }
+            );
         }
 
         @Override

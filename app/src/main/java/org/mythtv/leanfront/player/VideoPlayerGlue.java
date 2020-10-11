@@ -80,7 +80,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onFastForward();
         void onJumpForward();
         void onJumpBack();
-        void onSpeed(int increment);
+        void onSpeed();
         void onAudioTrack();
         void onActionSelected(Action action);
     }
@@ -96,8 +96,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mZoomAction;
     private MyAction mPivotAction;
     private MyAction mAspectAction;
-    private MyAction mSpeedDecAction;
-    private MyAction mSpeedIncAction;
+    private MyAction mSpeedAction;
     private MyAction mAudioTrackAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
@@ -123,8 +122,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mRewindAction = new PlaybackControlsRow.RewindAction(context);
         mZoomAction = new MyAction(context,Video.ACTION_ZOOM, R.drawable.ic_zoom_button,R.string.button_zoom);
         mAspectAction = new MyAction(context,Video.ACTION_ASPECT, R.drawable.ic_aspect_button,R.string.button_aspect);
-        mSpeedDecAction = new MyAction(context,Video.ACTION_SLOWDOWN, R.drawable.ic_speed_decrease,R.string.button_slowdown);
-        mSpeedIncAction = new MyAction(context,Video.ACTION_SPEEDUP, R.drawable.ic_speed_increase,R.string.button_speedup);
+        mSpeedAction = new MyAction(context,Video.ACTION_SPEEDUP, R.drawable.ic_speed_increase,R.string.button_speedup);
         mAudioTrackAction = new MyAction(context,Video.ACTION_AUDIOTRACK, R.drawable.ic_audio_track,R.string.button_audiotrack);
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
         Resources res = context.getResources();
@@ -147,8 +145,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mFastForwardAction);
         if (mAllowSkip)
             adapter.add(mSkipNextAction);
-        adapter.add(mSpeedDecAction);
-        adapter.add(mSpeedIncAction);
+        adapter.add(mSpeedAction);
     }
 
     @Override
@@ -219,8 +216,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mZoomAction
                 || action == mAspectAction
                 || action == mPivotAction
-                || action == mSpeedDecAction
-                || action == mSpeedIncAction
+                || action == mSpeedAction
                 || action == mAudioTrackAction;
     }
 
@@ -238,10 +234,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onCaption();
         } else if (action == mPivotAction) {
             mActionListener.onPivot();
-        } else if (action == mSpeedDecAction) {
-            mActionListener.onSpeed(-1);
-        } else if (action == mSpeedIncAction) {
-            mActionListener.onSpeed(1);
+        } else if (action == mSpeedAction) {
+            mActionListener.onSpeed();
         } else if (action == mAudioTrackAction) {
             mActionListener.onAudioTrack();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {

@@ -22,7 +22,7 @@
  * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.mythtv.leanfront.ui;
+package org.mythtv.leanfront.ui.playback;
 
 import android.annotation.TargetApi;
 import android.app.Dialog;
@@ -37,12 +37,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -92,6 +90,9 @@ import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.source.MediaSource;
 import org.mythtv.leanfront.exoplayer2.source.ProgressiveMediaSource;
+import org.mythtv.leanfront.ui.MainFragment;
+import org.mythtv.leanfront.ui.VideoDetailsActivity;
+
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
@@ -102,6 +103,7 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -116,9 +118,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private VideoPlayerGlue mPlayerGlue;
     private LeanbackPlayerAdapter mPlayerAdapter;
-    private SimpleExoPlayer mPlayer;
+    SimpleExoPlayer mPlayer;
     private DefaultTrackSelector mTrackSelector;
-    private PlaylistActionListener mPlaylistActionListener;
+    private PlaybackActionListener mPlaybackActionListener;
     private PlayerEventListener mPlayerEventListener;
 
     private Video mVideo;
@@ -127,33 +129,22 @@ public class PlaybackFragment extends VideoSupportFragment
     private CursorObjectAdapter mVideoCursorAdapter;
     private long mBookmark = 0;
     private boolean mWatched = false;
-    private static final float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
-    private int mAspectIndex = 0;
-    private float mAspect = 1.0f;
-    private static final float[] SCALE_VALUES = {0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
-    private static final int SCALE_DEFAULT_INDEX = 1;
-    private int mScaleIndex = SCALE_DEFAULT_INDEX;
-    private float mScaleX = 1.0f;
-    private float mScaleY = 1.0f;
-    private static float[] PIVOTY_VALUES = {0.5f, 0.25f, 0.0f, 1.0f, 0.75f};
-    private int mPivotYIndex = 0;
-    private float mPivotY = 0.5f;
     private static final float SPEED_START_VALUE = 1.0f;
-    private float mSpeed = SPEED_START_VALUE;
-    private Toast mToast = null;
+    float mSpeed = SPEED_START_VALUE;
+    Toast mToast = null;
     private SubtitleView mSubtitles;
     // for these selections, -2 = default, -1 = disabled,
     // 0 or above = enabled track number
-    private int mTextSelection = -2;
-    private int mAudioSelection = -2;
+    int mTextSelection = -2;
+    int mAudioSelection = -2;
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
     private MediaSource mMediaSource;
     private MythHttpDataSource mDataSource;
     // Bounded indicates we have a fixed file length
-    private boolean mIsBounded = true;
+    boolean mIsBounded = true;
     private long mOffsetBytes = 0;
-    private boolean mIsPlayResumable;
+    boolean mIsPlayResumable;
 //    private boolean mIsSpeedChangeConfirmed = false;
 //    private ScheduledFuture<?> mSchedCheckSpeed;
     // Settings
@@ -299,7 +290,6 @@ public class PlaybackFragment extends VideoSupportFragment
     private void initializePlayer() {
         Log.i(TAG, CLASS + " Initializing Player for " + mVideo.title + " " + mVideo.videoUrl);
         mTrackSelector = new DefaultTrackSelector(getContext());
-//        mTrackSelector = new DefaultTrackSelector();
         DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getContext());
         int extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
         if ("mediacodec".equals(mAudio))
@@ -308,7 +298,6 @@ public class PlaybackFragment extends VideoSupportFragment
             extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
-//        mPlayer = ExoPlayerFactory.newSimpleInstance(getActivity(), rFactory, mTrackSelector);
         SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);
         builder.setTrackSelector(mTrackSelector);
         mPlayer = builder.build();
@@ -345,9 +334,9 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.addListener(mPlayerEventListener);
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
-        mPlaylistActionListener = new PlaylistActionListener(mPlaylist);
+        mPlaybackActionListener = new PlaybackActionListener(this, mPlaylist);
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
-                mPlaylistActionListener, mRecordid < 0);
+                mPlaybackActionListener, mRecordid < 0);
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         hideControlsOverlay(false);
         play(mVideo);
@@ -357,9 +346,10 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void audioFix() {
-        if (MainFragment.executor != null) {
+        ScheduledExecutorService executor = MainFragment.getExecutor();
+        if (executor != null) {
             ScheduledFuture<?> sched;
-            sched = MainFragment.executor.schedule(new Runnable() {
+            sched = executor.schedule(new Runnable() {
                 @Override
                 public void run() {
                     getActivity().runOnUiThread(new Runnable() {
@@ -390,9 +380,10 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void playWait(int delay) {
-        if (MainFragment.executor != null) {
+        ScheduledExecutorService executor = MainFragment.getExecutor();
+        if (executor != null) {
             ScheduledFuture<?> sched;
-            sched = MainFragment.executor.schedule(new Runnable() {
+            sched = executor.schedule(new Runnable() {
                 @Override
                 public void run() {
                     getActivity().runOnUiThread(new Runnable() {
@@ -428,7 +419,7 @@ public class PlaybackFragment extends VideoSupportFragment
             mTrackSelector = null;
             mPlayerGlue = null;
             mPlayerAdapter = null;
-            mPlaylistActionListener = null;
+            mPlaybackActionListener = null;
         }
     }
 
@@ -849,7 +840,7 @@ public class PlaybackFragment extends VideoSupportFragment
     // doChange = true : select a new track, false = leave same track
     // Return = new track selection.
 
-    private int trackSelector(int trackType, int trackSelection,
+    int trackSelector(int trackType, int trackSelection,
             int msgOn, int msgOff, boolean disable, boolean doChange) {
         // optionList array - 0 = renderer, 1 = track group, 2 = track
         ArrayList<int[]> optionList = new ArrayList<>();
@@ -1055,53 +1046,17 @@ public class PlaybackFragment extends VideoSupportFragment
 
     public void resetSpeed() {
         mSpeed = SPEED_START_VALUE;
-        mPlaylistActionListener.onSpeed();
+        mPlaybackActionListener.onSpeed();
     }
 
     public boolean isSpeededUp() {
         return mSpeed > SPEED_START_VALUE;
     }
 
-    public PlaylistActionListener getPlaylistActionListener() {
-        return mPlaylistActionListener;
+    public PlaybackActionListener getPlaybackActionListener() {
+        return mPlaybackActionListener;
     }
 
-
-    // mode = -1 for smaller, 0 for rotate, 1 for bigger
-    public void zoom(int mode) {
-        if (mode == 0) {
-            if (++mScaleIndex >= SCALE_VALUES.length)
-                mScaleIndex = 0;
-        }
-        else {
-            int newValue = mScaleIndex + mode;
-            if (newValue >= SCALE_VALUES.length
-                || newValue < 0)
-                return;
-            mScaleIndex = newValue;
-        }
-
-        mScaleX = SCALE_VALUES[mScaleIndex];
-        mScaleY = SCALE_VALUES[mScaleIndex];
-        setScale();
-
-        int vertPerc = Math.round(mScaleY * 100.0f);
-        StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_zoom_size))
-                .append(" ").append(vertPerc).append("%");
-        if (mToast != null)
-            mToast.cancel();
-        mToast = Toast.makeText(getActivity(),
-                msg, Toast.LENGTH_LONG);
-        mToast.show();
-    }
-
-    private void setScale() {
-        SurfaceView view = getSurfaceView();
-        int height = view.getHeight();
-        view.setPivotY(mPivotY * height);
-        view.setScaleX(mScaleX * mAspect);
-        view.setScaleY(mScaleY);
-    }
 
     private void fixSpeed() {
         long duration = mPlayerGlue.myGetDuration();
@@ -1243,171 +1198,6 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    class PlaylistActionListener implements VideoPlayerGlue.OnActionClickedListener {
-
-        private Playlist mPlaylist;
-
-        PlaylistActionListener(Playlist playlist) {
-            this.mPlaylist = playlist;
-        }
-
-        @Override
-        public void onPrevious() {
-            skipToPrevious();
-        }
-
-        @Override
-        public void onNext() {
-            skipToNext();
-        }
-
-        @Override
-        public void onPlayCompleted() {
-            markWatched(true);
-            if (mIsBounded) {
-                Log.i(TAG, CLASS + " onPlayCompleted checking File Length.");
-                mIsPlayResumable = true;
-                getFileLength();
-            }
-        }
-
-        @Override
-        public void onZoom() {
-            zoom(0);
-        }
-
-        @Override
-        public void onAspect() {
-            if (++mAspectIndex >= ASPECT_VALUES.length)
-                mAspectIndex = 0;
-            mAspect = ASPECT_VALUES[mAspectIndex];
-            setScale();
-
-            int stretchPerc = Math.round(mAspect * 100.0f);
-            StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_aspect_stretch))
-                    .append(" ").append(stretchPerc).append("%");
-            if (mToast != null)
-                mToast.cancel();
-            mToast = Toast.makeText(getActivity(),
-                    msg, Toast.LENGTH_LONG);
-            mToast.show();
-        }
-
-        @Override
-        public void onCaption() {
-            mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
-                    R.string.msg_subtitle_on, R.string.msg_subtitle_off, true, true);
-        }
-
-        @Override
-        public void onPivot() {
-            if (++mPivotYIndex >= PIVOTY_VALUES.length)
-                mPivotYIndex = 0;
-            mPivotY = PIVOTY_VALUES[mPivotYIndex];
-            setScale();
-            String msg = getActivity().getResources().getStringArray(R.array.msg_pin_values)[mPivotYIndex];
-            if (mToast != null)
-                mToast.cancel();
-            mToast = Toast.makeText(getActivity(),
-                    msg, Toast.LENGTH_LONG);
-            mToast.show();
-        }
-
-        @Override
-        public void onSpeed() {
-            showSpeedSelector();
-        }
-
-        private void showSpeedSelector() {
-            AlertDialog dialog;
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
-                    R.style.Theme_AppCompat_Dialog_Alert);
-            builder.setTitle(R.string.title_select_speed)
-                    .setView(R.layout.leanback_preference_widget_seekbar);
-            dialog = builder.create();
-            dialog.show();
-            WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
-            lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
-            dialog.getWindow().setAttributes(lp);
-            SeekBar seekBar = dialog.findViewById(R.id.seekbar);
-            seekBar.setMax(800);
-            seekBar.setProgress(Math.round(mSpeed * 100.0f));
-            TextView seekValue = dialog.findViewById(R.id.seekbar_value);
-            seekValue.setText( (int)(mSpeed * 100.0f) + " %");
-            dialog.setOnKeyListener(
-                (DialogInterface dlg, int keyCode, KeyEvent event) -> {
-                    switch (keyCode) {
-                        case KeyEvent.KEYCODE_DPAD_CENTER:
-                        case KeyEvent.KEYCODE_ENTER:
-                            dlg.dismiss();
-                            return true;
-                    }
-                    if (event.getAction() != KeyEvent.ACTION_DOWN)
-                        return false;
-                    int value;
-                    switch(keyCode) {
-                        case KeyEvent.KEYCODE_DPAD_LEFT:
-                            value = seekBar.getProgress();
-                            if (value > 10)
-                                value -= 10;
-                            else
-                                return true;
-                            break;
-                        case KeyEvent.KEYCODE_DPAD_RIGHT:
-                            value = seekBar.getProgress();
-                            if (value <= 790)
-                                value += 10;
-                            else
-                                return true;
-                            break;
-                        default:
-                            return false;
-                    }
-                    seekBar.setProgress(value);
-                    seekValue.setText(String.valueOf(value) + " %");
-                    mSpeed = (float) value * 0.01f;
-                    PlaybackParameters parms = new PlaybackParameters(mSpeed);
-                    mPlayer.setPlaybackParameters(parms);
-                    return true;
-                }
-            );
-        }
-
-        @Override
-        public void onRewind() {
-            rewind();
-        }
-
-        @Override
-        public void onFastForward() {
-            fastForward();
-        }
-
-        @Override
-        // unused as we do not have OSD icons for this
-        public void onJumpForward() {
-            jumpForward();
-        }
-
-        @Override
-        // unused as we do not have OSD icons for this
-        public void onJumpBack() {
-            jumpBack();
-        }
-
-        @Override
-        public void onActionSelected(Action action) {
-            actionSelected(action);
-        }
-
-        @Override
-        public void onAudioTrack() {
-            mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
-                    R.string.msg_audio_track, R.string.msg_audio_track_off, true, true);
-        }
-
-    }
-
     class PlayerEventListener implements Player.EventListener {
         private int mDialogStatus = 0;
         private static final int DIALOG_NONE   = 0;
@@ -1462,7 +1252,7 @@ public class PlaybackFragment extends VideoSupportFragment
                             String mimeType = ((MediaCodecRenderer.DecoderInitializationException) cause).mimeType;
                             if (mimeType != null && mimeType.startsWith("audio")) {
                                 // select the next audio track instead
-                                mPlaylistActionListener.onAudioTrack();
+                                mPlaybackActionListener.onAudioTrack();
                                 // reset timer so that it does not display error dialog.
                                 mTimeLastError = 0;
                                 audioTrackChange = true;

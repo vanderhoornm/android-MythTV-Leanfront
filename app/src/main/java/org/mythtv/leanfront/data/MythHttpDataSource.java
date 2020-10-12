@@ -31,7 +31,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 
 import org.mythtv.leanfront.ui.MainActivity;
-import org.mythtv.leanfront.ui.PlaybackFragment;
+import org.mythtv.leanfront.ui.playback.PlaybackFragment;
 
 import java.io.IOException;
 

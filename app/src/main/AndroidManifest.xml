@@ -83,7 +83,7 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name="org.mythtv.leanfront.ui.PlaybackActivity"
+            android:name="org.mythtv.leanfront.ui.playback.PlaybackActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
             android:launchMode="singleTask"
             android:resizeableActivity="true" />

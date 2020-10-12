@@ -22,7 +22,7 @@
  * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.mythtv.leanfront.ui;
+package org.mythtv.leanfront.ui.playback;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -36,6 +36,7 @@ import android.view.WindowManager;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.ui.LeanbackActivity;
 
 /**
  * Loads PlaybackFragment and delegates input from a game controller.
@@ -98,10 +99,10 @@ public class PlaybackActivity extends LeanbackActivity {
                 finish();
                 return true;
             case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
-                mPlaybackFragment.getPlaylistActionListener().onAudioTrack();
+                mPlaybackFragment.getPlaybackActionListener().onAudioTrack();
                 return true;
             case KeyEvent.KEYCODE_CAPTIONS:
-                mPlaybackFragment.getPlaylistActionListener().onCaption();
+                mPlaybackFragment.getPlaybackActionListener().onCaption();
                 return true;
             case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
                 mPlaybackFragment.tickle();
@@ -112,13 +113,13 @@ public class PlaybackActivity extends LeanbackActivity {
                 mPlaybackFragment.jumpBack();
                 return true;
             case KeyEvent.KEYCODE_TV_ZOOM_MODE:
-                mPlaybackFragment.getPlaylistActionListener().onAspect();
+                mPlaybackFragment.getPlaybackActionListener().onAspect();
                 return true;
             case KeyEvent.KEYCODE_ZOOM_IN:
-                mPlaybackFragment.zoom(1);
+                mPlaybackFragment.getPlaybackActionListener().zoom(1);
                 return true;
             case KeyEvent.KEYCODE_ZOOM_OUT:
-                mPlaybackFragment.zoom(-1);
+                mPlaybackFragment.getPlaybackActionListener().zoom(-1);
                 return true;
         }
 

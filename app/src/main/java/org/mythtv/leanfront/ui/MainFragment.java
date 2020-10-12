@@ -95,6 +95,7 @@ import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
 import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -169,7 +170,7 @@ public class MainFragment extends BrowseSupportFragment
     private int mSelectedItemType = -1;
     private TextView mUsageView;
 
-    static ScheduledExecutorService executor = null;
+    private static ScheduledExecutorService executor = null;
     private static MythTask mythTask = new MythTask();
     public static volatile long mFetchTime = 0;
     // Keep track of the fragment currently showing, if any.
@@ -1149,6 +1150,10 @@ public class MainFragment extends BrowseSupportFragment
 
     public int getType() {
         return mType;
+    }
+
+    public static ScheduledExecutorService getExecutor() {
+        return executor;
     }
 
     private class UpdateBackgroundTask implements Runnable {

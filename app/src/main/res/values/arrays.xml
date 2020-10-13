@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="msg_pin_values">
-        <item>@string/msg_pin_center</item>
-        <item>@string/msg_pin_near_top</item>
-        <item>@string/msg_pin_top</item>
-        <item>@string/msg_pin_bottom</item>
-        <item>@string/msg_pin_near_bottom</item>
-    </string-array>
     <string-array name="prompt_stop_livetv">
         <item>@string/menu_dont_stop_livetv</item>
         <item>@string/menu_stop_livetv</item>

@@ -113,6 +113,7 @@
     <string name="pref_title_framerate_match">Match original frame rate</string>
     <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
+
     <!-- In the next 2, %1 in the track number, %2 is the language if known
          in parens e.g (English) or empty string if not known -->
     <string name="msg_subtitle_on">Subtitle %1$d%2$s enabled.</string>
@@ -120,11 +121,21 @@
     <string name="msg_no_audio_track">No Audio Track.</string>
     <string name="msg_audio_track_off">Audio Track Disabled.</string>
     <string name="msg_subtitle_off">Subtitle Disabled.</string>
-    <string name="msg_pin_center">Pinned at Center.</string>
-    <string name="msg_pin_top">Pinned at Top.</string>
-    <string name="msg_pin_near_top">Pinned near Top.</string>
-    <string name="msg_pin_bottom">Pinned at Bottom.</string>
-    <string name="msg_pin_near_bottom">Pinned near Bottom.</string>
+    <string name="msg_pic_pos">Picture Position:</string>
+    <string name="msg_pin_center">Center</string>
+    <string name="msg_pin_top">Top</string>
+    <string name="msg_pin_bottom">Bottom</string>
+    <string name="msg_pin_up">Up</string>
+    <string name="msg_pin_down">Down</string>
+    <string name="msg_pin_left_edge">Left Edge</string>
+    <string name="msg_pin_right_edge">Right Edge</string>
+    <string name="msg_pin_left">Left</string>
+    <string name="msg_pin_right">Right</string>
+    <string name="msg_cannot_move">The picture fills the screen so it cannot be moved.</string>
+    <string name="title_select_speed">Set Playback Speed</string>
+    <string name="title_select_zoom">Set Picture Size</string>
+    <string name="title_select_position">Set Picture Position</string>
+
     <string name="msg_unable_get_framerate">Unable to obtain frame rate.
         Make sure you have the appropriate version of mythbackend or disable
         frame rate matching.</string>
@@ -140,7 +151,7 @@
     <string name="button_zoom">Picture Size</string>
     <string name="button_aspect">Stretch Horizontally</string>
     <string name="button_speedup">Change Playback Speed</string>
-    <string name="button_pivot">Move Up/Down</string>
+    <string name="button_pivot">Move Picture</string>
     <string name="button_cc">Closed Captions</string>
     <string name="button_audiotrack">Change Audio Track</string>
     <string name="row_header_videos">Videos</string>
@@ -172,7 +183,6 @@
     <string name="title_grid_time">Grid Time:</string>
     <string name="note_program_continuation">(cont)</string>
     <string name="title_select_timeslot">Select Time Slot</string>
-    <string name="title_select_speed">Select Playback Speed</string>
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
     <string name="title_rec_rules">Recording Rules</string>

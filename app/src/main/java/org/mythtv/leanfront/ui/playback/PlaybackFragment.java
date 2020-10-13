@@ -1208,7 +1208,6 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-//            mIsSpeedChangeConfirmed = true;
             int stretchPerc = Math.round(playbackParameters.speed * 100.0f);
             StringBuilder msg = new StringBuilder(getActivity().getString(R.string.playback_speed))
                     .append(" ").append(stretchPerc).append("%");

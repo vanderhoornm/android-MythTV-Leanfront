@@ -145,8 +145,6 @@ public class PlaybackFragment extends VideoSupportFragment
     boolean mIsBounded = true;
     private long mOffsetBytes = 0;
     boolean mIsPlayResumable;
-//    private boolean mIsSpeedChangeConfirmed = false;
-//    private ScheduledFuture<?> mSchedCheckSpeed;
     // Settings
     private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
@@ -208,9 +206,9 @@ public class PlaybackFragment extends VideoSupportFragment
         if ((Util.SDK_INT <= 23 || mPlayer == null)) {
             initializePlayer();
         }
-        // To prevent dimming when showing controls.
+        // To reduce dimming when showing controls.
         // This also make controls difficult to see on light videos
-//        setBackgroundType(BG_NONE);
+        setBackgroundType(BG_LIGHT);
     }
 
     /**

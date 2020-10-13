@@ -44,10 +44,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     private final PlaybackFragment playbackFragment;
     private Playlist mPlaylist;
 
-    static final float[] ASPECT_VALUES = {1.0f, 1.1847f, 1.333333f, 1.5f, 0.75f, 0.875f};
-    int mAspectIndex = 0;
+    static final float[] STRETCH_VALUES = {0.75f, 0.875f, 1.0f, 1.1847f, 1.333333f, 1.5f};
     private float mScale = 1.0f;
-    float mAspect = 1.0f;
+    float mStretch = 1.0f;
     float mPivotX = 0.5f;
     float mPivotY = 0.5f;
     AlertDialog mDialog;
@@ -95,7 +94,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         SurfaceView view = playbackFragment.getSurfaceView();
         int height = view.getHeight();
         int width = view.getWidth();
-        float xScale = mScale * mAspect;
+        float xScale = mScale * mStretch;
         if (mScale == 1.0f)
             mPivotY = 0.5f;
         if (xScale == 1.0f)
@@ -108,19 +107,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onAspect() {
-        if (++mAspectIndex >= ASPECT_VALUES.length)
-            mAspectIndex = 0;
-        mAspect = ASPECT_VALUES[mAspectIndex];
-        setScale();
-
-        int stretchPerc = Math.round(mAspect * 100.0f);
-        StringBuilder msg = new StringBuilder(playbackFragment.getActivity().getString(R.string.playback_aspect_stretch))
-                .append(" ").append(stretchPerc).append("%");
-        if (playbackFragment.mToast != null)
-            playbackFragment.mToast.cancel();
-        playbackFragment.mToast = Toast.makeText(playbackFragment.getActivity(),
-                msg, Toast.LENGTH_LONG);
-        playbackFragment.mToast.show();
+        showStretchSelector();
     }
 
     @Override
@@ -164,17 +151,17 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 }
                 if (event.getAction() != KeyEvent.ACTION_DOWN)
                     return false;
-                int value;
+                int value = seekBar.getProgress();
                 switch(keyCode) {
                     case KeyEvent.KEYCODE_DPAD_LEFT:
-                        value = seekBar.getProgress();
+                    case KeyEvent.KEYCODE_DPAD_DOWN:
                         if (value > 10)
                             value -= 10;
                         else
                             return true;
                         break;
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        value = seekBar.getProgress();
+                    case KeyEvent.KEYCODE_DPAD_UP:
                         if (value <= 790)
                             value += 10;
                         else
@@ -227,23 +214,19 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
                         return false;
-                    int value;
+                    int value = seekBar.getProgress();
                     switch(keyCode) {
                         case KeyEvent.KEYCODE_DPAD_LEFT:
+                        case KeyEvent.KEYCODE_DPAD_DOWN:
                         case KeyEvent.KEYCODE_ZOOM_OUT:
-                            value = seekBar.getProgress();
                             if (value > 5)
                                 value -= 5;
-                            else
-                                return true;
                             break;
                         case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        case KeyEvent.KEYCODE_DPAD_UP:
                         case KeyEvent.KEYCODE_ZOOM_IN:
-                            value = seekBar.getProgress();
                             if (value <= 195)
                                 value += 5;
-                            else
-                                return true;
                             break;
                         case KeyEvent.KEYCODE_BACK:
                             return false;
@@ -265,6 +248,88 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 }
         );
     }
+
+    private void showStretchSelector() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(R.string.title_select_stretch)
+                .setView(R.layout.leanback_preference_widget_seekbar);
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
+        seekBar.setMax(200);
+        seekBar.setProgress(Math.round(mStretch * 100.0f));
+        TextView summary = mDialog.findViewById(android.R.id.summary);
+        summary.setText( playbackFragment.getString(R.string.stretch_instructions));
+        TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
+        seekValue.setText( (int)(mStretch * 100.0f) + " %");
+        mDialog.setOnKeyListener(
+                (DialogInterface dlg, int keyCode, KeyEvent event) -> {
+                    switch (keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            dlg.dismiss();
+                            return true;
+                    }
+                    if (event.getAction() != KeyEvent.ACTION_DOWN)
+                        return false;
+                    int value = Math.round((float)seekBar.getProgress() / 5.0f) * 5;
+                    float newfvalue = 0.0f;
+                    switch(keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_LEFT:
+                            if (value > 5)
+                                value -= 5;
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_RIGHT:
+                            if (value <= 195)
+                                value += 5;
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_DOWN:
+                            newfvalue = STRETCH_VALUES [0];
+                            for (float ftest : STRETCH_VALUES) {
+                                if (ftest < mStretch)
+                                    newfvalue = ftest;
+                            }
+                            value = Math.round(newfvalue * 100.0f);
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_UP:
+                            newfvalue = STRETCH_VALUES [STRETCH_VALUES.length-1];
+                            for (float ftest : STRETCH_VALUES) {
+                                if (ftest > mStretch) {
+                                    newfvalue = ftest;
+                                    break;
+                                }
+                            }
+                            value = Math.round(newfvalue * 100.0f);
+                            break;
+                        case KeyEvent.KEYCODE_BACK:
+                            return false;
+                        default:
+                            dlg.dismiss();
+                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
+                            return true;
+                    }
+                    seekBar.setProgress(value);
+                    seekValue.setText(value + " %");
+                    if (newfvalue > 0.0f)
+                        mStretch = newfvalue;
+                    else
+                        mStretch = (float) value * 0.01f;
+                    setScale();
+                    return true;
+                }
+        );
+        mDialog.setOnDismissListener(
+                (DialogInterface dialog) -> {
+                    mDialog = null;
+                }
+        );
+    }
+
+
 
     private void showPivotSelector() {
         int x = Math.round(mPivotX * 100.0f);
@@ -339,7 +404,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     }
 
     String getPivotMessage() {
-        if (mScale == 1.0f && mAspect == 1.0f)
+        if (mScale == 1.0f && mStretch == 1.0f)
             return playbackFragment.getString(R.string.msg_cannot_move);
         int x = Math.round(mPivotX * 100.0f);
         int y = Math.round(mPivotY * 100.0f);
@@ -354,31 +419,23 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         else if (x < 50)
             build.append(playbackFragment.getString(R.string.msg_pin_left))
                     .append(" / ");
-//            build.append("Left, ");
         else if (x == 100)
             build.append(playbackFragment.getString(R.string.msg_pin_right_edge))
                     .append(" / ");
-//            build.append("Right Edge, ");
         else if (x > 50)
             build.append(playbackFragment.getString(R.string.msg_pin_right))
                     .append(" / ");
-//            build.append("Right, ");
 
         if (y == 50)
             build.append(playbackFragment.getString(R.string.msg_pin_center));
-//            build.append("Center.");
         else if (y == 0)
             build.append(playbackFragment.getString(R.string.msg_pin_top));
-//            build.append("Top Edge.");
         else if (y < 50)
             build.append(playbackFragment.getString(R.string.msg_pin_up));
-//            build.append("Up.");
         else if (y == 100)
             build.append(playbackFragment.getString(R.string.msg_pin_bottom));
-//            build.append("Bottom Edge.");
         else if (y > 50)
             build.append(playbackFragment.getString(R.string.msg_pin_down));
-//            build.append("Down.");
         return build.toString();
     }
 

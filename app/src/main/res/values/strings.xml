@@ -135,8 +135,8 @@
     <string name="title_select_speed">Set Playback Speed</string>
     <string name="title_select_zoom">Set Picture Size</string>
     <string name="title_select_stretch">Stretch Picture</string>
-    <string name="stretch_instructions">Use up/down to select predefined values, left/right to
-        fine tune the stretch amount.</string>
+    <string name="seekbar_instructions">Use up/down to select predefined values, left/right to
+        fine tune the amount.</string>
     <string name="title_select_position">Set Picture Position</string>
 
     <string name="msg_unable_get_framerate">Unable to obtain frame rate.

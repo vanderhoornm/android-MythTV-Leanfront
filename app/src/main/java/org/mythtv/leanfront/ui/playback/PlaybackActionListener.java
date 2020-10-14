@@ -45,6 +45,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     private Playlist mPlaylist;
 
     static final float[] STRETCH_VALUES = {0.75f, 0.875f, 1.0f, 1.1847f, 1.333333f, 1.5f};
+    static final float[] SCALE_VALUES = {0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
     private float mScale = 1.0f;
     float mStretch = 1.0f;
     float mPivotX = 0.5f;
@@ -202,6 +203,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
         seekBar.setMax(200);
         seekBar.setProgress(Math.round(mScale * 100.0f));
+        TextView summary = mDialog.findViewById(android.R.id.summary);
+        summary.setText( playbackFragment.getString(R.string.seekbar_instructions));
         TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
         seekValue.setText( (int)(mScale * 100.0f) + " %");
         mDialog.setOnKeyListener(
@@ -214,20 +217,38 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
                         return false;
-                    int value = seekBar.getProgress();
+                    int value = Math.round((float)seekBar.getProgress() / 5.0f) * 5;
+                    float newfvalue = 0.0f;
                     switch(keyCode) {
                         case KeyEvent.KEYCODE_DPAD_LEFT:
-                        case KeyEvent.KEYCODE_DPAD_DOWN:
                         case KeyEvent.KEYCODE_ZOOM_OUT:
                             if (value > 5)
                                 value -= 5;
                             break;
                         case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        case KeyEvent.KEYCODE_DPAD_UP:
                         case KeyEvent.KEYCODE_ZOOM_IN:
                             if (value <= 195)
                                 value += 5;
                             break;
+                        case KeyEvent.KEYCODE_DPAD_DOWN:
+                            newfvalue = SCALE_VALUES [0];
+                            for (float ftest : SCALE_VALUES) {
+                                if (ftest < mScale)
+                                    newfvalue = ftest;
+                            }
+                            value = Math.round(newfvalue * 100.0f);
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_UP:
+                            newfvalue = SCALE_VALUES [SCALE_VALUES.length-1];
+                            for (float ftest : SCALE_VALUES) {
+                                if (ftest > mScale) {
+                                    newfvalue = ftest;
+                                    break;
+                                }
+                            }
+                            value = Math.round(newfvalue * 100.0f);
+                            break;
+
                         case KeyEvent.KEYCODE_BACK:
                             return false;
                         default:
@@ -237,7 +258,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     }
                     seekBar.setProgress(value);
                     seekValue.setText(value + " %");
-                    mScale = (float) value * 0.01f;
+                    if (newfvalue > 0.0f)
+                        mScale = newfvalue;
+                    else
+                        mScale = (float) value * 0.01f;
                     setScale();
                     return true;
                 }
@@ -263,7 +287,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         seekBar.setMax(200);
         seekBar.setProgress(Math.round(mStretch * 100.0f));
         TextView summary = mDialog.findViewById(android.R.id.summary);
-        summary.setText( playbackFragment.getString(R.string.stretch_instructions));
+        summary.setText( playbackFragment.getString(R.string.seekbar_instructions));
         TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
         seekValue.setText( (int)(mStretch * 100.0f) + " %");
         mDialog.setOnKeyListener(

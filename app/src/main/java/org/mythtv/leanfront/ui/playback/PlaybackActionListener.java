@@ -20,6 +20,8 @@
 package org.mythtv.leanfront.ui.playback;
 
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -27,13 +29,14 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.Action;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.source.SampleQueue;
+import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Playlist;
@@ -50,6 +53,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     float mStretch = 1.0f;
     float mPivotX = 0.5f;
     float mPivotY = 0.5f;
+    long sampleOffsetUs = 0;
     AlertDialog mDialog;
 
     private static final String TAG = "lfe";
@@ -137,6 +141,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
         mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
         seekBar.setMax(800);
         seekBar.setProgress(Math.round(playbackFragment.mSpeed * 100.0f));
@@ -200,6 +205,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
         mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
         seekBar.setMax(200);
         seekBar.setProgress(Math.round(mScale * 100.0f));
@@ -283,6 +289,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
         mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
         seekBar.setMax(200);
         seekBar.setProgress(Math.round(mStretch * 100.0f));
@@ -369,6 +376,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
         mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         mDialog.setOnKeyListener(
                 (DialogInterface dlg, int keyCode, KeyEvent event) -> {
                     switch (keyCode) {
@@ -461,6 +469,82 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         else if (y > 50)
             build.append(playbackFragment.getString(R.string.msg_pin_down));
         return build.toString();
+    }
+
+    @Override
+    public void onAudioSync() {
+        showAudioSyncSelector();
+    }
+
+    private void showAudioSyncSelector() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(R.string.title_select_audiosync)
+                .setView(R.layout.leanback_preference_widget_seekbar);
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+        SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
+        seekBar.setMax(5000); // --2500ms to +2500ms
+        seekBar.setProgress((int)(sampleOffsetUs/1000 + 2500));
+        TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
+        String text = String.format("%+d",sampleOffsetUs / 1000);
+        seekValue.setText(text);
+        mDialog.setOnKeyListener(
+                (DialogInterface dlg, int keyCode, KeyEvent event) -> {
+                    switch (keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            dlg.dismiss();
+                            return true;
+                    }
+                    if (event.getAction() != KeyEvent.ACTION_DOWN)
+                        return false;
+                    int value = (int)(sampleOffsetUs/1000 + 2500);
+                    switch(keyCode) {
+                        case KeyEvent.KEYCODE_DPAD_LEFT:
+                        case KeyEvent.KEYCODE_DPAD_DOWN:
+                            if (value > 10)
+                                value -= 10;
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        case KeyEvent.KEYCODE_DPAD_UP:
+                            if (value <= 4990)
+                                value += 10;
+                            break;
+                        case KeyEvent.KEYCODE_BACK:
+                            return false;
+                        default:
+                            dlg.dismiss();
+                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
+                            return true;
+                    }
+                    seekBar.setProgress(value);
+                    sampleOffsetUs = ((long)value - 2500) * 1000;
+                    String text1 = String.format("%+d",sampleOffsetUs / 1000);
+                    seekValue.setText(text1);
+                    setAudioSync();
+                    return true;
+                }
+        );
+        mDialog.setOnDismissListener(
+                (DialogInterface dialog) -> {
+                    mDialog = null;
+                }
+        );
+    }
+
+    public void setAudioSync() {
+        SampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
+        for (SampleQueue sampleQueue : sampleQueues) {
+            if (MimeTypes.isAudio(sampleQueue.getUpstreamFormat().sampleMimeType)) {
+                sampleQueue.setSampleOffsetUs(sampleOffsetUs);
+                playbackFragment.moveBackward(0);
+            }
+        }
     }
 
     @Override

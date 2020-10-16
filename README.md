@@ -31,6 +31,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Synchronization of TV refresh rate to match frame rate.
 - Display Program Guide, create recording rules, update recording rules.
 - The *Master Backend Override* setting is now supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
+- Adjustment of Audio Sync.
 
 
 ## Main Screen
@@ -168,35 +169,36 @@ adb logcat
 
 ![](PlaybackExample.png)
 
-The following controls are available when pressing enter during playback. Select an icon and press enter to apply it.
+The following controls are available when pressing enter during playback. Select an icon and press enter to apply it. The name of the currently selected icon is displayed below the progress bar.
 
 ### Top Row of Controls
 
 | Icon | Usage |
 |------|-------|
-| Pause/Resume | Switches between pause icon and play icon depending on the current state. |
-| Previous track | This plays, from the beginning, the previous recording or video in the list without needing to exit from playback (see related videos, below). |
+| Play/Pause | Switches between pause icon and play icon depending on the current state. |
+| Skip Previous | This plays, from the beginning, the previous recording or video in the list without needing to exit from playback (see related videos, below). |
 | Rewind | This skips back by the time set in the settings. |
-| Fast Forward | This skips forward by the time set in the settings. |
-| Next track | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
-| Slow down | Slows playback speed by increments down to a minimum of 50%. |
-| Speed up | Speeds up playback by increments to a maximum of 800%. |
+| Jump Forward | This skips forward by the time set in the settings. |
+| Skip Next | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
+| Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
 
 ### Progress Bar
 
 This shows playback position plus time played and total time. While this is focused you can use left and right arrows to skip back and forward. Holding the arrow down moves quickly through the recording. While this is focused, pressing Enter pauses and resumes.
+Below the progress bar is displayed the description of the currently selected icon, if one is selected.
 
 ### Bottom Row of controls
 
 | Icon | Usage |
 |------|-------|
-| CC | Turns on or off captions (subtitles). If there are multiple languages this rotates among them. |
-| Zoom | Changes the picture size. Pressing this rotates among several standard zoom amounts. |
-| Aspect | Stretch or squeeze the picture in case it is showing at the wrong aspect ratio. Pressing this rotates between several common aspect ratios. |
-| Up/down | If the picture has been resized, moves the picture up or down. There are three positions, aligned on top, middle, or bottom. For use when you want to cut off the top or bottom of the picture, after zooming to a bigger size. |
-| Audio Track | Rotates among available audio tracks. |
+| Closed Captions | Turns on or off captions (subtitles). If there are multiple languages this rotates among them. |
+| Picture Size | Changes the picture size. Pressing this shows a seekbar. Left and right arrow fine tune the size. Up and down arrow select from several standard zoom amounts. |
+| Stretch Horizontally | Stretch or squeeze the picture in case it is showing at the wrong aspect ratio.  Pressing this shows a seekbar. Left and right arrow fine tune the stretch. Up and down arrow select from several standard stretch amounts. |
+| Move Picture | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size. |
+| Change Audio Track | Rotates among available audio tracks including audio disabled. |
+| Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this is lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
 
-**Note:** When using *slow down* or *speed up* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
+**Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 
 ### Related videos
 
@@ -226,9 +228,9 @@ The Fire Stick and NVidia Shield have rather limited remote controls, however th
 | Media Stop | Playback | Stop Playback and save bookmark |
 | Media Next | Playback | Skip to beginning of the next Video (same as Next Track Icon) |
 | Media Previous | Playback | Skip to beginning of the previous Video (same as Previous Track Icon) |
-| TV Zoom Mode | Playback | Squeeze or Stretch the picture (same as Aspect Icon) |
-| Zoom In | Playback | Reduce the picture size (similar to Zoom Icon). |
-| Zoom Out | Playback | Increase the picture size (similar to Zoom Icon) |
+| TV Zoom Mode | Playback | Squeeze or Stretch the picture (same as Stretch Horizontally Icon) |
+| Zoom In | Playback | Reduce the picture size (same as Picture Size Icon). |
+| Zoom Out | Playback | Increase the picture size (same as Picture Size Icon) |
 | Media Play | List | Play selected video from bookmark or beginning without first displaying details page |
 | Media Play Pause | List | Play selected video from bookmark or beginning without first displaying details page |
 | Media Play | Details Page | Play video from bookmark or beginning |

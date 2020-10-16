@@ -753,12 +753,15 @@ import java.util.Map;
     if (released || prepared || !sampleQueuesBuilt || seekMap == null) {
       return;
     }
+
+    // Peter
 //    for (SampleQueue sampleQueue : sampleQueues) {
 //      if (sampleQueue.getUpstreamFormat() == null) {
 //        return;
 //      }
 //    }
 
+    // Peter
     // If all streams have an upstream format we can finish preparing.
     // If there is a video and an audio stream with upstream format
     // and there is one single stream without upstream format, it is likely
@@ -964,6 +967,11 @@ import java.util.Map;
     Assertions.checkState(prepared);
     Assertions.checkNotNull(trackState);
     Assertions.checkNotNull(seekMap);
+  }
+
+  // Peter
+  /* package */ SampleQueue[] getSampleQueues() {
+    return sampleQueues;
   }
 
   private final class SampleStreamImpl implements SampleStream {

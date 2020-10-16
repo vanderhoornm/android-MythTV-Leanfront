@@ -88,7 +88,6 @@ import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
-import com.google.android.exoplayer2.source.MediaSource;
 import org.mythtv.leanfront.exoplayer2.source.ProgressiveMediaSource;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.mythtv.leanfront.ui.VideoDetailsActivity;
@@ -139,7 +138,7 @@ public class PlaybackFragment extends VideoSupportFragment
     int mAudioSelection = -2;
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
-    private MediaSource mMediaSource;
+    ProgressiveMediaSource mMediaSource;
     private MythHttpDataSource mDataSource;
     // Bounded indicates we have a fixed file length
     boolean mIsBounded = true;
@@ -332,7 +331,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.addListener(mPlayerEventListener);
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
-        mPlaybackActionListener = new PlaybackActionListener(this, mPlaylist);
+        if (mPlaybackActionListener == null)
+            mPlaybackActionListener = new PlaybackActionListener(this, mPlaylist);
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
                 mPlaybackActionListener, mRecordid < 0);
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
@@ -369,6 +369,8 @@ public class PlaybackFragment extends VideoSupportFragment
                                 } catch (InterruptedException e) {
                                 }
                                 enableTrack(C.TRACK_TYPE_AUDIO, true);
+                                if (mPlaybackActionListener.sampleOffsetUs != 0)
+                                    mPlaybackActionListener.setAudioSync();
                             }
                         }
                     });
@@ -769,10 +771,19 @@ public class PlaybackFragment extends VideoSupportFragment
 
     /** Skips backwards 1 minute. */
     public void rewind() {
-        long newPosition = mPlayerGlue.getCurrentPosition() - mSkipBack;
+        moveBackward(mSkipBack);
+    }
+
+    /**
+     * Skip backward by specified amount
+     * @param millis Milliseconds to skip
+     */
+    public void moveBackward(int millis) {
+        long newPosition = mPlayerGlue.getCurrentPosition() - millis;
         newPosition = (newPosition < 0) ? 0 : newPosition;
         seekTo(newPosition,false);
     }
+
 
     /** Skips forward 1 minute. */
     public void fastForward() {

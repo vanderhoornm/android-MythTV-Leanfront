@@ -138,6 +138,7 @@
     <string name="seekbar_instructions">Use up/down to select predefined values, left/right to
         fine tune the amount.</string>
     <string name="title_select_position">Set Picture Position</string>
+    <string name="title_select_audiosync">Adjust Audio Sync</string>
 
     <string name="msg_unable_get_framerate">Unable to obtain frame rate.
         Make sure you have the appropriate version of mythbackend or disable
@@ -157,14 +158,14 @@
     <string name="button_pivot">Move Picture</string>
     <string name="button_cc">Closed Captions</string>
     <string name="button_audiotrack">Change Audio Track</string>
+    <string name="button_audiosync">Adjust Audio Sync</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>
     <string name="title_alert_livetv">Live TV</string>
     <string name="alert_livetv_message">Recording failed.</string>
     <string name="title_are_you_sure">Are you sure?</string>
-    <string name="title_disk_usage">Disk Usage\n %1d %%</string>
-    "Disk Usage\n"+used + " %"
+    <string name="title_disk_usage">Disk Usage\n %1$d %%</string>
     <!-- In the below string the %1 is the channel number ans %2 is the callsign   -->
     <string name="channel_item_subtitle">Channel %1$s %2$s</string>
     <!--Playback error messages-->

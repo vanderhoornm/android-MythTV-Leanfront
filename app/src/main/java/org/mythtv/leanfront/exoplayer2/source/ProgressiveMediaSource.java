@@ -31,6 +31,7 @@ import com.google.android.exoplayer2.source.ForwardingTimeline;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceDrmHelper;
 import com.google.android.exoplayer2.source.MediaSourceFactory;
+import com.google.android.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.SequenceableLoader;
 import com.google.android.exoplayer2.source.SinglePeriodTimeline;
 import com.google.android.exoplayer2.upstream.Allocator;
@@ -236,6 +237,10 @@ public final class ProgressiveMediaSource extends BaseMediaSource
   private boolean timelineIsLive;
   @Nullable private TransferListener transferListener;
 
+  // Peter
+  ProgressiveMediaPeriod mediaPeriod;
+
+
   // TODO: Make private when ExtractorMediaSource is deleted.
   /* package */ ProgressiveMediaSource(
       MediaItem mediaItem,
@@ -289,7 +294,8 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     if (transferListener != null) {
       dataSource.addTransferListener(transferListener);
     }
-    return new ProgressiveMediaPeriod(
+    // Peter
+    mediaPeriod = new ProgressiveMediaPeriod(
         playbackProperties.uri,
         dataSource,
         extractorsFactory,
@@ -301,11 +307,20 @@ public final class ProgressiveMediaSource extends BaseMediaSource
         allocator,
         playbackProperties.customCacheKey,
         continueLoadingCheckIntervalBytes);
+    return mediaPeriod;
   }
 
   @Override
   public void releasePeriod(MediaPeriod mediaPeriod) {
     ((ProgressiveMediaPeriod) mediaPeriod).release();
+    // Peter
+    if (mediaPeriod == this.mediaPeriod)
+      this.mediaPeriod = null;
+  }
+
+  // Peter
+  public SampleQueue [] getSampleQueues() {
+    return mediaPeriod.getSampleQueues();
   }
 
   @Override

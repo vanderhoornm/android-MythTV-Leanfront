@@ -196,7 +196,7 @@ Below the progress bar is displayed the description of the currently selected ic
 | Stretch Horizontally | Stretch or squeeze the picture in case it is showing at the wrong aspect ratio.  Pressing this shows a seekbar. Left and right arrow fine tune the stretch. Up and down arrow select from several standard stretch amounts. |
 | Move Picture | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size. |
 | Change Audio Track | Rotates among available audio tracks including audio disabled. |
-| Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this is lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
+| Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this if lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
 
 **Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 

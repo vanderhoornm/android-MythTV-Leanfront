@@ -59,6 +59,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_LIVETV_DURATION = 21;
     private static final int ID_FRAMERATE_MATCH = 22;
     private static final int ID_SUBTITLE_SIZE = 23;
+    private static final int ID_ERROR_TOAST = 24;
 
     private SharedPreferences.Editor mEditor;
 
@@ -170,6 +171,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .description(Settings.getString("pref_subtitle_size"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+        String toast = Settings.getString("pref_error_toast");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_ERROR_TOAST)
+                .title(R.string.pref_error_toast)
+                .checked("true".equals(toast))
+                .description(R.string.pref_error_toast_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_PLAYBACK)
@@ -391,6 +400,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             case ID_AUDIO_FFMPEG:
                 if (action.isChecked())
                     mEditor.putString("pref_audio", "ffmpeg");
+                break;
+            case ID_ERROR_TOAST:
+                if (action.isChecked())
+                    mEditor.putString("pref_error_toast", "true");
+                else
+                    mEditor.putString("pref_error_toast", "false");
                 break;
             default:
                 return false;

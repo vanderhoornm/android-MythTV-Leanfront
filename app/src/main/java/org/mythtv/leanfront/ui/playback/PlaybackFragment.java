@@ -1303,12 +1303,14 @@ public class PlaybackFragment extends VideoSupportFragment
                     // try to recover from error by playing on.
                     if (failAtEnd
                         || (mTimeLastError < now - 10000 && !failAtStart)) {
-                        if (mToast != null)
-                            mToast.cancel();
-                        mToast = Toast.makeText(getActivity(),
-                                getActivity().getString(msgNum),
-                                Toast.LENGTH_LONG);
-                        mToast.show();
+                        if ("true".equals(Settings.getString("pref_error_toast"))) {
+                            if (mToast != null)
+                                mToast.cancel();
+                            mToast = Toast.makeText(getActivity(),
+                                    getActivity().getString(msgNum),
+                                    Toast.LENGTH_LONG);
+                            mToast.show();
+                        }
                         // if we are at the end - just end playback
                         if (failAtEnd)
                             markWatched(true);

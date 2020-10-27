@@ -78,6 +78,8 @@
     <string name="pref_title_arrow_jump">Use Up/Down Arrows for Jump</string>
     <string name="pref_title_jump">Jump Minutes</string>
     <string name="pref_title_subtitle_size">Subtitle Size as Percentage of Default</string>
+    <string name="pref_error_toast">Show playback error toast</string>
+    <string name="pref_error_toast_desc">Message when there is a temporary playback error.</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>

@@ -542,9 +542,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         for (SampleQueue sampleQueue : sampleQueues) {
             if (MimeTypes.isAudio(sampleQueue.getUpstreamFormat().sampleMimeType)) {
                 sampleQueue.setSampleOffsetUs(sampleOffsetUs);
-                playbackFragment.moveBackward(0);
             }
         }
+        playbackFragment.moveBackward(0);
     }
 
     @Override

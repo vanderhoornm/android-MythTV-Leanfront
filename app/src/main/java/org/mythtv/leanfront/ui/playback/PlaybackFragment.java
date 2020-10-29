@@ -37,7 +37,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -1214,6 +1213,19 @@ public class PlaybackFragment extends VideoSupportFragment
         private static final int DIALOG_EXIT   = 2;
         private static final int DIALOG_RETRY  = 3;
         private long mTimeLastError = 0;
+
+        @Override
+        public void onPositionDiscontinuity(int reason) {
+            if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                // disable and enable to fix audio sync
+                enableTrack(C.TRACK_TYPE_AUDIO, false);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
+                enableTrack(C.TRACK_TYPE_AUDIO, true);
+            }
+        }
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {

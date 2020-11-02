@@ -215,18 +215,21 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .id(ID_AUDIO_AUTO)
                 .title(R.string.pref_audio_auto)
                 .checked("auto".equals(audio))
+                .description(R.string.pref_audio_auto_desc)
                 .checkSetId(ID_AUDIO)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_AUDIO_MEDIACODEC)
                 .title(R.string.pref_audio_mediacodec)
                 .checked("mediacodec".equals(audio))
+                .description(R.string.pref_audio_mediacodec_desc)
                 .checkSetId(ID_AUDIO)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_AUDIO_FFMPEG)
                 .title(R.string.pref_audio_ffmpeg)
                 .checked("ffmpeg".equals(audio))
+                .description(R.string.pref_audio_ffmpeg_desc)
                 .checkSetId(ID_AUDIO)
                 .build());
         actions.add(mAudioAction = new GuidedAction.Builder(getActivity())

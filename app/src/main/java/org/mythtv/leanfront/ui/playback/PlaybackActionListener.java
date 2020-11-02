@@ -35,7 +35,7 @@ import androidx.leanback.widget.Action;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.source.SampleQueue;
+import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.mythtv.leanfront.R;

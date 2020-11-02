@@ -318,8 +318,6 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch(-1, null, null);
         }
-        // Clear out stream info cache
-        AsyncBackendCall.clearCachedStreamInfo();
     }
 
     public static void restartMythTask() {
@@ -441,6 +439,7 @@ public class MainFragment extends BrowseSupportFragment
                 intent = new Intent(context, PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
                 intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
+                intent.putExtra(VideoDetailsActivity.POSBOOKMARK, taskRunner.getPosBookmark());
                 startActivity(intent);
                 break;
             case Video.ACTION_LIVETV:

@@ -303,7 +303,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     public long getCurrentPosition() {
         long currentPosition = super.getCurrentPosition() + mOffsetMillis;
-        if (currentPosition > 0)
+        if (currentPosition > 200)
             mSavedCurrentPosition = currentPosition;
         return currentPosition;
     }

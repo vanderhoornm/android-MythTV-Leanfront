@@ -43,8 +43,8 @@ import com.google.android.exoplayer2.source.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
-import com.google.android.exoplayer2.source.SampleQueue;
-import com.google.android.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
+import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
+import org.mythtv.leanfront.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
 import com.google.android.exoplayer2.source.SampleStream;
 import com.google.android.exoplayer2.source.SequenceableLoader;
 import com.google.android.exoplayer2.source.TrackGroup;
@@ -152,6 +152,9 @@ import java.util.Map;
   private int extractedSamplesCountAtStartOfLoad;
   private boolean loadingFinished;
   private boolean released;
+
+  // Peter
+  private boolean possibleEmptyTrack;
 
   /**
    * @param uri The {@link Uri} of the media stream.
@@ -764,7 +767,7 @@ import java.util.Map;
     // Peter
     // If all streams have an upstream format we can finish preparing.
     // If there is a video and an audio stream with upstream format
-    // and there is one single stream without upstream format, it is likely
+    // and there is one single stream without upstream format, it is possibly
     // an audio stream with no data. Set it to a dummy mime type of
     // audio/null so that playback can continue.
 
@@ -783,7 +786,7 @@ import java.util.Map;
       else if (MimeTypes.isAudio(upstreamFormat.sampleMimeType))
         audioFound = true;
     }
-    if (nullStreamCount == 1 && videoFound && audioFound) {
+    if (nullStreamCount == 1 && videoFound && audioFound && possibleEmptyTrack) {
       Format.Builder builder = new Format.Builder();
       builder.setSampleMimeType("audio/null");
       sampleQueues[nullStream].format(builder.build());
@@ -972,6 +975,11 @@ import java.util.Map;
   // Peter
   /* package */ SampleQueue[] getSampleQueues() {
     return sampleQueues;
+  }
+
+  // Peter
+  public void setPossibleEmptyTrack(boolean possibleEmptyTrack) {
+    this.possibleEmptyTrack = possibleEmptyTrack;
   }
 
   private final class SampleStreamImpl implements SampleStream {

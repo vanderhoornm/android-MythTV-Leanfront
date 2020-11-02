@@ -44,7 +44,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -57,7 +56,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     }
 
     private Video mVideo;
+    // if posBookmark is >=0 use that, else use mValue for bookmark
     private long mValue; // Used for bookmark or recordid or file length
+    private long posBookmark = -1;
     private OnBackendCallListener mBackendCallListener;
     private boolean mWatched;
     private int [] mTasks;
@@ -85,8 +86,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncBackendCall";
 
-    //cache for stream info. cleared in MainFragment.
-    private static HashMap<String, XmlNode> mStreamInfoCache = new HashMap<>();
     private static long mTimeAdjustment = 0;
 
     public AsyncBackendCall(Video videoA, long valueA, boolean watched,
@@ -103,6 +102,14 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public long getBookmark() {
         return mValue;
+    }
+
+    public long getPosBookmark() {
+        return posBookmark;
+    }
+
+    public void setPosBookmark(long posBookmark) {
+        this.posBookmark = posBookmark;
     }
 
     public long getFileLength() {
@@ -169,18 +176,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mStringParameter;
     }
 
-    public static XmlNode getCachedStreamInfo(String videoUrl) {
-        synchronized (mStreamInfoCache) {
-            return mStreamInfoCache.get(videoUrl);
-        }
-    }
-
-    public static void clearCachedStreamInfo() {
-        synchronized (mStreamInfoCache) {
-            mStreamInfoCache.clear();
-        }
-    }
-
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
         boolean isRecording = (mVideo != null && mVideo.recGroup != null);
@@ -198,6 +193,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mValue = 0;
+                    posBookmark = -1;
                     try {
                         if (context == null)
                             return null;
@@ -273,18 +269,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                             "/Video/GetSavedBookmark?Id="
                                                     + mVideo.recordedid);
                                 bkmrkData = XmlNode.safeFetch(urlString, null);
-                                long pos = 0;
                                 try {
-                                    pos = Long.parseLong(bkmrkData.getString());
+                                    posBookmark = Long.parseLong(bkmrkData.getString());
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
-                                    pos = 0;
+                                    posBookmark = -1;
                                 }
-                                float fps = getAvgFps();
-                                mValue = pos * 100000 / (long)(fps * 100.0f);
-                                // sanity check bookmark - between 0 and 24 hrs.
-                                if (mValue > 24 * 60 * 60 * 1000 || mValue < 0)
-                                    mValue = 0;
                             }
                         }
                         if (isRecording) {
@@ -361,6 +351,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     break;
                 case Video.ACTION_SET_BOOKMARK:
+                    // when using this method, mValue and posBookmark must both be set.
                     try {
                         found = false;
                         String pref = Settings.getString("pref_bookmark");
@@ -375,18 +366,16 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 if ("true".equals(result))
                                     found = true;
                             }
-                            if (!found) {
-                                float fps = getAvgFps();
+                            if (!found && posBookmark >= 0) {
                                 // store a mythtv position bookmark (in case there is no seek table)
-                                long posBkmark = mValue * (long)(fps * 100.0f) / 100000;
                                 if (isRecording)
                                     urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                             "/Dvr/SetSavedBookmark?RecordedId="
-                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                                    + mVideo.recordedid + "&Offset=" + posBookmark);
                                 else
                                     urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                             "/Video/SetSavedBookmark?Id="
-                                                    + mVideo.recordedid + "&Offset=" + posBkmark);
+                                                    + mVideo.recordedid + "&Offset=" + posBookmark);
                                 response = XmlNode.safeFetch(urlString, "POST");
                                 String result = response.getString();
                                 if ("true".equals(result))
@@ -720,10 +709,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                     break;
 
-                case Video.ACTION_GET_STREAM_INFO:
-                    mXmlResults.add(getStreamInfo());
-                    break;
-
                 case Video.ACTION_GUIDE:
                     try {
                         SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -918,51 +903,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         if (value == null)
             return "";
         return value;
-    }
-
-    private XmlNode getStreamInfo() {
-        XmlNode result = null;
-        synchronized (mStreamInfoCache) {
-            result = mStreamInfoCache.get(mVideo.videoUrl);
-            if (result == null) {
-                try {
-                    String urlString = XmlNode.mythApiUrl(mVideo.hostname,
-                            "/Video/GetStreamInfo?StorageGroup="
-                                    + mVideo.storageGroup
-                                    + "&FileName="
-                                    + URLEncoder.encode(mVideo.filename, "UTF-8"));
-                    result = XmlNode.safeFetch(urlString, null);
-                    mStreamInfoCache.put(mVideo.videoUrl, result);
-                }
-                catch(Exception ex) {
-                        Log.e(TAG, CLASS + " Exception getting Stream Info.",ex);
-                }
-            }
-        }
-        return result;
-    }
-
-    private float getAvgFps() {
-        float fps = 29.97f;
-        XmlNode streamInfo = getStreamInfo();
-        if (streamInfo != null) {
-            try {
-                int scount = Integer.parseInt(streamInfo.getString("Count"));
-                XmlNode streamNode = streamInfo.getNode("VideoStreamInfos").getNode("VideoStreamInfo");
-                for (int ix = 0; ix < scount && streamNode != null; ix++) {
-                    if ("V".equals(streamNode.getString("CodecType"))) {
-                        fps = Float.parseFloat(streamNode.getString("AvgFrameRate"));
-                        break;
-                    }
-                    streamNode = streamNode.getNextSibling();
-                }
-            }
-            catch(Exception ex) {
-                Log.e(TAG, CLASS + " Exception getting Avg fps.",ex);
-                fps = 29.97f;
-            }
-        }
-        return fps;
     }
 
     protected void onPostExecute(Void result) {

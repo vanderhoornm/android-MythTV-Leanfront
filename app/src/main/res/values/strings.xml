@@ -109,8 +109,12 @@
     <string name="pref_title_backend_mac">Wakeup MAC Address</string>
     <string name="pref_ff_title">Audio Decode</string>
     <string name="pref_audio_auto">Auto select</string>
+    <string name="pref_audio_auto_desc">Use Mediacodec where possible, otherwise use FFmpeg.</string>
     <string name="pref_audio_mediacodec">Mediacodec</string>
+    <string name="pref_audio_mediacodec_desc">Many types of audio, plays surround sound if set up in
+        Android settings.</string>
     <string name="pref_audio_ffmpeg">FFmpeg</string>
+    <string name="pref_audio_ffmpeg_desc">Most types of audio, surround sound plays as stereo.</string>
     <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
     <string name="pref_title_framerate_match">Match original frame rate</string>
     <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
@@ -142,11 +146,8 @@
     <string name="title_select_position">Set Picture Position</string>
     <string name="title_select_audiosync">Adjust Audio Sync</string>
 
-    <string name="msg_unable_get_framerate">Unable to obtain frame rate.
-        Make sure you have the appropriate version of mythbackend or disable
-        frame rate matching.</string>
-    <string name="msg_setting_framerate">Setting refresh rate to %1$.2f.</string>
-    <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate of %1$.2f.</string>
+    <string name="msg_setting_framerate">Using refresh rate %1$.2f.</string>
+    <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate %1$.2f.</string>
     <string name="button_Settings">Settings</string>
     <string name="button_refresh_lists">Refresh Lists</string>
     <string name="button_backend_status">Backend Status</string>
@@ -179,13 +180,17 @@
     <string name="pberror_unexpected">Unexpected Runtime Exception</string>
     <string name="pberror_default">Unknown error.</string>
     <string name="pberror_file_length_fail">Unable to obtain file length.</string>
+    <string name="pberror_recommend_ffmpeg">To play this track: In leanfront Settings -&gt; Audio
+        Decode, select FFmpeg.</string>
+    <string name="pberror_recommend_audio">Unsupported Audio: In leanfront Settings -&gt; Audio Decode,
+        select Auot or FFmpeg or else change your Android audio settings.</string>
+    <string name="pberror_button_continue">Continue</string>
+    <string name="pberror_button_exit">Exit</string>
     <!-- Words to exclude from the start titles when sorting.
         Must be in UPPER CASE-->
     <string name="sort_exclude_1">THE</string>
     <string name="sort_exclude_2">A</string>
     <string name="sort_exclude_3">AN</string>
-    <string name="pberror_button_continue">Continue</string>
-    <string name="pberror_button_exit">Exit</string>
     <string name="title_grid_time">Grid Time:</string>
     <string name="note_program_continuation">(cont)</string>
     <string name="title_select_timeslot">Select Time Slot</string>

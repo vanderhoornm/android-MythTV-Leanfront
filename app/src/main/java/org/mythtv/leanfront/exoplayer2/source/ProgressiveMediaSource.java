@@ -31,7 +31,7 @@ import com.google.android.exoplayer2.source.ForwardingTimeline;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceDrmHelper;
 import com.google.android.exoplayer2.source.MediaSourceFactory;
-import com.google.android.exoplayer2.source.SampleQueue;
+import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.SequenceableLoader;
 import com.google.android.exoplayer2.source.SinglePeriodTimeline;
 import com.google.android.exoplayer2.upstream.Allocator;
@@ -239,6 +239,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
 
   // Peter
   ProgressiveMediaPeriod mediaPeriod;
+  private boolean possibleEmptyTrack;
 
 
   // TODO: Make private when ExtractorMediaSource is deleted.
@@ -307,6 +308,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
         allocator,
         playbackProperties.customCacheKey,
         continueLoadingCheckIntervalBytes);
+    mediaPeriod.setPossibleEmptyTrack(possibleEmptyTrack);
     return mediaPeriod;
   }
 
@@ -321,6 +323,11 @@ public final class ProgressiveMediaSource extends BaseMediaSource
   // Peter
   public SampleQueue [] getSampleQueues() {
     return mediaPeriod.getSampleQueues();
+  }
+
+  // Peter
+  public void setPossibleEmptyTrack(boolean possibleEmptyTrack) {
+    this.possibleEmptyTrack = possibleEmptyTrack;
   }
 
   @Override

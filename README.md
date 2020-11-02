@@ -8,30 +8,31 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - The application uses exoplayer, which is the player code used by youtube, Amazon Prime and others. As such it will be able to handle new capabilities that are released on Android TV.
 - It plays recordings, videos and Live TV from a MythTV backend. All recordings are presented in a way that is consistent with other leanback applications. The first screen shows a list of recording groups. You can drill down to a list of titles in a recording group.
 - This application uses the MythTV Service API to communicate with the backend. It needs no access to the database password, and will work on all versions of mythbackend from v29 onwards. It may work on older versions if the APIs are available on the MythTV backend.
-- Voice search within the application is supported.
+- Voice search within the application is supported, for recordings, videos and programs in the guide.
 - With backend on master or recent MythTV v30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
 - Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend (for recordings or videos). In order to store bookmarks for videos on MythTV you need backend version v32-Pre-658-g48557d32c2 or later or v31.0-73-g7bf1284867 or later. If you have an earlier version that does not support the Video/GetSavedBookmark and Video/SetSavedBookmark methods, the bookmarks for videos will be stored locally on the android device.
 - There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching separately and at different places in the recordings, they can keep track of bookmarks separately. 
-- The "Watched" flag is set if you get to the end of the recording during playback. To ensure it is set, press forward to get to the end before exiting playback.
-- There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options. There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
+- The "Watched" flag is set if you get to the end of the recording or video during playback. To ensure it is set, press forward to get to the end before exiting playback.
+- There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options.
+- There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
 - There is a zoom icon and an aspect icon so that you can expand letterbox recordings and correct wrongly stretched recordings.
-- There is an icon to pin the enlargement to the top, middle or bottom. If you want to hide a ticker at the bottom, you can pin to the top then enlarge, which will leave the top in place and enlarge downwards so that the ticker is off screen.
+- There is an icon to move the enlargement up, down, left or right. If you want to hide a ticker at the bottom, you can enlarge then move up, which will leave the top in place and enlarge downwards so that the ticker is off screen.
 - Videos do not currently support deletion.
 - Wakeup of master backend is supported via setup.
 - Sort order of recordings can be customized.
-- Subtitles (Closed captions) are supported.
+- Subtitles (Closed captions) are supported. There is a setting to change the size of subtitles.
 - At the end of a recording playback, you can advance to the next episode or any episode without returning to the main list.
 - You can play in-progress recordings and the application will follow the progress as the recording continues.
 - Video playback is exclusively via hardware assisted Mediacodec.
 - Audio playback is supported using mediacodec (hardware) or ffmpeg (software). By default it will use mediacodec if it can, and will switch to ffmpeg if there is a media format not supported by mediacodec. There is a setting where you can change this default and force either mediacodec or ffmpeg.
 - Audio playback supports digital pass-through for AC3 and other digital formats if they are supported on your sound system. It also supports down-mix to stereo if you do not have a system that supports AC3.
 - Selection of alternate audio tracks during playback.
-- Playback from slave backends is now supported.
-- Playing of Live TV is now supported.
-- Synchronization of TV refresh rate to match frame rate.
+- Playback from slave backends is supported.
+- Playing of Live TV is supported.
+- Synchronization of TV refresh rate to match frame rate, if selected in setup.
 - Display Program Guide, create recording rules, update recording rules.
-- The *Master Backend Override* setting is now supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
-- Adjustment of Audio Sync.
+- The *Master Backend Override* MythTV setting is supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
+- Adjustment of Audio Sync in case a recording has a lip-sync problem.
 
 
 ## Main Screen
@@ -48,7 +49,7 @@ The settings icon on the tools row allows setup of the backend ip address and a 
 
 ### Refresh
 
-There is a "Refresh" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
+There is a "Refresh" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
 
 If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
 
@@ -76,7 +77,7 @@ The backend status icon of the tools row shows a page with current backend info.
 
 ### Frame Rate Synchronization.
 
- If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. This requires a version of mythbackend that supports the GetStreamInfo method. That is currently supported in master from v32-Pre-540-ga2af89101b dated 2020/06/05 or fixes/31 from v31.0-68-gade713f98c dated 2020/06/26. Select "Match original frame rate" in the playback settings if you have a version of mythbackend with the GetStreamInfo method support. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
+ If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. Select "Match original frame rate" in the playback settings. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
 
 ### Bookmarks.
 
@@ -120,6 +121,10 @@ In the program guide
 
 All recording rules are listed. Press enter on any rule to modify it.
 
+### Upcoming Recordings Page
+
+All upcoming recordings are listed. Press enter on any cell to modify it.
+
 ### Rule updating
 
 The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions that prevents this from working.
@@ -130,9 +135,12 @@ The Search orb at the top of each page allows searching the recordings, videos a
 
 ## Problems
 
-Some recordings or videos may not play correctly, or may not play at all. In some cases,
+In earlier versions of leanfront, some recordings or videos may not play correctly, or may not play at all. In some cases,
 videos may play but the duration may not show in the OSD and skipping forward may not work.
-In some cases audio may be garbled. If the recording plays correctly with mythfrontend or VLC but not with leanfront,
+These problems have been fixed as far as I know. Please let me know if you experience this.
+
+In videos that have been cut or processed using mythtranscode, audio may be garbled.
+If the recording plays correctly with mythfrontend or VLC but not with leanfront,
 try running one of these commands (below) against the file. Use the first one for recorded programs only (mpeg ts streams).
 The second command can be used for recordings or videos. The second command converts the file to
 mkv format. You do not need to use an mkv extension, a ts or mpg extension will also work for an mkv format
@@ -148,7 +156,7 @@ You can create a user job to run one of these commands after each recording if n
 
 ### Error handling
 
-Playback errors sometimes occur, often when skipping forward, but also at other times. The program will try to recover from the error and display a brief message that there was an error. If errors continue, it will show a dialog box where you can choose to continue or exit. The "continue" option will attempt to bypass the error. This may not always succeed. Playback errors are logged, and you can see the log messages using the procedure in "Debugging" below.
+Playback errors sometimes occur, often when skipping forward, but also at other times. The program will try to recover from the error. If you select in settings "Playback -> Show Playback Error Toast" it will display a brief message that there was an error. If errors continue, it will show a dialog box where you can choose to continue or exit. The "continue" option will attempt to bypass the error. This may not always succeed. Playback errors are logged, and you can see the log messages using the procedure in "Debugging" below.
 
 ### Debugging
 

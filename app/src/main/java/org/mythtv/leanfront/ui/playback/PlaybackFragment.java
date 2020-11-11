@@ -312,31 +312,11 @@ public class PlaybackFragment extends VideoSupportFragment
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
         Player.TextComponent textComponent = mPlayer.getTextComponent();
-        if (textComponent != null && mSubtitles != null)
+        if (textComponent != null && mSubtitles != null) {
             mSubtitles.setFractionalTextSize
                     (SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * mSubtitleSize / 100.0f);
-            // Code to work around "non-breaking space" bug in Exoplayer
-            // Can be removed when that is fixed in ExoPlayer
-            textComponent.addTextOutput(cues -> {
-                    ArrayList<Cue> newCues = new ArrayList<>();
-                        for (Cue cue: cues) {
-                            if (cue != null && cue.text != null) {
-                                String newText = cue.text.toString();
-                                if (newText.contains("\\h")) {
-                                    Cue.Builder cueBuilder = cue.buildUpon();
-                                    newText = newText.replace("\\h", " ");
-                                    cueBuilder.setText(newText);
-                                    newCues.add(cueBuilder.build());
-                                }
-                                else
-                                    newCues.add(cue);
-                            }
-                            else
-                                newCues.add(cue);
-                        }
-                    mSubtitles.onCues(newCues);
-            }
-            );
+            textComponent.addTextOutput(mSubtitles);
+        }
 
         mPlayerEventListener = new PlayerEventListener();
         mPlayer.addListener(mPlayerEventListener);

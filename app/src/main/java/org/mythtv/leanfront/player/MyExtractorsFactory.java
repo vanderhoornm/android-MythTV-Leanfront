@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
+import com.google.android.exoplayer2.extractor.ts.TsExtractor;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
@@ -70,7 +71,7 @@ public class MyExtractorsFactory implements ExtractorsFactory {
                 exts[ix] = new TsExtractor(
                         TsExtractor.MODE_SINGLE_PMT,
                         new TimestampAdjuster(0),
-                        payloadReaderFactory);
+                        payloadReaderFactory, 2600 * TsExtractor.TS_PACKET_SIZE);
             }
         }
     }

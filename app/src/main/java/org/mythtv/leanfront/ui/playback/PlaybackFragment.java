@@ -1095,14 +1095,18 @@ public class PlaybackFragment extends VideoSupportFragment
                 if (pos >= 0)
                     dirname = filename.substring(0, pos + 1);
                 dirname = dirname + "%";
+                String subdirname = dirname + "%/%";
 
                 String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
-                        VideoContract.VideoEntry.COLUMN_FILENAME + " like ?",
-                        new String[]{dirname},
+                        VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
+                                + VideoContract.VideoEntry.RECTYPE_VIDEO + " and "
+                                + VideoContract.VideoEntry.COLUMN_FILENAME + " like ? and "
+                                + VideoContract.VideoEntry.COLUMN_FILENAME + " not like ? ",
+                        new String[]{dirname, subdirname},
                         orderby);
             } else {
                 // Recordings or LiveTV
@@ -1118,8 +1122,11 @@ public class PlaybackFragment extends VideoSupportFragment
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
-                        VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
-                        new String[]{category},
+                        VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
+                                + VideoContract.VideoEntry.RECTYPE_RECORDING + " and "
+                                + VideoContract.VideoEntry.COLUMN_RECGROUP + " = ? and "
+                                + VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
+                        new String[]{recgroup,category},
                         orderby);
             }
         }

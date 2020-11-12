@@ -187,8 +187,8 @@ public class PlaybackFragment extends VideoSupportFragment
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
 
-        getLoaderManager()
-                .initLoader(VideoLoaderCallbacks.QUEUE_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
+        LoaderManager manager = LoaderManager.getInstance(this);
+        manager.initLoader(VideoLoaderCallbacks.QUEUE_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
         mVideoCursorAdapter = setupRelatedVideosCursor();
     }
@@ -687,7 +687,8 @@ public class PlaybackFragment extends VideoSupportFragment
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
 
-        getLoaderManager().initLoader(VideoLoaderCallbacks.RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
+        LoaderManager manager = LoaderManager.getInstance(this);
+        manager.initLoader(VideoLoaderCallbacks.RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
 
         return videoCursorAdapter;
     }

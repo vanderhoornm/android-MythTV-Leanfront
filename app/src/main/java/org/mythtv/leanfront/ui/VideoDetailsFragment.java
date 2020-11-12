@@ -213,7 +213,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
             Bundle args = new Bundle();
             args.putString(VideoContract.VideoEntry._ID, videoId);
-            getLoaderManager().initLoader(mGlobalSearchVideoId++, args, this);
+            LoaderManager manager = LoaderManager.getInstance(this);
+            manager.initLoader(mGlobalSearchVideoId++, args, this);
             return true;
         }
         return false;
@@ -678,7 +679,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         args.putString(VideoContract.VideoEntry.COLUMN_TITLE, category);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mSelectedVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mSelectedVideo.filename);
-        getLoaderManager().initLoader(RELATED_VIDEO_LOADER, args, this);
+        LoaderManager manager = LoaderManager.getInstance(this);
+        manager.initLoader(RELATED_VIDEO_LOADER, args, this);
 
         HeaderItem header = new HeaderItem(0, subcategories[0]);
         mAdapter.add(new ListRow(header, mVideoCursorAdapter));

@@ -67,10 +67,9 @@ public class VideoProvider extends ContentProvider {
 
     static {
         sVideosContainingQueryBuilder = new SQLiteQueryBuilder();
-        sVideosContainingQueryBuilder.setTables(VideoContract.VideoEntry.TABLE_NAME);
+        sVideosContainingQueryBuilder.setTables(VideoContract.VideoEntry.VIEW_NAME);
         sVideosContainingQueryBuilder.setProjectionMap(sColumnMap);
         sVideosContainingQueryColumns = new String[]{
-                VideoContract.VideoEntry._ID,
                 VideoContract.VideoEntry.COLUMN_TITLE,
                 VideoContract.VideoEntry.COLUMN_SUBTITLE,
                 VideoContract.VideoEntry.COLUMN_DESC,
@@ -91,7 +90,8 @@ public class VideoProvider extends ContentProvider {
                 VideoContract.VideoEntry.COLUMN_SEASON,
                 VideoContract.VideoEntry.COLUMN_EPISODE,
                 VideoContract.VideoEntry.COLUMN_PROGFLAGS,
-                SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
+                SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID,
+                VideoContract.StatusEntry.COLUMN_LAST_USED
         };
     }
 
@@ -125,7 +125,6 @@ public class VideoProvider extends ContentProvider {
 
     private static HashMap<String, String> buildColumnMap() {
         HashMap<String, String> map = new HashMap<>();
-        map.put(VideoContract.VideoEntry._ID, VideoContract.VideoEntry._ID);
         map.put(VideoContract.VideoEntry.COLUMN_RECTYPE, VideoContract.VideoEntry.COLUMN_RECTYPE);
         map.put(VideoContract.VideoEntry.COLUMN_TITLE, VideoContract.VideoEntry.COLUMN_TITLE);
         map.put(VideoContract.VideoEntry.COLUMN_DESC, VideoContract.VideoEntry.COLUMN_DESC);
@@ -155,6 +154,7 @@ public class VideoProvider extends ContentProvider {
         map.put(VideoContract.VideoEntry.COLUMN_CHANID, VideoContract.VideoEntry.COLUMN_CHANID);
         map.put(VideoContract.VideoEntry.COLUMN_CHANNUM, VideoContract.VideoEntry.COLUMN_CHANNUM);
         map.put(VideoContract.VideoEntry.COLUMN_CALLSIGN, VideoContract.VideoEntry.COLUMN_CALLSIGN);
+        map.put(VideoContract.StatusEntry.COLUMN_LAST_USED, VideoContract.StatusEntry.COLUMN_LAST_USED);
 
         map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, VideoContract.VideoEntry._ID + " AS " +
                 SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID);
@@ -178,7 +178,7 @@ public class VideoProvider extends ContentProvider {
             }
             case VIDEO: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
-                        VideoContract.VideoEntry.TABLE_NAME,
+                        VideoContract.VideoEntry.VIEW_NAME,
                         projection,
                         selection,
                         selectionArgs,

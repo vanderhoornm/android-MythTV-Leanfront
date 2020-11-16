@@ -91,6 +91,9 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
                 else
                     icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
                 break;
+            case MainFragment.TYPE_RECENTS:
+                icon = rootView.getResources().getDrawable(R.drawable.im_movie, null);
+                break;
             case MainFragment.TYPE_CHANNEL:
             case MainFragment.TYPE_CHANNEL_ALL:
                 icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);

@@ -31,10 +31,12 @@ import org.mythtv.leanfront.data.VideoContract;
 
 /**
  * VideoCursorMapper maps a database Cursor to a Video object.
+ * This can be used with video or videoview. With video,
+ * lastUsed will be set to 0.
  */
 public final class VideoCursorMapper extends CursorMapper {
 
-    private static int idIndex;
+//    private static int idIndex;
     private static int rectypeIndex;
     private static int titleIndex;
     private static int nameIndex;
@@ -59,10 +61,11 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int channumIndex;
     private static int callsignIndex;
     private static int storageGroupIndex;
+    private static int lastUsedIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
-        idIndex = cursor.getColumnIndex(VideoContract.VideoEntry._ID);
+//        idIndex = cursor.getColumnIndex(VideoContract.VideoEntry._ID);
         rectypeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECTYPE);
         titleIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
         nameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
@@ -87,6 +90,7 @@ public final class VideoCursorMapper extends CursorMapper {
         channumIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
         callsignIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CALLSIGN);
         storageGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STORAGEGROUP);
+        lastUsedIndex = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_LAST_USED);
     }
 
     @Override
@@ -99,7 +103,6 @@ public final class VideoCursorMapper extends CursorMapper {
                     .title("ERROR - CURSOR CLOSED")
                     .build();
         // Get the values of the video.
-        long id = cursor.getLong(idIndex);
         int rectype = cursor.getInt(rectypeIndex);
         String title = cursor.getString(titleIndex);
         String subtitle = cursor.getString(nameIndex);
@@ -124,10 +127,12 @@ public final class VideoCursorMapper extends CursorMapper {
         String channum = cursor.getString(channumIndex);
         String callsign = cursor.getString(callsignIndex);
         String storageGroup = cursor.getString(storageGroupIndex);
+        long lastUsed = 0;
+        if (lastUsedIndex >= 0)
+            lastUsed = cursor.getLong(lastUsedIndex);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
-                .id(id)
                 .rectype(rectype)
                 .title(title)
                 .subtitle(subtitle)
@@ -152,6 +157,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .channum(channum)
                 .callsign(callsign)
                 .storageGroup(storageGroup)
+                .lastUsed(lastUsed)
                 .build();
     }
 }

@@ -145,12 +145,13 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_EPISODE = 5;
     public static final int TYPE_VIDEO = 6;
     public static final int TYPE_CHANNEL = 7;
-
+    // Types of rows
     public static final int TYPE_TOP_ALL = 8;
     public static final int TYPE_RECGROUP_ALL = 9;
     public static final int TYPE_VIDEODIR_ALL = 10;
+    public static final int TYPE_RECENTS = 11;
     // Type applicable to row or cell
-    public static final int TYPE_CHANNEL_ALL = 11;
+    public static final int TYPE_CHANNEL_ALL = 12;
     // Special row type
     public static final int TYPE_TOOLS = 20;
     // Special Item Type
@@ -805,6 +806,7 @@ public class MainFragment extends BrowseSupportFragment
                 mCategoryRowAdapter.clear();
                 ArrayObjectAdapter rowObjectAdapter = null;
                 SparseArrayObjectAdapter allObjectAdapter = null;
+                SparseArrayObjectAdapter recentsObjectAdapter = null;
                 ArrayObjectAdapter rootObjectAdapter = null;
                 videoCursorAdapter.changeCursor(data);
 
@@ -813,9 +815,24 @@ public class MainFragment extends BrowseSupportFragment
                 String currentItem = null;
                 int currentRowNum = -1;
                 int allRowNum = -1;
+                int recentsRowNum = -1;
                 int rootRowNum = -1;
                 MyHeaderItem header;
                 ListRow row;
+
+                // Create the recents row, only for top level
+                if (mType == TYPE_TOPLEVEL) {
+                    String title = getString(R.string.recents_title) + "\t";
+                    header = new MyHeaderItem(title, TYPE_RECENTS, mBaseName);
+                    recentsObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
+                    row = new ListRow(header, recentsObjectAdapter);
+                    row.setContentDescription(title);
+                    mCategoryRowAdapter.add(row);
+                    recentsRowNum = mCategoryRowAdapter.size() - 1;
+                    if (mSelectedRowType == TYPE_RECENTS
+                            && Objects.equals(title,mSelectedRowName))
+                        selectedRowNum = recentsRowNum;
+                }
 
                 // Create "All" row (but not for videos)
                 if (mType != TYPE_VIDEODIR) {
@@ -849,6 +866,7 @@ public class MainFragment extends BrowseSupportFragment
                 // Iterate through each category entry and add it to the ArrayAdapter.
                 while (cursorHasData && !data.isAfterLast()) {
 
+                    boolean addToRow = true;
                     int itemType = -1;
                     int rowType = -1;
 
@@ -926,10 +944,11 @@ public class MainFragment extends BrowseSupportFragment
                         else
                             itemType = TYPE_VIDEODIR;
                         if (itemType == TYPE_VIDEODIR && Objects.equals(itemname,currentItem)) {
-                            data.moveToNext();
-                            continue;
+                            itemType = TYPE_VIDEO;
+                            addToRow = false;
                         }
-                        currentItem = itemname;
+                        else
+                            currentItem = itemname;
                     }
 
                     if (mType == TYPE_TOPLEVEL) {
@@ -946,12 +965,13 @@ public class MainFragment extends BrowseSupportFragment
                             else
                                 title = data.getString(titleIndex);
                             if (Objects.equals(title,currentItem)) {
-                                data.moveToNext();
-                                continue;
+                                addToRow = false;
                             }
-                            currentItem = title;
-                            rowType = TYPE_RECGROUP;
-                            itemType = TYPE_SERIES;
+                            else {
+                                currentItem = title;
+                                rowType = TYPE_RECGROUP;
+                                itemType = TYPE_SERIES;
+                            }
                         }
                     }
 
@@ -967,7 +987,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     // Change of row
-                    if (category != null && !Objects.equals(category,currentCategory)) {
+                    if (addToRow && category != null && !Objects.equals(category,currentCategory)) {
                         // Finish off prior row
                         if (rowObjectAdapter != null) {
                             // Create header for this category.
@@ -998,7 +1018,7 @@ public class MainFragment extends BrowseSupportFragment
                     video.type = itemType;
 
                     // Add video to row
-                    if (category != null) {
+                    if (addToRow && category != null) {
                         Video tVideo = video;
                         if (mType == TYPE_TOPLEVEL && video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
                             // Create dummy video for "All Channels"
@@ -1019,7 +1039,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     // Add video to "Root" row
-                    if (rootObjectAdapter != null
+                    if (addToRow && rootObjectAdapter != null
                         && category == null) {
                         rootObjectAdapter.add(video);
                         if (selectedRowNum == rootRowNum) {
@@ -1030,7 +1050,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
 
                     // Add video to "All" row
-                    if (allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL
+                    if (addToRow && allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL
                         && rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                         && !(mType == TYPE_TOPLEVEL && "Deleted".equals(recgroup))) {
                         int position = 0;
@@ -1065,6 +1085,34 @@ public class MainFragment extends BrowseSupportFragment
                         }
                     }
 
+                    // Add to recents row if applicable
+                    if (recentsObjectAdapter != null
+                            // uncomment this to exclude deleted from recents
+//                            && !"Deleted".equals(recgroup)
+                            && video.lastUsed > 0) {
+                        // 525960 minutes in a year
+                        // Get position as number of minutes since 1970
+                        // Will stop working in the year 5982
+                        int position = (int) (video.lastUsed / 60000L);
+                        // Add 70 years in case it is before 1970
+                        position += 36817200;
+                        // descending
+                        position = Integer.MAX_VALUE - position;
+                        // Make sure we have an empty slot
+                        try {
+                            while (recentsObjectAdapter.lookup(position) != null)
+                                position++;
+                        } catch (ArrayIndexOutOfBoundsException e) { }
+
+                        recentsObjectAdapter.set(position,video);
+
+                        if (selectedRowNum == recentsRowNum) {
+                            if (video.getItemType() == mSelectedItemType
+                                    && Objects.equals(video.recordedid,mSelectedItemId))
+                                selectedItemNum = position;
+                        }
+                    }
+
                     data.moveToNext();
                 }
                 // Finish off prior row
@@ -1076,6 +1124,13 @@ public class MainFragment extends BrowseSupportFragment
                     mCategoryRowAdapter.add(row);
                 }
 
+                // Remove recents if empty
+                if (recentsObjectAdapter != null && recentsObjectAdapter.size() == 0) {
+                    mCategoryRowAdapter.removeItems(recentsRowNum,1);
+                    if (selectedRowNum > 0)
+                        selectedRowNum --;
+                }
+
                 // Create a row for tools.
                 MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.row_header_tools),
                         TYPE_TOOLS,mBaseName);
@@ -1085,7 +1140,7 @@ public class MainFragment extends BrowseSupportFragment
                 mCategoryRowAdapter.add(row);
 
                 Video video = new Video.VideoBuilder()
-                        .id(-1).title(getString(R.string.button_Settings))
+                        .id(-1).title(getString(R.string.button_settings))
                         .subtitle("")
                         .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
                         .progflags("0")
@@ -1125,6 +1180,13 @@ public class MainFragment extends BrowseSupportFragment
                         selectedItemNum = -1;
                     else
                         selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
+                }
+
+                if (selectedRowNum == recentsRowNum) {
+                    if (recentsObjectAdapter == null)
+                        selectedItemNum = -1;
+                    else
+                        selectedItemNum = recentsObjectAdapter.indexOf(selectedItemNum);
                 }
 
                 if (selectedRowNum != -1) {
@@ -1173,6 +1235,8 @@ public class MainFragment extends BrowseSupportFragment
             Activity context = getActivity();
             Bundle bundle;
             MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
+            if (headerItem.getItemType() == TYPE_RECENTS)
+                liType = TYPE_EPISODE;
             switch (liType) {
                 case TYPE_EPISODE:
                 case TYPE_VIDEO:

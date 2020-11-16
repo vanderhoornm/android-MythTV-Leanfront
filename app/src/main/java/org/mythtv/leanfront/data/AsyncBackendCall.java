@@ -410,7 +410,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 selection,
                                 selectionArgs);
 
-                        if (sqlCount == 0 && localBkmark > 0) {
+                        if (sqlCount == 0) {
                             // Try an insert instead
                             values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
                             // Insert the new row, returning the primary key value of the new row

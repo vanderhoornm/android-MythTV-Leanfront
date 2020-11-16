@@ -48,6 +48,8 @@ public final class VideoContract {
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "." + PATH_VIDEO;
         // Name of the video table.
         public static final String TABLE_NAME = "video";
+        // View that joins this with videostatus
+        public static final String VIEW_NAME = "videoview";
         // Rectype - Video, recording, channel, ...
         public static final String COLUMN_RECTYPE = "rectype";
         // The order of these determines the sequence on screen.

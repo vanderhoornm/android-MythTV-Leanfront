@@ -38,7 +38,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 12;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -54,7 +54,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion != newVersion) {
+        if (oldVersion < 10) {
             // On any upgrade just recreate this table
             db.execSQL("DROP TABLE IF EXISTS " + VideoEntry.TABLE_NAME);
             // Create a table to hold videos.
@@ -93,7 +93,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
             db.execSQL(SQL_CREATE_VIDEO_TABLE);
         }
         // This table needs to be preserved. Use alter rather than recreating
-        if (oldVersion == 0) {
+        if (oldVersion < 1) {
             db.execSQL("DROP TABLE IF EXISTS " + StatusEntry.TABLE_NAME);
             // videostatus table keeps bookmarks even when video table is reloaded.
             // LAST_USED column is datetime, used to delete entries older than a month.
@@ -103,7 +103,71 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     StatusEntry.COLUMN_LAST_USED + " INTEGER NOT NULL, " +
                     StatusEntry.COLUMN_BOOKMARK + " INTEGER);";
             db.execSQL(SQL_CREATE_VIDEOSTATUS_TABLE);
-            oldVersion = 1;
+        }
+
+        // View for keeping track of recently watched
+        if (oldVersion < 12) {
+            final String DROP_VIEW = "DROP VIEW IF EXISTS " + VideoEntry.VIEW_NAME + ";";
+            db.execSQL(DROP_VIEW);
+            final String CREATE_VIEW = "CREATE VIEW " + VideoEntry.VIEW_NAME + " ( " +
+                    VideoEntry.COLUMN_RECTYPE + " , " +
+                    VideoEntry.COLUMN_TITLE + " , " +
+                    VideoEntry.COLUMN_SUBTITLE + " , " +
+                    VideoEntry.COLUMN_VIDEO_URL + " , " +
+                    VideoEntry.COLUMN_FILENAME + " , " +
+                    VideoEntry.COLUMN_HOSTNAME + " , " +
+                    VideoEntry.COLUMN_DESC + " , " +
+                    VideoEntry.COLUMN_BG_IMAGE_URL + " , " +
+                    VideoEntry.COLUMN_CHANNEL + " , " +
+                    VideoEntry.COLUMN_CARD_IMG + " , " +
+                    VideoEntry.COLUMN_CONTENT_TYPE + " , " +
+                    VideoEntry.COLUMN_PRODUCTION_YEAR + " , " +
+                    VideoEntry.COLUMN_DURATION + " , " +
+                    VideoEntry.COLUMN_ACTION + " , " +
+                    VideoEntry.COLUMN_AIRDATE + " ," +
+                    VideoEntry.COLUMN_STARTTIME + " ," +
+                    VideoEntry.COLUMN_ENDTIME + " ," +
+                    VideoEntry.COLUMN_RECORDEDID + " ," +
+                    VideoEntry.COLUMN_STORAGEGROUP + " ," +
+                    VideoEntry.COLUMN_RECGROUP + " ," +
+                    VideoEntry.COLUMN_SEASON + " ," +
+                    VideoEntry.COLUMN_EPISODE + " ," +
+                    VideoEntry.COLUMN_PROGFLAGS + " ," +
+                    VideoEntry.COLUMN_CHANID + " ," +
+                    VideoEntry.COLUMN_CHANNUM + " ," +
+                    VideoEntry.COLUMN_CALLSIGN + " , " +
+                    StatusEntry.COLUMN_LAST_USED + " )  AS SELECT " +
+                    VideoEntry.COLUMN_RECTYPE + " , " +
+                    VideoEntry.COLUMN_TITLE + " , " +
+                    VideoEntry.COLUMN_SUBTITLE + " , " +
+                    VideoEntry.COLUMN_VIDEO_URL + " , " +
+                    VideoEntry.COLUMN_FILENAME + " , " +
+                    VideoEntry.COLUMN_HOSTNAME + " , " +
+                    VideoEntry.COLUMN_DESC + " , " +
+                    VideoEntry.COLUMN_BG_IMAGE_URL + " , " +
+                    VideoEntry.COLUMN_CHANNEL + " , " +
+                    VideoEntry.COLUMN_CARD_IMG + " , " +
+                    VideoEntry.COLUMN_CONTENT_TYPE + " , " +
+                    VideoEntry.COLUMN_PRODUCTION_YEAR + " , " +
+                    VideoEntry.COLUMN_DURATION + " , " +
+                    VideoEntry.COLUMN_ACTION + "  , " +
+                    VideoEntry.COLUMN_AIRDATE + " ," +
+                    VideoEntry.COLUMN_STARTTIME + " ," +
+                    VideoEntry.COLUMN_ENDTIME + " ," +
+                    VideoEntry.COLUMN_RECORDEDID + " ," +
+                    VideoEntry.COLUMN_STORAGEGROUP + " ," +
+                    VideoEntry.COLUMN_RECGROUP + " ," +
+                    VideoEntry.COLUMN_SEASON + " ," +
+                    VideoEntry.COLUMN_EPISODE + " ," +
+                    VideoEntry.COLUMN_PROGFLAGS + " ," +
+                    VideoEntry.COLUMN_CHANID + " ," +
+                    VideoEntry.COLUMN_CHANNUM + " ," +
+                    VideoEntry.COLUMN_CALLSIGN + " , " +
+                    StatusEntry.COLUMN_LAST_USED + " FROM " +
+                    VideoEntry.TABLE_NAME + " LEFT OUTER JOIN " +
+                    StatusEntry.TABLE_NAME + " USING ( " +
+                    VideoEntry.COLUMN_VIDEO_URL + " ); ";
+            db.execSQL(CREATE_VIEW);
         }
     }
 

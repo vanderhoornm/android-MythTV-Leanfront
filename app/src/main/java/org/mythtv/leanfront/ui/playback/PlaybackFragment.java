@@ -1085,6 +1085,10 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+            boolean showDeleted = "true".equals(Settings.getString("pref_related_deleted"));
+            boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
+
             // When loading related videos or videos for the playlist, query by category.
             int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE, -1);
             String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
@@ -1099,14 +1103,25 @@ public class PlaybackFragment extends VideoSupportFragment
                 String subdirname = dirname + "%/%";
 
                 String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
+                StringBuilder where = new StringBuilder();
+                where   .append(VideoContract.VideoEntry.COLUMN_RECTYPE)
+                        .append(" = ").append(VideoContract.VideoEntry.RECTYPE_VIDEO)
+                        .append(" and ")
+                        .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                        .append(" like ? and ")
+                        .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                        .append(" not like ? ");
+                if (!showWatched)
+                    where.append(" and ")
+                            .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                            .append(" & ").append(Video.FL_WATCHED)
+                            .append(" == 0");
+
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
-                        VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
-                                + VideoContract.VideoEntry.RECTYPE_VIDEO + " and "
-                                + VideoContract.VideoEntry.COLUMN_FILENAME + " like ? and "
-                                + VideoContract.VideoEntry.COLUMN_FILENAME + " not like ? ",
+                        where.toString(),
                         new String[]{dirname, subdirname},
                         orderby);
             } else {
@@ -1116,6 +1131,24 @@ public class PlaybackFragment extends VideoSupportFragment
                     category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
                 else
                     category = "X\t";
+                StringBuilder where = new StringBuilder();
+                where.append(VideoContract.VideoEntry.COLUMN_RECTYPE)
+                        .append(" = ")
+                        .append(VideoContract.VideoEntry.RECTYPE_RECORDING)
+                        .append(" and ")
+                        .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                        .append(" = ? and ")
+                        .append(VideoContract.VideoEntry.COLUMN_TITLE)
+                        .append(" = ?");
+                if (!showDeleted)
+                    where.append(" and ")
+                            .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                            .append(" != 'Deleted' ");
+                if (!showWatched)
+                    where.append(" and ")
+                            .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                            .append(" & ").append(Video.FL_WATCHED)
+                            .append(" == 0");
                 String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                         + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                         + VideoContract.VideoEntry.COLUMN_STARTTIME;
@@ -1123,10 +1156,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
-                        VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
-                                + VideoContract.VideoEntry.RECTYPE_RECORDING + " and "
-                                + VideoContract.VideoEntry.COLUMN_RECGROUP + " = ? and "
-                                + VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
+                        where.toString(),
                         new String[]{recgroup,category},
                         orderby);
             }

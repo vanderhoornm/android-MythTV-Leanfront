@@ -96,6 +96,16 @@ public class Settings {
         mEditor.putString("pref_subtitle_size",str);
         str = mPrefs.getString("pref_error_toast", "false");
         mEditor.putString("pref_error_toast",str);
+        str = mPrefs.getString("pref_show_recents", "true");
+        mEditor.putString("pref_show_recents",str);
+        str = mPrefs.getString("pref_recents_deleted", "false");
+        mEditor.putString("pref_recents_deleted",str);
+        str = mPrefs.getString("pref_recents_watched", "false");
+        mEditor.putString("pref_recents_watched",str);
+        str = mPrefs.getString("pref_related_deleted", "false");
+        mEditor.putString("pref_recents_deleted",str);
+        str = mPrefs.getString("pref_related_watched", "false");
+        mEditor.putString("pref_recents_watched",str);
         mEditor.apply();
     }
 }

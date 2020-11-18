@@ -759,6 +759,9 @@ public class MainFragment extends BrowseSupportFragment
 
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
+            boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
+            boolean showDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
+            boolean showWatched = "true".equals(Settings.getString("pref_recents_watched"));
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -821,7 +824,7 @@ public class MainFragment extends BrowseSupportFragment
                 ListRow row;
 
                 // Create the recents row, only for top level
-                if (mType == TYPE_TOPLEVEL) {
+                if (mType == TYPE_TOPLEVEL && showRecents) {
                     String title = getString(R.string.recents_title) + "\t";
                     header = new MyHeaderItem(title, TYPE_RECENTS, mBaseName);
                     recentsObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
@@ -1087,9 +1090,11 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add to recents row if applicable
                     if (recentsObjectAdapter != null
-                            // uncomment this to exclude deleted from recents
-//                            && !"Deleted".equals(recgroup)
-                            && video.lastUsed > 0) {
+                            && video.lastUsed > 0
+                            && (showDeleted || !"Deleted".equals(recgroup))
+                            && (showWatched
+                                || video.progflags == null
+                                || (Integer.parseInt(video.progflags) & Video.FL_WATCHED) == 0)) {
                         // 525960 minutes in a year
                         // Get position as number of minutes since 1970
                         // Will stop working in the year 5982

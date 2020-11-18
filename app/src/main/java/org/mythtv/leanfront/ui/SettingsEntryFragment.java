@@ -20,18 +20,24 @@
 package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.model.Video;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +52,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_SKIP_FWD = 8;
     private static final int ID_SKIP_BACK = 9;
     private static final int ID_JUMP = 10;
-    private static final int ID_SORT = 11;
+    private static final int ID_PROG_LIST_OPTIONS = 11;
     private static final int ID_SORT_ORIG_AIRDATE = 12;
     private static final int ID_DESCENDING = 13;
     private static final int ID_BACKEND_MAC = 14;
@@ -60,16 +66,23 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_FRAMERATE_MATCH = 22;
     private static final int ID_SUBTITLE_SIZE = 23;
     private static final int ID_ERROR_TOAST = 24;
+    private static final int ID_SHOW_RECENTS = 25;
+    private static final int ID_RECENTS_DELETED = 26;
+    private static final int ID_RECENTS_WATCHED = 27;
+    private static final int ID_RELATED_DELETED = 28;
+    private static final int ID_RELATED_WATCHED = 29;
+
+    private static final String KEY_EXPAND = "EXPAND";
 
     private SharedPreferences.Editor mEditor;
 
     private GuidedAction mBackendAction;
-    private GuidedAction mSortAction;
     private GuidedAction mAudioAction;
 
     private String mPriorBackend;
     private String mPriorHttpPort;
 
+    @NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
         Activity activity = getActivity();
@@ -112,11 +125,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<>();
-        String match = Settings.getString("pref_framerate_match");
+        String str = Settings.getString("pref_framerate_match");
         GuidedAction.Builder tmp = new GuidedAction.Builder(getActivity());
         tmp     .id(ID_FRAMERATE_MATCH)
                 .title(R.string.pref_title_framerate_match)
-                .checked("true".equals(match))
+                .checked("true".equals(str))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
         if (android.os.Build.VERSION.SDK_INT < 23)
             tmp .description(R.string.pref_msg_needs_6_0)
@@ -136,11 +149,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-        String arrowjump = Settings.getString("pref_arrow_jump");
+        str = Settings.getString("pref_arrow_jump");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_ARROW_JUMP)
                 .title(R.string.pref_title_arrow_jump)
-                .checked("true".equals(arrowjump))
+                .checked("true".equals(str))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
@@ -157,11 +170,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-        String bookmark = Settings.getString("pref_bookmark");
+        str = Settings.getString("pref_bookmark");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_LOCAL)
                 .title(R.string.pref_bookmark_local)
-                .checked("local".equals(bookmark))
+                .checked("local".equals(str))
                 .description(R.string.pref_bookmark_mythtv)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
@@ -172,11 +185,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-        String toast = Settings.getString("pref_error_toast");
+        str = Settings.getString("pref_error_toast");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_ERROR_TOAST)
                 .title(R.string.pref_error_toast)
-                .checked("true".equals(toast))
+                .checked("true".equals(str))
                 .description(R.string.pref_error_toast_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
@@ -187,24 +200,67 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<>();
-        String seq = Settings.getString("pref_seq");
+        str = Settings.getString("pref_seq");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SORT_ORIG_AIRDATE)
                 .title(R.string.pref_seq_orig_airdate)
-                .checked("airdate".equals(seq))
+                .checked("airdate".equals(str))
+                .description(R.string.pref_seq_orig_airdate_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        String ascdesc = Settings.getString("pref_seq_ascdesc");
+        str = Settings.getString("pref_seq_ascdesc");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_DESCENDING)
                 .title(R.string.pref_seq_descending)
-                .checked("desc".equals(ascdesc))
+                .checked("desc".equals(str))
+                .description(R.string.pref_seq_descending_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        actions.add(mSortAction = new GuidedAction.Builder(getActivity())
-                .id(ID_SORT)
-                .title(R.string.pref_sort_order)
-                .description(sortDesc())
+        String recents = Settings.getString("pref_show_recents");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_SHOW_RECENTS)
+                .title(R.string.pref_show_recents)
+                .checked("true".equals(recents))
+                .description(R.string.pref_show_recents_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_recents_deleted");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RECENTS_DELETED)
+                .title(R.string.pref_recents_deleted)
+                .checked("true".equals(str))
+                .enabled("true".equals(recents))
+                .focusable("true".equals(recents))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_recents_watched");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RECENTS_WATCHED)
+                .title(R.string.pref_recents_watched)
+                .checked("true".equals(str))
+                .enabled("true".equals(recents))
+                .focusable("true".equals(recents))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_related_deleted");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RELATED_DELETED)
+                .title(R.string.pref_related_deleted)
+                .checked("true".equals(str))
+                .description(R.string.pref_related_deleted_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_related_watched");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RELATED_WATCHED)
+                .title(R.string.pref_related_watched)
+                .checked("true".equals(str))
+                .description(R.string.pref_related_watched_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        actions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_PROG_LIST_OPTIONS)
+                .title(R.string.pref_title_lists)
                 .subActions(subActions)
                 .build());
 
@@ -240,24 +296,19 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
     }
 
-    private String backendDesc() {
-        return Settings.getString("pref_backend");
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View ret =  super.onCreateView(inflater, container, savedInstanceState);
+        int expandId = getActivity().getIntent()
+                .getIntExtra(KEY_EXPAND, 0);
+        GuidedAction action = findActionById(expandId);
+        if (action != null)
+            expandAction(action, false);
+        return ret;
     }
 
-    private String sortDesc() {
-        StringBuilder builder = new StringBuilder();
-        String seq = Settings.getString("pref_seq");
-        String ascdesc = Settings.getString("pref_seq_ascdesc");
-        if ("airdate".equals(seq))
-            builder.append(getActivity().getString(R.string.pref_seq_orig_airdate));
-        else
-            builder.append(getActivity().getString(R.string.pref_seq_rec_time));
-        builder.append(" ");
-        if ("desc".equals(ascdesc))
-            builder.append(getActivity().getString(R.string.pref_seq_descending));
-        else
-            builder.append(getActivity().getString(R.string.pref_seq_ascending));
-        return builder.toString();
+    private String backendDesc() {
+        return Settings.getString("pref_backend");
     }
 
     private String audiodesc() {
@@ -392,6 +443,42 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 else
                     mEditor.putString("pref_seq_ascdesc", "asc");
                 break;
+            case ID_SHOW_RECENTS:
+                if (action.isChecked())
+                    mEditor.putString("pref_show_recents", "true");
+                else
+                    mEditor.putString("pref_show_recents", "false");
+                // restart the activity so the recent options below get appropriately
+                // enabled or disabled
+                Intent intent = new Intent(getContext(), SettingsActivity.class);
+                intent.putExtra(KEY_EXPAND, ID_PROG_LIST_OPTIONS);
+                getContext().startActivity(intent);
+                finishGuidedStepSupportFragments();
+                break;
+            case ID_RECENTS_DELETED:
+                if (action.isChecked())
+                    mEditor.putString("pref_recents_deleted", "true");
+                else
+                    mEditor.putString("pref_recents_deleted", "false");
+                break;
+            case ID_RECENTS_WATCHED:
+                if (action.isChecked())
+                    mEditor.putString("pref_recents_watched", "true");
+                else
+                    mEditor.putString("pref_recents_watched", "false");
+                break;
+            case ID_RELATED_DELETED:
+                if (action.isChecked())
+                    mEditor.putString("pref_related_deleted", "true");
+                else
+                    mEditor.putString("pref_related_deleted", "false");
+                break;
+            case ID_RELATED_WATCHED:
+                if (action.isChecked())
+                    mEditor.putString("pref_related_watched", "true");
+                else
+                    mEditor.putString("pref_related_watched", "false");
+                break;
             case ID_AUDIO_AUTO:
                 if (action.isChecked())
                     mEditor.putString("pref_audio", "auto");
@@ -415,8 +502,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         }
         mEditor.apply();
         notifyActionChanged(findActionPositionById(ID_PLAYBACK));
-        mSortAction.setDescription(sortDesc());
-        notifyActionChanged(findActionPositionById(ID_SORT));
         mAudioAction.setDescription(audiodesc());
         notifyActionChanged(findActionPositionById(ID_AUDIO));
         return false;

@@ -84,6 +84,7 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.XmlNode;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
@@ -468,7 +469,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        boolean showDeleted = "true".equals(Settings.getString("pref_related_deleted"));
+        boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
+
         switch (id) {
+
             case RELATED_VIDEO_LOADER: {
                 // When loading related videos or videos for the playlist, query by category.
                 int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE);
@@ -484,14 +490,24 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     String subdirname = dirname + "%/%";
 
                     String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
+                    StringBuilder where = new StringBuilder();
+                    where   .append(VideoContract.VideoEntry.COLUMN_RECTYPE)
+                            .append(" = ").append(VideoContract.VideoEntry.RECTYPE_VIDEO)
+                            .append(" and ")
+                            .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                            .append(" like ? and ")
+                            .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                            .append(" not like ? ");
+                    if (!showWatched)
+                        where.append(" and ")
+                             .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                             .append(" & ").append(Video.FL_WATCHED)
+                             .append(" == 0");
                     return new CursorLoader(
                             getActivity(),
                             VideoContract.VideoEntry.CONTENT_URI,
                             null,
-                            VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
-                                    + VideoContract.VideoEntry.RECTYPE_VIDEO + " and "
-                                + VideoContract.VideoEntry.COLUMN_FILENAME + " like ? and "
-                                + VideoContract.VideoEntry.COLUMN_FILENAME + " not like ? ",
+                            where.toString(),
                             new String[]{dirname, subdirname},
                             orderby);
                 }
@@ -502,6 +518,24 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
                     else
                         category = "X\t"; // To prevent anything being found
+                    StringBuilder where = new StringBuilder();
+                    where.append(VideoContract.VideoEntry.COLUMN_RECTYPE)
+                            .append(" = ")
+                            .append(VideoContract.VideoEntry.RECTYPE_RECORDING)
+                            .append(" and ")
+                            .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                            .append(" = ? and ")
+                            .append(VideoContract.VideoEntry.COLUMN_TITLE)
+                            .append(" = ?");
+                    if (!showDeleted)
+                        where.append(" and ")
+                                .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                                .append(" != 'Deleted' ");
+                    if (!showWatched)
+                        where.append(" and ")
+                                .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                                .append(" & ").append(Video.FL_WATCHED)
+                                .append(" == 0");
                     String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                             + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                             + VideoContract.VideoEntry.COLUMN_STARTTIME;
@@ -509,10 +543,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             getActivity(),
                             VideoContract.VideoEntry.CONTENT_URI,
                             null,
-                            VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
-                                    + VideoContract.VideoEntry.RECTYPE_RECORDING + " and "
-                                + VideoContract.VideoEntry.COLUMN_RECGROUP + " = ? and "
-                                + VideoContract.VideoEntry.COLUMN_TITLE + " = ?",
+                            where.toString(),
                             new String[]{recgroup,category},
                             orderby);
                 }

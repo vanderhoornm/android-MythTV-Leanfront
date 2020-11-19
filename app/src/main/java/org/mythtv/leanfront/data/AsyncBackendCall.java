@@ -396,8 +396,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                         // Create a new map of values, where column names are the keys
                         ContentValues values = new ContentValues();
-                        Date now = new Date();
-                        values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, now.getTime());
+                        values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, System.currentTimeMillis());
                         values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, localBkmark);
 
                         // First try an update

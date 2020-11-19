@@ -128,7 +128,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String callsign = cursor.getString(callsignIndex);
         String storageGroup = cursor.getString(storageGroupIndex);
         long lastUsed = 0;
-        if (lastUsedIndex >= 0)
+        if (lastUsedIndex >= 0 && !cursor.isNull(lastUsedIndex))
             lastUsed = cursor.getLong(lastUsedIndex);
 
         // Build a Video object to be processed.

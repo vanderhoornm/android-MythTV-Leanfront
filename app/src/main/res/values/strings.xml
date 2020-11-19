@@ -89,7 +89,8 @@
 <!--    <string name="pref_seq_ascending">Ascending</string>-->
     <string name="pref_sort_order">Sort Sequence</string>
     <string name="pref_show_recents">Show Recently Viewed List</string>
-    <string name="pref_show_recents_desc">This appears at the top of the top level screen only.</string>
+    <string name="pref_show_recents_desc">This appears on the top level screen only.</string>
+    <string name="pref_recents_days">Number of Days in Recently Viewed List</string>
     <string name="pref_recents_deleted">Include Deleted Shows in Recently Viewed List</string>
     <string name="pref_recents_watched">Include Watched Shows in Recently Viewed List</string>
     <string name="pref_related_deleted">Include Deleted Shows in Related Videos List</string>

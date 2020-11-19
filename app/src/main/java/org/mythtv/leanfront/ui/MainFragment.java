@@ -762,6 +762,8 @@ public class MainFragment extends BrowseSupportFragment
             boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
             boolean showDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
             boolean showWatched = "true".equals(Settings.getString("pref_recents_watched"));
+            long recentsDays = Settings.getInt("pref_recents_days");
+            long recentsStart = System.currentTimeMillis() - recentsDays * 24*60*60*1000;
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -1090,7 +1092,7 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add to recents row if applicable
                     if (recentsObjectAdapter != null
-                            && video.lastUsed > 0
+                            && video.lastUsed > recentsStart
                             && (showDeleted || !"Deleted".equals(recgroup))
                             && (showWatched
                                 || video.progflags == null

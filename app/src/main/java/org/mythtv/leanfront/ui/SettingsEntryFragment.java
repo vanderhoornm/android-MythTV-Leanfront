@@ -71,6 +71,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_RECENTS_WATCHED = 27;
     private static final int ID_RELATED_DELETED = 28;
     private static final int ID_RELATED_WATCHED = 29;
+    private static final int ID_RECENTS_DAYS = 30;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -224,6 +225,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .description(R.string.pref_show_recents_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
+        str = Settings.getString("pref_recents_days");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RECENTS_DAYS)
+                .title(R.string.pref_recents_days)
+                .description(Settings.getString("pref_recents_days"))
+                .descriptionEditable("true".equals(recents))
+                .enabled("true".equals(recents))
+                .focusable("true".equals(recents))
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
         str = Settings.getString("pref_recents_deleted");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_RECENTS_DELETED)
@@ -353,6 +364,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 mEditor.putString("pref_subtitle_size",
                         validateNumber(action, 25, 300, 100));
                 break;
+            case ID_RECENTS_DAYS:
+                mEditor.putString("pref_recents_days",
+                        validateNumber(action, 1, 60, 7));
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -404,6 +419,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_SUBTITLE_SIZE:
                 action.setDescription(Settings.getString("pref_subtitle_size"));
+                break;
+            case ID_RECENTS_DAYS:
+                action.setDescription(Settings.getString("pref_recents_days"));
                 break;
         }
     }

@@ -103,9 +103,9 @@ public class Settings {
         str = mPrefs.getString("pref_recents_watched", "false");
         mEditor.putString("pref_recents_watched",str);
         str = mPrefs.getString("pref_related_deleted", "false");
-        mEditor.putString("pref_recents_deleted",str);
+        mEditor.putString("pref_related_deleted",str);
         str = mPrefs.getString("pref_related_watched", "false");
-        mEditor.putString("pref_recents_watched",str);
+        mEditor.putString("pref_related_watched",str);
         str = mPrefs.getString("pref_recents_days", "7");
         mEditor.putString("pref_recents_days",str);
         mEditor.apply();

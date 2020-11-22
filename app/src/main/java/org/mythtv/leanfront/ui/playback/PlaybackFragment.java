@@ -69,11 +69,11 @@ import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.player.MyExtractorsFactory;
+import org.mythtv.leanfront.player.MyRenderersFactory;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
@@ -298,12 +298,12 @@ public class PlaybackFragment extends VideoSupportFragment
     private void initializePlayer() {
         Log.i(TAG, CLASS + " Initializing Player for " + mVideo.title + " " + mVideo.videoUrl);
         mTrackSelector = new DefaultTrackSelector(getContext());
-        DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getContext());
-        int extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
+        MyRenderersFactory rFactory = new MyRenderersFactory(getContext());
+        int extMode = MyRenderersFactory.EXTENSION_RENDERER_MODE_ON;
         if ("mediacodec".equals(mAudio))
-            extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
+            extMode = MyRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
         else if ("ffmpeg".equals(mAudio))
-            extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
+            extMode = MyRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
         SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);

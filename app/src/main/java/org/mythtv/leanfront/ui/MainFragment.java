@@ -227,6 +227,8 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     private void setUsage(int used) {
+        if (getContext() == null)
+            return;
         if (mUsageView == null) {
             View mainView = getView();
             if (mainView == null)
@@ -880,6 +882,7 @@ public class MainFragment extends BrowseSupportFragment
 
                     String category = null;
                     Video video = (Video) videoCursorAdapter.get(data.getPosition());
+                    Video dbVideo = video;
 
                     // For Rec Group type, only use recordings from that recording group.
                     // categories are titles.
@@ -1092,15 +1095,15 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add to recents row if applicable
                     if (recentsObjectAdapter != null
-                            && video.lastUsed > recentsStart
+                            && dbVideo.lastUsed > recentsStart
                             && (showDeleted || !"Deleted".equals(recgroup))
                             && (showWatched
-                                || video.progflags == null
-                                || (Integer.parseInt(video.progflags) & Video.FL_WATCHED) == 0)) {
+                                || dbVideo.progflags == null
+                                || (Integer.parseInt(dbVideo.progflags) & Video.FL_WATCHED) == 0)) {
                         // 525960 minutes in a year
                         // Get position as number of minutes since 1970
                         // Will stop working in the year 5982
-                        int position = (int) (video.lastUsed / 60000L);
+                        int position = (int) (dbVideo.lastUsed / 60000L);
                         // Add 70 years in case it is before 1970
                         position += 36817200;
                         // descending
@@ -1111,11 +1114,11 @@ public class MainFragment extends BrowseSupportFragment
                                 position++;
                         } catch (ArrayIndexOutOfBoundsException e) { }
 
-                        recentsObjectAdapter.set(position,video);
+                        recentsObjectAdapter.set(position,dbVideo);
 
                         if (selectedRowNum == recentsRowNum) {
-                            if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(video.recordedid,mSelectedItemId))
+                            if (dbVideo.getItemType() == mSelectedItemType
+                                    && Objects.equals(dbVideo.recordedid,mSelectedItemId))
                                 selectedItemNum = position;
                         }
                     }

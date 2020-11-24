@@ -37,6 +37,7 @@
         android:required="true" />
 
     <application
+        android:name="org.mythtv.leanfront.MyApplication"
         android:allowBackup="false"
         android:banner="@drawable/banner_lean"
         android:icon="@drawable/ic_launcher_lean"

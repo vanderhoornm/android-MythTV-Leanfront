@@ -26,6 +26,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.RecordRule;
 import org.mythtv.leanfront.model.Settings;
@@ -187,7 +188,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             boolean found;
             XmlNode response;
             String urlString = null;
-            Context context = MainActivity.getContext();
+            Context context = MyApplication.getAppContext();
             boolean allowRerecord = false;
             XmlNode xmlResult = null;
             switch (task) {
@@ -391,7 +392,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // Update local bookmark
 
                         // Gets the data repository in write mode
-                        VideoDbHelper dbh = new VideoDbHelper(main);
+                        VideoDbHelper dbh = new VideoDbHelper(context);
                         SQLiteDatabase db = dbh.getWritableDatabase();
 
                         // Create a new map of values, where column names are the keys

@@ -35,6 +35,7 @@ import android.view.KeyEvent;
 
 import androidx.fragment.app.Fragment;
 
+import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Settings;
 
@@ -104,7 +105,7 @@ public class MainActivity extends LeanbackActivity {
 
 
     public static void setAppLocale(String localeCode){
-        Resources resources = context.getResources();
+        Resources resources = MyApplication.getAppContext().getResources();
         DisplayMetrics displayMetrics = resources.getDisplayMetrics();
         Configuration configuration = resources.getConfiguration();
         configuration.setLocale(new Locale(localeCode.toLowerCase()));

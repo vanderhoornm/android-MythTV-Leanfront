@@ -31,6 +31,8 @@ import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
 
+import org.mythtv.leanfront.exoplayer2.extractor.mkv.MatroskaExtractor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,9 @@ public class MyExtractorsFactory implements ExtractorsFactory {
                         TsExtractor.MODE_SINGLE_PMT,
                         new TimestampAdjuster(0),
                         payloadReaderFactory, 2600 * TsExtractor.TS_PACKET_SIZE);
+            }
+            if (exts[ix] instanceof com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor) {
+                exts[ix] = new MatroskaExtractor();
             }
         }
     }

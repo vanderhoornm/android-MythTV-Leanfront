@@ -477,7 +477,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
             case RELATED_VIDEO_LOADER: {
                 // When loading related videos or videos for the playlist, query by category.
-                int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE);
+                int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE, -1);
                 String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
                 String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
                 if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
@@ -485,7 +485,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     int pos = filename.lastIndexOf('/');
                     String dirname = "";
                     if (pos >= 0)
-                        dirname = filename.substring(0,pos+1);
+                        dirname = filename.substring(0, pos + 1);
                     dirname = dirname + "%";
                     String subdirname = dirname + "%/%";
 
@@ -503,6 +503,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                              .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                              .append(" & ").append(Video.FL_WATCHED)
                              .append(" == 0");
+
                     return new CursorLoader(
                             getActivity(),
                             VideoContract.VideoEntry.CONTENT_URI,
@@ -510,9 +511,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             where.toString(),
                             new String[]{dirname, subdirname},
                             orderby);
-                }
-                else {
-                    // Recordings or channels
+                } else {
+                    // Recordings or LiveTV
                     String category;
                     if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
                         category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
@@ -521,30 +521,50 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     StringBuilder where = new StringBuilder();
                     where.append(VideoContract.VideoEntry.COLUMN_RECTYPE)
                             .append(" = ")
-                            .append(VideoContract.VideoEntry.RECTYPE_RECORDING)
-                            .append(" and ")
-                            .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                            .append(" = ? and ")
+                            .append(VideoContract.VideoEntry.RECTYPE_RECORDING);
+                    boolean deleted = "Deleted".equals(recgroup);
+                    if (deleted) {
+                        // when we are in the Deleted group, show all rec groups
+                        // unless asked to exclude deleted.
+                        if (!showDeleted) {
+                            where.append(" and ");
+                            where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                                    .append(" != 'Deleted' ");
+                        }
+                    } else {
+                        where.append(" and ");
+                        if (showDeleted)
+                            where.append(" ( ");
+                        where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                             .append(" = ? ");
+                        if (showDeleted) {
+                            where.append(" or ");
+                            where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                                    .append(" = 'Deleted' ) ");
+                        }
+                    }
+                    where.append(" and ")
                             .append(VideoContract.VideoEntry.COLUMN_TITLE)
-                            .append(" = ?");
-                    if (!showDeleted)
-                        where.append(" and ")
-                                .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                                .append(" != 'Deleted' ");
+                            .append(" = ? ");
                     if (!showWatched)
                         where.append(" and ")
                                 .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                                 .append(" & ").append(Video.FL_WATCHED)
-                                .append(" == 0");
+                                .append(" == 0 ");
                     String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                             + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                             + VideoContract.VideoEntry.COLUMN_STARTTIME;
+                    String [] selectionArgs;
+                    if (deleted)
+                        selectionArgs = new String[]{category};
+                    else
+                        selectionArgs = new String[]{recgroup,category};
                     return new CursorLoader(
                             getActivity(),
                             VideoContract.VideoEntry.CONTENT_URI,
                             null,
                             where.toString(),
-                            new String[]{recgroup,category},
+                            selectionArgs,
                             orderby);
                 }
             }

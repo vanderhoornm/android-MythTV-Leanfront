@@ -1134,30 +1134,50 @@ public class PlaybackFragment extends VideoSupportFragment
                 StringBuilder where = new StringBuilder();
                 where.append(VideoContract.VideoEntry.COLUMN_RECTYPE)
                         .append(" = ")
-                        .append(VideoContract.VideoEntry.RECTYPE_RECORDING)
-                        .append(" and ")
-                        .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                        .append(" = ? and ")
+                        .append(VideoContract.VideoEntry.RECTYPE_RECORDING);
+                boolean deleted = "Deleted".equals(recgroup);
+                if (deleted) {
+                    // when we are in the Deleted group, show all rec groups
+                    // unless asked to exclude deleted.
+                    if (!showDeleted) {
+                        where.append(" and ");
+                        where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                                .append(" != 'Deleted' ");
+                    }
+                } else {
+                    where.append(" and ");
+                    if (showDeleted)
+                        where.append(" ( ");
+                    where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                            .append(" = ? ");
+                    if (showDeleted) {
+                        where.append(" or ");
+                        where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
+                                .append(" = 'Deleted' ) ");
+                    }
+                }
+                where.append(" and ")
                         .append(VideoContract.VideoEntry.COLUMN_TITLE)
-                        .append(" = ?");
-                if (!showDeleted)
-                    where.append(" and ")
-                            .append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                            .append(" != 'Deleted' ");
+                        .append(" = ? ");
                 if (!showWatched)
                     where.append(" and ")
                             .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                             .append(" & ").append(Video.FL_WATCHED)
-                            .append(" == 0");
+                            .append(" == 0 ");
                 String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                         + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                         + VideoContract.VideoEntry.COLUMN_STARTTIME;
+                String [] selectionArgs;
+                if (deleted)
+                    selectionArgs = new String[]{category};
+                else
+                    selectionArgs = new String[]{recgroup,category};
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
                         where.toString(),
-                        new String[]{recgroup,category},
+                        selectionArgs,
                         orderby);
             }
         }

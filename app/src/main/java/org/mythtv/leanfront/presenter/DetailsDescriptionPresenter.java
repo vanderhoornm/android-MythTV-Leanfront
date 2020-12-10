@@ -130,6 +130,10 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
 
             StringBuilder subtitle = new StringBuilder();
+            // symbols for deleted - "🗑" "🗶" "␡"
+            if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                    && "Deleted".equals(mVideo.recGroup))
+                subtitle.append("\uD83D\uDDD1");
             // possible characters for watched - "👁" "⏿" "👀"
             int progflags = Integer.parseInt(mVideo.progflags);
             if ((progflags & Video.FL_WATCHED) != 0)

@@ -136,6 +136,10 @@ public class CardPresenter extends Presenter {
         StringBuilder subtitle = new StringBuilder();
         if (video.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
             || video.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+            // symbols for deleted - "🗑" "🗶" "␡"
+            if (video.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                    && "Deleted".equals(video.recGroup))
+                subtitle.append("\uD83D\uDDD1");
             int progflags = 0;
             if (video.progflags != null)
                 progflags = Integer.parseInt(video.progflags);

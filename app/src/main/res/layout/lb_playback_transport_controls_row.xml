@@ -28,6 +28,7 @@
 
 <!--
     Copied from android source so that we can add the button_selected text item
+    and a clock.
 -->
 
 <LinearLayout
@@ -89,13 +90,30 @@
         android:paddingEnd="?attr/browsePaddingEnd"
         android:clipChildren="false"
         android:clipToPadding="false">
-        <FrameLayout
-            android:id="@+id/controls_dock"
-            android:layout_width="match_parent"
+        <RelativeLayout android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layoutDirection="ltr"
-            android:layout_marginLeft="@dimen/lb_playback_transport_controlbar_margin_start"
-            />
+            android:layout_marginLeft="@dimen/lb_playback_transport_controlbar_margin_start">
+
+            <FrameLayout
+                android:id="@+id/controls_dock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layoutDirection="ltr"
+                android:layout_marginLeft="@dimen/lb_playback_transport_controlbar_margin_start"
+                />
+
+            <TextClock
+                android:id="@+id/clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="@dimen/lb_playback_transport_time_margin"
+                android:layout_marginTop="24dp"
+                style="?attr/playbackControlsTimeStyle" />
+
+        </RelativeLayout>
 
         <androidx.leanback.widget.SeekBar
             android:id="@+id/playback_progress"

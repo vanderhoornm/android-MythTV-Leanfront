@@ -324,6 +324,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         this)
                         .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE_AND_RERECORD, Video.ACTION_REFRESH);
                 break;
+            case Video.ACTION_ALLOW_RERECORD:
+                new AsyncBackendCall(mSelectedVideo, 0, false,
+                        this)
+                        .execute(Video.ACTION_ALLOW_RERECORD);
+                break;
             case Video.ACTION_UNDELETE:
                 new AsyncBackendCall(mSelectedVideo, 0, false,
                         this)
@@ -381,7 +386,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     break;
                 prompts = new ArrayList<>();
                 actions = new ArrayList<>();
-                if (mSelectedVideo.recGroup != null) {
+                if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
                     if ("Deleted".equals(mSelectedVideo.recGroup)) {
                         prompts.add(getString(R.string.menu_undelete));
                         actions.add(new Action(Video.ACTION_UNDELETE));
@@ -391,8 +396,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         prompts.add(getString(R.string.menu_delete_rerecord));
                         actions.add(new Action(Video.ACTION_DELETE_AND_RERECORD));
                     }
+                    prompts.add(getString(R.string.menu_rerecord));
+                    actions.add(new Action(Video.ACTION_ALLOW_RERECORD));
                 }
-
                 if (mWatched) {
                     prompts.add(getString(R.string.menu_mark_unwatched));
                     actions.add(new Action(Video.ACTION_UNWATCHED));
@@ -816,6 +822,21 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
                 startActivity(intent);
                 break;
+            case Video.ACTION_ALLOW_RERECORD:
+                XmlNode xml = taskRunner.getXmlResult();
+                if (xml != null && "true".equals(xml.getString())) {
+                    Toast.makeText(getContext(),R.string.msg_allowed_rerecord, Toast.LENGTH_LONG)
+                            .show();
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                            R.style.Theme_AppCompat_Dialog_Alert);
+                    builder.setTitle(R.string.msg_error_title);
+                    builder.setMessage(R.string.msg_fail_allowed_rerecord);
+                    builder.show();
+                }
+                break;
+
             default:
                 if (context == null)
                     break;

@@ -859,6 +859,20 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     break;
 
+                case Video.ACTION_ALLOW_RERECORD:
+                    if (!isRecording)
+                        break;
+                    try {
+                        urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                "/Dvr/AllowReRecord?RecordedId="
+                                        + mVideo.recordedid);
+                        xmlResult = XmlNode.fetch(urlString, "POST");
+                        mXmlResults.add(xmlResult);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
                 default:
                     String method = null;
                     switch (task) {

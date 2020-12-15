@@ -116,6 +116,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_GETUPCOMINGLIST       = 42;
     public static final int ACTION_PAUSE                 = 43;
     public static final int ACTION_AUDIOSYNC             = 44;
+    public static final int ACTION_ALLOW_RERECORD        = 45;
 
 
     private Video(

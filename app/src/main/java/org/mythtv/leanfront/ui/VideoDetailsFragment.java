@@ -27,11 +27,13 @@ package org.mythtv.leanfront.ui;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -83,6 +85,7 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -380,6 +383,34 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 builder.setMessage(msg);
                 builder.show();
                 break;
+            case Video.ACTION_REMOVE_RECENT:
+                // Gets the data repository in write mode
+                VideoDbHelper dbh = new VideoDbHelper(getContext());
+                SQLiteDatabase db = dbh.getWritableDatabase();
+                // Create a new map of values, where column names are the keys
+                ContentValues values = new ContentValues();
+                values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 0);
+
+                // First try an update
+                String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
+                String[] selectionArgs = {mSelectedVideo.videoUrl};
+
+                db.update(
+                        VideoContract.StatusEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+
+                Toast.makeText(getContext(),R.string.msg_removed_recent, Toast.LENGTH_LONG)
+                        .show();
+                db.close();
+                MainActivity main = MainActivity.getContext();
+                if (main != null)
+                    main.getMainFragment().startFetch(mSelectedVideo.rectype, mSelectedVideo.recordedid, null);
+                new AsyncBackendCall(mSelectedVideo, 0, false,
+                        this)
+                        .execute(Video.ACTION_REFRESH);
+                break;
             case Video.ACTION_OTHER:
                 if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_RECORDING
                         && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_VIDEO)
@@ -410,6 +441,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 if (mBookmark > 0 || posBookmark > 0) {
                     prompts.add(getString(R.string.menu_remove_bookmark));
                     actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
+                }
+                if (mSelectedVideo.isRecentViewed()) {
+                    prompts.add(getString(R.string.menu_remove_from_recent));
+                    actions.add(new Action(Video.ACTION_REMOVE_RECENT));
                 }
 
                 // End Time

@@ -133,6 +133,7 @@
     <string name="menu_dont_stop_recording">Don\'t Stop Recording</string>
     <string name="menu_stop_livetv">Stop Live TV</string>
     <string name="menu_dont_stop_livetv">Don\'t Stop Live TV</string>
+    <string name="menu_remove_from_recent">Remove from Recently Viewed List</string>
     <string name="dummy_empty_string" translatable="false"></string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
 
@@ -221,6 +222,7 @@
 
     <string name="msg_rec_rule_gone">Recording Rule no longer exists.</string>
     <string name="msg_allowed_rerecord">Re-record of program is allowed.</string>
+    <string name="msg_removed_recent">Removed from recently viewed list until viewed again.</string>
     <string name="msg_error_title">Error</string>
     <string name="msg_fail_allowed_rerecord">Request to allow re-record program has failed.</string>
 

@@ -38,7 +38,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 13;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -104,9 +104,15 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     StatusEntry.COLUMN_BOOKMARK + " INTEGER);";
             db.execSQL(SQL_CREATE_VIDEOSTATUS_TABLE);
         }
+        if (oldVersion < 13) {
+            final String SQL = "ALTER TABLE " + StatusEntry.TABLE_NAME +
+                    " ADD COLUMN " +
+                    StatusEntry.COLUMN_SHOW_RECENT + " INTEGER DEFAULT 1;";
+            db.execSQL(SQL);
+        }
 
         // View for keeping track of recently watched
-        if (oldVersion < 12) {
+        if (oldVersion < 13) {
             final String DROP_VIEW = "DROP VIEW IF EXISTS " + VideoEntry.VIEW_NAME + ";";
             db.execSQL(DROP_VIEW);
             final String CREATE_VIEW = "CREATE VIEW " + VideoEntry.VIEW_NAME + " ( " +
@@ -136,7 +142,8 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_CHANID + " ," +
                     VideoEntry.COLUMN_CHANNUM + " ," +
                     VideoEntry.COLUMN_CALLSIGN + " , " +
-                    StatusEntry.COLUMN_LAST_USED + " )  AS SELECT " +
+                    StatusEntry.COLUMN_LAST_USED + " , " +
+                    StatusEntry.COLUMN_SHOW_RECENT + " )  AS SELECT " +
                     VideoEntry.COLUMN_RECTYPE + " , " +
                     VideoEntry.COLUMN_TITLE + " , " +
                     VideoEntry.COLUMN_SUBTITLE + " , " +
@@ -163,7 +170,8 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_CHANID + " ," +
                     VideoEntry.COLUMN_CHANNUM + " ," +
                     VideoEntry.COLUMN_CALLSIGN + " , " +
-                    StatusEntry.COLUMN_LAST_USED + " FROM " +
+                    StatusEntry.COLUMN_LAST_USED + " , " +
+                    StatusEntry.COLUMN_SHOW_RECENT + " FROM " +
                     VideoEntry.TABLE_NAME + " LEFT OUTER JOIN " +
                     StatusEntry.TABLE_NAME + " USING ( " +
                     VideoEntry.COLUMN_VIDEO_URL + " ); ";

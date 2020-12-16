@@ -24,6 +24,7 @@
 
 package org.mythtv.leanfront.model;
 
+import android.content.SharedPreferences;
 import android.media.MediaDescription;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -71,6 +72,7 @@ public final class Video implements Parcelable, ListItem {
     public final String storageGroup;
     // From status table
     public final long lastUsed;
+    public boolean showRecent;
 
     // Actions used by multiple classes
     public static final int ACTION_PLAY                 =  1;
@@ -117,6 +119,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_PAUSE                 = 43;
     public static final int ACTION_AUDIOSYNC             = 44;
     public static final int ACTION_ALLOW_RERECORD        = 45;
+    public static final int ACTION_REMOVE_RECENT         = 46;
 
 
     private Video(
@@ -145,7 +148,8 @@ public final class Video implements Parcelable, ListItem {
             final String channum,
             final String callsign,
             final String storageGroup,
-            final long lastUsed) {
+            final long lastUsed,
+            final boolean showRecent) {
         this.id = id;
         this.rectype = rectype;
         this.title = title;
@@ -172,6 +176,7 @@ public final class Video implements Parcelable, ListItem {
         this.callsign = callsign;
         this.storageGroup = storageGroup;
         this.lastUsed = lastUsed;
+        this.showRecent = showRecent;
     }
 
     protected Video(Parcel in) {
@@ -201,6 +206,7 @@ public final class Video implements Parcelable, ListItem {
         callsign = in.readString();
         storageGroup = in.readString();
         lastUsed = in.readLong();
+        showRecent = in.readInt() != 0;
     }
 
     public static final Creator<Video> CREATOR = new Creator<Video>() {
@@ -252,6 +258,10 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(callsign);
         dest.writeString(storageGroup);
         dest.writeLong(lastUsed);
+        int showRecentInt = 0;
+        if (showRecent)
+            showRecentInt = 1;
+        dest.writeInt(showRecentInt);
     }
 
     @Override
@@ -288,6 +298,21 @@ public final class Video implements Parcelable, ListItem {
         return null;
     }
 
+    public boolean isRecentViewed() {
+        boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
+        boolean showDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
+        boolean showWatched = "true".equals(Settings.getString("pref_recents_watched"));
+        long recentsDays = Settings.getInt("pref_recents_days");
+        long recentsStart = System.currentTimeMillis() - recentsDays * 24*60*60*1000;
+        return showRecents
+                        && showRecent
+                        && lastUsed > recentsStart
+                        && (showDeleted || !"Deleted".equals(recGroup))
+                        && (showWatched
+                        || progflags == null
+                        || (Integer.parseInt(progflags) & Video.FL_WATCHED) == 0);
+    }
+
     // Builder for Video object.
     public static class VideoBuilder {
         private long id;
@@ -316,6 +341,7 @@ public final class Video implements Parcelable, ListItem {
         private String callsign;
         private String storageGroup;
         private long lastUsed;
+        private boolean showRecent;
 
         public VideoBuilder id(long id) {
             this.id = id;
@@ -448,6 +474,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder showRecent(boolean showRecent) {
+            this.showRecent = showRecent;
+            return this;
+        }
+
         public Video buildFromMediaDesc(MediaDescription desc) {
             return new Video(
                     Long.parseLong(desc.getMediaId()),
@@ -460,7 +491,7 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    "","","","","","","","","","","","","","","", 0
+                    "","","","","","","","","","","","","","","", 0, false
             );
         }
 
@@ -491,7 +522,8 @@ public final class Video implements Parcelable, ListItem {
                     channum,
                     callsign,
                     storageGroup,
-                    lastUsed
+                    lastUsed,
+                    showRecent
             );
         }
     }

@@ -34,6 +34,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - The *Master Backend Override* MythTV setting is supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
 - Adjustment of Audio Sync in case a recording has a lip-sync problem.
 
+## Release Notes
+
+You can see a list of changes in each version by looking at the commit list in github. See https://github.com/bennettpeter/android-MythTV-Leanfront/commits/master .
 
 ## Main Screen
 

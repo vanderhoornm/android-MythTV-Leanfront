@@ -762,10 +762,6 @@ public class MainFragment extends BrowseSupportFragment
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
             boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
-            boolean showDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
-            boolean showWatched = "true".equals(Settings.getString("pref_recents_watched"));
-            long recentsDays = Settings.getInt("pref_recents_days");
-            long recentsStart = System.currentTimeMillis() - recentsDays * 24*60*60*1000;
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -1095,11 +1091,7 @@ public class MainFragment extends BrowseSupportFragment
 
                     // Add to recents row if applicable
                     if (recentsObjectAdapter != null
-                            && dbVideo.lastUsed > recentsStart
-                            && (showDeleted || !"Deleted".equals(recgroup))
-                            && (showWatched
-                                || dbVideo.progflags == null
-                                || (Integer.parseInt(dbVideo.progflags) & Video.FL_WATCHED) == 0)) {
+                            && dbVideo.isRecentViewed()) {
                         // 525960 minutes in a year
                         // Get position as number of minutes since 1970
                         // Will stop working in the year 5982

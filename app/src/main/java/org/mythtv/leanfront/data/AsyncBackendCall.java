@@ -211,7 +211,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 VideoContract.StatusEntry._ID,
                                 VideoContract.StatusEntry.COLUMN_VIDEO_URL,
                                 VideoContract.StatusEntry.COLUMN_LAST_USED,
-                                VideoContract.StatusEntry.COLUMN_BOOKMARK
+                                VideoContract.StatusEntry.COLUMN_BOOKMARK,
+                                VideoContract.StatusEntry.COLUMN_SHOW_RECENT
                         };
 
                         // Filter results
@@ -232,6 +233,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         if (cursor.moveToNext()) {
                             int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
                             mValue = cursor.getLong(colno);
+                            colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_SHOW_RECENT);
+                            mVideo.showRecent = cursor.getInt(colno) != 0;
                         }
                         cursor.close();
                         db.close();
@@ -399,6 +402,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         ContentValues values = new ContentValues();
                         values.put(VideoContract.StatusEntry.COLUMN_LAST_USED, System.currentTimeMillis());
                         values.put(VideoContract.StatusEntry.COLUMN_BOOKMARK, localBkmark);
+                        values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 1);
 
                         // First try an update
                         String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";

@@ -114,6 +114,7 @@ public final class VideoContract {
         public static final String COLUMN_VIDEO_URL = "video_url";
         public static final String COLUMN_LAST_USED = "last_used";
         public static final String COLUMN_BOOKMARK = "bookmark";
+        public static final String COLUMN_SHOW_RECENT = "show_recent";
     }
 
 }

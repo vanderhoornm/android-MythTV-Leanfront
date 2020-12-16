@@ -62,6 +62,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int callsignIndex;
     private static int storageGroupIndex;
     private static int lastUsedIndex;
+    private static int showRecentIndex;
 
     @Override
     protected void bindColumns(Cursor cursor) {
@@ -91,6 +92,7 @@ public final class VideoCursorMapper extends CursorMapper {
         callsignIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CALLSIGN);
         storageGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_STORAGEGROUP);
         lastUsedIndex = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_LAST_USED);
+        showRecentIndex = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_SHOW_RECENT);
     }
 
     @Override
@@ -130,6 +132,9 @@ public final class VideoCursorMapper extends CursorMapper {
         long lastUsed = 0;
         if (lastUsedIndex >= 0 && !cursor.isNull(lastUsedIndex))
             lastUsed = cursor.getLong(lastUsedIndex);
+        boolean showRecent = true;
+        if (showRecentIndex >= 0 && !cursor.isNull(showRecentIndex))
+            showRecent = (cursor.getInt(showRecentIndex) != 0);
 
         // Build a Video object to be processed.
         return new Video.VideoBuilder()
@@ -158,6 +163,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .callsign(callsign)
                 .storageGroup(storageGroup)
                 .lastUsed(lastUsed)
+                .showRecent(showRecent)
                 .build();
     }
 }

@@ -115,35 +115,40 @@ public class VideoDbHelper extends SQLiteOpenHelper {
         if (oldVersion < 13) {
             final String DROP_VIEW = "DROP VIEW IF EXISTS " + VideoEntry.VIEW_NAME + ";";
             db.execSQL(DROP_VIEW);
-            final String CREATE_VIEW = "CREATE VIEW " + VideoEntry.VIEW_NAME + " ( " +
-                    VideoEntry.COLUMN_RECTYPE + " , " +
-                    VideoEntry.COLUMN_TITLE + " , " +
-                    VideoEntry.COLUMN_SUBTITLE + " , " +
-                    VideoEntry.COLUMN_VIDEO_URL + " , " +
-                    VideoEntry.COLUMN_FILENAME + " , " +
-                    VideoEntry.COLUMN_HOSTNAME + " , " +
-                    VideoEntry.COLUMN_DESC + " , " +
-                    VideoEntry.COLUMN_BG_IMAGE_URL + " , " +
-                    VideoEntry.COLUMN_CHANNEL + " , " +
-                    VideoEntry.COLUMN_CARD_IMG + " , " +
-                    VideoEntry.COLUMN_CONTENT_TYPE + " , " +
-                    VideoEntry.COLUMN_PRODUCTION_YEAR + " , " +
-                    VideoEntry.COLUMN_DURATION + " , " +
-                    VideoEntry.COLUMN_ACTION + " , " +
-                    VideoEntry.COLUMN_AIRDATE + " ," +
-                    VideoEntry.COLUMN_STARTTIME + " ," +
-                    VideoEntry.COLUMN_ENDTIME + " ," +
-                    VideoEntry.COLUMN_RECORDEDID + " ," +
-                    VideoEntry.COLUMN_STORAGEGROUP + " ," +
-                    VideoEntry.COLUMN_RECGROUP + " ," +
-                    VideoEntry.COLUMN_SEASON + " ," +
-                    VideoEntry.COLUMN_EPISODE + " ," +
-                    VideoEntry.COLUMN_PROGFLAGS + " ," +
-                    VideoEntry.COLUMN_CHANID + " ," +
-                    VideoEntry.COLUMN_CHANNUM + " ," +
-                    VideoEntry.COLUMN_CALLSIGN + " , " +
-                    StatusEntry.COLUMN_LAST_USED + " , " +
-                    StatusEntry.COLUMN_SHOW_RECENT + " )  AS SELECT " +
+            StringBuilder createView = new StringBuilder("CREATE VIEW " + VideoEntry.VIEW_NAME);
+            // SDK version 24 uses SQLITE version 3.9 which will support view with column names
+            if (android.os.Build.VERSION.SDK_INT >= 24) {
+                createView.append(" ( " +
+                        VideoEntry.COLUMN_RECTYPE + " , " +
+                        VideoEntry.COLUMN_TITLE + " , " +
+                        VideoEntry.COLUMN_SUBTITLE + " , " +
+                        VideoEntry.COLUMN_VIDEO_URL + " , " +
+                        VideoEntry.COLUMN_FILENAME + " , " +
+                        VideoEntry.COLUMN_HOSTNAME + " , " +
+                        VideoEntry.COLUMN_DESC + " , " +
+                        VideoEntry.COLUMN_BG_IMAGE_URL + " , " +
+                        VideoEntry.COLUMN_CHANNEL + " , " +
+                        VideoEntry.COLUMN_CARD_IMG + " , " +
+                        VideoEntry.COLUMN_CONTENT_TYPE + " , " +
+                        VideoEntry.COLUMN_PRODUCTION_YEAR + " , " +
+                        VideoEntry.COLUMN_DURATION + " , " +
+                        VideoEntry.COLUMN_ACTION + " , " +
+                        VideoEntry.COLUMN_AIRDATE + " ," +
+                        VideoEntry.COLUMN_STARTTIME + " ," +
+                        VideoEntry.COLUMN_ENDTIME + " ," +
+                        VideoEntry.COLUMN_RECORDEDID + " ," +
+                        VideoEntry.COLUMN_STORAGEGROUP + " ," +
+                        VideoEntry.COLUMN_RECGROUP + " ," +
+                        VideoEntry.COLUMN_SEASON + " ," +
+                        VideoEntry.COLUMN_EPISODE + " ," +
+                        VideoEntry.COLUMN_PROGFLAGS + " ," +
+                        VideoEntry.COLUMN_CHANID + " ," +
+                        VideoEntry.COLUMN_CHANNUM + " ," +
+                        VideoEntry.COLUMN_CALLSIGN + " , " +
+                        StatusEntry.COLUMN_LAST_USED + " , " +
+                        StatusEntry.COLUMN_SHOW_RECENT + " ) ");
+            }
+            createView.append(" AS SELECT " +
                     VideoEntry.COLUMN_RECTYPE + " , " +
                     VideoEntry.COLUMN_TITLE + " , " +
                     VideoEntry.COLUMN_SUBTITLE + " , " +
@@ -174,8 +179,8 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     StatusEntry.COLUMN_SHOW_RECENT + " FROM " +
                     VideoEntry.TABLE_NAME + " LEFT OUTER JOIN " +
                     StatusEntry.TABLE_NAME + " USING ( " +
-                    VideoEntry.COLUMN_VIDEO_URL + " ); ";
-            db.execSQL(CREATE_VIEW);
+                    VideoEntry.COLUMN_VIDEO_URL + " ); ");
+            db.execSQL(createView.toString());
         }
     }
 

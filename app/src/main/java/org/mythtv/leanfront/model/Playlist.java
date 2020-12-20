@@ -37,7 +37,7 @@ public class Playlist {
 
     public Playlist() {
         playlist = new ArrayList<>();
-        currentPosition = 0;
+        currentPosition = -1;
     }
 
     /**

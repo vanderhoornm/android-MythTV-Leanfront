@@ -100,6 +100,7 @@ import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -186,6 +187,7 @@ public class PlaybackFragment extends VideoSupportFragment
         args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mVideo.rectype);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
+        args.putString(VideoContract.VideoEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
 
         LoaderManager manager = LoaderManager.getInstance(this);
         manager.initLoader(VideoLoaderCallbacks.QUEUE_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
@@ -686,6 +688,7 @@ public class PlaybackFragment extends VideoSupportFragment
         args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mVideo.rectype);
         args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mVideo.recGroup);
         args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mVideo.filename);
+        args.putString(VideoContract.VideoEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
 
         LoaderManager manager = LoaderManager.getInstance(this);
         manager.initLoader(VideoLoaderCallbacks.RELATED_VIDEOS_LOADER, args, mVideoLoaderCallbacks);
@@ -1115,14 +1118,17 @@ public class PlaybackFragment extends VideoSupportFragment
                     where.append(" and ")
                             .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                             .append(" & ").append(Video.FL_WATCHED)
-                            .append(" == 0");
-
+                            .append(" == 0 ");
+                where.append(" or ")
+                        .append(VideoContract.VideoEntry.COLUMN_VIDEO_URL)
+                        .append(" = ? ");
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
                         null,
                         where.toString(),
-                        new String[]{dirname, subdirname},
+                        new String[]{dirname, subdirname,
+                                args.getString(VideoContract.VideoEntry.COLUMN_VIDEO_URL)},
                         orderby);
             } else {
                 // Recordings or LiveTV
@@ -1164,14 +1170,20 @@ public class PlaybackFragment extends VideoSupportFragment
                             .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                             .append(" & ").append(Video.FL_WATCHED)
                             .append(" == 0 ");
+                where.append(" or ")
+                        .append(VideoContract.VideoEntry.COLUMN_VIDEO_URL)
+                        .append(" = ? ");
+
                 String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
                         + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
                         + VideoContract.VideoEntry.COLUMN_STARTTIME;
                 String [] selectionArgs;
                 if (deleted)
-                    selectionArgs = new String[]{category};
+                    selectionArgs = new String[]{category,
+                            args.getString(VideoContract.VideoEntry.COLUMN_VIDEO_URL)};
                 else
-                    selectionArgs = new String[]{recgroup,category};
+                    selectionArgs = new String[]{recgroup,category,
+                            args.getString(VideoContract.VideoEntry.COLUMN_VIDEO_URL)};
                 return new CursorLoader(
                         getActivity(),
                         VideoContract.VideoEntry.CONTENT_URI,
@@ -1194,7 +1206,7 @@ public class PlaybackFragment extends VideoSupportFragment
                     Video video = (Video) mVideoCursorMapper.convert(cursor);
 
                     // Set the current position to the selected video.
-                    if (video.id == mVideo.id) {
+                    if (video.videoUrl != null && video.videoUrl.equals(mVideo.videoUrl)) {
                         playlist.setCurrentPosition(playlist.size());
                     }
 

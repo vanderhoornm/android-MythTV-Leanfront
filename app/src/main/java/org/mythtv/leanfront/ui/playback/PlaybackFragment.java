@@ -1290,7 +1290,7 @@ public class PlaybackFragment extends VideoSupportFragment
                                 frameRate = 0.0f;
 
                             // Get estimated framerate for cases where timestamps are messed up
-                            if (frameRate < 1.0f) {
+                            if (frameRate < 1.0f && sortedTimes.length > 0) {
                                 long interval = sortedTimes[sortedTimes.length-1]
                                         - sortedTimes[0];
                                 int frames = sortedTimes.length - 1;

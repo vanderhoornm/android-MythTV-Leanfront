@@ -43,7 +43,6 @@ import com.google.android.exoplayer2.source.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
-import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import org.mythtv.leanfront.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
 import com.google.android.exoplayer2.source.SampleStream;
 import com.google.android.exoplayer2.source.SequenceableLoader;
@@ -66,6 +65,7 @@ import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -768,8 +768,8 @@ import java.util.Map;
     // If all streams have an upstream format we can finish preparing.
     // If there is a video and an audio stream with upstream format
     // and there is one single stream without upstream format, it is possibly
-    // an audio stream with no data. Set it to a dummy mime type of
-    // audio/null so that playback can continue.
+    // an audio stream with no data. Remove the garbage track
+    // so that playback can continue.
 
     int nullStream = -1;
     int nullStreamCount = 0;
@@ -787,9 +787,10 @@ import java.util.Map;
         audioFound = true;
     }
     if (nullStreamCount == 1 && videoFound && audioFound && possibleEmptyTrack) {
-      Format.Builder builder = new Format.Builder();
-      builder.setSampleMimeType("audio/null");
-      sampleQueues[nullStream].format(builder.build());
+      // Remove the garbage track
+      ArrayList<SampleQueue> list = new ArrayList<>(Arrays.asList(sampleQueues));
+      list.remove(nullStream).release();
+      sampleQueues = list.toArray(new SampleQueue[0]);
       nullStreamCount = 0;
     }
     if (nullStreamCount > 0)

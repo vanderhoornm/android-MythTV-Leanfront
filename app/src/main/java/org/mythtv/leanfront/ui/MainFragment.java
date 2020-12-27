@@ -200,7 +200,7 @@ public class MainFragment extends BrowseSupportFragment
             db.close();
             // Initialize startup members
             if (executor != null)
-                executor.shutdownNow();
+                executor.shutdown();
             executor = null;
             mFetchTime = 0;
             mActiveFragment = null;
@@ -303,7 +303,7 @@ public class MainFragment extends BrowseSupportFragment
         mBackgroundManager = null;
         if (mType == TYPE_TOPLEVEL) {
             if (executor != null)
-                executor.shutdownNow();
+                executor.shutdown();
             executor = null;
         }
         super.onDestroy();
@@ -314,7 +314,7 @@ public class MainFragment extends BrowseSupportFragment
         super.onResume();
         mActiveFragment = this;
         startBackgroundTimer();
-        if (mWasInBackground)
+        if (mWasInBackground || executor == null)
             restartMythTask();
         mWasInBackground = false;
         // If it's been more than an hour, refresh
@@ -325,7 +325,7 @@ public class MainFragment extends BrowseSupportFragment
 
     public static void restartMythTask() {
         if (executor != null)
-            executor.shutdownNow();
+            executor.shutdown();
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(mythTask,0,TASK_INTERVAL, TimeUnit.SECONDS);
     }
@@ -1397,12 +1397,24 @@ public class MainFragment extends BrowseSupportFragment
                     == Lifecycle.State.CREATED) {
                 // process is now in the background
                 mWasInBackground = true;
+                if (executor != null)
+                    executor.shutdown();
+                executor = null;
                 return;
             }
             String backendIP = Settings.getString("pref_backend");
             if (backendIP == null || backendIP.length() == 0)
                 return;
             while (!connection) {
+                if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
+                        == Lifecycle.State.CREATED) {
+                    // process is now in the background
+                    mWasInBackground = true;
+                    if (executor != null)
+                        executor.shutdown();
+                    executor = null;
+                    return;
+                }
                 int toastMsg = 0;
                 int toastLeng = 0;
                 try {

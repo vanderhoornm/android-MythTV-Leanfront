@@ -310,6 +310,8 @@ public class PlaybackFragment extends VideoSupportFragment
         rFactory.setEnableDecoderFallback(true);
         SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);
         builder.setTrackSelector(mTrackSelector);
+        if (possibleEmptyTrack)
+            builder.experimentalSetThrowWhenStuckBuffering(false);
         mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
@@ -1342,6 +1344,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 Log.e(TAG, CLASS + " Player Error " + mVideo.title + " " + mVideo.videoUrl, ex);
             long now = System.currentTimeMillis();
             int recommendation = 0;
+            boolean setPossibleEmptyTrack = false;
             if (ex != null && ex instanceof ExoPlaybackException) {
                 ExoPlaybackException error = (ExoPlaybackException)ex;
                 switch (error.type) {
@@ -1373,7 +1376,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         cause = error.getUnexpectedException();
                         if (mPlayerGlue.getSavedCurrentPosition() < 200
                             && "Playback stuck buffering and not loading".equals(cause.getMessage()))
-                            possibleEmptyTrack = true;
+                            setPossibleEmptyTrack = true;
                         // this error comes from fire stick 4k when selecting an mpeg level l2 audio track
                         if ("Multiple renderer media clocks enabled.".equals(cause.getMessage()))
                             recommendation = R.string.pberror_recommend_ffmpeg;
@@ -1419,8 +1422,15 @@ public class PlaybackFragment extends VideoSupportFragment
                             markWatched(true);
                         else {
                             // Try to continue playback
-                            mBookmark = currPos;
-                            play(mVideo);
+                            if (currPos > 0)
+                                mBookmark = currPos;
+                            if (setPossibleEmptyTrack && !possibleEmptyTrack) {
+                                possibleEmptyTrack = true;
+                                mPlayer.stop(true);
+                                initializePlayer();
+                            }
+                            else
+                                play(mVideo);
                         }
                         mTimeLastError = now;
                     }

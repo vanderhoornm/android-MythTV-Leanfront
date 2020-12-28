@@ -326,10 +326,10 @@ public class MainFragment extends BrowseSupportFragment
 
     public static void restartMythTask() {
         if (!scheduledTaskRunning) {
-        if (executor != null)
-            executor.shutdown();
-        executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(mythTask,0,TASK_INTERVAL, TimeUnit.SECONDS);
+            if (executor != null)
+                executor.shutdown();
+            executor = Executors.newScheduledThreadPool(1);
+            executor.scheduleAtFixedRate(mythTask, 0, TASK_INTERVAL, TimeUnit.SECONDS);
         }
     }
 
@@ -1390,27 +1390,15 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
-    private static class MythTask implements Runnable{
+    private static class MythTask implements Runnable {
         boolean mVersionMessageShown = false;
+
         @Override
         public void run() {
             try {
-            scheduledTaskRunning = true;
-            boolean connection = false;
-            boolean connectionfail = false;
-            if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
-                    == Lifecycle.State.CREATED) {
-                // process is now in the background
-                mWasInBackground = true;
-                if (executor != null)
-                    executor.shutdown();
-                executor = null;
-                return;
-            }
-            String backendIP = Settings.getString("pref_backend");
-            if (backendIP == null || backendIP.length() == 0)
-                return;
-            while (!connection) {
+                scheduledTaskRunning = true;
+                boolean connection = false;
+                boolean connectionfail = false;
                 if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
                         == Lifecycle.State.CREATED) {
                     // process is now in the background
@@ -1420,57 +1408,70 @@ public class MainFragment extends BrowseSupportFragment
                     executor = null;
                     return;
                 }
-                int toastMsg = 0;
-                int toastLeng = 0;
-                try {
-                    String result = null;
-                    String url = XmlNode.mythApiUrl(null,
-                            "/Myth/DelayShutdown");
-                    if (url == null)
+                String backendIP = Settings.getString("pref_backend");
+                if (backendIP == null || backendIP.length() == 0)
+                    return;
+                while (!connection) {
+                    if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
+                            == Lifecycle.State.CREATED) {
+                        // process is now in the background
+                        mWasInBackground = true;
+                        if (executor != null)
+                            executor.shutdown();
+                        executor = null;
                         return;
-                    XmlNode bkmrkData = XmlNode.fetch(url, "POST");
-                    result = bkmrkData.getString();
-                    connection = true;
-                } catch (FileNotFoundException e) {
-                    if (!mVersionMessageShown) {
-                        toastMsg = R.string.msg_no_delayshutdown;
-                        toastLeng = Toast.LENGTH_LONG;
-                        mVersionMessageShown = true;
-                        connection = true;
                     }
-                } catch (IOException e) {
-                    toastMsg = R.string.msg_no_connection;
-                    toastLeng = Toast.LENGTH_LONG;
-                    connectionfail = true;
-                    mFetchTime = 0; // Force a fetch when it comes back
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-                if (connectionfail)
-                    if (wakeBackend())
-                        toastMsg = R.string.msg_wake_backend;
+                    int toastMsg = 0;
+                    int toastLeng = 0;
+                    try {
+                        String result = null;
+                        String url = XmlNode.mythApiUrl(null,
+                                "/Myth/DelayShutdown");
+                        if (url == null)
+                            return;
+                        XmlNode bkmrkData = XmlNode.fetch(url, "POST");
+                        result = bkmrkData.getString();
+                        connection = true;
+                    } catch (FileNotFoundException e) {
+                        if (!mVersionMessageShown) {
+                            toastMsg = R.string.msg_no_delayshutdown;
+                            toastLeng = Toast.LENGTH_LONG;
+                            mVersionMessageShown = true;
+                            connection = true;
+                        }
+                    } catch (IOException e) {
+                        toastMsg = R.string.msg_no_connection;
+                        toastLeng = Toast.LENGTH_LONG;
+                        connectionfail = true;
+                        mFetchTime = 0; // Force a fetch when it comes back
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                    if (connectionfail)
+                        if (wakeBackend())
+                            toastMsg = R.string.msg_wake_backend;
 
-                if (toastMsg != 0) {
+                    if (toastMsg != 0) {
+                        Activity activity = MainActivity.getContext();
+                        if (activity == null)
+                            return;
+                        ToastShower toastShower = new ToastShower(activity, toastMsg, toastLeng);
+                        activity.runOnUiThread(toastShower);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException ignored) {
+                        }
+                    }
+                }
+                if (mFetchTime < System.currentTimeMillis() - 60 * 60 * 1000) {
                     Activity activity = MainActivity.getContext();
                     if (activity == null)
                         return;
-                    ToastShower toastShower = new ToastShower(activity, toastMsg, toastLeng);
-                    activity.runOnUiThread(toastShower);
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
-            if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
-                Activity activity = MainActivity.getContext();
-                if (activity == null)
-                    return;
-                activity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
-                    }
-                });
+                    activity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
+                        }
+                    });
                 }
             } finally {
                 scheduledTaskRunning = false;

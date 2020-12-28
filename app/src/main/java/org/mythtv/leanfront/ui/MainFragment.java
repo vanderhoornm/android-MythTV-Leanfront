@@ -173,6 +173,7 @@ public class MainFragment extends BrowseSupportFragment
 
     private static ScheduledExecutorService executor = null;
     private static MythTask mythTask = new MythTask();
+    private static boolean scheduledTaskRunning;
     public static volatile long mFetchTime = 0;
     // Keep track of the fragment currently showing, if any.
     private static MainFragment mActiveFragment = null;
@@ -324,10 +325,12 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     public static void restartMythTask() {
+        if (!scheduledTaskRunning) {
         if (executor != null)
             executor.shutdown();
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(mythTask,0,TASK_INTERVAL, TimeUnit.SECONDS);
+        }
     }
 
     @Override
@@ -1391,6 +1394,8 @@ public class MainFragment extends BrowseSupportFragment
         boolean mVersionMessageShown = false;
         @Override
         public void run() {
+            try {
+            scheduledTaskRunning = true;
             boolean connection = false;
             boolean connectionfail = false;
             if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
@@ -1466,6 +1471,9 @@ public class MainFragment extends BrowseSupportFragment
                         MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
                     }
                 });
+                }
+            } finally {
+                scheduledTaskRunning = false;
             }
         }
 

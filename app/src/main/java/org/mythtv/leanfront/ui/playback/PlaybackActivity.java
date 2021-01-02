@@ -52,6 +52,9 @@ public class PlaybackActivity extends LeanbackActivity {
     private PlaybackFragment mPlaybackFragment;
     private boolean mArrowSkipJump;
     private boolean mJumpEnabled;
+    private int mPriorAction;
+    private float mPriorX;
+    private float mPriorY;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -142,6 +145,46 @@ public class PlaybackActivity extends LeanbackActivity {
             gamepadTriggerPressed = false;
         }
         return super.onGenericMotionEvent(event);
+    }
+
+    @Override
+    // Note that onTouchEvent does not get dispatched so we need this
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        boolean ret = false;
+        // This is to act on a tap but ignore a swipe
+        if (ev.getAction() == MotionEvent.ACTION_UP
+                && mPriorAction == MotionEvent.ACTION_DOWN
+                && !mPlaybackFragment.isControlsOverlayVisible())
+            ret = mPlaybackFragment.mPlaybackActionListener.onTap();
+        else if (ev.getAction() == MotionEvent.ACTION_MOVE
+                && mPriorAction == MotionEvent.ACTION_DOWN) {
+            // This is to act on swipe down
+            if (ev.getY() - mPriorY > 0
+                    && Math.abs(ev.getY() - mPriorY) > Math.abs(ev.getX() - mPriorX))
+                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_DOWN);
+            // This is to act on swipe up
+            else if (ev.getY() - mPriorY < 0
+                    && Math.abs(ev.getY() - mPriorY) > Math.abs(ev.getX() - mPriorX))
+                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_UP);
+            // This is to act on swipe left
+            else if (ev.getX() - mPriorX < 0
+                    && Math.abs(ev.getX() - mPriorX) > Math.abs(ev.getY() - mPriorY))
+                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_LEFT);
+            // This is to act on swipe right
+            else if (ev.getX() - mPriorX > 0
+                    && Math.abs(ev.getX() - mPriorX) > Math.abs(ev.getY() - mPriorY))
+                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_RIGHT);
+        }
+
+        mPriorAction = ev.getAction();
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            mPriorX = ev.getX();
+            mPriorY = ev.getY();
+        }
+        if (ret)
+            return true;
+        else
+            return super.dispatchTouchEvent(ev);
     }
 
     @SuppressLint("RestrictedApi")

@@ -47,8 +47,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     private final PlaybackFragment playbackFragment;
     private Playlist mPlaylist;
 
-    static final float[] STRETCH_VALUES = {0.75f, 0.875f, 1.0f, 1.1847f, 1.333333f, 1.5f};
-    static final float[] SCALE_VALUES = {0.875f, 1.0f, 1.166666f, 1.333333f, 1.5f};
+    static final float[] STRETCH_VALUES = {0.75f, 0.88f, 1.0f, 1.18f, 1.33f, 1.5f};
+    static final float[] SCALE_VALUES = {0.88f, 1.0f, 1.17f, 1.33f, 1.5f};
     private float mScale = 1.0f;
     float mStretch = 1.0f;
     float mPivotX = 0.5f;
@@ -132,6 +132,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     }
 
     private void showSpeedSelector() {
+        playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_speed)
@@ -146,7 +147,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         seekBar.setMax(800);
         seekBar.setProgress(Math.round(playbackFragment.mSpeed * 100.0f));
         TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
-        seekValue.setText( (int)(playbackFragment.mSpeed * 100.0f) + " %");
+        seekValue.setText( (int)(playbackFragment.mSpeed * 100.0f) + "%");
         mDialog.setOnKeyListener(
             (DialogInterface dlg, int keyCode, KeyEvent event) -> {
                 switch (keyCode) {
@@ -181,21 +182,34 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                         return true;
                 }
                 seekBar.setProgress(value);
-                seekValue.setText(value + " %");
-                playbackFragment.mSpeed = (float) value * 0.01f;
-                PlaybackParameters parms = new PlaybackParameters(playbackFragment.mSpeed);
-                playbackFragment.mPlayer.setPlaybackParameters(parms);
                 return true;
+            }
+        );
+        seekBar.setOnSeekBarChangeListener(
+            new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                    seekValue.setText(value + "%");
+                    playbackFragment.mSpeed = (float) value * 0.01f;
+                    PlaybackParameters parms = new PlaybackParameters(playbackFragment.mSpeed);
+                    playbackFragment.mPlayer.setPlaybackParameters(parms);
+                }
+               @Override
+               public void onStartTrackingTouch(SeekBar seekBar) {  }
+               @Override
+               public void onStopTrackingTouch(SeekBar seekBar) {  }
             }
         );
         mDialog.setOnDismissListener(
                 (DialogInterface dialog) -> {
                     mDialog = null;
+                    playbackFragment.hideNavigation();
                 }
         );
     }
 
     private void showZoomSelector() {
+        playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_zoom)
@@ -212,7 +226,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         TextView summary = mDialog.findViewById(android.R.id.summary);
         summary.setText( playbackFragment.getString(R.string.seekbar_instructions));
         TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
-        seekValue.setText( (int)(mScale * 100.0f) + " %");
+        seekValue.setText( (int)(mScale * 100.0f) + "%");
         mDialog.setOnKeyListener(
                 (DialogInterface dlg, int keyCode, KeyEvent event) -> {
                     switch (keyCode) {
@@ -263,23 +277,33 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             return true;
                     }
                     seekBar.setProgress(value);
-                    seekValue.setText(value + " %");
-                    if (newfvalue > 0.0f)
-                        mScale = newfvalue;
-                    else
-                        mScale = (float) value * 0.01f;
-                    setScale();
                     return true;
+                }
+        );
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        seekValue.setText(value + "%");
+                        mScale = (float) value * 0.01f;
+                        setScale();
+                    }
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {  }
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
         mDialog.setOnDismissListener(
                 (DialogInterface dialog) -> {
                     mDialog = null;
+                    playbackFragment.hideNavigation();
                 }
         );
     }
 
     private void showStretchSelector() {
+        playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_stretch)
@@ -296,7 +320,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         TextView summary = mDialog.findViewById(android.R.id.summary);
         summary.setText( playbackFragment.getString(R.string.seekbar_instructions));
         TextView seekValue = mDialog.findViewById(R.id.seekbar_value);
-        seekValue.setText( (int)(mStretch * 100.0f) + " %");
+        seekValue.setText( (int)(mStretch * 100.0f) + "%");
         mDialog.setOnKeyListener(
                 (DialogInterface dlg, int keyCode, KeyEvent event) -> {
                     switch (keyCode) {
@@ -344,25 +368,34 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             return true;
                     }
                     seekBar.setProgress(value);
-                    seekValue.setText(value + " %");
-                    if (newfvalue > 0.0f)
-                        mStretch = newfvalue;
-                    else
-                        mStretch = (float) value * 0.01f;
-                    setScale();
                     return true;
+                }
+        );
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        seekValue.setText(value + "%");
+                        mStretch = (float) value * 0.01f;
+                        setScale();
+                    }
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {  }
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
         mDialog.setOnDismissListener(
                 (DialogInterface dialog) -> {
                     mDialog = null;
+                    playbackFragment.hideNavigation();
                 }
         );
     }
 
 
-
     private void showPivotSelector() {
+        playbackFragment.hideControlsOverlay(true);
         int x = Math.round(mPivotX * 100.0f);
         int y = Math.round(mPivotY * 100.0f);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
@@ -477,6 +510,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     }
 
     private void showAudioSyncSelector() {
+        playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_audiosync)
@@ -523,16 +557,28 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             return true;
                     }
                     seekBar.setProgress(value);
-                    sampleOffsetUs = ((long)value - 2500) * 1000;
-                    String text1 = String.format("%+d",sampleOffsetUs / 1000);
-                    seekValue.setText(text1);
-                    setAudioSync();
                     return true;
+                }
+        );
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        sampleOffsetUs = ((long)value - 2500) * 1000;
+                        String text1 = String.format("%+d",sampleOffsetUs / 1000);
+                        seekValue.setText(text1);
+                        setAudioSync();
+                    }
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {  }
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
         mDialog.setOnDismissListener(
                 (DialogInterface dialog) -> {
                     mDialog = null;
+                    playbackFragment.hideNavigation();
                 }
         );
     }
@@ -578,6 +624,29 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     public void onAudioTrack() {
         playbackFragment.mAudioSelection = playbackFragment.trackSelector(C.TRACK_TYPE_AUDIO, playbackFragment.mAudioSelection,
                 R.string.msg_audio_track, R.string.msg_audio_track_off, true, true);
+    }
+
+    // Gestures
+    public boolean onTap() {
+        if (mDialog == null) {
+            playbackFragment.tickle();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean onMove(int simKeyCode) {
+        if (simKeyCode == KeyEvent.KEYCODE_DPAD_DOWN
+                && playbackFragment.isControlsOverlayVisible()) {
+            playbackFragment.hideControlsOverlay(true);
+            return true;
+        }
+        if (simKeyCode == KeyEvent.KEYCODE_DPAD_UP
+                && !playbackFragment.isControlsOverlayVisible()) {
+            playbackFragment.showControlsOverlay(true);
+            return true;
+        }
+        return false;
     }
 
 }

@@ -28,6 +28,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -118,7 +119,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private LeanbackPlayerAdapter mPlayerAdapter;
     SimpleExoPlayer mPlayer;
     private DefaultTrackSelector mTrackSelector;
-    private PlaybackActionListener mPlaybackActionListener;
+    PlaybackActionListener mPlaybackActionListener;
     private PlayerEventListener mPlayerEventListener;
 
     private Video mVideo;
@@ -209,9 +210,19 @@ public class PlaybackFragment extends VideoSupportFragment
         if ((Util.SDK_INT <= 23 || mPlayer == null)) {
             initializePlayer();
         }
+        hideNavigation();
         // To reduce dimming when showing controls.
         // This also make controls difficult to see on light videos
         setBackgroundType(BG_LIGHT);
+    }
+
+    public void hideNavigation () {
+        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+            View view = getView();
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     /**

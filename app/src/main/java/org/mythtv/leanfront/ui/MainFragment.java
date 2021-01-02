@@ -755,7 +755,7 @@ public class MainFragment extends BrowseSupportFragment
         // the mLoadStarted check is needed because for some reason onLoadFinished
         // gets called every time the screen goes into the BG and this causes
         // the current selection and focus to be lost.
-        if (data != null) {
+        if (videoCursorAdapter != null && data != null) {
             // Fill in usage
             new AsyncBackendCall(null, 0L, false,
                     MainFragment.this).execute(Video.ACTION_BACKEND_INFO);

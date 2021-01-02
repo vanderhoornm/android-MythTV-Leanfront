@@ -256,12 +256,18 @@ If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. H
 
 ## Android Phones / Tablets
 
-It is not recommended to run leanfront on an Android phone or tablet. You can install it if
-you are running Android 5.0 (Lollipop) or later version, but controlling it through the touch
-screen does not work correctly.
-The application reacts to the touch screen, but it is not usable.
-It may be possible to run it on a phone or tablet if you attach a remote control
-or a keyboard.
+You can install leanfront on a phone or tablet if
+you are running Android 5.0 (Lollipop) or later version. The application is designed for Android TV and using it with a touch screen is not the same as other touch screen applications.
+
+There are some problems. Program lists do not work as expected, see below. Leanfront does not recover gracefully from the Home button or from being rotated or being set into spit screen mode.
+
+Buttons and icons within the application may require pressing twice to operate. This mirrors the TV experience. The first press is equivalent to arrowing onto the button and highlighting it.  The second press is equivalent top pressing enter to invoke the action.
+
+### Program List on mobile
+
+- Before trying to scroll the program list (rght hand side), first scroll the group list to the required row. Scrolling the program list first results in the program list jumping back to the beginning.
+- At the required row, press the row name, which will bring the program list for that row into view.
+- You can fling the row to scroll to a later item, but it keeps jumping back to the one that was selected. The only way to get to one later in the list is to go a few at a time.
 
 ## Leanfront Restrictions / Limitations
 
@@ -270,6 +276,7 @@ These may be addressed in a future release.
 - Moving recordings to new recording groups is not supported.
 - Metadata input and update are not supported.
 - Request of video file scan is not supported.
+- Improve the mobile device experience.
 
 ## Download and install
 

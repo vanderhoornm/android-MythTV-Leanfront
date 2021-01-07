@@ -181,10 +181,12 @@ public class MainFragment extends BrowseSupportFragment
     // Not final so I can change it during debug
     private static int TASK_INTERVAL = 240;
     private ItemViewClickedListener mItemViewClickedListener;
+    private ScrollSupport scrollSupport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        scrollSupport = new ScrollSupport((getContext()));
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
@@ -1327,6 +1329,7 @@ public class MainFragment extends BrowseSupportFragment
                 mBackgroundURI = mDefaultBackgroundURI;
 
             startBackgroundTimer();
+            scrollSupport.onItemSelected(itemViewHolder,rowViewHolder, getRowsSupportFragment());
         }
     }
 

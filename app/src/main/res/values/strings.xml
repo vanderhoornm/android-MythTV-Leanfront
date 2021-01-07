@@ -57,10 +57,8 @@
 
     <string name="mobile_welcome_title">Welcome to MythTV leanfront</string>
     <string name="mobile_welcome_description">
-        MythTV leanfront is designed for Android TV. Touch screen control does not work
-        properly. The application reacts to the touch screen, but it is not usable.
-        It may be possible to run it on a phone or tablet if you attach a remote control
-        or a keyboard. If you want to try it anyway, tap the banner below.
+        MythTV leanfront is designed for Android TV. Touch screen control is not optimal.
+        To proceed, tap the banner below.
     </string>
 
     <string name="pref_title_settings">MythTV Settings</string>

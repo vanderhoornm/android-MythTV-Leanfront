@@ -635,15 +635,23 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         return false;
     }
 
+    int position = 0;
     public boolean onMove(int simKeyCode) {
         if (simKeyCode == KeyEvent.KEYCODE_DPAD_DOWN
                 && playbackFragment.isControlsOverlayVisible()) {
-            playbackFragment.hideControlsOverlay(true);
+            if (position == 1)
+                playbackFragment.setSelectedPosition(position = 0);
+            else
+                playbackFragment.hideControlsOverlay(true);
             return true;
         }
-        if (simKeyCode == KeyEvent.KEYCODE_DPAD_UP
-                && !playbackFragment.isControlsOverlayVisible()) {
-            playbackFragment.showControlsOverlay(true);
+        if (simKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
+            if (playbackFragment.isControlsOverlayVisible())
+                playbackFragment.setSelectedPosition(position = 1);
+            else {
+                playbackFragment.setSelectedPosition(position = 0);
+                playbackFragment.showControlsOverlay(true);
+            }
             return true;
         }
         return false;

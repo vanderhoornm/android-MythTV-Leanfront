@@ -55,13 +55,14 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name="org.mythtv.leanfront.mobile.MobileWelcomeActivity">
+        <activity android:name="org.mythtv.leanfront.mobile.MobileWelcomeActivity"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -69,6 +70,7 @@
             android:value=".ui.VideoDetailsActivity" />
         <activity
             android:name="org.mythtv.leanfront.ui.VideoDetailsActivity"
+            android:screenOrientation="landscape"
             android:exported="true"
             android:theme="@style/Theme.Leanback.Details">
 
@@ -85,15 +87,20 @@
         </activity>
         <activity
             android:name="org.mythtv.leanfront.ui.playback.PlaybackActivity"
+            android:screenOrientation="landscape"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
             android:launchMode="singleTask"
             android:resizeableActivity="true" />
-        <activity android:name="org.mythtv.leanfront.ui.SearchActivity" />
-        <activity android:name="org.mythtv.leanfront.ui.ManageRecordingsActivity"/>
+        <activity android:name="org.mythtv.leanfront.ui.SearchActivity"
+            android:screenOrientation="landscape" />
+        <activity android:name="org.mythtv.leanfront.ui.ManageRecordingsActivity"
+            android:screenOrientation="landscape" />
         <activity android:name="org.mythtv.leanfront.ui.SettingsActivity"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback.GuidedStep"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name="org.mythtv.leanfront.ui.EditScheduleActivity"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback.GuidedStep"
             android:windowSoftInputMode="adjustPan" />
 

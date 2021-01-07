@@ -57,6 +57,7 @@ import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.OnActionClickedListener;
 import androidx.leanback.widget.OnItemViewClickedListener;
+import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
@@ -142,11 +143,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private boolean mWatched;
     private DetailsDescriptionPresenter mDetailsDescriptionPresenter;
     private ProgressBar mProgressBar = null;
+    private ItemViewClickedListener itemViewClickedListener = new ItemViewClickedListener();
+    private ItemViewSelectedListener itemViewSelectedListener = new ItemViewSelectedListener();
+    private ScrollSupport scrollSupport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        scrollSupport = new ScrollSupport((getContext()));
         prepareBackgroundManager();
         mVideoCursorAdapter = new CursorObjectAdapter(new CardPresenter());
         mVideoCursorAdapter.setMapper(mVideoCursorMapper);
@@ -173,7 +178,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         this).execute(Video.ACTION_REFRESH);
 
             // When a Related Video item is clicked.
-            setOnItemViewClickedListener(new ItemViewClickedListener());
+            setOnItemViewClickedListener(itemViewClickedListener);
+            setOnItemViewSelectedListener(itemViewSelectedListener);
         }
     }
 
@@ -643,7 +649,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     new AsyncBackendCall(mSelectedVideo, 0, false,
                             this).execute(Video.ACTION_REFRESH);
                     // When a Related Video item is clicked.
-                    setOnItemViewClickedListener(new ItemViewClickedListener());
+                    setOnItemViewClickedListener(itemViewClickedListener);
+                    setOnItemViewSelectedListener(itemViewSelectedListener);
                 }
             }
         }
@@ -811,6 +818,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
                 getActivity().startActivity(intent, bundle);
             }
+        }
+    }
+
+    private final class ItemViewSelectedListener implements OnItemViewSelectedListener {
+
+        @Override
+        public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
+            scrollSupport.onItemSelected(itemViewHolder,rowViewHolder, getRowsSupportFragment());
         }
     }
 

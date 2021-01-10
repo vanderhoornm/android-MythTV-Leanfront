@@ -26,11 +26,13 @@ package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.UiModeManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -146,10 +148,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private ItemViewClickedListener itemViewClickedListener = new ItemViewClickedListener();
     private ItemViewSelectedListener itemViewSelectedListener = new ItemViewSelectedListener();
     private ScrollSupport scrollSupport;
+    private boolean isTV;
+    private boolean actionInitialSelect;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        UiModeManager uiModeManager = (UiModeManager)getContext().getSystemService(Context.UI_MODE_SERVICE);
+        isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
         scrollSupport = new ScrollSupport((getContext()));
         prepareBackgroundManager();
@@ -207,6 +214,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public void onResume() {
         updateBackground(mSelectedVideo.bgImageUrl);
         super.onResume();
+        actionInitialSelect = true;
     }
 
     /**
@@ -763,6 +771,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     getResources().getString(R.string.play_livetv_2)));
         }
         mDetailsOverviewRow.setActionsAdapter(mActionsAdapter);
+        actionInitialSelect = true;
 
         mAdapter.add(mDetailsOverviewRow);
     }
@@ -825,7 +834,13 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         @Override
         public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-            scrollSupport.onItemSelected(itemViewHolder,rowViewHolder, getRowsSupportFragment());
+            if (item instanceof Action) {
+                if (!isTV && !actionInitialSelect)
+                    onActionClicked((Action)item);
+                actionInitialSelect = false;
+            }
+            else
+                scrollSupport.onItemSelected(itemViewHolder,rowViewHolder, getRowsSupportFragment());
         }
     }
 
@@ -916,6 +931,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 mActionsAdapter.set(++i, new Action(Video.ACTION_OTHER, getResources()
                         .getString(R.string.button_other_1),
                         getResources().getString(R.string.button_other_2)));
+                actionInitialSelect = true;
                 break;
         }
     }

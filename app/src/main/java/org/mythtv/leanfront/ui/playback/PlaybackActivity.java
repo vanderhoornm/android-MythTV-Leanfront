@@ -29,6 +29,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.SeekBar;
 
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -52,9 +53,9 @@ public class PlaybackActivity extends LeanbackActivity {
     private PlaybackFragment mPlaybackFragment;
     private boolean mArrowSkipJump;
     private boolean mJumpEnabled;
-    private int mPriorAction;
-    private float mPriorX;
-    private float mPriorY;
+    private RepeatListener rewindListener;
+    private RepeatListener ffListener;
+    private GestureDetector detector;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,10 @@ public class PlaybackActivity extends LeanbackActivity {
         // Prevent screen saver during playback
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
+        // Touch screen
+        rewindListener = new RepeatListener(400,100,mPlaybackFragment,-1);
+        ffListener = new RepeatListener(400,100,mPlaybackFragment,1);
+        detector = new GestureDetector(this, new GestureTap());
     }
 
     @Override
@@ -151,40 +156,41 @@ public class PlaybackActivity extends LeanbackActivity {
     // Note that onTouchEvent does not get dispatched so we need this
     public boolean dispatchTouchEvent(MotionEvent ev) {
         boolean ret = false;
-        // This is to act on a tap but ignore a swipe
-        if (ev.getAction() == MotionEvent.ACTION_UP
-                && mPriorAction == MotionEvent.ACTION_DOWN
-                && !mPlaybackFragment.isControlsOverlayVisible())
-            ret = mPlaybackFragment.mPlaybackActionListener.onTap();
-        else if (ev.getAction() == MotionEvent.ACTION_MOVE
-                && mPriorAction == MotionEvent.ACTION_DOWN) {
-            // This is to act on swipe down
-            if (ev.getY() - mPriorY > 0
-                    && Math.abs(ev.getY() - mPriorY) > Math.abs(ev.getX() - mPriorX))
-                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_DOWN);
-            // This is to act on swipe up
-            else if (ev.getY() - mPriorY < 0
-                    && Math.abs(ev.getY() - mPriorY) > Math.abs(ev.getX() - mPriorX))
-                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_UP);
-            // This is to act on swipe left
-            else if (ev.getX() - mPriorX < 0
-                    && Math.abs(ev.getX() - mPriorX) > Math.abs(ev.getY() - mPriorY))
-                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_LEFT);
-            // This is to act on swipe right
-            else if (ev.getX() - mPriorX > 0
-                    && Math.abs(ev.getX() - mPriorX) > Math.abs(ev.getY() - mPriorY))
-                ret = mPlaybackFragment.mPlaybackActionListener.onMove(KeyEvent.KEYCODE_DPAD_RIGHT);
+        int w = mPlaybackFragment.getView().getWidth();
+        int h = mPlaybackFragment.getView().getHeight();
+        float x = ev.getX();
+        float y = ev.getY();
+        if (y < h / 8 && x < w / 8) {
+            ret = rewindListener.onTouch(ev);
+        }
+        else if (y < h / 8 && x > w * 7 / 8) {
+            ret = ffListener.onTouch(ev);
+        }
+        else {
+            rewindListener.cancel();
+            ffListener.cancel();
         }
 
-        mPriorAction = ev.getAction();
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            mPriorX = ev.getX();
-            mPriorY = ev.getY();
+        // This is to act on a tap but ignore a swipe
+        if (!ret) {
+            detector.onTouchEvent(ev);
         }
         if (ret)
             return true;
         else
             return super.dispatchTouchEvent(ev);
+    }
+
+    boolean tapEvent() {
+        if (!mPlaybackFragment.isControlsOverlayVisible())
+            return mPlaybackFragment.mPlaybackActionListener.onTap();
+        return false;
+    }
+
+    boolean doubleTap() {
+        if (mPlaybackFragment.isControlsOverlayVisible())
+            return mPlaybackFragment.mPlaybackActionListener.onDoubleTap();
+        return false;
     }
 
     @SuppressLint("RestrictedApi")
@@ -269,6 +275,17 @@ public class PlaybackActivity extends LeanbackActivity {
         boolean ret = super.dispatchKeyEvent(event);
         mPlaybackFragment.actionSelected(null);
         return ret;
+    }
+
+    class GestureTap extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            return tapEvent();
+        }
+        public boolean 	onDoubleTapEvent(MotionEvent e) {
+            return doubleTap();
+        }
+
     }
 
 }

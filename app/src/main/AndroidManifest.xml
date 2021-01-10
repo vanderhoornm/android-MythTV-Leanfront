@@ -90,7 +90,7 @@
             android:screenOrientation="landscape"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
             android:launchMode="singleTask"
-            android:resizeableActivity="true" />
+            android:resizeableActivity="false" />
         <activity android:name="org.mythtv.leanfront.ui.SearchActivity"
             android:screenOrientation="landscape" />
         <activity android:name="org.mythtv.leanfront.ui.ManageRecordingsActivity"

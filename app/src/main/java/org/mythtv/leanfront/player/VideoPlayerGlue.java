@@ -24,7 +24,9 @@
 
 package org.mythtv.leanfront.player;
 
+import android.app.UiModeManager;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
@@ -107,6 +109,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean mAllowSkip;
     private long mSavedCurrentPosition = -1;
     private long mSavedDuration = -1;
+    private final boolean isTV;
+    private boolean playerClosed;
 
     public VideoPlayerGlue(
             Context context,
@@ -114,6 +118,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             OnActionClickedListener actionListener,
             boolean allowSkip) {
         super(context, playerAdapter);
+
+        UiModeManager uiModeManager = (UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
+        isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
         mActionListener = actionListener;
         mAllowSkip = allowSkip;
@@ -214,6 +221,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     // Should dispatch actions that the super class does not supply callbacks for.
     private boolean shouldDispatchAction(Action action) {
+        if (playerClosed)
+            return false;
         return action == mRewindAction
                 || action == mFastForwardAction
                 || action == mClosedCaptioningAction
@@ -264,6 +273,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 adapter.notifyArrayItemRangeChanged(index, 1);
             }
         }
+    }
+
+    public void setPlayerClosed(boolean playerClosed) {
+        this.playerClosed = playerClosed;
     }
 
     private void onActionSelected(Action action) {
@@ -351,8 +364,11 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     public class  SelectedListener implements WidgetAccess.MySelectedListener {
         @Override
         public void onControlSelected(Presenter.ViewHolder controlViewHolder, Object item) {
-            if (item instanceof Action)
-                onActionSelected((Action)item);
+            if (item instanceof Action) {
+                onActionSelected((Action) item);
+                if (!isTV)
+                    onActionClicked((Action) item);
+            }
         }
     }
 

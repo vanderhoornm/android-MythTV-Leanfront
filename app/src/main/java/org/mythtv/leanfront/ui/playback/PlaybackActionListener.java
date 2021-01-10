@@ -189,6 +189,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                    value = value / 10 * 10;
+                    if (value < 10)
+                        value = 10;
                     seekValue.setText(value + "%");
                     playbackFragment.mSpeed = (float) value * 0.01f;
                     PlaybackParameters parms = new PlaybackParameters(playbackFragment.mSpeed);
@@ -284,6 +287,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        value = value / 5 * 5;
                         seekValue.setText(value + "%");
                         mScale = (float) value * 0.01f;
                         setScale();
@@ -375,6 +379,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        value = value / 5 * 5;
                         seekValue.setText(value + "%");
                         mStretch = (float) value * 0.01f;
                         setScale();
@@ -464,6 +469,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.setOnDismissListener(
                 (DialogInterface dialog) -> {
                     mDialog = null;
+                    playbackFragment.hideNavigation();
                 }
         );
     }
@@ -564,6 +570,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                        value = value / 10 * 10;
                         sampleOffsetUs = ((long)value - 2500) * 1000;
                         String text1 = String.format("%+d",sampleOffsetUs / 1000);
                         seekValue.setText(text1);
@@ -635,23 +642,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         return false;
     }
 
-    int position = 0;
-    public boolean onMove(int simKeyCode) {
-        if (simKeyCode == KeyEvent.KEYCODE_DPAD_DOWN
-                && playbackFragment.isControlsOverlayVisible()) {
-            if (position == 1)
-                playbackFragment.setSelectedPosition(position = 0);
-            else
-                playbackFragment.hideControlsOverlay(true);
-            return true;
-        }
-        if (simKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            if (playbackFragment.isControlsOverlayVisible())
-                playbackFragment.setSelectedPosition(position = 1);
-            else {
-                playbackFragment.setSelectedPosition(position = 0);
-                playbackFragment.showControlsOverlay(true);
-            }
+    public boolean onDoubleTap() {
+        if (mDialog == null) {
+            playbackFragment.hideControlsOverlay(true);
             return true;
         }
         return false;

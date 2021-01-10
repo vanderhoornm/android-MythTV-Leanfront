@@ -33,6 +33,20 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Display Program Guide, create recording rules, update recording rules.
 - The *Master Backend Override* MythTV setting is supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
 - Adjustment of Audio Sync in case a recording has a lip-sync problem.
+- Support for touch screen devices is usable, although it is not perfect.
+
+## Tips
+
+### To easily get back to a series you were watching recently:
+
+- Enable recently watched list in settings.
+- Enable deleted and watched items in the recent list.
+- Disable deleted and watched items in the "related" list.
+- In mythfrontend, set the deletion delay for deleted shows to 7 days.
+
+Now, if you watched and deleted an episode yesterday, the deleted episode shows at the front of the recent list. Select that episode from the recent list. Go down in the details screen to the related list. You will see unwatched, undeleted episodes of the series and you can select the next one to play.
+
+In the case of Videos, the related list will show unwatched videos from the same directory. If you have all episodes of a series in one directory, this will make it easy to select the next episode to watch.
 
 ## Release Notes
 
@@ -107,6 +121,7 @@ Notes:
 - LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age
 - If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
+
 
 ## Manage recordings
 
@@ -254,20 +269,29 @@ If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. H
 | DPad Up | Playback | Jump forward number of minutes specified in settings (default is 5) |
 | DPad Down | Playback | Jump back number of minutes specified in settings (default is 5) |
 
-## Android Phones / Tablets
+## Android Phones / Tablets with touch screen
 
-You can install leanfront on a phone or tablet if
-you are running Android 5.0 (Lollipop) or later version. The application is designed for Android TV and using it with a touch screen is not the same as other touch screen applications.
+You can install leanfront on a phone or tablet if you are running Android 5.0 (Lollipop) or later version. The application is designed for Android TV and using it with a touch screen is not the same as other touch screen applications.
 
-There are some problems. Program lists do not work as expected, see below. Leanfront does not recover gracefully from the Home button or from being rotated or being set into spit screen mode.
+There are some problems. Program lists do not work as expected, see below. Leanfront uses landscape mode, and if you rotate it, the display will remain landscape. See below for more differences when operating a touch screen.
 
-Buttons and icons within the application may require pressing twice to operate. This mirrors the TV experience. The first press is equivalent to arrowing onto the button and highlighting it.  The second press is equivalent top pressing enter to invoke the action.
+### Program List
 
-### Program List on mobile
-
-- Before trying to scroll the program list (rght hand side), first scroll the group list to the required row. Scrolling the program list first results in the program list jumping back to the beginning.
+- Before trying to scroll the program list (right hand side), first scroll the group list (left hand side) to the required row. Scrolling the program list first results in the program list jumping back to the beginning.
 - At the required row, press the row name, which will bring the program list for that row into view.
-- You can fling the row to scroll to a later item, but it keeps jumping back to the one that was selected. The only way to get to one later in the list is to go a few at a time.
+- You can scroll the selected row to get to the show you want. If you fling the row fast to scroll to a later item, it does not move as fast as it appears, even after a long fling you may end up just a few items further in the list. Scrolling slower works better.
+
+### Details page
+
+On a phone the Play and other action buttons may be too big and may not all display. To see buttons that are off screen, drag with your finger. 
+
+### Playback
+
+- Playback controls (On Screen Display) can be accessed by tapping in the playback area, but not top corners. You can tap any of the playback controls to invoke them. The "Move Picture" control currently does not work as it needs arrow key presses. Seekbar controls can be operated by sliding your finger along the bar to select required size, speed or stretch.
+- Hide the playback controls by double tapping in the playback.
+- Skip forward and skip back are difficult to use with the playback controls on a touch screen, as the playback controls disappear soon after a skip. There is an alternative for touch screens. Tap the top right corner or top left corner to skip forward or back. Press and hold for repeat-action to skip repeatedly until you reach the required position.
+- In playback, leanfront operates full screen. To exit, you need the back button. Swipe from the top or bottom of the screen to see the system buttons. Press back before it disappears again. Note that to stop playback while the playback controls are showing, you have to press back twice, once to close the playback controls, and again to close playback, or else double tap to close playback controls and back to close playback.
+- You cannot get to the "Related Videos" during playback. However you can see them on the details page before starting or after ending playback.
 
 ## Leanfront Restrictions / Limitations
 
@@ -276,7 +300,6 @@ These may be addressed in a future release.
 - Moving recordings to new recording groups is not supported.
 - Metadata input and update are not supported.
 - Request of video file scan is not supported.
-- Improve the mobile device experience.
 
 ## Download and install
 

@@ -25,10 +25,12 @@
 package org.mythtv.leanfront.ui.playback;
 
 import android.annotation.TargetApi;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -91,7 +93,6 @@ import org.mythtv.leanfront.ui.VideoDetailsActivity;
 import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
@@ -101,7 +102,6 @@ import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -164,10 +164,14 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean possibleEmptyTrack;
     private boolean playWhenPrepared;
     private ScheduledFuture<?> audioFixTask;
+    private boolean isTV;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        UiModeManager uiModeManager = (UiModeManager) getContext().getSystemService(Context.UI_MODE_SERVICE);
+        isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
         mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
@@ -441,6 +445,7 @@ public class PlaybackFragment extends VideoSupportFragment
             mPlayer.release();
             mPlayer = null;
             mTrackSelector = null;
+            mPlayerGlue.setPlayerClosed(true);
             mPlayerGlue = null;
             mPlayerAdapter = null;
             mPlaybackActionListener = null;
@@ -737,6 +742,14 @@ public class PlaybackFragment extends VideoSupportFragment
         play(mVideo);
     }
 
+    public void ffRew(int direction) {
+        tickle();
+        if (direction < 0)
+            rewind();
+        else if (direction > 0)
+            fastForward();
+    }
+
     /** Skips backwards 1 minute. */
     public void rewind() {
         moveBackward(mSkipBack);
@@ -760,9 +773,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
     /** Jumps backwards 5 min. */
     public void jumpBack() {
-        long newPosition = mPlayerGlue.getCurrentPosition() - mJump;
-        newPosition = (newPosition < 0) ? 0 : newPosition;
-        seekTo(newPosition, false);
+        moveBackward(mJump);
     }
 
     /** Jumps forward 5 min. */

@@ -54,6 +54,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     float mPivotX = 0.5f;
     float mPivotY = 0.5f;
     long sampleOffsetUs = 0;
+    long priorSampleOffsetUs = 0;
     AlertDialog mDialog;
 
     private static final String TAG = "lfe";
@@ -591,13 +592,21 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     }
 
     public void setAudioSync() {
+        boolean found = false;
         SampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
         for (SampleQueue sampleQueue : sampleQueues) {
             if (MimeTypes.isAudio(sampleQueue.getUpstreamFormat().sampleMimeType)) {
                 sampleQueue.setSampleOffsetUs(sampleOffsetUs);
+                found = true;
             }
         }
-        playbackFragment.moveBackward(0);
+        if (found) {
+            // This check is needed to prevent it continually resetting, because
+            // this routine is called again 5 seconds after doing the moveBackward
+            if (priorSampleOffsetUs != sampleOffsetUs)
+                playbackFragment.moveBackward(0);
+            priorSampleOffsetUs = sampleOffsetUs;
+        }
     }
 
     @Override

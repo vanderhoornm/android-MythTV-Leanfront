@@ -983,6 +983,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         mFileLength = fileLength;
                         mIsBounded = false;
                         mBookmark = 0;
+                        mPlaybackActionListener.priorSampleOffsetUs = 0;
                         mOffsetBytes = mDataSource.getCurrentPos();
                         mPlayerGlue.setOffsetMillis(mPlayerGlue.getCurrentPosition());
                         Log.i(TAG, CLASS + " Resuming Playback.");

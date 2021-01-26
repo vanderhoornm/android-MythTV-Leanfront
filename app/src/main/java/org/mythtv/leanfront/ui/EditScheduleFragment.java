@@ -83,7 +83,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private ActionGroup mGpMaxNewest;
     private ActionGroup mGpAutoExpire;
     private ActionGroup mGpPostProc;
-    private ActionGroup mGpInetRefType;
     private ActionGroup mGpInetRefNum;
     private ActionGroup mGpUseTemplate;
     private ActionGroup mGpSaveButton;
@@ -100,6 +99,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private static final int ACTIONTYPE_BOOLEAN = 5;
     private static final int ACTIONTYPE_BUTTON = 6;
     private static final int ACTIONTYPE_BUTTONS = 7;
+    private static final int ACTIONTYPE_TEXT = 8;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "EditScheduleFragment";
@@ -283,8 +283,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             R.string.sched_pp_transcode,
             R.string.sched_pp_job1, R.string.sched_pp_job2,
             R.string.sched_pp_job3, R.string.sched_pp_job4};
-    static final int [] sMetaDataPrompts = {
-            R.string.sched_metadata_type_tv, R.string.sched_metadata_type_movie };
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
@@ -478,28 +476,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         mainActions.add(mGpPostProc.mGuidedAction);
         mGroupList.add(mGpPostProc);
 
-        // Metadata type ttvdb.py_ or tmdb3.py_
-        boolean mdVal = mRecordRule.inetref != null && mRecordRule.inetref.startsWith("tmdb3.py_");
-
-        mGpInetRefType = new ActionGroup(ACTIONTYPE_BOOLEAN, R.string.sched_metadata_type,
-                sMetaDataPrompts, mdVal);
-        mainActions.add(mGpInetRefType.mGuidedAction);
-        mGroupList.add(mGpInetRefType);
-
-        // Metadata number
-        int id = 0;
-        if (mRecordRule.inetref != null) {
-            String [] parts = mRecordRule.inetref.split("_");
-            if (parts.length == 2) {
-                try {
-                    id = Integer.parseInt(parts[1]);
-                } catch (NumberFormatException e) {
-                    id = 0;
-                }
-            }
-        }
-        mGpInetRefNum = new ActionGroup(ACTIONTYPE_NUMERIC_UNSIGNED, R.string.sched_metadata_id,
-                id);
+        mGpInetRefNum = new ActionGroup(ACTIONTYPE_TEXT, R.string.sched_metadata_id,
+                mRecordRule.inetref);
         mainActions.add(mGpInetRefNum.mGuidedAction);
         mGroupList.add(mGpInetRefNum);
 
@@ -559,16 +537,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         mRecordRule.autoUserJob2 = (mGpPostProc.mIntResult & (1 << 4)) != 0;
         mRecordRule.autoUserJob3 = (mGpPostProc.mIntResult & (1 << 5)) != 0;
         mRecordRule.autoUserJob4 = (mGpPostProc.mIntResult & (1 << 6)) != 0;
-        if (mGpInetRefNum.mIntResult > 0) {
-            String prefix;
-            if (mGpInetRefType.mIntResult == 0)
-                prefix = "ttvdb.py_";
-            else
-                prefix = "tmdb3.py_";
-            mRecordRule.inetref = prefix + mGpInetRefNum.mIntResult;
-        }
-        else
-            mRecordRule.inetref = null;
+        mRecordRule.inetref = mGpInetRefNum.mStringResult;
 
         AsyncBackendCall call = new AsyncBackendCall(this);
         call.setRecordRule(mRecordRule);
@@ -829,6 +798,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                     type |= InputType.TYPE_NUMBER_FLAG_SIGNED;
                 builder.descriptionEditInputType (type);
             }
+            else if (mActionType == ACTIONTYPE_TEXT) {
+                builder.description(mStringResult);
+                builder.descriptionEditable(true);
+            }
             else if (mActionType == ACTIONTYPE_BOOLEAN) {
                 builder.checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
                 builder.checked(mIntResult != 0);
@@ -921,6 +894,11 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                         mGuidedAction.setDescription(mStringResult);
                     notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
                     break;
+                case ACTIONTYPE_TEXT:
+                    mStringResult = strValue;
+                    mGuidedAction.setDescription(mStringResult);
+                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    break;
             }
 
         }
@@ -940,6 +918,16 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                     null, null, currIntValue, false);
         }
 
+        /**
+         * Constructor for one text input value
+         * @param actionType   ACTIONTYPE_TEXT
+         * @param title        title
+         * @param currStringValue initial value
+         */
+        ActionGroup(int actionType, int title, String currStringValue) {
+            this(actionType, title, null, null,
+                    null, currStringValue, 0, false);
+        }
 
         /**
          * Constructor for list of integer values with string prompts
@@ -1067,6 +1055,12 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                     mIntResult = 0;
                 }
                 action.setDescription(String.valueOf(mIntResult));
+                notifyActionChanged(findActionPositionById(action.getId()));
+            }
+            else if (mActionType == ACTIONTYPE_TEXT) {
+                mIsDirty = true;
+                mStringResult = action.getDescription().toString().trim();
+                action.setDescription(mStringResult);
                 notifyActionChanged(findActionPositionById(action.getId()));
             }
         }

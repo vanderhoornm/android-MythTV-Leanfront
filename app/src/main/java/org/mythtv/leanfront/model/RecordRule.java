@@ -6,6 +6,7 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.XmlNode;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -20,6 +21,8 @@ public class RecordRule {
     public String  category;
     public Date    startTime;
     public Date    endTime;
+    public Date    airDate;
+    public boolean repeat;
     public String  seriesId;
     public String  programId;
     public int     chanId;
@@ -69,8 +72,10 @@ public class RecordRule {
 
     private static DateFormat timeFormatter;
     private static DateFormat dateFormatter;
+    private static DateFormat shortDateFormatter;
     private static DateFormat dayFormatter;
 
+    private static final SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public RecordRule fromProgram(XmlNode programNode) {
         isFromProgram = true;
@@ -80,6 +85,17 @@ public class RecordRule {
         category = programNode.getString("Category");
         startTime = programNode.getNode("StartTime").getDate();
         endTime = programNode.getNode("EndTime").getDate();
+        String t = programNode.getString("Airdate");
+        if (t == null)
+            airDate = null;
+        else {
+            try {
+                airDate = dateOnlyFormat.parse(t);
+            } catch (ParseException e) {
+                airDate = null;
+            }
+        }
+        repeat = programNode.getNode("Repeat").getBoolean();
         seriesId = programNode.getString("SeriesId");
         programId = programNode.getString("ProgramId");
         chanId = programNode.getNode("Channel").getInt("ChanId",0);
@@ -230,6 +246,7 @@ public class RecordRule {
             if (timeFormatter == null) {
                 timeFormatter = android.text.format.DateFormat.getTimeFormat(context);
                 dateFormatter = android.text.format.DateFormat.getLongDateFormat(context);
+                shortDateFormatter = android.text.format.DateFormat.getDateFormat(context);
                 dayFormatter = new SimpleDateFormat("EEE ");
             }
 
@@ -239,9 +256,17 @@ public class RecordRule {
             build.append(dayFormatter.format(startTime))
                     .append(dateFormatter.format(startTime)).append(' ')
                     .append(timeFormatter.format(startTime)).append('\n')
-                    .append(title);
+                    .append(title).append("\n");
+            if (season > 0 && episode > 0)
+                build.append("S").append(season).append("E").append(episode).append(" ");
             if (subtitle != null)
-                build.append("\n").append(subtitle);
+                build.append(subtitle);
+            if (repeat) {
+                if (airDate != null)
+                    build.append(" [").append(shortDateFormatter.format(airDate)).append("]");
+            }
+            else
+                build.append(" [new]");
         }
         return build.toString();
     }

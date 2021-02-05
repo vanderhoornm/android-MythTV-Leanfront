@@ -221,7 +221,7 @@ public class SearchFragment extends SearchSupportFragment
             String channelname = programNode.getNode("Channel").getString("ChannelName");
             String callsign = programNode.getNode("Channel").getString("CallSign");
             String chanDetails = channum + " " + channelname + " " + callsign;
-            GuideSlot slot = new GuideSlot(program.chanId, chanDetails);
+            GuideSlot slot = new GuideSlot(program.chanId, -1, chanDetails);
             slot.cellType = GuideSlot.CELL_SEARCHRESULT;
             slot.timeSlot = program.startTime;
             slot.program = program;

@@ -14,6 +14,7 @@ import java.util.Date;
 
 public class GuideSlot {
     public int chanId = -1;
+    public int chanNum = -1;
     public String chanDetails;
     public Date timeSlot;       // Time of this grid position
     public Program program;
@@ -47,8 +48,9 @@ public class GuideSlot {
         this.cellType = cellType;
     }
 
-    public GuideSlot(int chanId, String chanDetails) {
+    public GuideSlot(int chanId, int chanNum, String chanDetails) {
         this.chanId = chanId;
+        this.chanNum = chanNum;
         this.chanDetails = chanDetails;
         cellType = CELL_CHANNEL;
     }

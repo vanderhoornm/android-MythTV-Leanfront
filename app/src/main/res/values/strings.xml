@@ -296,6 +296,7 @@
     <string name="menu_save_changes">Save Changes Before Exiting</string>
     <string name="menu_continue_editing">Continue Editing</string>
     <string name="menu_exit_nosave">Exit Without Saving</string>
+    <string name="guide_jump_to_channel">Jump to Channel Number</string>
 
 
 </resources>

@@ -20,12 +20,15 @@
 package org.mythtv.leanfront.ui;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.SparseIntArray;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 import androidx.appcompat.app.AlertDialog;
@@ -55,6 +58,8 @@ import java.util.GregorianCalendar;
 public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener{
 
     public static final int TIMESLOTS = 8;
+    // 1 cell per timeslot plus 1 for channel and two for arrows
+    public static final int COLUMNS = TIMESLOTS+3;
     public static final int TIMESLOT_SIZE = 30; //minutes
     public static final int TIME_ROW_INTERVAL = 8;
     public static final int DATE_RANGE = 21;
@@ -91,7 +96,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private void setupAdapter() {
         VerticalGridPresenter presenter = new VerticalGridPresenter(ZOOM_FACTOR);
         // 1 cell per timeslot plus 1 for channel and two for arrows
-        presenter.setNumberOfColumns(TIMESLOTS+3);
+        presenter.setNumberOfColumns(COLUMNS);
         setGridPresenter(presenter);
 
         mGridAdapter = new ArrayObjectAdapter(new GuidePresenterSelector(getContext()));
@@ -110,6 +115,9 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     case GuideSlot.CELL_TIMESELECTOR:
                     case GuideSlot.CELL_TIMESLOT:
                         showTimeSelector();
+                        break;
+                    case GuideSlot.CELL_CHANNEL:
+                        showChannelSelector();
                         break;
                     case GuideSlot.CELL_LEFTARROW:
                         mGridStartTime = new Date(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
@@ -262,6 +270,44 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         timeSpin.setSelection(timeSelection);
     }
 
+    private void showChannelSelector() {
+        Context context = getContext();
+        AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(R.string.guide_jump_to_channel);
+
+        EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+            goToChannel(input);
+        });
+        builder.show();
+    }
+
+    private void goToChannel(EditText input) {
+        String text = input.getText().toString();
+        int chanNum = 0;
+        try {
+            chanNum = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return;
+        }
+        int size = mGridAdapter.size();
+        boolean found = false;
+        for (int ix = 0; ix < size; ix += COLUMNS) {
+            GuideSlot slot = (GuideSlot) mGridAdapter.get(ix);
+            if (slot.chanNum >= chanNum) {
+                setSelectedPosition(ix, false);
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            setSelectedPosition(size - COLUMNS,false);
+    }
+
     private void setupGridData() {
         if (mLoadInProgress)
             return;
@@ -297,6 +343,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         String[] projection = {
                 VideoContract.VideoEntry.COLUMN_SUBTITLE, // This is channel details
                 VideoContract.VideoEntry.COLUMN_CHANID,
+                VideoContract.VideoEntry.COLUMN_CHANNUM,
         };
 
         // Filter results
@@ -329,6 +376,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
         int colSubt = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         int colChId = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
+        int colChNum = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
         while (cursor.moveToNext()) {
             if (tsRowCount == 0)
                 addTimeRow();
@@ -336,8 +384,15 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 tsRowCount = 0;
             String chanDetails = cursor.getString(colSubt);
             int chanId = cursor.getInt(colChId);
+            String chanNumStr = cursor.getString(colChNum);
+            int chanNum = -1;
+            if (chanNumStr != null) {
+                String[] chanNumSplit = chanNumStr.split("[^0123456789]");
+                if (chanNumSplit.length > 0 && chanNumSplit[0] != null)
+                    chanNum = Integer.parseInt(chanNumSplit[0]);
+            }
             // channel slot at front
-            GuideSlot slot = new GuideSlot(chanId, chanDetails);
+            GuideSlot slot = new GuideSlot(chanId, chanNum, chanDetails);
             mGridAdapter.add(slot);
             mGridAdapter.add(leftArrowSlot);
             mChanArray.put(chanId,mGridAdapter.size());

@@ -37,6 +37,7 @@ import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.AsyncRemoteCall;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.RecordRule;
 import org.mythtv.leanfront.model.Video;
@@ -48,7 +49,8 @@ import java.util.List;
 import java.util.Objects;
 
 
-public class EditScheduleFragment extends GuidedStepSupportFragment implements AsyncBackendCall.OnBackendCallListener {
+public class EditScheduleFragment extends GuidedStepSupportFragment
+        implements AsyncBackendCall.OnBackendCallListener, AsyncRemoteCall.Listener {
 
     private RecordRule mProgDetails;
     private RecordRule mRecordRule;
@@ -83,7 +85,11 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private ActionGroup mGpMaxNewest;
     private ActionGroup mGpAutoExpire;
     private ActionGroup mGpPostProc;
+    private ActionGroup mGpMetadata;
     private ActionGroup mGpInetRefNum;
+    private ActionGroup mGpInetLookupName;
+    private ActionGroup mGpLookupTVButton;
+    private ActionGroup mGpLookupMovieButton;
     private ActionGroup mGpUseTemplate;
     private ActionGroup mGpSaveButton;
     private ActionGroup mGpCancelButton;
@@ -100,6 +106,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
     private static final int ACTIONTYPE_BUTTON = 6;
     private static final int ACTIONTYPE_BUTTONS = 7;
     private static final int ACTIONTYPE_TEXT = 8;
+    private static final int ACTIONTYPE_CONTAINER = 9;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "EditScheduleFragment";
@@ -476,10 +483,46 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         mainActions.add(mGpPostProc.mGuidedAction);
         mGroupList.add(mGpPostProc);
 
+        // Metadata
+        // This is unlike other groups - it is a container.
+        // Can only contain elementary items, no checkbox or radiobutton
+        // lists.
+
+        // Main metadata group
+        mGpMetadata = new ActionGroup(ACTIONTYPE_CONTAINER, R.string.sched_metadata,
+                mRecordRule.inetref);
+        mGroupList.add(mGpMetadata);
+
+        // metadata id
+        List<GuidedAction> subActions = new ArrayList<>();
         mGpInetRefNum = new ActionGroup(ACTIONTYPE_TEXT, R.string.sched_metadata_id,
                 mRecordRule.inetref);
-        mainActions.add(mGpInetRefNum.mGuidedAction);
+        subActions.add(mGpInetRefNum.mGuidedAction);
         mGroupList.add(mGpInetRefNum);
+
+        // Lookup Name
+        mGpInetLookupName = new ActionGroup(ACTIONTYPE_TEXT, R.string.sched_metadata_search_name,
+                mRecordRule.title);
+        subActions.add(mGpInetLookupName.mGuidedAction);
+        mGroupList.add(mGpInetLookupName);
+
+        // Lookup TV Button
+        mGpLookupTVButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tv_bn);
+        subActions.add(mGpLookupTVButton.mGuidedAction);
+        mGroupList.add(mGpLookupTVButton);
+
+        // Lookup Movie Button
+        mGpLookupMovieButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_movie_bn);
+        subActions.add(mGpLookupMovieButton.mGuidedAction);
+        mGroupList.add(mGpLookupMovieButton);
+
+        mGpMetadata.mGuidedAction.setSubActions(subActions);
+        mGpMetadata.mGuidedAction.setIcon
+                (getContext().getResources().getDrawable(R.drawable.tmdb,null));
+        mainActions.add(mGpMetadata.mGuidedAction);
+
+        // mGpInetRefNum is the action whose text is to be put in the description of mGpMetadata
+        mGpInetRefNum.mParent = mGpMetadata.mGuidedAction;
 
         // Use Template
         stringPrompts = new String[mTemplateList.size()];
@@ -623,7 +666,75 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                         acGrp.mStringValues[acGrp.mSelectedPrompt]));
             notifyActionChanged(findActionPositionById(acGrp.mId));
         }
+        else if (acGrp == mGpLookupTVButton
+                || acGrp == mGpLookupMovieButton) {
+            AsyncRemoteCall call = new AsyncRemoteCall(this);
+            call.stringParameter = mGpInetLookupName.mStringResult;
+            int task;
+            if (acGrp == mGpLookupTVButton)
+                task = AsyncRemoteCall.ACTION_LOOKUP_TV;
+            else
+                task = AsyncRemoteCall.ACTION_LOOKUP_MOVIE;
+             call.execute(task);
+        }
         return ret;
+    }
+
+    @Override
+    public void onPostExecute(AsyncRemoteCall taskRunner) {
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        switch (taskRunner.tasks[0]) {
+            case AsyncRemoteCall.ACTION_LOOKUP_TV:
+            case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
+                AsyncRemoteCall.TmdbParser parser = (AsyncRemoteCall.TmdbParser) taskRunner.results.get(0);
+                ArrayList<String> prompts = new ArrayList<>();
+                for (AsyncRemoteCall.TmdbEntry entry : parser.entries) {
+                    if (entry.name == null || entry.id == 0)
+                        break; // should not happen
+                    StringBuilder stringBuilder = new StringBuilder(entry.name);
+                    if (entry.firstAirDate != null
+                            && entry.firstAirDate.length() >= 4)
+                        stringBuilder
+                                .append(" [")
+                                .append(entry.firstAirDate.substring(0, 4))
+                                .append("]");
+                    if (entry.overview != null && entry.overview.length() > 0) {
+                        String desc = entry.overview;
+                        if (desc.length() > 300)
+                            desc = desc.substring(0,300) + " ...";
+                        stringBuilder.append(" : ")
+                                .append(desc);
+                    }
+                    stringBuilder.append('\n');
+                    prompts.add(stringBuilder.toString());
+                }
+                if (prompts.size() > 0)
+                    alertBuilder.setTitle(R.string.sched_metadata_select_prompt);
+                else
+                    alertBuilder.setTitle(R.string.sched_metadata_select_none);
+                alertBuilder
+                        .setItems(prompts.toArray(new String[0]),
+                                (dialog, which) -> {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    if (which < parser.entries.size()) {
+                                        StringBuilder inetRef = new StringBuilder();
+                                        switch(taskRunner.tasks[0]) {
+                                            case AsyncRemoteCall.ACTION_LOOKUP_TV:
+                                                inetRef.append("tmdb3tv.py_");
+                                                break;
+                                            case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
+                                                inetRef.append("tmdb3.py_");
+                                                break;
+                                        }
+                                        inetRef.append(parser.entries.get(which).id);
+                                        mGpInetRefNum.setValue(inetRef.toString());
+                                    }
+                                });
+                alertBuilder.show();
+                break;
+        }
     }
 
     @Override
@@ -718,6 +829,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         boolean mEditLast;
         int mSelectedPrompt = -1;
         GuidedAction mGuidedAction;
+        GuidedAction mParent;
 
         ActionGroup(int actionType, int title, int[] prompts, int[] intValues,
                     String[] stringValues, String currStringValue, int currIntValue, boolean editLast) {
@@ -802,6 +914,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 builder.description(mStringResult);
                 builder.descriptionEditable(true);
             }
+            else if (mActionType == ACTIONTYPE_CONTAINER) {
+                builder.description(mStringResult);
+            }
             else if (mActionType == ACTIONTYPE_BOOLEAN) {
                 builder.checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
                 builder.checked(mIntResult != 0);
@@ -867,6 +982,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
             }
         }
 
+        // Note that setValue for a text item that is inside a container and is not the one
+        // with mParent set, will not update the user interface. We only want one item to have
+        // mParent set, so if you need to use setValue on another, some change is needed to
+        // issue the collapse and expand that seems to be required for the display to update.
         public void setValue(String strValue) {
             switch(mActionType) {
                 case ACTIONTYPE_RADIOBNS:
@@ -897,7 +1016,22 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 case ACTIONTYPE_TEXT:
                     mStringResult = strValue;
                     mGuidedAction.setDescription(mStringResult);
-                    notifyActionChanged(findActionPositionById(mGuidedAction.getId()));
+                    if (mParent == null) {
+                        int position = findActionPositionById(mGuidedAction.getId());
+                        notifyActionChanged(position);
+                    }
+                    else {
+                        if (isExpanded()) {
+                            // The notifyActionChanged call does nothing when called
+                            // for a sub action, so this collapse and expandworkaround
+                            // refreshes the display
+                            collapseAction(false);
+                            expandAction(mParent, false);
+                            mParent.setDescription(mStringResult);
+                            int position = getActions().indexOf(mParent);
+                            notifyActionChanged(position);
+                        }
+                    }
                     break;
             }
 
@@ -919,8 +1053,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
         }
 
         /**
-         * Constructor for one text input value
-         * @param actionType   ACTIONTYPE_TEXT
+         * Constructor for one text input value or container group
+         * @param actionType   ACTIONTYPE_TEXT or ACTIONTYPE_CONTAINER
          * @param title        title
          * @param currStringValue initial value
          */
@@ -1039,6 +1173,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                     mIntResult &= (-1 - (1 << ix));
                     return false;
                 }
+                else if (mActionType == ACTIONTYPE_BUTTON
+                        || mActionType == ACTIONTYPE_TEXT)
+                    return false;
 
             }
             return true;
@@ -1062,6 +1199,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment implements A
                 mStringResult = action.getDescription().toString().trim();
                 action.setDescription(mStringResult);
                 notifyActionChanged(findActionPositionById(action.getId()));
+                if (mParent != null) {
+                    mParent.setDescription(mStringResult);
+                    notifyActionChanged(findActionPositionById(mParent.getId()));
+                }
             }
         }
 

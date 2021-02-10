@@ -285,7 +285,13 @@
     <string name="sched_pp_job2">Run User job 2</string>
     <string name="sched_pp_job3">Run User job 3</string>
     <string name="sched_pp_job4">Run User job 4</string>
-    <string name="sched_metadata_id">Metadata Series or Movie Id</string>
+    <string name="sched_metadata">Metadata Settings</string>
+    <string name="sched_metadata_id">Series or Movie Id</string>
+    <string name="sched_metadata_search_name">Phrase to use in Search</string>
+    <string name="sched_metadata_search_tv_bn">Search TV Series</string>
+    <string name="sched_metadata_search_movie_bn">Search Movies</string>
+    <string name="sched_metadata_select_prompt">Select Appropriate Entry</string>
+    <string name="sched_metadata_select_none">No Match Found</string>
     <string name="sched_use_template">Use Template</string>
     <string name="sched_save_button">Save</string>
     <string name="sched_template_applied">Template %1s was applied.</string>

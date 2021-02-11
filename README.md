@@ -132,7 +132,8 @@ An icon in the Tools row brings up a section where you can view the program guid
 In the program guide
  
 - Select a new date and time for the guide: Press enter on any of the cells that show the time.
-- Move to the next or prior page of guide data: Press enter on any of the arrow cells.
+- Move to a new channel number more quickly than using down arrow: Press Enter on any of the cells that show the channel number. Type the desired channel number on the onscreen keyboard. Press Enter.
+- Move to the next or prior time slot of guide data: Press enter on any of the arrow cells.
 - Schedule a recording or modify the recording: Press enter on any cell that lists a program.
 
 ### Recording Rules Page
@@ -145,7 +146,9 @@ All upcoming recordings are listed. Press enter on any cell to modify it.
 
 ### Rule updating
 
-The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions that prevents this from working.
+The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions of mythbackend that prevents this from working.
+
+When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id for the movie database. To use the TV series feature of this requires a recent build of master (v32) or fixes/31 (v31). Versions subsequent to v32-Pre-2205-gf53465de76 (2021/01/31) or v31.0-135-g1aff6fd2db (2021/02/01) support this. If you have an older version, the search in leanfront will work, but the backend will not be able to use the id that was found.
 
 ## Search
 

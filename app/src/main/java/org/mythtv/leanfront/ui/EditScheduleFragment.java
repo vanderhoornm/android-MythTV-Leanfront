@@ -89,6 +89,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private ActionGroup mGpInetRefNum;
     private ActionGroup mGpInetLookupName;
     private ActionGroup mGpLookupTVButton;
+    private ActionGroup mGpLookupTVMazeButton;
     private ActionGroup mGpLookupMovieButton;
     private ActionGroup mGpUseTemplate;
     private ActionGroup mGpSaveButton;
@@ -506,19 +507,28 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         subActions.add(mGpInetLookupName.mGuidedAction);
         mGroupList.add(mGpInetLookupName);
 
-        // Lookup TV Button
+        // Lookup TV Button for TV Maze
+        mGpLookupTVMazeButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tv_bn);
+        subActions.add(mGpLookupTVMazeButton.mGuidedAction);
+        mGpLookupTVMazeButton.mGuidedAction.setIcon
+                (getContext().getResources().getDrawable(R.drawable.tvmaze_logo,null));
+        mGroupList.add(mGpLookupTVMazeButton);
+
+        // Lookup TV Button for TMDB
         mGpLookupTVButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tv_bn);
         subActions.add(mGpLookupTVButton.mGuidedAction);
+        mGpLookupTVButton.mGuidedAction.setIcon
+                (getContext().getResources().getDrawable(R.drawable.tmdb_logo,null));
         mGroupList.add(mGpLookupTVButton);
 
         // Lookup Movie Button
         mGpLookupMovieButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_movie_bn);
         subActions.add(mGpLookupMovieButton.mGuidedAction);
+        mGpLookupMovieButton.mGuidedAction.setIcon
+                (getContext().getResources().getDrawable(R.drawable.tmdb_logo,null));
         mGroupList.add(mGpLookupMovieButton);
 
         mGpMetadata.mGuidedAction.setSubActions(subActions);
-        mGpMetadata.mGuidedAction.setIcon
-                (getContext().getResources().getDrawable(R.drawable.tmdb,null));
         mainActions.add(mGpMetadata.mGuidedAction);
 
         // mGpInetRefNum is the action whose text is to be put in the description of mGpMetadata
@@ -667,14 +677,19 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             notifyActionChanged(findActionPositionById(acGrp.mId));
         }
         else if (acGrp == mGpLookupTVButton
+                || acGrp == mGpLookupTVMazeButton
                 || acGrp == mGpLookupMovieButton) {
             AsyncRemoteCall call = new AsyncRemoteCall(this);
             call.stringParameter = mGpInetLookupName.mStringResult;
             int task;
-            if (acGrp == mGpLookupTVButton)
+            if (acGrp == mGpLookupTVMazeButton)
+                task = AsyncRemoteCall.ACTION_LOOKUP_TVMAZE;
+            else if (acGrp == mGpLookupTVButton)
                 task = AsyncRemoteCall.ACTION_LOOKUP_TV;
-            else
+            else if (acGrp == mGpLookupMovieButton)
                 task = AsyncRemoteCall.ACTION_LOOKUP_MOVIE;
+            else
+                return ret;
              call.execute(task);
         }
         return ret;
@@ -684,57 +699,65 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     public void onPostExecute(AsyncRemoteCall taskRunner) {
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
-        switch (taskRunner.tasks[0]) {
+        final AsyncRemoteCall.Parser parser;
+        int task = taskRunner.tasks[0];
+        switch (task) {
+            case AsyncRemoteCall.ACTION_LOOKUP_TVMAZE:
             case AsyncRemoteCall.ACTION_LOOKUP_TV:
             case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
-                AsyncRemoteCall.TmdbParser parser = (AsyncRemoteCall.TmdbParser) taskRunner.results.get(0);
-                ArrayList<String> prompts = new ArrayList<>();
-                for (AsyncRemoteCall.TmdbEntry entry : parser.entries) {
-                    if (entry.name == null || entry.id == 0)
-                        break; // should not happen
-                    StringBuilder stringBuilder = new StringBuilder(entry.name);
-                    if (entry.firstAirDate != null
-                            && entry.firstAirDate.length() >= 4)
-                        stringBuilder
-                                .append(" [")
-                                .append(entry.firstAirDate.substring(0, 4))
-                                .append("]");
-                    if (entry.overview != null && entry.overview.length() > 0) {
-                        String desc = entry.overview;
-                        if (desc.length() > 300)
-                            desc = desc.substring(0,300) + " ...";
-                        stringBuilder.append(" : ")
-                                .append(desc);
-                    }
-                    stringBuilder.append('\n');
-                    prompts.add(stringBuilder.toString());
-                }
-                if (prompts.size() > 0)
-                    alertBuilder.setTitle(R.string.sched_metadata_select_prompt);
-                else
-                    alertBuilder.setTitle(R.string.sched_metadata_select_none);
-                alertBuilder
-                        .setItems(prompts.toArray(new String[0]),
-                                (dialog, which) -> {
-                                    // The 'which' argument contains the index position
-                                    // of the selected item
-                                    if (which < parser.entries.size()) {
-                                        StringBuilder inetRef = new StringBuilder();
-                                        switch(taskRunner.tasks[0]) {
-                                            case AsyncRemoteCall.ACTION_LOOKUP_TV:
-                                                inetRef.append("tmdb3tv.py_");
-                                                break;
-                                            case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
-                                                inetRef.append("tmdb3.py_");
-                                                break;
-                                        }
-                                        inetRef.append(parser.entries.get(which).id);
-                                        mGpInetRefNum.setValue(inetRef.toString());
-                                    }
-                                });
-                alertBuilder.show();
+                parser = taskRunner.results.get(0);
                 break;
+            default:
+                return;
         }
+        ArrayList<CharSequence> prompts = new ArrayList<>();
+        for (AsyncRemoteCall.TvEntry entry : parser.entries) {
+            if (entry.name == null || entry.id == 0)
+                break; // should not happen
+            StringBuilder stringBuilder = new StringBuilder(entry.name);
+            if (entry.firstAirDate != null
+                    && entry.firstAirDate.length() >= 4)
+                stringBuilder
+                        .append(" [")
+                        .append(entry.firstAirDate.substring(0, 4))
+                        .append("]");
+            if (entry.overview != null && entry.overview.length() > 0) {
+                String desc = entry.overview.trim();
+                if (desc.length() > 300)
+                    desc = desc.substring(0,300) + " ...";
+                stringBuilder.append(" :\n");
+                stringBuilder.append(desc);
+            }
+            stringBuilder.append('\n');
+            prompts.add(stringBuilder.toString());
+        }
+        if (prompts.size() > 0)
+            alertBuilder.setTitle(R.string.sched_metadata_select_prompt);
+        else
+            alertBuilder.setTitle(R.string.sched_metadata_select_none);
+        alertBuilder
+                .setItems(prompts.toArray(new CharSequence[0]),
+                        (dialog, which) -> {
+                            // The 'which' argument contains the index position
+                            // of the selected item
+                            if (which < parser.entries.size()) {
+                                StringBuilder inetRef = new StringBuilder();
+                                switch(taskRunner.tasks[0]) {
+                                    case AsyncRemoteCall.ACTION_LOOKUP_TVMAZE:
+                                        inetRef.append("tvmaze.py_");
+                                        break;
+                                    case AsyncRemoteCall.ACTION_LOOKUP_TV:
+                                        inetRef.append("tmdb3tv.py_");
+                                        break;
+                                    case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
+                                        inetRef.append("tmdb3.py_");
+                                        break;
+                                }
+                                inetRef.append(parser.entries.get(which).id);
+                                mGpInetRefNum.setValue(inetRef.toString());
+                            }
+                        });
+        alertBuilder.show();
     }
 
     @Override
@@ -755,7 +778,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         if (acGrp == mGpSaveButton)
             updateRecordRule();
         else if (acGrp == mGpCancelButton)
-            getActivity().finish();;
+            getActivity().finish();
     }
 
     private void promptForNewValue(GuidedAction action, String initValue) {

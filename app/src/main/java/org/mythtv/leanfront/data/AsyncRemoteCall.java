@@ -21,6 +21,8 @@ package org.mythtv.leanfront.data;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import android.util.Log;
@@ -44,8 +46,9 @@ public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
     public ArrayList<Parser> results = new ArrayList<>();
     public int [] tasks;
     private Listener listener;
-    public static final int ACTION_LOOKUP_TV = 1;
-    public static final int ACTION_LOOKUP_MOVIE = 2;
+    public static final int ACTION_LOOKUP_TVMAZE = 1;
+    public static final int ACTION_LOOKUP_TV = 2;
+    public static final int ACTION_LOOKUP_MOVIE = 3;
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncBackendCall";
 
@@ -64,15 +67,21 @@ public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
         for (int count = 0; count < tasks.length; count++) {
             int task = tasks[count];
             this.tasks[count] = task;
+            Parser parser;
             switch (task) {
                 case ACTION_LOOKUP_TV:
                 case ACTION_LOOKUP_MOVIE:
-                    Parser parser = new TmdbParser(task, stringParameter);
-                    String urlString = parser.getUrlString();
-                    fetch(urlString,null,parser);
-                    results.add(parser);
+                    parser = new TmdbParser(task, stringParameter);
                     break;
+                case ACTION_LOOKUP_TVMAZE:
+                    parser = new TvMazeParser(task, stringParameter);
+                    break;
+                default:
+                    return null;
             }
+            String urlString = parser.getUrlString();
+            fetch(urlString,null,parser);
+            results.add(parser);
         }
         return null;
     }
@@ -119,15 +128,15 @@ public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
         return ret;
     }
 
-    public interface Parser {
-        public void parseStream(InputStream in);
-        public String getUrlString();
-    }
-
-    public static class TmdbParser implements Parser {
+    public static abstract class Parser {
         public int task;
         public String parameter;
-        public ArrayList<TmdbEntry> entries = new ArrayList<>();
+        public ArrayList<TvEntry> entries = new ArrayList<>();
+        public abstract void parseStream(InputStream in);
+        public abstract String getUrlString();
+    }
+
+    public static class TmdbParser extends Parser {
         private static final String BASEURL = "https://api.themoviedb.org/3/";
         private static final String APIKEY = "c27cb71cff5bd76e1a7a009380562c62";
         // https://api.themoviedb.org/3/search/tv?query=Monk&api_key=c27cb71cff5bd76e1a7a009380562c62
@@ -209,7 +218,7 @@ public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
                                             break results;
                                         }
                                         reader.beginObject();
-                                        TmdbEntry entry = new TmdbEntry();
+                                        TvEntry entry = new TvEntry();
                                         entry:
                                         for (;;) {
                                             switch (reader.peek()) {
@@ -267,11 +276,132 @@ public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
         } // parseStream
     } // TmdbParser
 
-    public static class TmdbEntry {
+    public static class TvEntry {
         public int id;
         public String name;
         public String firstAirDate;
         public String overview;
     }
+
+    public static class TvMazeParser extends Parser {
+        private static final String BASEURL = "https://api.tvmaze.com/";
+        // https://api.tvmaze.com/search/shows?q=Monk
+
+        public TvMazeParser(int task, String parameter) {
+            this.task = task;
+            this.parameter = parameter;
+        }
+
+        @Override
+        public String getUrlString() {
+            StringBuilder urlString = new StringBuilder(BASEURL);
+            urlString.append("search/shows?");
+
+            try {
+                urlString.append("q=")
+                        .append(URLEncoder.encode(parameter, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, CLASS + " Exception encoding URL: " + parameter, e);
+            }
+            return urlString.toString();
+        }
+
+        @Override
+        public void parseStream(InputStream in) {
+            // Structure of json:
+            // [
+            //     {
+            //        "**OTHER TAGS**": XXXX,
+            //        "show" : {
+            //           "id": 543,
+            //           "name": "Mork & Mindy",
+            //           "premiered": "2002-07-12",
+            //           "summary": ""<p>In <b>Mork &amp; Mindy</b>, in which  ...</p>",
+            //           "**OTHER_TAGS**": XXXX,
+            //         },
+            //     },
+            //     {
+            //       **MORE_RESULTS** ...
+            //     }
+            // ]
+            JsonReader reader = null;
+            try {
+                reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+                reader.beginArray();
+                results:
+                for (;;) {
+                    if (reader.peek() == JsonToken.END_ARRAY) {
+                        reader.endArray();
+                        break results;
+                    }
+                    reader.beginObject();
+                    entry:
+                    for (;;) {
+                        switch (reader.peek()) {
+                            case NAME:
+                                String name1 = reader.nextName();
+                                switch (name1) {
+                                    case "show":
+                                        TvEntry show = new TvEntry();
+                                        reader.beginObject();
+                                        show:
+                                        for (;;) {
+                                            switch (reader.peek()) {
+                                                case NAME:
+                                                    String name2 = reader.nextName();
+                                                    switch (name2) {
+                                                        case "id":
+                                                            show.id = reader.nextInt();
+                                                            break;
+                                                        case "name":
+                                                            show.name = reader.nextString();
+                                                            break;
+                                                        case "premiered":
+                                                            show.firstAirDate = reader.nextString();
+                                                            break;
+                                                        case "summary":
+                                                            Spanned spanned;
+                                                            if (android.os.Build.VERSION.SDK_INT >= 24)
+                                                                spanned = Html.fromHtml(reader.nextString(),Html.FROM_HTML_MODE_COMPACT);
+                                                            else
+                                                                spanned =  Html.fromHtml(reader.nextString());
+                                                            show.overview = spanned.toString();
+                                                            break;
+                                                        default:
+                                                            reader.skipValue();
+                                                    }
+                                                    break;
+                                                case END_OBJECT:
+                                                    entries.add(show);
+                                                    reader.endObject();
+                                                    break show;
+                                            }
+                                        } // show
+                                        break;
+                                    default:
+                                        reader.skipValue();
+                                }
+                                break;
+                            case END_OBJECT:
+                                reader.endObject();
+                                break entry;
+                        }
+                    } // entry
+                } // results
+            } catch (IOException | IllegalStateException e) {
+                Log.e(TAG, CLASS + " Exception parsing: " + parameter, e);
+            }
+            finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, CLASS + " Exception closing reader: " + parameter, e);
+                    }
+                }
+            } // finally
+        } // parseStream
+    } // TvMazeParser
+
 
 }

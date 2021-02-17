@@ -148,7 +148,7 @@ All upcoming recordings are listed. Press enter on any cell to modify it.
 
 The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions of mythbackend that prevents this from working.
 
-When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id for the movie database. To use the TV series feature of this requires a recent build of master (v32) or fixes/31 (v31). Versions subsequent to v32-Pre-2205-gf53465de76 (2021/01/31) or v31.0-135-g1aff6fd2db (2021/02/01) support this. If you have an older version, the search in leanfront will work, but the backend will not be able to use the id that was found.
+When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id. There are two options for TV shows, The movie database and tvmaze. You can use either one, as long as you have a backend that supports the option. If your show is not found on one service, you can use the other. This does not depend on the default lookup method selected in mythfrontend.
 
 ## Search
 

@@ -34,6 +34,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - The *Master Backend Override* MythTV setting is supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
 - Adjustment of Audio Sync in case a recording has a lip-sync problem.
 - Support for touch screen devices is usable, although it is not perfect.
+- Metadata lookup when scheduling recordings supports tvmaze and tmdb.
 
 ## Tips
 
@@ -47,6 +48,10 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 Now, if you watched and deleted an episode yesterday, the deleted episode shows at the front of the recent list. Select that episode from the recent list. Go down in the details screen to the related list. You will see unwatched, undeleted episodes of the series and you can select the next one to play.
 
 In the case of Videos, the related list will show unwatched videos from the same directory. If you have all episodes of a series in one directory, this will make it easy to select the next episode to watch.
+
+### Easily Schedule Recordings
+
+Using the search orb at the top of the page, you can search for a title using voice or keyboard. This will respond with a list of recordings that match as well as a list of matches in the program guide. If you press enter on an item from the program guide, you can create a recording rule to record all episodes, one episode, etc.
 
 ## Release Notes
 
@@ -62,7 +67,7 @@ You can see a list of changes in each version by looking at the commit list in g
 
 ### Settings
 
-The settings icon on the tools row allows setup of the backend ip address and a number of options for this copy of leanfront.
+The settings icon on the tools row allows setup of the backend ip address and a number of options for this installation of leanfront.
 
 ### Refresh
 
@@ -127,6 +132,8 @@ Notes:
 
 An icon in the Tools row brings up a section where you can view the program guide, and setup and modify recording rules.
 
+Also, you can use the search icon from any page to search on show titles. You can create a record rule on any title that is found in the Program Guide.
+
 ### Program Guide Page
 
 In the program guide
@@ -144,15 +151,23 @@ All recording rules are listed. Press enter on any rule to modify it.
 
 All upcoming recordings are listed. Press enter on any cell to modify it.
 
-### Rule updating
+### Rule adding or updating
 
 The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions of mythbackend that prevents this from working.
 
-When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id. There are two options for TV shows, The movie database and tvmaze. You can use either one, as long as you have a backend that supports the option. If your show is not found on one service, you can use the other. This does not depend on the default lookup method selected in mythfrontend.
+### TV or Movie Metadata
+
+When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id.
+
+There are two options for TV shows, The Movie Database and tvmaze. For movies there is only one option, The Movie Database.
+
+If the show that has been selected has a different name from what is shown in the schedule, you can search on this different name, by changing the search phrase. For example, PBS shows are often called "xxxx on Masterpiece", for example "Poldark on Masterpiece". In this case, searching tvmaze or tmdb for "Poldark on Masterpiece" finds nothing, but by changing the search phrase to "Poldark", you can find the series details.
+
+ You can use tvmaze or The Movie Database, as long as you have a recent backend that supports the option. If your show is not found on one service, you can try the other. This does not depend on the default lookup method selected in mythfrontend. In mythfrontend you can select the movie database or tvmaze as the default. Even if you have selected one as the default, you can still use the other for specific record rules.
 
 ## Search
 
-The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can enter to schedule or modify recordings. Note that to use voice search on Amazon Fire Stick you have to right arrow into the text entry field, then press the microphone button. Otherwise pressing the microphone button searches Amazon instead.
+The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can press enter to schedule or modify recordings. Note that to use voice search on Amazon Fire Stick you have to right arrow into the text entry field, then press the microphone button. Otherwise pressing the microphone button searches Amazon instead.
 
 ## Problems
 
@@ -306,7 +321,9 @@ These may be addressed in a future release.
 
 ## Download and install
 
-- Download the latest apk from  [Bintray][bintray].
+Note: Bintray is being taken down in May 2021, so I am switching to another site for package downloads.
+
+- Download the latest apk from [downloads].
 - Enable developer mode on your android device.
 - install adb on your computer
 - Run these
@@ -318,7 +335,21 @@ These may be addressed in a future release.
 Alternatively, if you have a browser on your android device you can avoid using developer mode.
 
 - Enable installation of apps from unknown source in Android settings.
-- Navigate to the download site (https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android), select the latest version, tap it and request the system to install it.
+- Navigate to the download site (https://rebrand.ly/mythtv/packages), find the latest version, tap it and request the system to install it.
+
+## Install on Laptop or Desktop
+
+The quality of video and audio playback is not good on the emulator. However, if you want to use the scheduling options that are available on leanfront, such as scheduling and metadata lookup, that can easily be done on a PC from the emulator.
+
+The release package is built for arm 32 bit and 64 bit devices. The debug version is built for those plus x86 and amd64 devices. You can install [Android Studio][studio], then install an android emulator and run the debug package on the emulator. Note that the emulator plays h264 (AVC) and h265 (HEVC) video. It does not play MPEG2.
+
+After installing [Android Studio][studio], use SDK Manager to install the emulator and sdk tools. You do not need to install an SDK if you are not doing development. Then run the AVD manager to create an android TV device with recent version. From AVD manager you can start the device, then use adb to install the apk file as you would with a real android device. Note that with the emulator you do not need to connect adb to the device, it is automatically connected when you start the emulator. Don't forget to set time zone in the emulator settings. After setting it up, you can subsequently start up the emulator from a command line or script that runs this:
+
+```
+    $HOME/Android/Sdk/emulator/emulator -avd <virtual device name>
+```
+
+This startup is very quick if you specify quick startup (the default) in AVD setup of the emulator.
 
 ## To Do List
 
@@ -345,7 +376,7 @@ The following items will need api changes on the backend
 - Open the project in [Android Studio][studio].
 - Compile and deploy to your Android TV device (such as a Shield or Amazon fire stick). 
 - It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 playback, so you need to play an h264 or h265 recording.
-- If you do not want to build this yourself, there is a package at [Bintray][bintray].
+- If you do not want to build this yourself, there is a package at [downloads].
 
 ## Running
 
@@ -364,3 +395,4 @@ Licensed under the GNU GPL version 3 or later. See the [LICENSE file][license] f
 [studio]: https://developer.android.com/tools/studio/index.html
 [license]: LICENSE
 [bintray]: https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android
+[downloads]: https://rebrand.ly/mythtv/packages

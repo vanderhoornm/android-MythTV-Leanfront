@@ -335,7 +335,7 @@ Note: Bintray is being taken down in May 2021, so I am switching to another site
 Alternatively, if you have a browser on your android device you can avoid using developer mode.
 
 - Enable installation of apps from unknown source in Android settings.
-- Navigate to the download site (https://rebrand.ly/mythtv/packages), find the latest version, tap it and request the system to install it.
+- Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
 
 ## Install on Laptop or Desktop
 
@@ -343,13 +343,11 @@ The quality of video and audio playback is not good on the emulator. However, if
 
 The release package is built for arm 32 bit and 64 bit devices. The debug version is built for those plus x86 and amd64 devices. You can install [Android Studio][studio], then install an android emulator and run the debug package on the emulator. Note that the emulator plays h264 (AVC) and h265 (HEVC) video. It does not play MPEG2.
 
-After installing [Android Studio][studio], use SDK Manager to install the emulator and sdk tools. You do not need to install an SDK if you are not doing development. Then run the AVD manager to create an android TV device with recent version. From AVD manager you can start the device, then use adb to install the apk file as you would with a real android device. Note that with the emulator you do not need to connect adb to the device, it is automatically connected when you start the emulator. Don't forget to set time zone in the emulator settings. After setting it up, you can subsequently start up the emulator from a command line or script that runs this:
+After installing [Android Studio][studio], use SDK Manager to install the emulator and sdk tools. You do not need to install an SDK if you are not doing development. Then run the AVD manager to create an android TV device with recent version. Do not specify quick startup (the default) in AVD setup of the emulator. Select "Cold Boot" in advanced settings for the emulator. From AVD manager you can start the virtual device, then use adb to install the apk file as you would with a real android device. Note that with the emulator you do not need to connect adb to the device, it is automatically connected when you start the emulator. Don't forget to set time zone in the emulator settings. After setting it up, you can subsequently start up the emulator from a command line or script that runs this:
 
 ```
     $HOME/Android/Sdk/emulator/emulator -avd <virtual device name>
 ```
-
-This startup is very quick if you specify quick startup (the default) in AVD setup of the emulator.
 
 ## To Do List
 
@@ -395,4 +393,4 @@ Licensed under the GNU GPL version 3 or later. See the [LICENSE file][license] f
 [studio]: https://developer.android.com/tools/studio/index.html
 [license]: LICENSE
 [bintray]: https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android
-[downloads]: https://rebrand.ly/mythtv/packages
+[downloads]: https://dl.orangedox.com/pCBmBm

@@ -4,9 +4,13 @@ buildscript {
         google()
         mavenCentral()
         jcenter()
+// Option for in case jcenter goes down - put pom and jar files here
+//        maven {
+//            url "/home/peter/proj/localmaven"
+//        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.1'
+        classpath 'com.android.tools.build:gradle:4.1.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -18,5 +22,9 @@ allprojects {
         google()
         mavenCentral()
         jcenter()
+// Option for in case jcenter goes down - put pom and jar files here
+//        maven {
+//            url "/home/peter/proj/localmaven"
+//        }
     }
 }

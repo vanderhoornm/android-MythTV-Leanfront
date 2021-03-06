@@ -218,6 +218,10 @@ public class PlaybackFragment extends VideoSupportFragment
         // To reduce dimming when showing controls.
         // This also make controls difficult to see on light videos
         setBackgroundType(BG_LIGHT);
+
+        int bgColor = Settings.getInt("pref_letterbox_color");
+        View view = getView();
+        view.setBackgroundColor(bgColor);
     }
 
     public void hideNavigation () {

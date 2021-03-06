@@ -21,6 +21,7 @@ package org.mythtv.leanfront.model;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 
 import androidx.preference.PreferenceManager;
 
@@ -108,6 +109,8 @@ public class Settings {
         mEditor.putString("pref_related_watched",str);
         str = mPrefs.getString("pref_recents_days", "7");
         mEditor.putString("pref_recents_days",str);
+        str = mPrefs.getString("pref_letterbox_color", String.valueOf(Color.DKGRAY));
+        mEditor.putString("pref_letterbox_color",str);
         mEditor.apply();
     }
 }

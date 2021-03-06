@@ -108,6 +108,8 @@
     <string name="pref_audio_ffmpeg_desc">Most types of audio, surround sound plays as stereo.</string>
     <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
     <string name="pref_title_framerate_match">Match original frame rate</string>
+    <string name="pref_letterbox_black">Letterbox Black Matte</string>
+    <string name="pref_letterbox_black_desc">If unchecked use Gray Matte</string>
     <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>

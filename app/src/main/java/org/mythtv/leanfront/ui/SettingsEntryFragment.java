@@ -22,6 +22,7 @@ package org.mythtv.leanfront.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
@@ -72,6 +73,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_RELATED_DELETED = 28;
     private static final int ID_RELATED_WATCHED = 29;
     private static final int ID_RECENTS_DAYS = 30;
+    private static final int ID_LETTERBOX_BLACK = 30;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -192,6 +194,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .title(R.string.pref_error_toast)
                 .checked("true".equals(str))
                 .description(R.string.pref_error_toast_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        int i = Settings.getInt("pref_letterbox_color");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_LETTERBOX_BLACK)
+                .title(R.string.pref_letterbox_black)
+                .checked(i == Color.BLACK)
+                .description(R.string.pref_letterbox_black_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
         actions.add(new GuidedAction.Builder(getActivity())
@@ -514,6 +524,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                     mEditor.putString("pref_error_toast", "true");
                 else
                     mEditor.putString("pref_error_toast", "false");
+                break;
+            case ID_LETTERBOX_BLACK:
+                if (action.isChecked())
+                    mEditor.putString("pref_letterbox_color", String.valueOf(Color.BLACK));
+                else
+                    mEditor.putString("pref_letterbox_color", String.valueOf(Color.DKGRAY));
                 break;
             default:
                 return false;

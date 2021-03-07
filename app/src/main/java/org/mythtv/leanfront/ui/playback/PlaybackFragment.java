@@ -1134,7 +1134,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 dirname = dirname + "%";
                 String subdirname = dirname + "%/%";
 
-                String orderby = VideoContract.VideoEntry.COLUMN_FILENAME;
+                String orderby = "UPPER (" +VideoContract.VideoEntry.COLUMN_FILENAME + ")";
                 StringBuilder where = new StringBuilder();
                 where   .append(VideoContract.VideoEntry.COLUMN_RECTYPE)
                         .append(" = ").append(VideoContract.VideoEntry.RECTYPE_VIDEO)

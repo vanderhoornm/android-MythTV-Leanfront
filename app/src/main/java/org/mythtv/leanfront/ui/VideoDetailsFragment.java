@@ -104,7 +104,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-
 /*
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
  * It shows a detailed view of video and its metadata plus related videos.
@@ -527,6 +526,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         boolean showDeleted = "true".equals(Settings.getString("pref_related_deleted"));
         boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
+        String seq = Settings.getString("pref_seq");
+        String ascdesc = Settings.getString("pref_seq_ascdesc");
 
         switch (id) {
 
@@ -535,6 +536,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE, -1);
                 String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
                 String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
+                StringBuilder orderby;
                 if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
                     // Videos
                     int pos = filename.lastIndexOf('/');
@@ -544,7 +546,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     dirname = dirname + "%";
                     String subdirname = dirname + "%/%";
 
-                    String orderby = "UPPER (" + VideoContract.VideoEntry.COLUMN_FILENAME + ")";
+                    orderby = MainFragment.makeTitleSort
+                            (VideoContract.VideoEntry.COLUMN_FILENAME, '/');
                     StringBuilder where = new StringBuilder();
                     where   .append(VideoContract.VideoEntry.COLUMN_RECTYPE)
                             .append(" = ").append(VideoContract.VideoEntry.RECTYPE_VIDEO)
@@ -565,7 +568,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             null,
                             where.toString(),
                             new String[]{dirname, subdirname},
-                            orderby);
+                            orderby.toString());
                 } else {
                     // Recordings or LiveTV
                     String category;
@@ -606,9 +609,20 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
                                 .append(" & ").append(Video.FL_WATCHED)
                                 .append(" == 0 ");
-                    String orderby = VideoContract.VideoEntry.COLUMN_TITLE + ","
-                            + VideoContract.VideoEntry.COLUMN_AIRDATE + ","
-                            + VideoContract.VideoEntry.COLUMN_STARTTIME;
+                    orderby = MainFragment.makeTitleSort(VideoContract.VideoEntry.COLUMN_TITLE, '^')
+                        .append(", ");
+                    if ("airdate".equals(seq)) {
+                        orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                                .append(ascdesc).append(", ");
+                        orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                                .append(ascdesc);
+                    }
+                    else {
+                        orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                                .append(ascdesc).append(", ");
+                        orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                                .append(ascdesc);
+                    }
                     String [] selectionArgs;
                     if (deleted)
                         selectionArgs = new String[]{category};
@@ -620,7 +634,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             null,
                             where.toString(),
                             selectionArgs,
-                            orderby);
+                            orderby.toString());
                 }
             }
             default: {

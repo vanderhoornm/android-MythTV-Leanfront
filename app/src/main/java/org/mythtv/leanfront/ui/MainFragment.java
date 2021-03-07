@@ -81,6 +81,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+
+import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.FetchVideoService;
@@ -728,6 +730,7 @@ public class MainFragment extends BrowseSupportFragment
         return ret;
     }
 
+    static final String[] articles = MyApplication.getAppContext().getResources().getStringArray(R.array.title_sort_articles);
     /**
      * Create the Sql to sort with excluding articles "the" "a" etc at the front
      * or at the front of directory names
@@ -735,13 +738,11 @@ public class MainFragment extends BrowseSupportFragment
      * @param delim Delimiter to use - ^ for title and / for directory
      * @return StringBuilder with resulting phrase for "order by"
      */
-    StringBuilder makeTitleSort(String columnName, char delim) {
-
+    public static StringBuilder makeTitleSort(String columnName, char delim) {
         // Sort uppercase title
         StringBuilder titleSort = new StringBuilder();
         titleSort.append("'").append(delim).append("'||UPPER(")
                 .append(columnName).append(")");
-        String[] articles = getResources().getStringArray(R.array.title_sort_articles);
         for (String article : articles) {
             if (article != null && article.length() > 0) {
                 titleSort.insert(0, "REPLACE(");

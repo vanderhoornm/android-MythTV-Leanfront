@@ -112,6 +112,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private long mSavedDuration = -1;
     private final boolean isTV;
     private boolean playerClosed;
+    private boolean playCompleted;
 
     public VideoPlayerGlue(
             Context context,
@@ -269,6 +270,18 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                     multiAction,
                     (ArrayObjectAdapter) getControlsRow().getSecondaryActionsAdapter());
         }
+        if (action == mPlaylistPlayAction) {
+            if (mPlaylistPlayAction.getIndex() == 1
+                && playCompleted)
+                next();
+        }
+    }
+
+    @Override
+    protected void onPlayStateChanged() {
+        super.onPlayStateChanged();
+        if (isPlaying())
+            playCompleted = false;
     }
 
     private void notifyActionChanged(
@@ -302,6 +315,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     protected void onPlayCompleted() {
         mActionListener.onPlayCompleted(mPlaylistPlayAction);
+        playCompleted = true;
         super.onPlayCompleted();
     }
 

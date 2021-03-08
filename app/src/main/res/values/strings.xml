@@ -180,6 +180,8 @@
     <string name="button_cc">Closed Captions</string>
     <string name="button_audiotrack">Change Audio Track</string>
     <string name="button_audiosync">Adjust Audio Sync</string>
+    <string name="button_playlistplay">Play Related Videos</string>
+    <string name="button_playlistplay_active">Will Play Related Videos</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>

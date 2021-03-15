@@ -28,14 +28,12 @@ import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.UiModeManager;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -88,7 +86,6 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
-import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -350,9 +347,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         this)
                         .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
                 break;
-            case Video.ACTION_WATCHED:
-            case Video.ACTION_UNWATCHED:
-                mWatched = (id == Video.ACTION_WATCHED);
+            case Video.ACTION_SET_WATCHED:
+            case Video.ACTION_SET_UNWATCHED:
+                mWatched = (id == Video.ACTION_SET_WATCHED);
                 new AsyncBackendCall(mSelectedVideo, 0, mWatched,
                         this)
                         .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
@@ -397,32 +394,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 builder.show();
                 break;
             case Video.ACTION_REMOVE_RECENT:
-                // Gets the data repository in write mode
-                VideoDbHelper dbh = new VideoDbHelper(getContext());
-                SQLiteDatabase db = dbh.getWritableDatabase();
-                // Create a new map of values, where column names are the keys
-                ContentValues values = new ContentValues();
-                values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 0);
-
-                // First try an update
-                String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                String[] selectionArgs = {mSelectedVideo.videoUrl};
-
-                db.update(
-                        VideoContract.StatusEntry.TABLE_NAME,
-                        values,
-                        selection,
-                        selectionArgs);
-
-                Toast.makeText(getContext(),R.string.msg_removed_recent, Toast.LENGTH_LONG)
-                        .show();
-                db.close();
-                MainActivity main = MainActivity.getContext();
-                if (main != null)
-                    main.getMainFragment().startFetch(mSelectedVideo.rectype, mSelectedVideo.recordedid, null);
                 new AsyncBackendCall(mSelectedVideo, 0, false,
                         this)
-                        .execute(Video.ACTION_REFRESH);
+                        .execute(Video.ACTION_REMOVE_RECENT, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_OTHER:
                 if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_RECORDING
@@ -445,10 +419,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 }
                 if (mWatched) {
                     prompts.add(getString(R.string.menu_mark_unwatched));
-                    actions.add(new Action(Video.ACTION_UNWATCHED));
+                    actions.add(new Action(Video.ACTION_SET_UNWATCHED));
                 } else {
                     prompts.add(getString(R.string.menu_mark_watched));
-                    actions.add(new Action(Video.ACTION_WATCHED));
+                    actions.add(new Action(Video.ACTION_SET_WATCHED));
                 }
 
                 if (mBookmark > 0 || posBookmark > 0) {
@@ -919,6 +893,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             default:
                 if (context == null)
                     break;
+                xml = taskRunner.getXmlResult();
                 mBookmark = taskRunner.getBookmark();
                 posBookmark = taskRunner.getPosBookmark();
                 int progflags = Integer.parseInt(mSelectedVideo.progflags);

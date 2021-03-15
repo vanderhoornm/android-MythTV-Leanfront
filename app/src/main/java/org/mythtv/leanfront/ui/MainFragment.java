@@ -27,6 +27,7 @@ package org.mythtv.leanfront.ui;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -43,6 +44,7 @@ import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
+import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.CursorObjectAdapter;
 import androidx.leanback.widget.ImageCardView;
@@ -107,6 +109,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -575,7 +578,7 @@ public class MainFragment extends BrowseSupportFragment
         setHeaderPresenterSelector(new PresenterSelector() {
             @Override
             public Presenter getPresenter(Object o) {
-                return new IconHeaderItemPresenter();
+                return new IconHeaderItemPresenter(MainFragment.this);
             }
         });
     }
@@ -762,8 +765,6 @@ public class MainFragment extends BrowseSupportFragment
             // Fill in usage
             new AsyncBackendCall(null, 0L, false,
                     MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
-            if (mActiveFragment == this)
-                saveSelected();
 
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
@@ -1203,7 +1204,6 @@ public class MainFragment extends BrowseSupportFragment
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(setter, 100);
                 }
-
             }
             setProgressBar(false);
         }
@@ -1394,6 +1394,150 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
+    public boolean onHeaderMenu(MyHeaderItem headerItem) {
+        int type = headerItem.getItemType();
+        ArrayList<String> prompts = new ArrayList<>();
+        ArrayList<Action> actions = new ArrayList<>();
+        saveSelected();
+        switch (type) {
+            case MainFragment.TYPE_SERIES:
+            case MainFragment.TYPE_VIDEODIR:
+                Row row = null;
+                ObjectAdapter rowsAdapter = getAdapter();
+                int size = rowsAdapter.size();
+                for (int ix = 0 ; ix < size ; ix++) {
+                    row = (Row)rowsAdapter.get(ix);
+                    if (row.getHeaderItem() == headerItem)
+                        break;
+                }
+                Row selectedRow = row;
+                if (((ListRow)row).getAdapter().size() == 0)
+                    break;
+                String alertTitle;
+                if (type == MainFragment.TYPE_SERIES) {
+                    alertTitle = getContext().getString(R.string.title_menu_series,
+                            headerItem.getName(),headerItem.getBaseName());
+                    if ("Deleted".equals(headerItem.getBaseName())) {
+                        prompts.add(getString(R.string.menu_undelete));
+                        actions.add(new Action(Video.ACTION_UNDELETE));
+                    }
+                    else {
+                        prompts.add(getString(R.string.menu_delete));
+                        actions.add(new Action(Video.ACTION_DELETE));
+                        prompts.add(getString(R.string.menu_delete_rerecord));
+                        actions.add(new Action(Video.ACTION_DELETE_AND_RERECORD));
+                    }
+                    prompts.add(getString(R.string.menu_rerecord));
+                    actions.add(new Action(Video.ACTION_ALLOW_RERECORD));
+                }
+                else {
+                    String baseName = headerItem.getBaseName();
+                    if (baseName.length() > 0)
+                        baseName = baseName + "/";
+                    alertTitle = getContext().getString(R.string.title_menu_videodir,
+                            baseName + headerItem.getName());
+                }
+                prompts.add(getString(R.string.menu_mark_unwatched));
+                actions.add(new Action(Video.ACTION_SET_UNWATCHED));
+                prompts.add(getString(R.string.menu_mark_watched));
+                actions.add(new Action(Video.ACTION_SET_WATCHED));
+                prompts.add(getString(R.string.menu_remove_bookmark));
+                actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
+                prompts.add(getString(R.string.menu_remove_from_recent));
+                actions.add(new Action(Video.ACTION_REMOVE_RECENT));
+
+                if (prompts != null && actions != null) {
+                    final ArrayList<Action> finalActions = actions; // needed because used in inner class
+                    // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+                            R.style.Theme_AppCompat_Dialog_Alert);
+                    builder
+                            .setTitle(alertTitle)
+                            .setItems(prompts.toArray(new String[0]),
+                                    new DialogInterface.OnClickListener() {
+                                        ArrayList<Action> mActions = finalActions;
+                                        MainFragment mParent = MainFragment.this;
+
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // The 'which' argument contains the index position
+                                            // of the selected item
+                                            if (which < mActions.size()) {
+                                                mParent.onMenuClicked(mActions.get(which), selectedRow);
+                                            }
+                                        }
+                                    });
+                    builder.show();
+                }
+
+                return true;
+        }
+        return true; // Do not treat long press as a short press
+    }
+
+    public void onMenuClicked(Action action, Row row) {
+        ListRow listRow = (ListRow) row;
+        ObjectAdapter rowAdapter = listRow.getAdapter();
+        AsyncBackendCall call = new AsyncBackendCall(
+                new AsyncBackendCall.OnBackendCallListener() {
+                    @Override
+                    public void onPostExecute(AsyncBackendCall taskRunner) {
+                        setProgressBar(false);
+                        int task = taskRunner.getTasks()[0];
+                        ArrayList<XmlNode> results = taskRunner.getXmlResults();
+                        int nSuccess = 0;
+                        int nFail = 0;
+                        XmlNode xmlResult;
+                        // only look at every alternate result, others are
+                        // refresh or dummy
+                        for (int ix = 1; ix < results.size(); ix+=2) {
+                            xmlResult = results.get(ix);
+                            String result = null;
+                            if (xmlResult != null)
+                                result = xmlResult.getString();
+                            if ("true".equals(result))
+                                nSuccess++;
+                            else
+                                nFail++;
+                        }
+                        if (nFail > 0) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                                    R.style.Theme_AppCompat_Dialog_Alert);
+                            builder.setTitle(R.string.title_alert_rowresults);
+                            String msg = getContext().getString(R.string.alert_rowresults, nSuccess, nFail);
+                            builder.setMessage(msg);
+                            // add a button
+                            builder.show();
+                        }
+
+                    }
+        });
+        call.setBookmark(0);
+        call.setPosBookmark(0);
+        call.setWatched(false);
+        call.setRowAdapter(rowAdapter);
+        Integer [] tasks;
+        int task = (int)action.getId();
+
+        switch (task) {
+            case Video.ACTION_DELETE:
+            case Video.ACTION_DELETE_AND_RERECORD:
+                tasks = new Integer [] {Video.ACTION_REFRESH, task};
+                break;
+            case Video.ACTION_SET_UNWATCHED:
+            case Video.ACTION_SET_WATCHED:
+                call.setWatched(task == Video.ACTION_SET_WATCHED);
+                // Set the task since both watched and unwatched are done with
+                // ACTION_SET_WATCHED in AsyncBackend
+                task = Video.ACTION_SET_WATCHED;
+                // Fall Through to default
+            default:
+                tasks = new Integer [] {Video.ACTION_DUMMY, task};
+                break;
+        }
+        call.execute(tasks);
+        setProgressBar(true);
+    }
+
     private static class MythTask implements Runnable {
         boolean mVersionMessageShown = false;
 
@@ -1473,6 +1617,8 @@ public class MainFragment extends BrowseSupportFragment
                         return;
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
+                            if (mActiveFragment != null)
+                                mActiveFragment.saveSelected();
                             MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
                         }
                     });

@@ -187,6 +187,8 @@
     <string name="row_header_tools">Tools</string>
     <string name="title_alert_livetv">Live TV</string>
     <string name="alert_livetv_message">Recording failed.</string>
+    <string name="title_alert_rowresults">Results</string>
+    <string name="alert_rowresults">%1$d Updated\n%2$d Failed</string>
     <string name="title_are_you_sure">Are you sure?</string>
     <string name="title_disk_usage">Disk Usage\n %1$d %%</string>
     <!-- In the below string the %1 is the channel number ans %2 is the callsign   -->
@@ -218,6 +220,8 @@
     <string name="title_program_guide">Program Guide</string>
     <string name="title_rec_rules">Recording Rules</string>
     <string name="title_upcoming">Upcoming Recordings</string>
+    <string name="title_menu_series">Update entire series \"%1$s\" in group \"%2$s\"</string>
+    <string name="title_menu_videodir">Update all videos in directory \"%1$s\"</string>
 
     <string name="msg_edit_schedule">Edit Schedule for %1$s</string>
     <string name="msg_edit_schedule2">Edit Schedule for %1$s (2)</string>

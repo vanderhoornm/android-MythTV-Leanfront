@@ -82,11 +82,10 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_UNDELETE             =  5;
     public static final int ACTION_REFRESH              =  6;
     public static final int ACTION_OTHER                =  7;
-    public static final int ACTION_WATCHED              =  8;
-    public static final int ACTION_UNWATCHED            =  9;
+    public static final int ACTION_SET_WATCHED          =  8;
+    public static final int ACTION_SET_UNWATCHED        =  9;
     public static final int ACTION_SET_BOOKMARK         = 10;
     public static final int ACTION_REMOVE_BOOKMARK      = 11;
-    public static final int ACTION_SET_WATCHED          = 12;
     public static final int ACTION_ZOOM                 = 13;
     public static final int ACTION_ASPECT               = 14;
     public static final int ACTION_FILELENGTH           = 15;

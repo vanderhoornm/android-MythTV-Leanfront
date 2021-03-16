@@ -187,6 +187,7 @@ public class MainFragment extends BrowseSupportFragment
     private static int TASK_INTERVAL = 240;
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
+    private Loader loader;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -277,7 +278,7 @@ public class MainFragment extends BrowseSupportFragment
     // Load user interface from local database.
     public void startLoader() {
         LoaderManager manager = LoaderManager.getInstance(this);
-        manager.initLoader(CATEGORY_LOADER, null, this);
+        loader = manager.initLoader(CATEGORY_LOADER, null, this);
     }
 
     @Override
@@ -1398,7 +1399,6 @@ public class MainFragment extends BrowseSupportFragment
         int type = headerItem.getItemType();
         ArrayList<String> prompts = new ArrayList<>();
         ArrayList<Action> actions = new ArrayList<>();
-        saveSelected();
         switch (type) {
             case MainFragment.TYPE_SERIES:
             case MainFragment.TYPE_VIDEODIR:
@@ -1475,14 +1475,14 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     public void onMenuClicked(Action action, Row row) {
+        saveSelected();
+        loader.stopLoading();
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
         AsyncBackendCall call = new AsyncBackendCall(
                 new AsyncBackendCall.OnBackendCallListener() {
                     @Override
                     public void onPostExecute(AsyncBackendCall taskRunner) {
-                        setProgressBar(false);
-                        int task = taskRunner.getTasks()[0];
                         ArrayList<XmlNode> results = taskRunner.getXmlResults();
                         int nSuccess = 0;
                         int nFail = 0;
@@ -1505,15 +1505,13 @@ public class MainFragment extends BrowseSupportFragment
                             builder.setTitle(R.string.title_alert_rowresults);
                             String msg = getContext().getString(R.string.alert_rowresults, nSuccess, nFail);
                             builder.setMessage(msg);
-                            // add a button
                             builder.show();
                         }
-
+                        loader.startLoading();
                     }
         });
         call.setBookmark(0);
         call.setPosBookmark(0);
-        call.setWatched(false);
         call.setRowAdapter(rowAdapter);
         Integer [] tasks;
         int task = (int)action.getId();

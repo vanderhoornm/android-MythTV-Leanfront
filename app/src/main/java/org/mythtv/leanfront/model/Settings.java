@@ -103,6 +103,8 @@ public class Settings {
         mEditor.putString("pref_recents_deleted",str);
         str = mPrefs.getString("pref_recents_watched", "false");
         mEditor.putString("pref_recents_watched",str);
+        str = mPrefs.getString("pref_recents_trim", "true");
+        mEditor.putString("pref_recents_trim",str);
         str = mPrefs.getString("pref_related_deleted", "false");
         mEditor.putString("pref_related_deleted",str);
         str = mPrefs.getString("pref_related_watched", "false");

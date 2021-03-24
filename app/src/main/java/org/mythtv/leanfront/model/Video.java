@@ -313,6 +313,24 @@ public final class Video implements Parcelable, ListItem {
                         || (Integer.parseInt(progflags) & Video.FL_WATCHED) == 0);
     }
 
+    public boolean isWatched() {
+        return progflags != null
+                && (Integer.parseInt(progflags) & Video.FL_WATCHED) != 0;
+    }
+
+    public String getSeries() {
+        if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+            return title;
+        else if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO
+            && filename != null) {
+            int lastslashpos = filename.lastIndexOf('/');
+            if (lastslashpos == -1)
+                return "";
+            return filename.substring(0,lastslashpos);
+        }
+        return null;
+    }
+
     // Builder for Video object.
     public static class VideoBuilder {
         private long id;

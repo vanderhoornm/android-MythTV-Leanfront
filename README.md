@@ -40,8 +40,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 
 ### To easily get back to a series you were watching recently:
 
-- Enable recently watched list in settings.
+- Enable recently viewed list in settings.
 - Enable deleted and watched items in the recent list.
+- Enable "Trim recently viewed list" to only see the latest episode of each series you are watching.
 - Disable deleted and watched items in the "related" list.
 - In mythfrontend, set the deletion delay for deleted shows to 7 days.
 

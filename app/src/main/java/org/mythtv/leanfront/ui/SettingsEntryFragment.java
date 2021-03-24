@@ -31,14 +31,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Settings;
-import org.mythtv.leanfront.model.Video;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +72,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_RELATED_WATCHED = 29;
     private static final int ID_RECENTS_DAYS = 30;
     private static final int ID_LETTERBOX_BLACK = 30;
+    private static final int ID_RECENTS_TRIM = 31;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -245,22 +244,36 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .focusable("true".equals(recents))
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-        str = Settings.getString("pref_recents_deleted");
+        String recentsDel = Settings.getString("pref_recents_deleted");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_RECENTS_DELETED)
                 .title(R.string.pref_recents_deleted)
-                .checked("true".equals(str))
+                .description(R.string.pref_recents_deleted_desc)
+                .checked("true".equals(recentsDel))
                 .enabled("true".equals(recents))
                 .focusable("true".equals(recents))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        str = Settings.getString("pref_recents_watched");
+        String recentsWatched = Settings.getString("pref_recents_watched");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_RECENTS_WATCHED)
                 .title(R.string.pref_recents_watched)
-                .checked("true".equals(str))
+                .description(R.string.pref_recents_watched_desc)
+                .checked("true".equals(recentsWatched))
                 .enabled("true".equals(recents))
                 .focusable("true".equals(recents))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_recents_trim");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_RECENTS_TRIM)
+                .title(R.string.pref_recents_trim)
+                .description(R.string.pref_recents_trim_desc)
+                .checked("true".equals(str))
+                .enabled("true".equals(recents)
+                        && ("true".equals(recentsDel) || "true".equals(recentsWatched)))
+                .focusable("true".equals(recents)
+                        && ("true".equals(recentsDel) || "true".equals(recentsWatched)))
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
         str = Settings.getString("pref_related_deleted");
@@ -476,24 +489,29 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                     mEditor.putString("pref_show_recents", "true");
                 else
                     mEditor.putString("pref_show_recents", "false");
-                // restart the activity so the recent options below get appropriately
-                // enabled or disabled
-                Intent intent = new Intent(getContext(), SettingsActivity.class);
-                intent.putExtra(KEY_EXPAND, ID_PROG_LIST_OPTIONS);
-                getContext().startActivity(intent);
-                finishGuidedStepSupportFragments();
+                restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_DELETED:
                 if (action.isChecked())
                     mEditor.putString("pref_recents_deleted", "true");
                 else
                     mEditor.putString("pref_recents_deleted", "false");
+                if (! "true".equals(Settings.getString("pref_recents_watched")))
+                    restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_WATCHED:
                 if (action.isChecked())
                     mEditor.putString("pref_recents_watched", "true");
                 else
                     mEditor.putString("pref_recents_watched", "false");
+                if (! "true".equals(Settings.getString("pref_recents_deleted")))
+                    restart(ID_PROG_LIST_OPTIONS);
+                break;
+            case ID_RECENTS_TRIM:
+                if (action.isChecked())
+                    mEditor.putString("pref_recents_trim", "true");
+                else
+                    mEditor.putString("pref_recents_trim", "false");
                 break;
             case ID_RELATED_DELETED:
                 if (action.isChecked())
@@ -539,6 +557,15 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         mAudioAction.setDescription(audiodesc());
         notifyActionChanged(findActionPositionById(ID_AUDIO));
         return false;
+    }
+
+    private void restart(int key) {
+        // restart the activity so the recent options below get appropriately
+        // enabled or disabled
+        Intent intent = new Intent(getContext(), SettingsActivity.class);
+        intent.putExtra(KEY_EXPAND, key);
+        getContext().startActivity(intent);
+        finishGuidedStepSupportFragments();
     }
 
     @Override

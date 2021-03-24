@@ -770,6 +770,7 @@ public class MainFragment extends BrowseSupportFragment
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
             boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
+            boolean recentsTrim = "true".equals(Settings.getString("pref_recents_trim"));
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;
@@ -1101,26 +1102,53 @@ public class MainFragment extends BrowseSupportFragment
                     if (recentsObjectAdapter != null
                             && dbVideo.isRecentViewed()) {
                         // 525960 minutes in a year
-                        // Get position as number of minutes since 1970
+                        // Get key as number of minutes since 1970
                         // Will stop working in the year 5982
-                        int position = (int) (dbVideo.lastUsed / 60000L);
+                        int key = (int) (dbVideo.lastUsed / 60000L);
                         // Add 70 years in case it is before 1970
-                        position += 36817200;
+                        key += 36817200;
                         // descending
-                        position = Integer.MAX_VALUE - position;
+                        key = Integer.MAX_VALUE - key;
                         // Make sure we have an empty slot
                         try {
-                            while (recentsObjectAdapter.lookup(position) != null)
-                                position++;
+                            while (recentsObjectAdapter.lookup(key) != null)
+                                key++;
                         } catch (ArrayIndexOutOfBoundsException e) { }
-
-                        recentsObjectAdapter.set(position,dbVideo);
 
                         if (selectedRowNum == recentsRowNum) {
                             if (dbVideo.getItemType() == mSelectedItemType
-                                    && Objects.equals(dbVideo.recordedid,mSelectedItemId))
-                                selectedItemNum = position;
+                                    && Objects.equals(dbVideo.recordedid, mSelectedItemId))
+                                selectedItemNum = key;
                         }
+                        // Check if there is already an entry for that series / directory
+                        // If the user does not want duplicates of recent titles that were
+                        // watched or deleted
+                        if (recentsTrim
+                                && (dbVideo.isWatched() || "Deleted".equals(dbVideo.recGroup))) {
+                            String series = dbVideo.getSeries();
+                            if (series != null) {
+                                for (int fx = 0; fx < recentsObjectAdapter.size(); fx++) {
+                                    Video fvid = (Video) recentsObjectAdapter.get(fx);
+                                    if (series.equals(fvid.getSeries()) && Objects.equals(dbVideo.recGroup,fvid.recGroup)) {
+                                        int fkey = Integer.MAX_VALUE - ((int) (fvid.lastUsed / 60000L) + 36817200);
+                                        if (key < fkey) {
+                                            if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
+                                                selectedItemNum = key;
+                                                // position is closer to front, delete the other one
+                                            recentsObjectAdapter.clear(fkey);
+                                        } else {
+                                            if (selectedRowNum == recentsRowNum && selectedItemNum == key)
+                                                selectedItemNum = fkey;
+                                            // position is later in list - drop this one
+                                            key = -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (key != -1)
+                            recentsObjectAdapter.set(key, dbVideo);
                     }
 
                     data.moveToNext();

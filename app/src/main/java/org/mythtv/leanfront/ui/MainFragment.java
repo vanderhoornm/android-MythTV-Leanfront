@@ -771,6 +771,9 @@ public class MainFragment extends BrowseSupportFragment
             String ascdesc = Settings.getString("pref_seq_ascdesc");
             boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
             boolean recentsTrim = "true".equals(Settings.getString("pref_recents_trim"));
+            boolean showRecentDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
+            boolean showRecentWatched = "true".equals(Settings.getString("pref_recents_watched"));
+            recentsTrim = recentsTrim && (showRecentDeleted || showRecentWatched);
 
             int allType = TYPE_RECGROUP_ALL;
             String allTitle = null;

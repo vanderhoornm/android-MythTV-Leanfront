@@ -1120,27 +1120,56 @@ public class MainFragment extends BrowseSupportFragment
                                     && Objects.equals(dbVideo.recordedid, mSelectedItemId))
                                 selectedItemNum = key;
                         }
+
                         // Check if there is already an entry for that series / directory
                         // If the user does not want duplicates of recent titles that were
                         // watched or deleted
-                        if (recentsTrim
-                                && (dbVideo.isWatched() || "Deleted".equals(dbVideo.recGroup))) {
+
+                        boolean isDelorWat = dbVideo.isWatched() || "Deleted".equals(dbVideo.recGroup);
+                        if (recentsTrim) {
+
+                            // If all recently viewed episodes of a series are watched/deleted, show the most
+                            // recently viewed.
+                            // If some recently viewed episodes of a series are watched/deleted and some are not,
+                            // show only the ones not watched/deleted
+
                             String series = dbVideo.getSeries();
                             if (series != null) {
                                 for (int fx = 0; fx < recentsObjectAdapter.size(); fx++) {
                                     Video fvid = (Video) recentsObjectAdapter.get(fx);
                                     if (series.equals(fvid.getSeries()) && Objects.equals(dbVideo.recGroup,fvid.recGroup)) {
                                         int fkey = Integer.MAX_VALUE - ((int) (fvid.lastUsed / 60000L) + 36817200);
-                                        if (key < fkey) {
-                                            if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
-                                                selectedItemNum = key;
+                                        boolean fisDelorWat = fvid.isWatched() || "Deleted".equals(fvid.recGroup);
+                                        if (isDelorWat && fisDelorWat) {
+                                            // If the episode we are processing is watched/deleted and the matched
+                                            // episode in the list is also, keep the most recent
+                                            if (key < fkey) {
+                                                if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
+                                                    selectedItemNum = key;
                                                 // position is closer to front, delete the other one
-                                            recentsObjectAdapter.clear(fkey);
-                                        } else {
+                                                recentsObjectAdapter.clear(fkey);
+                                                break;
+                                            } else {
+                                                if (selectedRowNum == recentsRowNum && selectedItemNum == key)
+                                                    selectedItemNum = fkey;
+                                                // position is later in list - drop this one
+                                                key = -1;
+                                                break;
+                                            }
+                                        } else if (isDelorWat) {
+                                            // If the episode we are processing is watched/deleted and the matched
+                                            // episode in the list is not, keep the non-watched
                                             if (selectedRowNum == recentsRowNum && selectedItemNum == key)
                                                 selectedItemNum = fkey;
-                                            // position is later in list - drop this one
                                             key = -1;
+                                            break;
+                                        } else if (fisDelorWat) {
+                                            // If the episode we are processing is not watched/deleted and the matched
+                                            // episode in the list is, keep the non-watched
+                                            if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
+                                                selectedItemNum = key;
+                                            recentsObjectAdapter.clear(fkey);
+                                            break;
                                         }
                                     }
                                 }

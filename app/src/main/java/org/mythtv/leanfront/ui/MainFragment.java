@@ -1128,7 +1128,8 @@ public class MainFragment extends BrowseSupportFragment
                         // If the user does not want duplicates of recent titles that were
                         // watched or deleted
 
-                        boolean isDelorWat = dbVideo.isWatched() || "Deleted".equals(dbVideo.recGroup);
+                        boolean isDeleted = "Deleted".equals(dbVideo.recGroup);
+                        boolean isWatched = dbVideo.isWatched();
                         if (recentsTrim) {
 
                             // If all recently viewed episodes of a series are watched/deleted, show the most
@@ -1140,10 +1141,12 @@ public class MainFragment extends BrowseSupportFragment
                             if (series != null) {
                                 for (int fx = 0; fx < recentsObjectAdapter.size(); fx++) {
                                     Video fvid = (Video) recentsObjectAdapter.get(fx);
-                                    if (series.equals(fvid.getSeries()) && Objects.equals(dbVideo.recGroup,fvid.recGroup)) {
+                                    boolean fisDeleted = "Deleted".equals(fvid.recGroup);
+                                    if (series.equals(fvid.getSeries())
+                                            && (isDeleted || fisDeleted || Objects.equals(dbVideo.recGroup,fvid.recGroup))) {
                                         int fkey = Integer.MAX_VALUE - ((int) (fvid.lastUsed / 60000L) + 36817200);
-                                        boolean fisDelorWat = fvid.isWatched() || "Deleted".equals(fvid.recGroup);
-                                        if (isDelorWat && fisDelorWat) {
+                                        boolean fisWatched = fvid.isWatched();
+                                        if ((isDeleted || isWatched) && (fisDeleted || fisWatched)) {
                                             // If the episode we are processing is watched/deleted and the matched
                                             // episode in the list is also, keep the most recent
                                             if (key < fkey) {
@@ -1159,14 +1162,14 @@ public class MainFragment extends BrowseSupportFragment
                                                 key = -1;
                                                 break;
                                             }
-                                        } else if (isDelorWat) {
+                                        } else if (isDeleted || isWatched) {
                                             // If the episode we are processing is watched/deleted and the matched
                                             // episode in the list is not, keep the non-watched
                                             if (selectedRowNum == recentsRowNum && selectedItemNum == key)
                                                 selectedItemNum = fkey;
                                             key = -1;
                                             break;
-                                        } else if (fisDelorWat) {
+                                        } else if (fisDeleted || fisWatched) {
                                             // If the episode we are processing is not watched/deleted and the matched
                                             // episode in the list is, keep the non-watched
                                             if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)

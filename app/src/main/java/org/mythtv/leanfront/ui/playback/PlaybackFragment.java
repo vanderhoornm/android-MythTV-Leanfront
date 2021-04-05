@@ -266,16 +266,22 @@ public class PlaybackFragment extends VideoSupportFragment
         long leng = mPlayerGlue.myGetDuration();
         if (pos < 0)
             pos = mPlayerGlue.getSavedCurrentPosition();
-        if (leng == -1 || (pos > 5000 && pos < (leng - 500)))
+        if (leng == -1 || (pos > 10000 && pos < (leng - 10000)))
             mBookmark = pos;
         else
             mBookmark = 0;
+        int action2 = Video.ACTION_DUMMY;
+        if (pos > leng - 10000) {
+            mWatched = true;
+            action2 = Video.ACTION_SET_WATCHED;
+        }
+
         posBookmark = mBookmark * (long)(frameRate * 100.0f) / 100000;
         AsyncBackendCall call =  new AsyncBackendCall(mVideo, mBookmark, mWatched,
                 null);
         call.setPosBookmark(posBookmark);
         posBookmark = -1;
-        call.execute(Video.ACTION_SET_BOOKMARK);
+        call.execute(Video.ACTION_SET_BOOKMARK, action2);
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {

@@ -73,6 +73,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_RECENTS_DAYS = 30;
     private static final int ID_LETTERBOX_BLACK = 30;
     private static final int ID_RECENTS_TRIM = 31;
+    private static final int ID_TWEAKS = 32;
+    private static final int ID_TWEAK_SEARCH_PKTS = 33;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -299,7 +301,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .build());
 
         subActions = new ArrayList<GuidedAction>();
-
         String audio = Settings.getString("pref_audio");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_AUDIO_AUTO)
@@ -326,6 +327,22 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .id(ID_AUDIO)
                 .title(R.string.pref_ff_title)
                 .description(audiodesc())
+                .subActions(subActions)
+                .build());
+
+        subActions = new ArrayList<GuidedAction>();
+
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_TWEAK_SEARCH_PKTS)
+                .title(R.string.pref_tweak_ts_search_pkts)
+                .description(Settings.getString("pref_tweak_ts_search_pkts"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+        actions.add(mAudioAction = new GuidedAction.Builder(getActivity())
+                .id(ID_TWEAKS)
+                .title(R.string.pref_tweaks_title)
+                .description(R.string.pref_tweaks_desc)
                 .subActions(subActions)
                 .build());
     }
@@ -391,6 +408,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 mEditor.putString("pref_recents_days",
                         validateNumber(action, 1, 60, 7));
                 break;
+            case ID_TWEAK_SEARCH_PKTS:
+                mEditor.putString("pref_tweak_ts_search_pkts",
+                        validateNumber(action, 600, 100000, 2600));
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -445,6 +466,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_RECENTS_DAYS:
                 action.setDescription(Settings.getString("pref_recents_days"));
+                break;
+            case ID_TWEAK_SEARCH_PKTS:
+                action.setDescription(Settings.getString("pref_tweak_ts_search_pkts"));
                 break;
         }
     }

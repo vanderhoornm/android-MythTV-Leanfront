@@ -77,6 +77,12 @@ This operation is not recursive. If there are subdirectories in a video director
 
 The settings icon on the tools row allows setup of the backend ip address and a number of options for this installation of leanfront.
 
+#### Tweaks
+
+The tweaks section of settings provides for miscellaneous values that may need to be changed to suit unusual circumstances. Be careful when changing these as you may cause bad things to happen if you use inappropriate values.
+
+- **TS Search Packets.** Increase this if when playing a recording or other TS file, the recording length does not show in the OSD, and you cannot use skips or bookmarks. The default value supplied with exoplayer is 600. I have set a default value of 2600 in leanfront. The value is limited to a range of 600 - 100,000. Increasing the value will cause the start of playback to take longer and use more memory. Once playing starts, the extra memory will be freed and no slowdown will be caused.
+
 ### Refresh
 
 There is a "Refresh" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.

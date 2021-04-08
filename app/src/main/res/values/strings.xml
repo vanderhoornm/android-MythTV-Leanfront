@@ -115,6 +115,9 @@
     <string name="pref_letterbox_black">Letterbox Black Matte</string>
     <string name="pref_letterbox_black_desc">If unchecked use Gray Matte</string>
     <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
+    <string name="pref_tweaks_title">Tweaks</string>
+    <string name="pref_tweaks_desc">Please read the documentation on Tweaks before changing anything here.</string>
+    <string name="pref_tweak_ts_search_pkts">TS Search Packets (default 2600)</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>

@@ -335,8 +335,9 @@ public class PlaybackFragment extends VideoSupportFragment
         rFactory.setEnableDecoderFallback(true);
         SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);
         builder.setTrackSelector(mTrackSelector);
-        if (possibleEmptyTrack)
-            builder.experimentalSetThrowWhenStuckBuffering(false);
+        // This api is no longer available. Hopefully we will be ok without it.
+//        if (possibleEmptyTrack)
+//            builder.experimentalSetThrowWhenStuckBuffering(false);
         mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
@@ -1396,10 +1397,6 @@ public class PlaybackFragment extends VideoSupportFragment
             if (ex != null && ex instanceof ExoPlaybackException) {
                 ExoPlaybackException error = (ExoPlaybackException)ex;
                 switch (error.type) {
-                    case ExoPlaybackException.TYPE_OUT_OF_MEMORY:
-                        msgNum = R.string.pberror_out_of_memory;
-                        cause = error.getOutOfMemoryError();
-                        break;
                     case ExoPlaybackException.TYPE_REMOTE:
                         msgNum = R.string.pberror_remote;
                         cause = null;

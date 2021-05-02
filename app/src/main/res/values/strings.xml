@@ -202,7 +202,6 @@
     <string name="channel_item_subtitle">Channel %1$s %2$s</string>
     <!--Playback error messages-->
     <string name="pberror_title">Playback Failed.</string>
-    <string name="pberror_out_of_memory">Out of Memory.</string>
     <string name="pberror_remote">Error occurred in a remote component.</string>
     <string name="pberror_renderer">Error occurred in a Renderer.</string>
     <string name="pberror_source">Error loading data from the MediaSource.</string>
@@ -212,7 +211,7 @@
     <string name="pberror_recommend_ffmpeg">To play this track: In leanfront Settings -&gt; Audio
         Decode, select FFmpeg.</string>
     <string name="pberror_recommend_audio">Unsupported Audio: In leanfront Settings -&gt; Audio Decode,
-        select Auot or FFmpeg or else change your Android audio settings.</string>
+        select Auto or FFmpeg or else change your Android audio settings.</string>
     <string name="pberror_button_continue">Continue</string>
     <string name="pberror_button_exit">Exit</string>
     <!-- Words to exclude from the start titles when sorting.

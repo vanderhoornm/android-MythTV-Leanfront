@@ -43,12 +43,10 @@ import com.google.android.exoplayer2.source.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
-import org.mythtv.leanfront.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
 import com.google.android.exoplayer2.source.SampleStream;
-import com.google.android.exoplayer2.source.SequenceableLoader;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
@@ -80,7 +78,7 @@ import java.util.Map;
         ExtractorOutput,
         Loader.Callback<ProgressiveMediaPeriod.ExtractingLoadable>,
         Loader.ReleaseCallback,
-        UpstreamFormatChangedListener {
+        SampleQueue.UpstreamFormatChangedListener {
 
   /**
    * Listener for information about the period.
@@ -200,9 +198,7 @@ import java.util.Map;
     this.customCacheKey = customCacheKey;
     this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
     loader = new Loader("Loader:ProgressiveMediaPeriod");
-    ProgressiveMediaExtractor progressiveMediaExtractor =
-        new BundledExtractorsAdapter(extractorsFactory);
-    this.progressiveMediaExtractor = progressiveMediaExtractor;
+    this.progressiveMediaExtractor = new BundledExtractorsAdapter(extractorsFactory);
     loadCondition = new ConditionVariable();
     maybeFinishPrepareRunnable = this::maybeFinishPrepare;
     onContinueLoadingRequestedRunnable =
@@ -266,7 +262,7 @@ import java.util.Map;
 
   @Override
   public long selectTracks(
-      /*@NullableType*/ TrackSelection[] selections,
+      /*@NullableType*/ ExoTrackSelection[] selections,
       boolean[] mayRetainStreamFlags,
       /*@NullableType*/ SampleStream[] streams,
       boolean[] streamResetFlags,
@@ -291,7 +287,7 @@ import java.util.Map;
     // Select new tracks.
     for (int i = 0; i < selections.length; i++) {
       if (streams[i] == null && selections[i] != null) {
-        TrackSelection selection = selections[i];
+        ExoTrackSelection selection = selections[i];
         Assertions.checkState(selection.length() == 1);
         Assertions.checkState(selection.getIndexInTrackGroup(0) == 0);
         int track = tracks.indexOf(selection.getTrackGroup());
@@ -447,6 +443,10 @@ import java.util.Map;
     pendingResetPositionUs = positionUs;
     loadingFinished = false;
     if (loader.isLoading()) {
+      // Discard as much as we can synchronously.
+      for (SampleQueue sampleQueue : sampleQueues) {
+        sampleQueue.discardToEnd();
+      }
       loader.cancelLoading();
     } else {
       loader.clearFatalError();
@@ -725,7 +725,7 @@ import java.util.Map;
       }
     }
     SampleQueue trackOutput =
-        new SampleQueue(
+        SampleQueue.createWithDrm(
             allocator,
             /* playbackLooper= */ handler.getLooper(),
             drmSessionManager,

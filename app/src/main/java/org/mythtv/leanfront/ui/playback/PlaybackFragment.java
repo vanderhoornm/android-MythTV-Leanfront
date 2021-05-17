@@ -54,6 +54,7 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
@@ -965,6 +966,16 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
+    boolean onControlsUp() {
+        ArrayObjectAdapter primaryActionsAdapter
+            = (ArrayObjectAdapter) mPlayerGlue.getControlsRow().getPrimaryActionsAdapter();
+        if (primaryActionsAdapter.indexOf(mCurrentAction) >= 0) {
+            hideControlsOverlay(true);
+            return true;
+        }
+        return false;
+    }
+
     public void markWatched(boolean watched) {
         mWatched = watched;
         new AsyncBackendCall(mVideo, mBookmark, mWatched,
@@ -1331,9 +1342,9 @@ public class PlaybackFragment extends VideoSupportFragment
                                     maxix = ivlix;
                                 }
                             }
-                            // if there is a mixture of 29.97 and 23.976, then select 23.976
+                            // if there is a mixture of 29.97 and 23.976, then select 29.97
                             if (counters[3] > 5 && counters[5] > 5)
-                                maxix = 5;
+                                maxix = 3;
 
                             if (maxcount > 5)
                                 frameRate = FPS_VALUES[maxix];

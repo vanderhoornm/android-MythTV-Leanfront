@@ -248,15 +248,19 @@ public class PlaybackActivity extends LeanbackActivity {
                 }
             }
 
-            if (mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_UP) {
-                if (!mPlaybackFragment.isControlsOverlayVisible()) {
-                    mArrowSkipJump = true;
+            if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (!mArrowSkipJump && mPlaybackFragment.isControlsOverlayVisible()) {
+                    if (mPlaybackFragment.onControlsUp())
+                        return true;
                 }
-                mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
-                if (mArrowSkipJump) {
+                else if (mJumpEnabled) {
+                    mArrowSkipJump = true;
+                    mPlaybackFragment.tickle(true, false);
                     mPlaybackFragment.jumpBack();
                     return true;
                 }
+                else
+                    return true;
             }
 
             if (mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {

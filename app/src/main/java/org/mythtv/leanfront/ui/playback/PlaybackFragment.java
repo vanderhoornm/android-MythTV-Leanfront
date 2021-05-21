@@ -116,7 +116,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private static final int UPDATE_DELAY = 16;
 
-    private VideoPlayerGlue mPlayerGlue;
+    VideoPlayerGlue mPlayerGlue;
     private LeanbackPlayerAdapter mPlayerAdapter;
     SimpleExoPlayer mPlayer;
     private DefaultTrackSelector mTrackSelector;

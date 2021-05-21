@@ -56,6 +56,7 @@ public class PlaybackActivity extends LeanbackActivity {
     private RepeatListener rewindListener;
     private RepeatListener ffListener;
     private GestureDetector detector;
+    private boolean isLongKeyPress;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -129,6 +130,8 @@ public class PlaybackActivity extends LeanbackActivity {
             case KeyEvent.KEYCODE_ZOOM_OUT:
                 mPlaybackFragment.getPlaybackActionListener().zoom(-1);
                 return true;
+            case KeyEvent.KEYCODE_MENU:
+                return mPlaybackFragment.getPlaybackActionListener().onMenu();
         }
 
         return super.onKeyDown(keyCode, event);
@@ -196,21 +199,21 @@ public class PlaybackActivity extends LeanbackActivity {
     @SuppressLint("RestrictedApi")
     @Override
     public boolean dispatchKeyEvent(KeyEvent event){
+        int keycode = event.getKeyCode();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             View view = getCurrentFocus();
             boolean isSeekBar = false;
             if (view instanceof SeekBar)
                 isSeekBar = true;
-            int keycode = event.getKeyCode();
 
-            if (keycode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keycode == KeyEvent.KEYCODE_ENTER) {
-                boolean wasVisible = mPlaybackFragment.isControlsOverlayVisible();
-                if (wasVisible && mArrowSkipJump)
-                    wasVisible = false;
-                mArrowSkipJump = false;
-                mPlaybackFragment.tickle(false,!mArrowSkipJump);
-                if (!wasVisible)
+            if ((keycode == KeyEvent.KEYCODE_DPAD_CENTER
+                    || keycode == KeyEvent.KEYCODE_ENTER)
+                    && ! mPlaybackFragment.isControlsOverlayVisible()) {
+                if (event.isLongPress()) {
+                    isLongKeyPress = true;
+                    return mPlaybackFragment.mPlaybackActionListener.onMenu();
+                }
+                else
                     return true;
             }
 
@@ -275,6 +278,20 @@ public class PlaybackActivity extends LeanbackActivity {
             }
             mArrowSkipJump = false;
             mPlaybackFragment.setActions(true);
+        }
+        else if (event.getAction() == KeyEvent.ACTION_UP) {
+            if ((keycode == KeyEvent.KEYCODE_DPAD_CENTER
+                    || keycode == KeyEvent.KEYCODE_ENTER)
+                  && !isLongKeyPress) {
+                boolean wasVisible = mPlaybackFragment.isControlsOverlayVisible();
+                if (wasVisible && mArrowSkipJump)
+                    wasVisible = false;
+                mArrowSkipJump = false;
+                mPlaybackFragment.tickle(false,!mArrowSkipJump);
+                if (!wasVisible)
+                    return true;
+            }
+            isLongKeyPress = false;
         }
         boolean ret = super.dispatchKeyEvent(event);
         mPlaybackFragment.actionSelected(null);

@@ -32,6 +32,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.Action;
+import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.OnActionClickedListener;
+import androidx.leanback.widget.PlaybackControlsRow;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -41,6 +44,9 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener {
 
@@ -73,6 +79,56 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     @Override
     public void onNext() {
         playbackFragment.skipToNext();
+    }
+
+    public boolean onMenu() {
+        PlaybackControlsRow row =  playbackFragment.mPlayerGlue.getControlsRow();
+        ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
+        List<Object> fullList = new ArrayList<>();
+        fullList.addAll(adapter.unmodifiableList());
+        adapter = (ArrayObjectAdapter) row.getSecondaryActionsAdapter();
+        fullList.addAll(adapter.unmodifiableList());
+        ArrayList<String> prompts = new ArrayList<>();
+        ArrayList<Action> actions = new ArrayList<>();
+        for (Object obj : fullList) {
+            if (obj instanceof PlaybackControlsRow.MultiAction) {
+                PlaybackControlsRow.MultiAction action
+                        = (PlaybackControlsRow.MultiAction) obj;
+                prompts.add(action.getLabel(action.getIndex()));
+                actions.add(action);
+            }
+            else if (obj instanceof Action) {
+                Action action = (Action) obj;
+                prompts.add(action.getLabel1().toString());
+                actions.add(action);
+            }
+        }
+        final ArrayList<Action> finalActions = actions; // needed because used in inner class
+        // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        OnActionClickedListener parent = playbackFragment.mPlayerGlue;
+        builder
+                .setItems(prompts.toArray(new String[0]),
+                        new DialogInterface.OnClickListener() {
+                            ArrayList<Action> mActions = finalActions;
+                            OnActionClickedListener mParent = parent;
+
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                if (which < mActions.size()) {
+                                    mParent.onActionClicked(mActions.get(which));
+                                }
+                            }
+                        });
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+        return true;
     }
 
     @Override

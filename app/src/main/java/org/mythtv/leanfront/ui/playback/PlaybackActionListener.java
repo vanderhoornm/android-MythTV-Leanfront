@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -82,6 +83,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     }
 
     public boolean onMenu() {
+        playbackFragment.hideControlsOverlay(false);
         PlaybackControlsRow row =  playbackFragment.mPlayerGlue.getControlsRow();
         ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
         List<Object> fullList = new ArrayList<>();

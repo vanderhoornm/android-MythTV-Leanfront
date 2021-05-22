@@ -207,8 +207,8 @@ public class PlaybackActivity extends LeanbackActivity {
                 isSeekBar = true;
 
             if ((keycode == KeyEvent.KEYCODE_DPAD_CENTER
-                    || keycode == KeyEvent.KEYCODE_ENTER)
-                    && ! mPlaybackFragment.isControlsOverlayVisible()) {
+                    || keycode == KeyEvent.KEYCODE_ENTER)) {
+//                    && ! mPlaybackFragment.isControlsOverlayVisible()) {
                 if (event.isLongPress()) {
                     isLongKeyPress = true;
                     return mPlaybackFragment.mPlaybackActionListener.onMenu();

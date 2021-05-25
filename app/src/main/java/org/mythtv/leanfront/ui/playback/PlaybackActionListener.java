@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Playlist;
+import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 
 import java.util.ArrayList;
@@ -93,9 +94,17 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         ArrayList<String> prompts = new ArrayList<>();
         ArrayList<Action> actions = new ArrayList<>();
         for (Object obj : fullList) {
-            if (obj instanceof PlaybackControlsRow.MultiAction) {
+            if (obj instanceof PlaybackControlsRow.PlayPauseAction
+                    || obj instanceof PlaybackControlsRow.FastForwardAction
+                    || obj instanceof PlaybackControlsRow.RewindAction
+                    || obj instanceof PlaybackControlsRow.ClosedCaptioningAction)
+                continue;
+            else if (obj instanceof PlaybackControlsRow.MultiAction) {
                 PlaybackControlsRow.MultiAction action
                         = (PlaybackControlsRow.MultiAction) obj;
+                if (action.getId() == Video.ACTION_PLAYLIST_PLAY
+                        || action.getId() == Video.ACTION_AUDIOTRACK)
+                    continue;
                 prompts.add(action.getLabel(action.getIndex()));
                 actions.add(action);
             }

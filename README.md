@@ -194,13 +194,13 @@ The Fire Stick and NVidia Shield have rather limited remote controls, however th
 | Key | Context | Usage |
 |-----|---------|-------|
 | Back | Playback | If OSD is showing, close OSD. Otherwise Stop Playback and save bookmark |
-| Captions | Playback | Rotates among available captions (same as CC icon) |
+| Captions | Playback | Show menu of available captions (same as CC icon) |
 | DPad Left | Playback | Skip back number of seconds specified in settings (default is 20) |
 | DPad Right | Playback | Skip forward number of seconds specified in settings (default is 60) |
-| DPad Up | Playback | Show OSD and navigate in OSD |
+| DPad Up | Playback | Dismiss OSD and navigate in OSD |
 | DPad Down | Playback | Show OSD and navigate in OSD |
 | DPad Center | Playback | Show OSD |
-| Media Audio Track | Playback | Rotate among available audio tracks (same as Ear icon) |
+| Media Audio Track | Playback | Show menu of available audio tracks (same as Ear icon) |
 | Media Pause | Playback | Pause playback |
 | Media Play | Playback | Resume playback if paused |
 | Media Play Pause | Playback | Toggle playback between playing and paused |

@@ -54,7 +54,6 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
-import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
@@ -842,44 +841,15 @@ public class PlaybackFragment extends VideoSupportFragment
 
     int trackSelector(int trackType, int trackSelection,
             int msgOn, int msgOff, boolean disable, boolean doChange) {
-        // optionList array - 0 = renderer, 1 = track group, 2 = track
-        ArrayList<int[]> optionList = new ArrayList<>();
-        ArrayList<Integer> renderList = new ArrayList<>();
-        ArrayList<Format> formatList = new ArrayList<>();
-        MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
         boolean isPlaying = mPlayerGlue.isPlaying();
-        if (mti == null)
-            return -1;
-        for (int rendIx = 0 ; rendIx < mti.getRendererCount(); rendIx ++) {
-            if (mti.getRendererType(rendIx) == trackType) {
-                renderList.add(rendIx);
-                TrackGroupArray tga = mti.getTrackGroups(rendIx);
-                if (tga != null) {
-                    TrackGroup tg = null;
-                    for (int tgIx = 0 ; tgIx < tga.length; tgIx++) {
-                        tg = tga.get(tgIx);
-                        if (tg != null) {
-                            for (int trkIx = 0; trkIx < tg.length; trkIx++) {
-                                int[] selection = new int[3];
-                                // optionList array - 0 = renderer, 1 = track group, 2 = track
-                                selection[0] = rendIx;
-                                selection[1] = tgIx;
-                                selection[2] = trkIx;
-                                optionList.add(selection);
-                                formatList.add(tg.getFormat(trkIx));
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        TrackInfo tracks = new TrackInfo(this, trackType);
         StringBuilder msg = new StringBuilder();
         if (doChange) {
             if (trackSelection == -2)
                 trackSelection = -1;
-            if (optionList.size() == 0)
+            if (tracks.trackList.size() == 0)
                 trackSelection = -1;
-            else if (++trackSelection >= optionList.size()) {
+            else if (++trackSelection >= tracks.trackList.size()) {
                 if (disable)
                     trackSelection = -1;
                 else
@@ -887,38 +857,42 @@ public class PlaybackFragment extends VideoSupportFragment
             }
         }
         if (trackSelection >= 0) {
-            int [] selection = optionList.get(trackSelection);
+            TrackEntry entry = tracks.trackList.get(trackSelection);
             DefaultTrackSelector.SelectionOverride ovr
                     = new DefaultTrackSelector.SelectionOverride(
-                    selection[1], selection[2]);
+                    entry.ixTrackGroup, entry.ixTrack);
 
-            TrackGroupArray tga = mti.getTrackGroups(selection[0]);
+            MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+            TrackGroupArray tga = mti.getTrackGroups(entry.ixRenderer);
             DefaultTrackSelector.ParametersBuilder parms
                     = mTrackSelector
                     .buildUponParameters()
-                    .setSelectionOverride(selection[0], tga, ovr);
+                    .setSelectionOverride(entry.ixRenderer, tga, ovr);
             if (disable)
-                parms = parms.setRendererDisabled(selection[0], false);
+                parms = parms.setRendererDisabled(entry.ixRenderer, false);
             // This line causes playback to pause when enabling subtitle
             mTrackSelector.setParameters(parms);
-            String language = formatList.get(trackSelection).language;
-            if (language == null)
-                language = new String();
+            String language = entry.format.language;
+            if (language == null) {
+                if (entry.format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
+                    language = trackSelection+1 + " " + getContext().getString(R.string.msg_subtitle_cc);
+                else
+                    language = String.valueOf(trackSelection+1);
+            }
             else {
                 Locale locale = new Locale(language);
                 String langDesc = locale.getDisplayLanguage();
-                language = " (" + langDesc + ")";
+                language = trackSelection+1 + " " + langDesc;
             }
             if (msgOn > 0)
-                msg.append(getActivity().getString(msgOn,
-                        trackSelection+1, language));
+                msg.append(getActivity().getString(msgOn, language));
         } else if (trackSelection == -1){
-            if (optionList.size() > 0) {
-                for (int ix = 0; ix < renderList.size(); ix++) {
+            if (tracks.trackList.size() > 0) {
+                for (int ix = 0; ix < tracks.renderList.size(); ix++) {
                     mTrackSelector.setParameters(
                             mTrackSelector
                                     .buildUponParameters()
-                                    .setRendererDisabled(renderList.get(ix), true)
+                                    .setRendererDisabled(tracks.renderList.get(ix), true)
                     );
                 }
             }
@@ -1086,6 +1060,68 @@ public class PlaybackFragment extends VideoSupportFragment
                     getActivity().getString(R.string.msg_unable_speed),
                     Toast.LENGTH_LONG);
             mToast.show();
+        }
+    }
+
+    static class TrackInfo {
+        ArrayList <Integer> renderList;
+        ArrayList <TrackEntry> trackList;
+
+        TrackInfo(PlaybackFragment pb, int trackType) {
+            trackList = new ArrayList<>();
+            renderList = new ArrayList<>();
+            MappingTrackSelector.MappedTrackInfo mti = pb.mTrackSelector.getCurrentMappedTrackInfo();
+            if (mti == null)
+                return;
+            int ccNum=0;
+            for (int ixRenderer = 0 ; ixRenderer < mti.getRendererCount(); ixRenderer ++) {
+                if (mti.getRendererType(ixRenderer) == trackType) {
+                    renderList.add(ixRenderer);
+                    TrackGroupArray tga = mti.getTrackGroups(ixRenderer);
+                    if (tga != null) {
+                        TrackGroup tg = null;
+                        for (int ixTrackGroup = 0 ; ixTrackGroup < tga.length; ixTrackGroup++) {
+                            tg = tga.get(ixTrackGroup);
+                            if (tg != null) {
+                                for (int ixTrack = 0; ixTrack < tg.length; ixTrack++) {
+                                    Format format = tg.getFormat(ixTrack);
+                                    String description = format.language;
+                                    if (description == null) {
+                                        if (format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
+                                            description = ++ccNum + " "
+                                                    + pb.getContext().getString(R.string.msg_subtitle_cc);
+                                        else
+                                            description = String.valueOf(++ccNum);
+                                    }
+                                    else {
+                                        Locale locale = new Locale(description);
+                                        String langDesc = locale.getDisplayLanguage();
+                                        description = ++ccNum + " " + langDesc;
+                                    }
+
+                                    trackList.add (new TrackEntry
+                                        (ixRenderer,ixTrackGroup,ixTrack,format,description));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static class TrackEntry {
+        int ixRenderer;
+        int ixTrackGroup;
+        int ixTrack;
+        Format format;
+        String description;
+        TrackEntry(int ixRenderer, int ixTrackGroup, int ixTrack, Format format, String description) {
+            this.ixRenderer = ixRenderer;
+            this.ixTrackGroup = ixTrackGroup;
+            this.ixTrack = ixTrack;
+            this.format = format;
+            this.description = description;
         }
     }
 

@@ -96,14 +96,12 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         for (Object obj : fullList) {
             if (obj instanceof PlaybackControlsRow.PlayPauseAction
                     || obj instanceof PlaybackControlsRow.FastForwardAction
-                    || obj instanceof PlaybackControlsRow.RewindAction
-                    || obj instanceof PlaybackControlsRow.ClosedCaptioningAction)
+                    || obj instanceof PlaybackControlsRow.RewindAction)
                 continue;
             else if (obj instanceof PlaybackControlsRow.MultiAction) {
                 PlaybackControlsRow.MultiAction action
                         = (PlaybackControlsRow.MultiAction) obj;
-                if (action.getId() == Video.ACTION_PLAYLIST_PLAY
-                        || action.getId() == Video.ACTION_AUDIOTRACK)
+                if (action.getId() == Video.ACTION_PLAYLIST_PLAY)
                     continue;
                 prompts.add(action.getLabel(action.getIndex()));
                 actions.add(action);
@@ -187,8 +185,104 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onCaption() {
-        playbackFragment.mTextSelection = playbackFragment.trackSelector(C.TRACK_TYPE_TEXT, playbackFragment.mTextSelection,
-                R.string.msg_subtitle_on, R.string.msg_subtitle_off, true, true);
+        // This code could be used for rotating among captions instead of showing a list
+        // playbackFragment.mTextSelection = playbackFragment.trackSelector(C.TRACK_TYPE_TEXT, playbackFragment.mTextSelection,
+        //         R.string.msg_subtitle_on, R.string.msg_subtitle_off, true, true);
+        showCaptionSelector();
+    }
+
+    private void showCaptionSelector () {
+        playbackFragment.hideControlsOverlay(false);
+        PlaybackFragment.TrackInfo tracks
+                = new PlaybackFragment.TrackInfo(playbackFragment,C.TRACK_TYPE_TEXT);
+
+        ArrayList<String> prompts = new ArrayList<>();
+        ArrayList<Integer> actions = new ArrayList<>();
+        for (int ix = 0; ix < tracks.trackList.size(); ix++) {
+            PlaybackFragment.TrackEntry entry = tracks.trackList.get(ix);
+            prompts.add(entry.description);
+            actions.add(ix);
+        }
+        prompts.add(playbackFragment.getString(R.string.msg_subtitle_off));
+        actions.add(-1);
+
+        final ArrayList<Integer> finalActions = actions; // needed because used in inner class
+        // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder
+                .setTitle(R.string.title_select_caption)
+                .setItems(prompts.toArray(new String[0]),
+                        new DialogInterface.OnClickListener() {
+                            ArrayList<Integer> mActions = finalActions;
+
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                if (which < mActions.size()) {
+                                    playbackFragment.trackSelector
+                                        (C.TRACK_TYPE_TEXT, mActions.get(which),
+                                         R.string.msg_subtitle_on, R.string.msg_subtitle_off,true,false);
+                                }
+                            }
+                        });
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+    }
+
+    @Override
+    public void onAudioTrack() {
+        // This code could be used for rotating among audio tracks instead of showing a list
+        // playbackFragment.mAudioSelection = playbackFragment.trackSelector(C.TRACK_TYPE_AUDIO, playbackFragment.mAudioSelection,
+        //         R.string.msg_audio_track, R.string.msg_audio_track_off, true, true);
+        showAudioSelector();
+    }
+
+    private void showAudioSelector () {
+        playbackFragment.hideControlsOverlay(false);
+        PlaybackFragment.TrackInfo tracks
+                = new PlaybackFragment.TrackInfo(playbackFragment,C.TRACK_TYPE_AUDIO);
+
+        ArrayList<String> prompts = new ArrayList<>();
+        ArrayList<Integer> actions = new ArrayList<>();
+        for (int ix = 0; ix < tracks.trackList.size(); ix++) {
+            PlaybackFragment.TrackEntry entry = tracks.trackList.get(ix);
+            prompts.add(entry.description);
+            actions.add(ix);
+        }
+        prompts.add(playbackFragment.getString(R.string.msg_audio_track_off));
+        actions.add(-1);
+
+        final ArrayList<Integer> finalActions = actions; // needed because used in inner class
+        // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder
+                .setTitle(R.string.title_select_audio)
+                .setItems(prompts.toArray(new String[0]),
+                        new DialogInterface.OnClickListener() {
+                            ArrayList<Integer> mActions = finalActions;
+
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                if (which < mActions.size()) {
+                                    playbackFragment.trackSelector
+                                            (C.TRACK_TYPE_AUDIO, mActions.get(which),
+                                                    R.string.msg_audio_track, R.string.msg_audio_track_off,true,false);
+                                }
+                            }
+                        });
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
     }
 
     @Override
@@ -703,12 +797,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     @Override
     public void onActionSelected(Action action) {
         playbackFragment.actionSelected(action);
-    }
-
-    @Override
-    public void onAudioTrack() {
-        playbackFragment.mAudioSelection = playbackFragment.trackSelector(C.TRACK_TYPE_AUDIO, playbackFragment.mAudioSelection,
-                R.string.msg_audio_track, R.string.msg_audio_track_off, true, true);
     }
 
     // Gestures

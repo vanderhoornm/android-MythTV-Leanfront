@@ -146,8 +146,9 @@
 
     <!-- In the next 2, %1 in the track number, %2 is the language if known
          in parens e.g (English) or empty string if not known -->
-    <string name="msg_subtitle_on">Subtitle %1$d%2$s enabled.</string>
-    <string name="msg_audio_track">Audio Track %1$d%2$s enabled.</string>
+    <string name="msg_subtitle_on">Subtitle %1$s enabled.</string>
+    <string name="msg_subtitle_cc">Closed Caption</string>
+    <string name="msg_audio_track">Audio Track %1$s enabled.</string>
     <string name="msg_no_audio_track">No Audio Track.</string>
     <string name="msg_audio_track_off">Audio Track Disabled.</string>
     <string name="msg_subtitle_off">Subtitle Disabled.</string>
@@ -163,6 +164,8 @@
     <string name="msg_pin_right">Right</string>
     <string name="msg_cannot_move">The picture fills the screen so it cannot be moved.</string>
     <string name="title_select_speed">Set Playback Speed</string>
+    <string name="title_select_caption">Select Subtitles</string>
+    <string name="title_select_audio">Select Audio Track</string>
     <string name="title_select_zoom">Set Picture Size</string>
     <string name="title_select_stretch">Stretch Picture</string>
     <string name="seekbar_instructions">Use up/down to select predefined values, left/right to
@@ -184,7 +187,7 @@
     <string name="button_aspect">Stretch Horizontally</string>
     <string name="button_speedup">Change Playback Speed</string>
     <string name="button_pivot">Move Picture</string>
-    <string name="button_cc">Closed Captions</string>
+    <string name="button_cc">Subtitles</string>
     <string name="button_audiotrack">Change Audio Track</string>
     <string name="button_audiosync">Adjust Audio Sync</string>
     <string name="button_playlistplay">Play Related Videos</string>

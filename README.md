@@ -66,6 +66,7 @@ You can see a list of changes in each version by looking at the commit list in g
 - There is a row for "All" at the top.
 - After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
 - There is a row labeled "Tools" at the bottom. There are various options available there.
+- Indicators next to recordings show 🗑 for deleted, 👁 for Watched, 💥 for damaged.
 
 ### Multiple Updates
 
@@ -106,7 +107,8 @@ The backend status icon of the tools row shows a page with current backend info.
 
 ## Playback
 
-- Pressing Enter, up or down brings up the OSD playback controls. Note if you have enabled up/down jumping then up and down will cause a jump instead.
+- Pressing Enter or Down brings up the OSD playback controls. Note if you have enabled up/down jumping then Down will cause a jump instead.
+- Pressing Back dismisses the OSD controls. Pressing Up a couple of times will also dismiss them. This is better because you will not accidentally end playback if you press Up when they are already timing out.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
@@ -141,6 +143,88 @@ Notes:
 - If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
 
+## Playback controls (OSD)
+
+![](PlaybackExample.png)
+
+The following controls are available when pressing enter during playback. Select an icon and press enter to apply it. The name of the currently selected icon is displayed below the progress bar.
+
+### Top Row of Controls
+
+| Icon | Usage |
+|------|-------|
+| Play/Pause | Switches between pause icon and play icon depending on the current state. |
+| Skip Previous | This plays, from the beginning, the previous recording or video in the list without needing to exit from playback (see related videos, below). |
+| Rewind | This skips back by the time set in the settings. |
+| Jump Forward | This skips forward by the time set in the settings. |
+| Skip Next | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
+| Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
+
+**Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
+
+### Progress Bar
+
+This shows playback position plus time played and total time. While this is focused you can use left and right arrows to skip back and forward. Holding the arrow down moves quickly through the recording. While this is focused, pressing Enter pauses and resumes.
+Below the progress bar is displayed the description of the currently selected icon, if one is selected.
+
+### Bottom Row of controls
+
+| Icon | Usage |
+|------|-------|
+| Closed Captions | Shows a menu of available subtitle tracks plus subtitle disabled. You can select one to change or disable subtitles |
+| Picture Size | Changes the picture size. Pressing this shows a seekbar. Left and right arrow fine tune the size. Up and down arrow select from several standard zoom amounts. |
+| Stretch Horizontally | Stretch or squeeze the picture in case it is showing at the wrong aspect ratio.  Pressing this shows a seekbar. Left and right arrow fine tune the stretch. Up and down arrow select from several standard stretch amounts. |
+| Move Picture | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size. |
+| Change Audio Track | Shows a menu of available audio tracks plus audio disabled. You can select one to change or disable audio track. |
+| Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this if lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
+| Play Related Videos | Toggle automatic playback of all videos in the related videos list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the related videos list. |
+
+### Related videos
+
+To see Related videos press down arrow. This shows other videos / recordings in the current group. You can select one of these to play from the beginning instead of the current playing video.
+
+## Playback Menu
+
+During playback, you can see a menu of actions by pressing the Menu button on the remote or long-pressing the center button (hold down until the menu appears). Note that long-press does not work while the OSD is on screen. The menu contains most of the items in the OSD above.
+
+## Remote Control
+
+The Fire Stick and NVidia Shield have rather limited remote controls, however there are ways of connecting more advanced remotes, and a TV remote can be used to control the Android TV device using CEC. MythTV leanfront supports many media control keys that could be available.
+
+| Key | Context | Usage |
+|-----|---------|-------|
+| Back | Playback | If OSD is showing, close OSD. Otherwise Stop Playback and save bookmark |
+| Captions | Playback | Rotates among available captions (same as CC icon) |
+| DPad Left | Playback | Skip back number of seconds specified in settings (default is 20) |
+| DPad Right | Playback | Skip forward number of seconds specified in settings (default is 60) |
+| DPad Up | Playback | Show OSD and navigate in OSD |
+| DPad Down | Playback | Show OSD and navigate in OSD |
+| DPad Center | Playback | Show OSD |
+| Media Audio Track | Playback | Rotate among available audio tracks (same as Ear icon) |
+| Media Pause | Playback | Pause playback |
+| Media Play | Playback | Resume playback if paused |
+| Media Play Pause | Playback | Toggle playback between playing and paused |
+| Media Fast Forward | Playback | Skip forward number of seconds specified in settings (default is 60) |
+| Media Rewind | Playback | Skip back number of seconds specified in settings (default is 20) |
+| Media Skip Forward | Playback | Jump forward number of minutes specified in settings (default is 5) |
+| Media Skip Backward | Playback | Jump back number of minutes specified in settings (default is 5) |
+| Media Stop | Playback | Stop Playback and save bookmark |
+| Media Next | Playback | Skip to beginning of the next Video (same as Next Track Icon) |
+| Media Previous | Playback | Skip to beginning of the previous Video (same as Previous Track Icon) |
+| TV Zoom Mode | Playback | Squeeze or Stretch the picture (same as Stretch Horizontally Icon) |
+| Zoom In | Playback | Reduce the picture size (same as Picture Size Icon). |
+| Zoom Out | Playback | Increase the picture size (same as Picture Size Icon) |
+| Media Play | List | Play selected video from bookmark or beginning without first displaying details page |
+| Media Play Pause | List | Play selected video from bookmark or beginning without first displaying details page |
+| Media Play | Details Page | Play video from bookmark or beginning |
+| Media Play Pause | Details Page | Play video from bookmark or beginning |
+
+If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. However, this may make navigating the OSD more difficult.
+
+| Key | Context | Usage |
+|-----|---------|-------|
+| DPad Up | Playback | Jump forward number of minutes specified in settings (default is 5) |
+| DPad Down | Playback | Jump back number of minutes specified in settings (default is 5) |
 
 ## Manage recordings
 
@@ -222,85 +306,6 @@ If the program crashes, the above command may not show anything useful. To get t
 adb connect <ip address>
 adb logcat
 ```
-
-## Playback controls (OSD)
-
-![](PlaybackExample.png)
-
-The following controls are available when pressing enter during playback. Select an icon and press enter to apply it. The name of the currently selected icon is displayed below the progress bar.
-
-### Top Row of Controls
-
-| Icon | Usage |
-|------|-------|
-| Play/Pause | Switches between pause icon and play icon depending on the current state. |
-| Skip Previous | This plays, from the beginning, the previous recording or video in the list without needing to exit from playback (see related videos, below). |
-| Rewind | This skips back by the time set in the settings. |
-| Jump Forward | This skips forward by the time set in the settings. |
-| Skip Next | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
-| Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
-
-**Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
-
-### Progress Bar
-
-This shows playback position plus time played and total time. While this is focused you can use left and right arrows to skip back and forward. Holding the arrow down moves quickly through the recording. While this is focused, pressing Enter pauses and resumes.
-Below the progress bar is displayed the description of the currently selected icon, if one is selected.
-
-### Bottom Row of controls
-
-| Icon | Usage |
-|------|-------|
-| Closed Captions | Turns on or off captions (subtitles). If there are multiple languages this rotates among them. |
-| Picture Size | Changes the picture size. Pressing this shows a seekbar. Left and right arrow fine tune the size. Up and down arrow select from several standard zoom amounts. |
-| Stretch Horizontally | Stretch or squeeze the picture in case it is showing at the wrong aspect ratio.  Pressing this shows a seekbar. Left and right arrow fine tune the stretch. Up and down arrow select from several standard stretch amounts. |
-| Move Picture | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size. |
-| Change Audio Track | Rotates among available audio tracks including audio disabled. |
-| Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this if lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
-| Play Related Videos | Toggle automatic playback of all videos in the related videos list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the related videos list. |
-
-### Related videos
-
-To see Related videos press down arrow. This shows other videos / recordings in the current group. You can select one of these to play from the beginning instead of the current playing video.
-
-## Remote Control
-
-The Fire Stick and NVidia Shield have rather limited remote controls, however there are ways of connecting more advanced remotes, and a TV remote can be used to control the Android TV device using CEC. MythTV leanfront supports many media control keys that could be available.
-
-| Key | Context | Usage |
-|-----|---------|-------|
-| Back | Playback | If OSD is showing, close OSD. Otherwise Stop Playback and save bookmark |
-| Captions | Playback | Rotates among available captions (same as CC icon) |
-| DPad Left | Playback | Skip back number of seconds specified in settings (default is 20) |
-| DPad Right | Playback | Skip forward number of seconds specified in settings (default is 60) |
-| DPad Up | Playback | Show OSD and navigate in OSD |
-| DPad Down | Playback | Show OSD and navigate in OSD |
-| DPad Center | Playback | Show OSD |
-| Media Audio Track | Playback | Rotate among available audio tracks (same as Ear icon) |
-| Media Pause | Playback | Pause playback |
-| Media Play | Playback | Resume playback if paused |
-| Media Play Pause | Playback | Toggle playback between playing and paused |
-| Media Fast Forward | Playback | Skip forward number of seconds specified in settings (default is 60) |
-| Media Rewind | Playback | Skip back number of seconds specified in settings (default is 20) |
-| Media Skip Forward | Playback | Jump forward number of minutes specified in settings (default is 5) |
-| Media Skip Backward | Playback | Jump back number of minutes specified in settings (default is 5) |
-| Media Stop | Playback | Stop Playback and save bookmark |
-| Media Next | Playback | Skip to beginning of the next Video (same as Next Track Icon) |
-| Media Previous | Playback | Skip to beginning of the previous Video (same as Previous Track Icon) |
-| TV Zoom Mode | Playback | Squeeze or Stretch the picture (same as Stretch Horizontally Icon) |
-| Zoom In | Playback | Reduce the picture size (same as Picture Size Icon). |
-| Zoom Out | Playback | Increase the picture size (same as Picture Size Icon) |
-| Media Play | List | Play selected video from bookmark or beginning without first displaying details page |
-| Media Play Pause | List | Play selected video from bookmark or beginning without first displaying details page |
-| Media Play | Details Page | Play video from bookmark or beginning |
-| Media Play Pause | Details Page | Play video from bookmark or beginning |
-
-If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. However, this may make navigating the OSD more difficult.
-
-| Key | Context | Usage |
-|-----|---------|-------|
-| DPad Up | Playback | Jump forward number of minutes specified in settings (default is 5) |
-| DPad Down | Playback | Jump back number of minutes specified in settings (default is 5) |
 
 ## Android Phones / Tablets with touch screen
 

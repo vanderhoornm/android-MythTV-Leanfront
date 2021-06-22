@@ -198,9 +198,10 @@ import java.io.IOException;
         else {
           // Sanity Check
           // Look at the second-last pcr value and make sure interval is between 0 and 60 seconds
+          // 60 * 90_000 = 5_400_000
           // otherwise discard the last value found and check again.
           long interval = pcrLast - pcrValue;
-          if (interval > 0 && interval < 540000)
+          if (interval > 0 && interval < 5_400_000)
             return pcrLast;
           else
             pcrLast = pcrValue;

@@ -275,7 +275,7 @@ public class XmlNode {
     }
 
 
-        public String getAttribute(String name) {
+    public String getAttribute(String name) {
         return attributeMap.get(name);
     }
 

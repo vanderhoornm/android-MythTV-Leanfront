@@ -29,6 +29,7 @@ import android.media.MediaDescription;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.ui.MainFragment;
 
@@ -66,7 +67,9 @@ public final class Video implements Parcelable, ListItem {
     // This flag is also set for videos as needed.
     public static final int FL_WATCHED = 0x00000200;
     public String videoProps;
-    public static final int VID_DAMAGED = 0x00000400;
+    // These values changed between V31 and V32 of MythTV
+    public static final int V31_VID_DAMAGED = 0x00000020;
+    public static final int V32_VID_DAMAGED = 0x00000400;
     // Channel values
     public final String chanid;
     public final String channum;
@@ -325,8 +328,13 @@ public final class Video implements Parcelable, ListItem {
     }
 
     public boolean isDamaged() {
+        int damagedFlag = 0;
+        if (AsyncBackendCall.getMythTvVersion() >= 32)
+            damagedFlag = V32_VID_DAMAGED;
+        else if (AsyncBackendCall.getMythTvVersion() > 0)
+            damagedFlag = V31_VID_DAMAGED;
         return videoProps != null
-                && (Integer.parseInt(videoProps) & Video.VID_DAMAGED) != 0;
+                && (Integer.parseInt(videoProps) & damagedFlag) != 0;
     }
 
     public String getSeries() {

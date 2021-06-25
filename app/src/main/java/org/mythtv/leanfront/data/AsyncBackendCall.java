@@ -91,6 +91,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private static final String CLASS = "AsyncBackendCall";
 
     private static long mTimeAdjustment = 0;
+    private static int mythTvVersion;
 
     public AsyncBackendCall(Video videoA, long valueA, boolean watched,
             OnBackendCallListener backendCallListener) {
@@ -190,6 +191,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public void setRowAdapter(ObjectAdapter rowAdapter) {
         this.rowAdapter = rowAdapter;
+    }
+
+    public static int getMythTvVersion() {
+        return mythTvVersion;
     }
 
     protected Void doInBackground(Integer ... tasks) {
@@ -725,6 +730,16 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         Log.e(TAG, CLASS + " Exception Getting backend Info.", e);
                     }
                     if (xmlResult != null) {
+                        String version = xmlResult.getAttribute("version");
+                        if (version != null) {
+                            int period = version.indexOf('.');
+                            if (period > 0) {
+                                mythTvVersion = Integer.parseInt(version.substring(0, period));
+                                if (mythTvVersion == 0 && period == 1)
+                                    // For versions like 0.24
+                                    mythTvVersion = Integer.parseInt(version.substring(2,4));
+                            }
+                        }
                         String dateStr = xmlResult.getAttribute("ISODate");
                         if (dateStr != null) {
                             SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");

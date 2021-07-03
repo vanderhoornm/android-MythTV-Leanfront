@@ -136,19 +136,21 @@ public class CardPresenter extends Presenter {
         StringBuilder subtitle = new StringBuilder();
         if (video.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
             || video.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+            // damaged character - 💥
+            if (video.isDamaged())
+                subtitle.append("\uD83D\uDCA5");
+            // Bookmark - 📖 or 🕮
+            // Currently commented because videos do not have this filled in, only
+            // recordings have it.
+//            if (video.isBookmarked())
+//                subtitle.append("\uD83D\uDCD6");
+            // possible characters for watched - "👁" "⏿" "👀"
+            if (video.isWatched())
+                subtitle.append("\uD83D\uDC41");
             // symbols for deleted - "🗑" "🗶" "␡"
             if (video.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                     && "Deleted".equals(video.recGroup))
                 subtitle.append("\uD83D\uDDD1");
-            int progflags = 0;
-            if (video.progflags != null)
-                progflags = Integer.parseInt(video.progflags);
-            // possible characters for watched - "👁" "⏿" "👀"
-            if ((progflags & Video.FL_WATCHED) != 0)
-                subtitle.append("\uD83D\uDC41");
-            // damaged character - 💥
-            if (video.isDamaged())
-                subtitle.append("\uD83D\uDCA5");
             if (video.season != null && video.season.compareTo("0") > 0) {
                 subtitle.append('S').append(video.season).append('E').append(video.episode)
                         .append(' ');

@@ -66,6 +66,7 @@ public final class Video implements Parcelable, ListItem {
     // From MythTV libmyth/programtypes.h
     // This flag is also set for videos as needed.
     public static final int FL_WATCHED = 0x00000200;
+    public static final int FL_BOOKMARK = 0x00000010;
     public String videoProps;
     // These values changed between V31 and V32 of MythTV
     public static final int V31_VID_DAMAGED = 0x00000020;
@@ -325,6 +326,11 @@ public final class Video implements Parcelable, ListItem {
     public boolean isWatched() {
         return progflags != null
                 && (Integer.parseInt(progflags) & Video.FL_WATCHED) != 0;
+    }
+
+    public boolean isBookmarked() {
+        return progflags != null
+                && (Integer.parseInt(progflags) & Video.FL_BOOKMARK) != 0;
     }
 
     public boolean isDamaged() {

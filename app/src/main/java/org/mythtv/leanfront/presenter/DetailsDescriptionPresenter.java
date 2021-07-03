@@ -130,17 +130,21 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                 || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
 
             StringBuilder subtitle = new StringBuilder();
+            // damaged character - 💥
+            if (mVideo.isDamaged())
+                subtitle.append("\uD83D\uDCA5");
+            // Bookmark - 📖 or 🕮
+            // Currently commented because videos do not have this filled in, only
+            // recordings have it.
+//            if (mVideo.isBookmarked())
+//                subtitle.append("\uD83D\uDCD6");
+            // possible characters for watched - "👁" "⏿" "👀"
+            if (mVideo.isWatched())
+                subtitle.append("\uD83D\uDC41");
             // symbols for deleted - "🗑" "🗶" "␡"
             if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                     && "Deleted".equals(mVideo.recGroup))
                 subtitle.append("\uD83D\uDDD1");
-            // possible characters for watched - "👁" "⏿" "👀"
-            int progflags = Integer.parseInt(mVideo.progflags);
-            if ((progflags & Video.FL_WATCHED) != 0)
-                subtitle.append("\uD83D\uDC41");
-            // damaged character - 💥
-            if (mVideo.isDamaged())
-                subtitle.append("\uD83D\uDCA5");
             if (mVideo.season != null && mVideo.season.compareTo("0") > 0) {
                 subtitle.append('S').append(mVideo.season).append('E').append(mVideo.episode)
                         .append(' ');

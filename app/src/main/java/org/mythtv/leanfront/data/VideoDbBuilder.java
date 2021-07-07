@@ -37,6 +37,7 @@ import org.mythtv.leanfront.model.Video;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -292,8 +293,12 @@ public class VideoDbBuilder {
                     int equ = artUrl.lastIndexOf('=');
                     if (equ > 0) {
                         String fileName = artUrl.substring(equ + 1);
-                        if (fileName.length() > 0 && fileName.charAt(0) == '/')
-                            artUrl = artUrl.substring(0, equ + 1) + URLEncoder.encode(fileName, "UTF-8");
+                        if (fileName.length() > 0) {
+                            // decode and encode it to ensure it is encoded
+                            fileName = URLDecoder.decode(fileName, "UTF-8");
+                            fileName = URLEncoder.encode(fileName, "UTF-8");
+                            artUrl = artUrl.substring(0, equ + 1) + fileName;
+                        }
                     }
                     if ("coverart".equals(artType))
                         coverArtUrl = artUrl;

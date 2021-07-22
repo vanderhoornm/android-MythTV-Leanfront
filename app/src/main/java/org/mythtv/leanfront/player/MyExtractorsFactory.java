@@ -26,11 +26,11 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
+import com.google.android.exoplayer2.extractor.ts.TsExtractor;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
 
-import org.mythtv.leanfront.exoplayer2.extractor.ts.TsExtractor;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;

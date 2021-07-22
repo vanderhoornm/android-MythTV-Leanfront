@@ -62,8 +62,8 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.9.0'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.13.3'
-    implementation 'com.google.android.exoplayer:extension-leanback:2.13.3'
+    implementation 'com.google.android.exoplayer:exoplayer:2.14.2'
+    implementation 'com.google.android.exoplayer:extension-leanback:2.14.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     testImplementation 'junit:junit:4.12'

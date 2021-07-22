@@ -364,3 +364,4 @@ void releaseContext(AVCodecContext *context) {
   }
   avcodec_free_context(&context);
 }
+

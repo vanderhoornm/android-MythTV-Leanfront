@@ -22,9 +22,7 @@ import com.google.android.exoplayer2.util.LibraryLoader;
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.MimeTypes;
 
-/**
- * Configures and queries the underlying native library.
- */
+/** Configures and queries the underlying native library. */
 public final class FfmpegLibrary {
 
   static {

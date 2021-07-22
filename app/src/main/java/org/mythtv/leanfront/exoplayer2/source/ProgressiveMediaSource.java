@@ -59,7 +59,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
 
     private final DataSource.Factory dataSourceFactory;
 
-    private ExtractorsFactory extractorsFactory;
+    private ProgressiveMediaExtractor.Factory progressiveMediaExtractorFactory;
     private boolean usingCustomDrmSessionManagerProvider;
     private DrmSessionManagerProvider drmSessionManagerProvider;
     private LoadErrorHandlingPolicy loadErrorHandlingPolicy;
@@ -78,14 +78,25 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     }
 
     /**
+     * Equivalent to {@link #Factory(DataSource.Factory, ProgressiveMediaExtractor.Factory) new
+     * Factory(dataSourceFactory, () -> new BundledExtractorsAdapter(extractorsFactory)}.
+     */
+    public Factory(DataSource.Factory dataSourceFactory, ExtractorsFactory extractorsFactory) {
+      this(dataSourceFactory, () -> new BundledExtractorsAdapter(extractorsFactory));
+    }
+
+    /**
      * Creates a new factory for {@link ProgressiveMediaSource}s.
      *
      * @param dataSourceFactory A factory for {@link DataSource}s to read the media.
-     * @param extractorsFactory A factory for extractors used to extract media from its container.
+     * @param progressiveMediaExtractorFactory A factory for the {@link ProgressiveMediaExtractor}
+     *     to extract media from its container.
      */
-    public Factory(DataSource.Factory dataSourceFactory, ExtractorsFactory extractorsFactory) {
+    public Factory(
+        DataSource.Factory dataSourceFactory,
+        ProgressiveMediaExtractor.Factory progressiveMediaExtractorFactory) {
       this.dataSourceFactory = dataSourceFactory;
-      this.extractorsFactory = extractorsFactory;
+      this.progressiveMediaExtractorFactory = progressiveMediaExtractorFactory;
       drmSessionManagerProvider = new DefaultDrmSessionManagerProvider();
       loadErrorHandlingPolicy = new DefaultLoadErrorHandlingPolicy();
       continueLoadingCheckIntervalBytes = DEFAULT_LOADING_CHECK_INTERVAL_BYTES;
@@ -98,8 +109,10 @@ public final class ProgressiveMediaSource extends BaseMediaSource
      */
     @Deprecated
     public Factory setExtractorsFactory(@Nullable ExtractorsFactory extractorsFactory) {
-      this.extractorsFactory =
-          extractorsFactory != null ? extractorsFactory : new DefaultExtractorsFactory();
+      this.progressiveMediaExtractorFactory =
+          () ->
+              new BundledExtractorsAdapter(
+                  extractorsFactory != null ? extractorsFactory : new DefaultExtractorsFactory());
       return this;
     }
 
@@ -225,7 +238,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
       return new ProgressiveMediaSource(
           mediaItem,
           dataSourceFactory,
-          extractorsFactory,
+          progressiveMediaExtractorFactory,
           drmSessionManagerProvider.get(mediaItem),
           loadErrorHandlingPolicy,
           continueLoadingCheckIntervalBytes);
@@ -246,7 +259,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
   private final MediaItem mediaItem;
   private final MediaItem.PlaybackProperties playbackProperties;
   private final DataSource.Factory dataSourceFactory;
-  private final ExtractorsFactory extractorsFactory;
+  private final ProgressiveMediaExtractor.Factory progressiveMediaExtractorFactory;
   private final DrmSessionManager drmSessionManager;
   private final LoadErrorHandlingPolicy loadableLoadErrorHandlingPolicy;
   private final int continueLoadingCheckIntervalBytes;
@@ -261,19 +274,17 @@ public final class ProgressiveMediaSource extends BaseMediaSource
   ProgressiveMediaPeriod mediaPeriod;
   private boolean possibleEmptyTrack;
 
-
-  // TODO: Make private when ExtractorMediaSource is deleted.
-  /* package */ ProgressiveMediaSource(
+  private ProgressiveMediaSource(
       MediaItem mediaItem,
       DataSource.Factory dataSourceFactory,
-      ExtractorsFactory extractorsFactory,
+      ProgressiveMediaExtractor.Factory progressiveMediaExtractorFactory,
       DrmSessionManager drmSessionManager,
       LoadErrorHandlingPolicy loadableLoadErrorHandlingPolicy,
       int continueLoadingCheckIntervalBytes) {
     this.playbackProperties = checkNotNull(mediaItem.playbackProperties);
     this.mediaItem = mediaItem;
     this.dataSourceFactory = dataSourceFactory;
-    this.extractorsFactory = extractorsFactory;
+    this.progressiveMediaExtractorFactory = progressiveMediaExtractorFactory;
     this.drmSessionManager = drmSessionManager;
     this.loadableLoadErrorHandlingPolicy = loadableLoadErrorHandlingPolicy;
     this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
@@ -319,7 +330,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     mediaPeriod = new ProgressiveMediaPeriod(
         playbackProperties.uri,
         dataSource,
-        extractorsFactory,
+        progressiveMediaExtractorFactory.createProgressiveMediaExtractor(),
         drmSessionManager,
         createDrmEventDispatcher(id),
         loadableLoadErrorHandlingPolicy,
@@ -399,6 +410,13 @@ public final class ProgressiveMediaSource extends BaseMediaSource
               super.getWindow(windowIndex, window, defaultPositionProjectionUs);
               window.isPlaceholder = true;
               return window;
+            }
+
+            @Override
+            public Period getPeriod(int periodIndex, Period period, boolean setIds) {
+              super.getPeriod(periodIndex, period, setIds);
+              period.isPlaceholder = true;
+              return period;
             }
           };
     }

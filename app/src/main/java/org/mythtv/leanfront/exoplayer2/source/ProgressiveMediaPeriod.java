@@ -31,7 +31,6 @@ import com.google.android.exoplayer2.drm.DrmSessionEventListener;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorOutput;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.PositionHolder;
 import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.SeekMap.SeekPoints;
@@ -43,7 +42,9 @@ import com.google.android.exoplayer2.source.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
+import org.mythtv.leanfront.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
 import com.google.android.exoplayer2.source.SampleStream;
+import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
@@ -68,6 +69,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 //import org.checkerframework.checker.nullness.compatqual.NullableType;
 //import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 //import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -78,7 +80,7 @@ import java.util.Map;
         ExtractorOutput,
         Loader.Callback<ProgressiveMediaPeriod.ExtractingLoadable>,
         Loader.ReleaseCallback,
-        SampleQueue.UpstreamFormatChangedListener {
+        UpstreamFormatChangedListener {
 
   /**
    * Listener for information about the period.
@@ -157,7 +159,8 @@ import java.util.Map;
   /**
    * @param uri The {@link Uri} of the media stream.
    * @param dataSource The data source to read the media.
-   * @param extractorsFactory The {@link ExtractorsFactory} to use to read the data source.
+   * @param progressiveMediaExtractor The {@link ProgressiveMediaExtractor} to use to read the data
+   *     source.
    * @param drmSessionManager A {@link DrmSessionManager} to allow DRM interactions.
    * @param drmEventDispatcher A dispatcher to notify of {@link DrmSessionEventListener} events.
    * @param loadErrorHandlingPolicy The {@link LoadErrorHandlingPolicy}.
@@ -178,7 +181,7 @@ import java.util.Map;
   public ProgressiveMediaPeriod(
       Uri uri,
       DataSource dataSource,
-      ExtractorsFactory extractorsFactory,
+      ProgressiveMediaExtractor progressiveMediaExtractor,
       DrmSessionManager drmSessionManager,
       DrmSessionEventListener.EventDispatcher drmEventDispatcher,
       LoadErrorHandlingPolicy loadErrorHandlingPolicy,
@@ -197,8 +200,8 @@ import java.util.Map;
     this.allocator = allocator;
     this.customCacheKey = customCacheKey;
     this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
-    loader = new Loader("Loader:ProgressiveMediaPeriod");
-    this.progressiveMediaExtractor = new BundledExtractorsAdapter(extractorsFactory);
+    loader = new Loader("ProgressiveMediaPeriod");
+    this.progressiveMediaExtractor = progressiveMediaExtractor;
     loadCondition = new ConditionVariable();
     maybeFinishPrepareRunnable = this::maybeFinishPrepare;
     onContinueLoadingRequestedRunnable =
@@ -488,13 +491,13 @@ import java.util.Map;
       int sampleQueueIndex,
       FormatHolder formatHolder,
       DecoderInputBuffer buffer,
-      boolean formatRequired) {
+      @ReadFlags int readFlags) {
     if (suppressRead()) {
       return C.RESULT_NOTHING_READ;
     }
     maybeNotifyDownstreamFormat(sampleQueueIndex);
     int result =
-        sampleQueues[sampleQueueIndex].read(formatHolder, buffer, formatRequired, loadingFinished);
+        sampleQueues[sampleQueueIndex].read(formatHolder, buffer, readFlags, loadingFinished);
     if (result == C.RESULT_NOTHING_READ) {
       maybeStartDeferredRetry(sampleQueueIndex);
     }
@@ -1002,9 +1005,9 @@ import java.util.Map;
     }
 
     @Override
-    public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer,
-        boolean formatRequired) {
-      return ProgressiveMediaPeriod.this.readData(track, formatHolder, buffer, formatRequired);
+    public int readData(
+        FormatHolder formatHolder, DecoderInputBuffer buffer, @ReadFlags int readFlags) {
+      return ProgressiveMediaPeriod.this.readData(track, formatHolder, buffer, readFlags);
     }
 
     @Override

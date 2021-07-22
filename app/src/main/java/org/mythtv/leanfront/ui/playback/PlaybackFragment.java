@@ -341,7 +341,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
-        Player.TextComponent textComponent = mPlayer.getTextComponent();
+        SimpleExoPlayer.TextComponent textComponent = mPlayer.getTextComponent();
         if (textComponent != null && mSubtitles != null) {
             mSubtitles.setFractionalTextSize
                     (SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * mSubtitleSize / 100.0f);

@@ -34,6 +34,8 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import org.mythtv.leanfront.ui.playback.PlaybackFragment;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MythHttpDataSource extends BaseDataSource implements DataSource {
 
@@ -50,7 +52,12 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
     public MythHttpDataSource(String userAgent, PlaybackFragment playbackFragment){
         super(true);
         mPlaybackFragment = playbackFragment;
-        mHttpDataSource = new DefaultHttpDataSource(userAgent);
+        Map defaultRequestProperties = new HashMap<String, String>();
+        defaultRequestProperties.put("accept-encoding","identity");
+        mHttpDataSource = new DefaultHttpDataSource.Factory()
+                .setUserAgent(userAgent)
+                .setDefaultRequestProperties(defaultRequestProperties)
+                .createDataSource();
         mPlaybackFragment.setDataSource(this);
     }
 

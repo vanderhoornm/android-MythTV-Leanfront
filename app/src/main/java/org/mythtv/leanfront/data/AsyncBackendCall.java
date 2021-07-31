@@ -539,6 +539,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             URL url = new URL(urlString);
                             urlConnection = (HttpURLConnection) url.openConnection();
                             urlConnection.addRequestProperty("Cache-Control", "no-cache");
+                            urlConnection.addRequestProperty("Accept-Encoding", "identity");
                             urlConnection.setConnectTimeout(5000);
                             urlConnection.setReadTimeout(30000);
                             urlConnection.setRequestMethod("HEAD");

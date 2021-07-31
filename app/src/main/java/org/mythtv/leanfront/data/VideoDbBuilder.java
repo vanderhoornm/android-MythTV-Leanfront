@@ -278,7 +278,9 @@ public class VideoDbBuilder {
                 videoFileName = recordingNode.getString(XMLTAG_FILENAME);
                 baseUrl = XmlNode.mythApiUrl(hostName, null);
                 baseHostUrl = XmlNode.mythApiUrl(recordingNode.getString(XMLTAG_HOSTNAME), null);
-                videoUrl = baseUrl + "/Content/GetFile?StorageGroup="
+                videoUrl = baseUrl
+//                videoUrl = "http://emulator:6744"
+                        + "/Content/GetFile?StorageGroup="
                         + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName, "UTF-8");
                 XmlNode artInfoNode = null;
                 for (; ; ) {

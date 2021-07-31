@@ -91,6 +91,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mGridStartTime = new Date(startTime);
         setupAdapter();
         getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
+//        setupGridData();
     }
 
     private void setupAdapter() {
@@ -460,8 +461,10 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
             case Video.ACTION_GUIDE:
-            case Video.ACTION_PAUSE:
                 loadGuideData(taskRunner.getXmlResult());
+                break;
+            case Video.ACTION_PAUSE:
+                loadGuideData(taskRunner.getXmlResults().get(1));
         }
     }
 

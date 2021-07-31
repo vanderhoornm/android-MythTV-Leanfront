@@ -105,9 +105,11 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
     public void onPostExecute(AsyncBackendCall taskRunner) {
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
-            case Video.ACTION_PAUSE:
             case Video.ACTION_GETUPCOMINGLIST:
                 loadData(taskRunner.getXmlResult());
+                break;
+            case Video.ACTION_PAUSE:
+                loadData(taskRunner.getXmlResults().get(1));
         }
     }
 

@@ -91,7 +91,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mGridStartTime = new Date(startTime);
         setupAdapter();
         getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
-//        setupGridData();
     }
 
     private void setupAdapter() {

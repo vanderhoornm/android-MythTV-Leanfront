@@ -40,4 +40,8 @@
 
     <!--    Override default title size-->
     <dimen name="lb_browse_title_text_size">22sp</dimen>
+
+    <!--    Override seekbar value size-->
+    <dimen name="lb_preference_seekbar_value_width">50dp</dimen>
+
 </resources>

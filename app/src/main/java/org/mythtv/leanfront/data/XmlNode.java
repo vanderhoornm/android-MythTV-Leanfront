@@ -156,11 +156,18 @@ public class XmlNode {
             urlConnection.setReadTimeout(300000);
             if (requestMethod != null)
                 urlConnection.setRequestMethod(requestMethod);
+            Log.d(TAG, CLASS + " URL: " + urlString);
             is = urlConnection.getInputStream();
+            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                    + " " + urlConnection.getResponseMessage());
             ret = XmlNode.parseStream(is);
         } catch(FileNotFoundException e) {
+            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                    + " " + urlConnection.getResponseMessage());
             throw e;
         } catch(IOException e) {
+            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                    + " " + urlConnection.getResponseMessage());
             if (!urlString.endsWith("/Myth/DelayShutdown"))
                 MainFragment.restartMythTask();
             throw e;

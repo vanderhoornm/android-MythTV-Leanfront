@@ -543,12 +543,22 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             urlConnection.setConnectTimeout(5000);
                             urlConnection.setReadTimeout(30000);
                             urlConnection.setRequestMethod("HEAD");
+                            Log.d(TAG, CLASS + " URL: " + urlString);
+                            urlConnection.connect();
+                            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                    + " " + urlConnection.getResponseMessage());
                             String strContentLeng = urlConnection.getHeaderField("Content-Length");
                             if (strContentLeng != null)
                                 mFileLength = Long.parseLong(strContentLeng);
                             if (mFileLength > mValue)
                                 break;
                         } catch (Exception e) {
+                            try {
+                                Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                        + " " + urlConnection.getResponseMessage());
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
                             Log.e(TAG, CLASS + " Exception getting file length.",e);
                         } finally {
                             if (urlConnection != null)
@@ -697,7 +707,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     try {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Dvr/StopRecording?RecordedId=" + mVideo.recordedid);
-                        xmlResult = XmlNode.fetch(urlString, null);
+                        xmlResult = XmlNode.fetch(urlString, "POST");
                         String result = xmlResult.getString();
                         if ("true".equals(result))
                             Log.i(TAG, CLASS + " Recording Stopped. RecordedId:" + mVideo.recordedid);
@@ -766,7 +776,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         urlConnection.addRequestProperty("Cache-Control", "no-cache");
                         urlConnection.setConnectTimeout(5000);
                         urlConnection.setReadTimeout(30000);
+                        Log.d(TAG, CLASS + " URL: " + urlString);
                         is = urlConnection.getInputStream();
+                        Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                + " " + urlConnection.getResponseMessage());
                         InputStreamReader reader = new InputStreamReader(is);
                         char[] buffer = new char[1024];
                         StringBuilder output = new StringBuilder();
@@ -781,6 +794,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         mStringResult = output.toString();
 
                     } catch (Exception e) {
+                        try {
+                            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                    + " " + urlConnection.getResponseMessage());
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
                         Log.e(TAG, CLASS + " Exception getting backend status. " + urlString, e);
                     } finally {
                         if (urlConnection != null)

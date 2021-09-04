@@ -73,9 +73,12 @@ import android.text.Html;
 import android.text.Spanned;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
+import android.widget.FrameLayout;
+import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -248,7 +251,12 @@ public class MainFragment extends BrowseSupportFragment
             mUsageView = new TextView(getContext());
             mUsageView.setTextSize(16.0f);
             mUsageView.setPadding(width / 15, height / 3, 0, 0);
-            grp.addView(mUsageView, new AbsoluteLayout.LayoutParams(width / 5, height,0,0));
+            grp.addView(mUsageView, new FrameLayout.LayoutParams(width / 5, height,
+                    Gravity.TOP+Gravity.LEFT));
+            TextClock clock = new TextClock(getContext());
+            clock.setGravity(Gravity.BOTTOM+Gravity.RIGHT);
+            grp.addView(clock,new FrameLayout.LayoutParams(width/10, height/5,
+                    Gravity.BOTTOM+Gravity.RIGHT));
         }
         mUsageView.setText(getContext().getResources().getString(R.string.title_disk_usage,used));
     }

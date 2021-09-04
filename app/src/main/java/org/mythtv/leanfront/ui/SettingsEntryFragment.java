@@ -71,10 +71,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_RELATED_DELETED = 28;
     private static final int ID_RELATED_WATCHED = 29;
     private static final int ID_RECENTS_DAYS = 30;
-    private static final int ID_LETTERBOX_BLACK = 30;
-    private static final int ID_RECENTS_TRIM = 31;
-    private static final int ID_TWEAKS = 32;
-    private static final int ID_TWEAK_SEARCH_PKTS = 33;
+    private static final int ID_LETTERBOX_BLACK = 31;
+    private static final int ID_RECENTS_TRIM = 32;
+    private static final int ID_TWEAKS = 33;
+    private static final int ID_TWEAK_SEARCH_PKTS = 34;
+    private static final int ID_LIVETV_ROWSIZE = 35;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -294,6 +295,15 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .description(R.string.pref_related_watched_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_LIVETV_ROWSIZE)
+                .title(R.string.pref_livetv_rowsize)
+                .description(Settings.getString("pref_livetv_rowsize"))
+                .descriptionEditable("true".equals(recents))
+                .enabled("true".equals(recents))
+                .focusable("true".equals(recents))
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_PROG_LIST_OPTIONS)
                 .title(R.string.pref_title_lists)
@@ -412,6 +422,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 mEditor.putString("pref_tweak_ts_search_pkts",
                         validateNumber(action, 600, 100000, 2600));
                 break;
+            case ID_LIVETV_ROWSIZE:
+                mEditor.putString("pref_livetv_rowsize",
+                        validateNumber(action, 1, 100, 100));
+                break;
+
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -469,6 +484,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_TWEAK_SEARCH_PKTS:
                 action.setDescription(Settings.getString("pref_tweak_ts_search_pkts"));
+                break;
+            case ID_LIVETV_ROWSIZE:
+                action.setDescription(Settings.getString("pref_livetv_rowsize"));
                 break;
         }
     }

@@ -115,6 +115,8 @@ public class Settings {
         mEditor.putString("pref_letterbox_color",str);
         str = mPrefs.getString("pref_tweak_ts_search_pkts", "2600");
         mEditor.putString("pref_tweak_ts_search_pkts",str);
+        str = mPrefs.getString("pref_livetv_rowsize", "100");
+        mEditor.putString("pref_livetv_rowsize",str);
         mEditor.apply();
     }
 }

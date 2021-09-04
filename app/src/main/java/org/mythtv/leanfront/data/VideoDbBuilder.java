@@ -33,6 +33,7 @@ import androidx.annotation.NonNull;
 
 import org.mythtv.leanfront.R;
 
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -372,6 +373,7 @@ public class VideoDbBuilder {
 
     private void loadChannels(XmlNode xmlFull, List<ContentValues> channelsToInsert) {
         XmlNode channelNode = null;
+        int rowsize= Settings.getInt("pref_livetv_rowsize");
         for (; ; ) {
             if (channelNode == null)
                 channelNode = xmlFull.getNode(XMLTAGS_CHANNEL, 0);
@@ -400,8 +402,8 @@ public class VideoDbBuilder {
                 title = mContext.getString(R.string.row_header_channels) + " " + channum.toUpperCase().charAt(0);
             }
             else {
-                int start = (((int) fChannum) /100) * 100;
-                int end = start + 99;
+                int start = (((int) fChannum) /rowsize) * rowsize;
+                int end = start + rowsize-1;
                 String spacer;
                 if (fChannum < 1.0f)
                     spacer = "    ";

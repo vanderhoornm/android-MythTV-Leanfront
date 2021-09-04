@@ -118,6 +118,7 @@
     <string name="pref_tweaks_title">Tweaks</string>
     <string name="pref_tweaks_desc">Please read the documentation on Tweaks before changing anything here.</string>
     <string name="pref_tweak_ts_search_pkts">TS Search Packets (default 2600)</string>
+    <string name="pref_livetv_rowsize">Number of Live TV channels per row (default 100)</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>

@@ -76,6 +76,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_TWEAKS = 33;
     private static final int ID_TWEAK_SEARCH_PKTS = 34;
     private static final int ID_LIVETV_ROWSIZE = 35;
+    private static final int ID_VIDEO_PARENTAL = 36;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -299,11 +300,21 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .id(ID_LIVETV_ROWSIZE)
                 .title(R.string.pref_livetv_rowsize)
                 .description(Settings.getString("pref_livetv_rowsize"))
-                .descriptionEditable("true".equals(recents))
-                .enabled("true".equals(recents))
-                .focusable("true".equals(recents))
+                .descriptionEditable(true)
+                .enabled(true)
+                .focusable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_VIDEO_PARENTAL)
+                .title(R.string.pref_video_parental)
+                .description(Settings.getString("pref_video_parental"))
+                .descriptionEditable(true)
+                .enabled(true)
+                .focusable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_PROG_LIST_OPTIONS)
                 .title(R.string.pref_title_lists)
@@ -426,7 +437,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 mEditor.putString("pref_livetv_rowsize",
                         validateNumber(action, 1, 100, 100));
                 break;
-
+            case ID_VIDEO_PARENTAL:
+                mEditor.putString("pref_video_parental",
+                        validateNumber(action, 1, 4, 4));
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -487,6 +501,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_LIVETV_ROWSIZE:
                 action.setDescription(Settings.getString("pref_livetv_rowsize"));
+                break;
+            case ID_VIDEO_PARENTAL:
+                action.setDescription(Settings.getString("pref_video_parental"));
                 break;
         }
     }

@@ -117,6 +117,9 @@ public class Settings {
         mEditor.putString("pref_tweak_ts_search_pkts",str);
         str = mPrefs.getString("pref_livetv_rowsize", "100");
         mEditor.putString("pref_livetv_rowsize",str);
+        str = mPrefs.getString("pref_video_parental", "4");
+        mEditor.putString("pref_video_parental",str);
+
         mEditor.apply();
     }
 }

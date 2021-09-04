@@ -171,6 +171,7 @@ public class VideoDbBuilder {
             loadChannels(xmlFull, videosToInsert);
             return;
         }
+        int maxparental= Settings.getInt("pref_video_parental");
         // Art urls have to be off main backend
         String baseMasterUrl = XmlNode.mythApiUrl(null, null);
         XmlNode programNode = null;
@@ -240,6 +241,11 @@ public class VideoDbBuilder {
                 videoProps = programNode.getString(XMLTAG_VIDEOPROPS);
             }
             if (phase == 1) { // Videos
+                if (ixSingle < 0) {
+                    int parental = programNode.getInt("ParentalLevel", 1);
+                    if (parental > maxparental)
+                        continue;
+                }
                 rectype = VideoContract.VideoEntry.RECTYPE_VIDEO;
                 recordingNode = programNode;
                 recGroup = null;

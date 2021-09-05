@@ -87,6 +87,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     private String mPriorBackend;
     private String mPriorHttpPort;
+    private String mPriorRowsize;
+    private String mPriorParental;
 
     @NonNull
     @Override
@@ -631,6 +633,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     public void onResume() {
         mPriorBackend = Settings.getString("pref_backend");
         mPriorHttpPort =  Settings.getString("pref_http_port");
+        mPriorRowsize =  Settings.getString("pref_livetv_rowsize");
+        mPriorParental =  Settings.getString("pref_video_parental");
         super.onResume();
     }
 
@@ -638,9 +642,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     public void onPause() {
         super.onPause();
         if (!Objects.equals(mPriorBackend, Settings.getString("pref_backend"))
-          || !Objects.equals(mPriorHttpPort, Settings.getString("pref_http_port")))
+            || !Objects.equals(mPriorHttpPort, Settings.getString("pref_http_port"))
+            || !Objects.equals(mPriorRowsize, Settings.getString("pref_livetv_rowsize"))
+            || !Objects.equals(mPriorParental, Settings.getString("pref_video_parental")))
             MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
         mPriorBackend = null;
         mPriorHttpPort = null;
+        mPriorRowsize = null;
+        mPriorParental = null;
     }
 }

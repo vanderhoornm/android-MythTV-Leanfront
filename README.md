@@ -74,6 +74,10 @@ In a recording group screen or a video directory screen, you can now perform ope
 
 This operation is not recursive. If there are subdirectories in a video directory, any operation on the directory will be performed on videos in that directory only.
 
+### Parental Level
+
+There is support for the MythTV parental level on videos. It does not support the PIN, so hope your children do not know how to get into settings. There is a setting at the bottom of program list options to specify the level - 1 2 3 or 4. Only those videos below or equal to the level set will be visible. You will have to use mythfrontend to set the level on the videos, there is nothing to do that in leanfront.
+
 ### Settings
 
 The settings icon on the tools row allows setup of the backend ip address and a number of options for this installation of leanfront.
@@ -105,6 +109,10 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 
 The backend status icon of the tools row shows a page with current backend info.
 
+## Video Details
+
+If you select a video or recording in the list and press enter, it opens the Detalls page. This shows the program name, description and artwork. There are buttons for Playback and for "Other Actions". "Other Actions" presents a menu for deleting the program, marking watched, etc. If you have a menu button on your remote, pressing that will also bring up the "Other Actions".
+
 ## Playback
 
 - Pressing Enter or Down brings up the OSD playback controls. Note if you have enabled up/down jumping then Down will cause a jump instead.
@@ -128,6 +136,8 @@ If local bookmarks are not selected:
 ## Live TV
 
 In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will set up a recording of that channel, and once the recording is available it will start playing it. There is a difference between this and mythfrontend Live TV. In leanfront, the LiveTV recording will be named "LiveTV" with the date. The recording time and channel will be shown as the subtitle. The recording length defaults to 60 minutes. This default can be changed in Settings. When you exit from playback by any method, the recording is stopped and the recording rule is deleted.
+
+You can customize the display of rows. Instead of groups of 100 channels, if you are using broadcast TV where there are fewer channel numbers and there may be subchannels, you can set the number per row to a smaller number, e.g. 1 or 10. This is in the Settings under "Program List Options", near the bottom.
 
 Notes:
 

@@ -72,6 +72,10 @@ public class VideoDetailsActivity extends LeanbackActivity {
                     mFragment.onActionClicked(new Action(Video.ACTION_PLAY_FROM_BOOKMARK));
                     return true;
                 }
+                break;
+            case KeyEvent.KEYCODE_MENU:
+                mFragment.onActionClicked(new Action(Video.ACTION_OTHER));
+                break;
         }
         return super.onKeyDown(keyCode, event);
     }

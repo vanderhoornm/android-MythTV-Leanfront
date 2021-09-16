@@ -35,6 +35,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Adjustment of Audio Sync in case a recording has a lip-sync problem.
 - Support for touch screen devices is usable, although it is not perfect.
 - Metadata lookup when scheduling recordings supports tvmaze and tmdb.
+- Note that some phones do not support MPEG-2 playback. There may be some android TV devices that do not support MPEG-2. NVidia shield supports MPEG-2 although there is a pixelation bug on some channels. Fire stick models since 2018 support MPEG-2. See https://developer.amazon.com/docs/fire-tv/device-specifications-fire-tv-streaming-media-player.html?v=ftvstick4k and select your model for full details.
 
 ## Tips
 

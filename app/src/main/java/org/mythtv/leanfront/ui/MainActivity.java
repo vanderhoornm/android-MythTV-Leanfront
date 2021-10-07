@@ -86,8 +86,11 @@ public class MainActivity extends LeanbackActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (context == this)
+        if (context == this) {
             context = null;
+            int pid = android.os.Process.myPid();
+            android.os.Process.killProcess(pid);
+        }
     }
 
     @Override

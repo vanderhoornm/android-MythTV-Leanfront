@@ -47,6 +47,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int channelIndex;
     private static int recordedidIndex;
     private static int recGroupIndex;
+    private static int playGroupIndex;
     private static int seasonIndex;
     private static int episodeIndex;
     private static int airdateIndex;
@@ -78,6 +79,7 @@ public final class VideoCursorMapper extends CursorMapper {
         channelIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNEL);
         recordedidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECORDEDID);
         recGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
+        playGroupIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PLAYGROUP);
         seasonIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SEASON);
         episodeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_EPISODE);
         airdateIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
@@ -117,6 +119,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String channel = cursor.getString(channelIndex);
         String recordedid = cursor.getString(recordedidIndex);
         String recGroup = cursor.getString(recGroupIndex);
+        String playGroup = cursor.getString(playGroupIndex);
         String season = cursor.getString(seasonIndex);
         String episode = cursor.getString(episodeIndex);
         String airdate = cursor.getString(airdateIndex);
@@ -151,6 +154,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .channel(channel)
                 .recordedid(recordedid)
                 .recGroup(recGroup)
+                .playGroup(playGroup)
                 .season(season)
                 .episode(episode)
                 .airdate(airdate)

@@ -171,9 +171,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             mRecordRule.type = "Not Recording";
 
         // Lists
-        mPlayGroupList = getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST
-        mRecGroupList = getStringList(mDetailsList.get(3)); // ACTION_GETRECGROUPLIST
-        mRecStorageGroupList = getStringList(mDetailsList.get(4)); // ACTION_GETRECSTORAGEGROUPLIST
+        mPlayGroupList = XmlNode.getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST
+        mRecGroupList = XmlNode.getStringList(mDetailsList.get(3)); // ACTION_GETRECGROUPLIST
+        mRecStorageGroupList = XmlNode.getStringList(mDetailsList.get(4)); // ACTION_GETRECSTORAGEGROUPLIST
 
         mInputList.put(0, getContext().getString(R.string.sched_input_any));
         XmlNode inputListNode = mDetailsList.get(5); // ACTION_GETINPUTLIST
@@ -208,23 +208,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             }
         }
     }
-
-
-    public static ArrayList<String> getStringList(XmlNode listNode) {
-        ArrayList<String> ret = new ArrayList<>();
-        ret.add("Default");
-        if (listNode != null) {
-            XmlNode stringNode = listNode.getNode("String");
-            while (stringNode != null) {
-                String value = stringNode.getString();
-                if (!"Default".equals(value))
-                    ret.add(value);
-                stringNode = stringNode.getNextSibling();
-            }
-        }
-        return ret;
-    }
-
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {

@@ -34,6 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -70,8 +71,8 @@ public class XmlNode {
                             + hostname);
             XmlNode response = XmlNode.fetch(urlString, null);
             String hostIp = response.getString();
-            if (hostIp == null)
-                hostIp = backendIP;
+            if (hostIp == null || hostIp.length() == 0)
+                return "";
             urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendStatusPort&HostName="
                             + hostname);
@@ -301,10 +302,28 @@ public class XmlNode {
 
     public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
         String ipAndPort = getIpAndPort(hostName);
+        if (ipAndPort.length() == 0)
+            return "";
         String url = "http://" + ipAndPort;
         if (params != null)
             url = url + params;
         return url;
+    }
+
+    // need to be able to run this on a null XmlNode, that is why it is static
+    public static ArrayList<String> getStringList(XmlNode listNode) {
+        ArrayList<String> ret = new ArrayList<>();
+        ret.add("Default");
+        if (listNode != null) {
+            XmlNode stringNode = listNode.getNode("String");
+            while (stringNode != null) {
+                String value = stringNode.getString();
+                if (!"Default".equals(value))
+                    ret.add(value);
+                stringNode = stringNode.getNextSibling();
+            }
+        }
+        return ret;
     }
 
 }

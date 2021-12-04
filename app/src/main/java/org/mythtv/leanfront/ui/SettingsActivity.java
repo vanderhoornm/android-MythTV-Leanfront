@@ -29,13 +29,30 @@ import android.os.Bundle;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
+import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.XmlNode;
+import org.mythtv.leanfront.model.Video;
 
-public class SettingsActivity extends FragmentActivity {
+import java.util.ArrayList;
+
+
+public class SettingsActivity extends FragmentActivity
+        implements AsyncBackendCall.OnBackendCallListener {
+
+    private ArrayList<String> mPlayGroupList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(null == savedInstanceState)
-            GuidedStepSupportFragment.addAsRoot(this, new SettingsEntryFragment(), android.R.id.content);
+        AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
+                this);
+        call.execute(Video.ACTION_GETPLAYGROUPLIST);
+    }
+    @Override
+    public void onPostExecute(AsyncBackendCall taskRunner) {
+        mPlayGroupList = XmlNode.getStringList(taskRunner.getXmlResult()); // ACTION_GETPLAYGROUPLIST
+        GuidedStepSupportFragment.addAsRoot(this,
+                new SettingsEntryFragment(mPlayGroupList), android.R.id.content);
     }
 }

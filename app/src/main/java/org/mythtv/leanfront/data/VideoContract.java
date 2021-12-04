@@ -92,6 +92,7 @@ public final class VideoContract {
         public static final String COLUMN_STORAGEGROUP = "storagegroup";
         // Empty Recgroup indicates a video file instead of a recording.
         public static final String COLUMN_RECGROUP = "recgroup";
+        public static final String COLUMN_PLAYGROUP = "playgroup";
         public static final String COLUMN_SEASON = "season";
         public static final String COLUMN_EPISODE = "episode";
         // The action intent for the result.

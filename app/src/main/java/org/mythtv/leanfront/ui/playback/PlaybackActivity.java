@@ -52,7 +52,6 @@ public class PlaybackActivity extends LeanbackActivity {
     private boolean gamepadTriggerPressed = false;
     private PlaybackFragment mPlaybackFragment;
     private boolean mArrowSkipJump;
-    private boolean mJumpEnabled;
     private RepeatListener rewindListener;
     private RepeatListener ffListener;
     private GestureDetector detector;
@@ -70,7 +69,6 @@ public class PlaybackActivity extends LeanbackActivity {
         }
         // Prevent screen saver during playback
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
         // Touch screen
         rewindListener = new RepeatListener(400,100,mPlaybackFragment,-1);
         ffListener = new RepeatListener(400,100,mPlaybackFragment,1);
@@ -224,7 +222,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                if (mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mPlaybackFragment.mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump,!mArrowSkipJump);
@@ -241,7 +239,7 @@ public class PlaybackActivity extends LeanbackActivity {
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
-                if (mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mPlaybackFragment.mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
@@ -256,7 +254,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     if (mPlaybackFragment.onControlsUp())
                         return true;
                 }
-                else if (mJumpEnabled) {
+                else if (mPlaybackFragment.mJumpEnabled) {
                     mArrowSkipJump = true;
                     mPlaybackFragment.tickle(true, false);
                     mPlaybackFragment.jumpBack();
@@ -266,7 +264,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     return true;
             }
 
-            if (mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (mPlaybackFragment.mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }

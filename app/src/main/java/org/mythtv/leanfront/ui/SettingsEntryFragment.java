@@ -36,14 +36,19 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SettingsEntryFragment extends GuidedStepSupportFragment {
+public class SettingsEntryFragment extends GuidedStepSupportFragment
+        implements AsyncBackendCall.OnBackendCallListener {
 
+    // For multiple occurrence items (e.g. playback groups),
+    // add 100, 200, 300 etc to the number
     private static final int ID_BACKEND_IP = 1;
     private static final int ID_HTTP_PORT = 2;
     private static final int ID_BOOKMARK_LOCAL = 5;
@@ -77,6 +82,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_TWEAK_SEARCH_PKTS = 34;
     private static final int ID_LIVETV_ROWSIZE = 35;
     private static final int ID_VIDEO_PARENTAL = 36;
+    private static final int ID_PLAYBACK_GP_LIST = 37;
+    private static final int ID_PLAYBACK_GP = 38;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -89,6 +96,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private String mPriorHttpPort;
     private String mPriorRowsize;
     private String mPriorParental;
+    private ArrayList<String> mPlayGroupList;
+
+    public SettingsEntryFragment(ArrayList<String> playGroupList) {
+        mPlayGroupList = playGroupList; // ACTION_GETPLAYGROUPLIST
+    }
 
     @NonNull
     @Override
@@ -132,88 +144,72 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .subActions(subActions)
                 .build());
 
-        subActions = new ArrayList<>();
-        String str = Settings.getString("pref_framerate_match");
-        GuidedAction.Builder tmp = new GuidedAction.Builder(getActivity());
-        tmp     .id(ID_FRAMERATE_MATCH)
-                .title(R.string.pref_title_framerate_match)
-                .checked("true".equals(str))
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
-        if (android.os.Build.VERSION.SDK_INT < 23)
-            tmp .description(R.string.pref_msg_needs_6_0)
-                .enabled(false);
-        subActions.add(tmp.build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_SKIP_FWD)
-                .title(R.string.pref_title_skip_fwd)
-                .description(Settings.getString("pref_skip_fwd"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_SKIP_BACK)
-                .title(R.string.pref_title_skip_back)
-                .description(Settings.getString("pref_skip_back"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        str = Settings.getString("pref_arrow_jump");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_ARROW_JUMP)
-                .title(R.string.pref_title_arrow_jump)
-                .checked("true".equals(str))
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_JUMP)
-                .title(R.string.pref_title_jump)
-                .description(Settings.getString("pref_jump"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_LIVETV_DURATION)
-                .title(R.string.pref_title_livetv_duration)
-                .description(Settings.getString("pref_livetv_duration"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        str = Settings.getString("pref_bookmark");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_BOOKMARK_LOCAL)
-                .title(R.string.pref_bookmark_local)
-                .checked("local".equals(str))
-                .description(R.string.pref_bookmark_mythtv)
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_SUBTITLE_SIZE)
-                .title(R.string.pref_title_subtitle_size)
-                .description(Settings.getString("pref_subtitle_size"))
-                .descriptionEditable(true)
-                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
-                .build());
-        str = Settings.getString("pref_error_toast");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_ERROR_TOAST)
-                .title(R.string.pref_error_toast)
-                .checked("true".equals(str))
-                .description(R.string.pref_error_toast_desc)
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
-        int i = Settings.getInt("pref_letterbox_color");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_LETTERBOX_BLACK)
-                .title(R.string.pref_letterbox_black)
-                .checked(i == Color.BLACK)
-                .description(R.string.pref_letterbox_black_desc)
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
-        actions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_PLAYBACK)
-                .title(R.string.pref_title_playback)
-                .subActions(subActions)
-                .build());
+        String str;
+        // playback entries one per playback group
+        for (int ix = 0 ; ix < mPlayGroupList.size(); ix++) {
+            int addon = 100 * ix;
+            String group = mPlayGroupList.get(ix);
+            subActions = new ArrayList<>();
+            str = Settings.getString("pref_framerate_match", group);
+            GuidedAction.Builder tmp = new GuidedAction.Builder(getActivity());
+            tmp.id(ID_FRAMERATE_MATCH + addon)
+                    .title(R.string.pref_title_framerate_match)
+                    .checked("true".equals(str))
+                    .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID);
+            if (android.os.Build.VERSION.SDK_INT < 23)
+                tmp.description(R.string.pref_msg_needs_6_0)
+                        .enabled(false);
+            subActions.add(tmp.build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_SKIP_FWD + addon)
+                    .title(R.string.pref_title_skip_fwd)
+                    .description(Settings.getString("pref_skip_fwd", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_SKIP_BACK + addon)
+                    .title(R.string.pref_title_skip_back)
+                    .description(Settings.getString("pref_skip_back", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
+            str = Settings.getString("pref_arrow_jump", group);
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_ARROW_JUMP + addon)
+                    .title(R.string.pref_title_arrow_jump)
+                    .checked("true".equals(str))
+                    .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_JUMP + addon)
+                    .title(R.string.pref_title_jump)
+                    .description(Settings.getString("pref_jump", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_SUBTITLE_SIZE + addon)
+                    .title(R.string.pref_title_subtitle_size)
+                    .description(Settings.getString("pref_subtitle_size", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
+            int i = Settings.getInt("pref_letterbox_color", group);
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_LETTERBOX_BLACK + addon)
+                    .title(R.string.pref_letterbox_black)
+                    .checked(i == Color.BLACK)
+                    .description(R.string.pref_letterbox_black_desc)
+                    .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                    .build());
+            str = getContext().getString(R.string.pref_title_playback,group);
+            actions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_PLAYBACK + addon)
+                    .title(str)
+                    .subActions(subActions)
+                    .build());
+        }
 
         subActions = new ArrayList<>();
         str = Settings.getString("pref_seq");
@@ -362,10 +358,32 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_LIVETV_DURATION)
+                .title(R.string.pref_title_livetv_duration)
+                .description(Settings.getString("pref_livetv_duration"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+        str = Settings.getString("pref_bookmark");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_BOOKMARK_LOCAL)
+                .title(R.string.pref_bookmark_local)
+                .checked("local".equals(str))
+                .description(R.string.pref_bookmark_mythtv)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        str = Settings.getString("pref_error_toast");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_ERROR_TOAST)
+                .title(R.string.pref_error_toast)
+                .checked("true".equals(str))
+                .description(R.string.pref_error_toast_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
         actions.add(mAudioAction = new GuidedAction.Builder(getActivity())
                 .id(ID_TWEAKS)
                 .title(R.string.pref_tweaks_title)
-                .description(R.string.pref_tweaks_desc)
                 .subActions(subActions)
                 .build());
     }
@@ -396,51 +414,58 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     @Override
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
-        switch((int) action.getId()) {
+        int id = (int) action.getId();
+        int actualId = id % 100;
+        int groupId = id / 100;
+        String group = mPlayGroupList.get(groupId);
+        switch(actualId) {
             case ID_BACKEND_IP:
                 String newVal = action.getDescription().toString();
-                mEditor.putString("pref_backend",newVal);
+                Settings.putString("pref_backend",newVal);
                 mBackendAction.setDescription(newVal);
                 notifyActionChanged(findActionPositionById(ID_BACKEND));
                 break;
             case ID_HTTP_PORT:
-                mEditor.putString("pref_http_port",
+                Settings.putString("pref_http_port",
                     validateNumber(action, 1, 65535, 6544));
                 break;
             case ID_BACKEND_MAC:
-                mEditor.putString("pref_backend_mac",action.getDescription().toString());
+                Settings.putString("pref_backend_mac",action.getDescription().toString());
                 break;
             case ID_SKIP_FWD:
-                mEditor.putString("pref_skip_fwd",action.getDescription().toString());
+                Settings.putString("pref_skip_fwd",group,
+                        action.getDescription().toString());
                 break;
             case ID_SKIP_BACK:
-                mEditor.putString("pref_skip_back",action.getDescription().toString());
+                Settings.putString("pref_skip_back",group,
+                        action.getDescription().toString());
                 break;
             case ID_JUMP:
-                mEditor.putString("pref_jump",action.getDescription().toString());
+                Settings.putString("pref_jump",group,
+                        action.getDescription().toString());
                 break;
             case ID_LIVETV_DURATION:
-                mEditor.putString("pref_livetv_duration",
+                Settings.putString("pref_livetv_duration",
                         validateNumber(action, 30, 240, 60));
                 break;
             case ID_SUBTITLE_SIZE:
-                mEditor.putString("pref_subtitle_size",
+                Settings.putString("pref_subtitle_size",group,
                         validateNumber(action, 25, 300, 100));
                 break;
             case ID_RECENTS_DAYS:
-                mEditor.putString("pref_recents_days",
+                Settings.putString("pref_recents_days",
                         validateNumber(action, 1, 60, 7));
                 break;
             case ID_TWEAK_SEARCH_PKTS:
-                mEditor.putString("pref_tweak_ts_search_pkts",
+                Settings.putString("pref_tweak_ts_search_pkts",
                         validateNumber(action, 600, 100000, 2600));
                 break;
             case ID_LIVETV_ROWSIZE:
-                mEditor.putString("pref_livetv_rowsize",
+                Settings.putString("pref_livetv_rowsize",
                         validateNumber(action, 1, 100, 100));
                 break;
             case ID_VIDEO_PARENTAL:
-                mEditor.putString("pref_video_parental",
+                Settings.putString("pref_video_parental",
                         validateNumber(action, 1, 4, 4));
                 break;
             default:
@@ -470,7 +495,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onGuidedActionEditCanceled(GuidedAction action) {
-        switch((int) action.getId()) {
+        int id = (int) action.getId();
+        int actualId = id % 100;
+        int groupId = id / 100;
+        String group = mPlayGroupList.get(groupId);
+        switch(actualId) {
             case ID_BACKEND_IP:
                 action.setDescription(Settings.getString("pref_backend"));
                 break;
@@ -481,19 +510,19 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 action.setDescription(Settings.getString("pref_http_port"));
                 break;
             case ID_SKIP_FWD:
-                action.setDescription(Settings.getString("pref_skip_fwd"));
+                action.setDescription(Settings.getString("pref_skip_fwd",group));
                 break;
             case ID_SKIP_BACK:
-                action.setDescription(Settings.getString("pref_skip_back"));
+                action.setDescription(Settings.getString("pref_skip_back",group));
                 break;
             case ID_JUMP:
-                action.setDescription(Settings.getString("pref_jump"));
+                action.setDescription(Settings.getString("pref_jump",group));
                 break;
             case ID_LIVETV_DURATION:
                 action.setDescription(Settings.getString("pref_livetv_duration"));
                 break;
             case ID_SUBTITLE_SIZE:
-                action.setDescription(Settings.getString("pref_subtitle_size"));
+                action.setDescription(Settings.getString("pref_subtitle_size",group));
                 break;
             case ID_RECENTS_DAYS:
                 action.setDescription(Settings.getString("pref_recents_days"));
@@ -512,103 +541,107 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
-
         int id = (int) action.getId();
-        switch(id) {
+        int actualId = id % 100;
+        int groupId = id / 100;
+        String group = mPlayGroupList.get(groupId);
+        switch(actualId) {
             case ID_BOOKMARK_LOCAL:
                 if (action.isChecked())
-                    mEditor.putString("pref_bookmark", "local");
+                    Settings.putString("pref_bookmark", "local");
                 else
-                    mEditor.putString("pref_bookmark", "mythtv");
+                    Settings.putString("pref_bookmark", "mythtv");
                 break;
             case ID_FRAMERATE_MATCH:
                 if (action.isChecked())
-                    mEditor.putString("pref_framerate_match", "true");
+                    Settings.putString("pref_framerate_match",group,"true");
                 else
-                    mEditor.putString("pref_framerate_match", "false");
+                    Settings.putString("pref_framerate_match",group,"false");
                 break;
             case ID_ARROW_JUMP:
                 if (action.isChecked())
-                    mEditor.putString("pref_arrow_jump", "true");
+                    Settings.putString("pref_arrow_jump",group,"true");
                 else
-                    mEditor.putString("pref_arrow_jump", "false");
+                    Settings.putString("pref_arrow_jump",group,"false");
                 break;
             case ID_SORT_ORIG_AIRDATE:
                 if (action.isChecked())
-                    mEditor.putString("pref_seq", "airdate");
+                    Settings.putString("pref_seq", "airdate");
                 else
-                    mEditor.putString("pref_seq", "rectime");
+                    Settings.putString("pref_seq", "rectime");
                 break;
             case ID_DESCENDING:
                 if (action.isChecked())
-                    mEditor.putString("pref_seq_ascdesc", "desc");
+                    Settings.putString("pref_seq_ascdesc", "desc");
                 else
-                    mEditor.putString("pref_seq_ascdesc", "asc");
+                    Settings.putString("pref_seq_ascdesc", "asc");
                 break;
             case ID_SHOW_RECENTS:
                 if (action.isChecked())
-                    mEditor.putString("pref_show_recents", "true");
+                    Settings.putString("pref_show_recents", "true");
                 else
-                    mEditor.putString("pref_show_recents", "false");
+                    Settings.putString("pref_show_recents", "false");
                 restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_DELETED:
                 if (action.isChecked())
-                    mEditor.putString("pref_recents_deleted", "true");
+                    Settings.putString("pref_recents_deleted", "true");
                 else
-                    mEditor.putString("pref_recents_deleted", "false");
+                    Settings.putString("pref_recents_deleted", "false");
                 if (! "true".equals(Settings.getString("pref_recents_watched")))
                     restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_WATCHED:
                 if (action.isChecked())
-                    mEditor.putString("pref_recents_watched", "true");
+                    Settings.putString("pref_recents_watched", "true");
                 else
-                    mEditor.putString("pref_recents_watched", "false");
+                    Settings.putString("pref_recents_watched", "false");
                 if (! "true".equals(Settings.getString("pref_recents_deleted")))
                     restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_TRIM:
                 if (action.isChecked())
-                    mEditor.putString("pref_recents_trim", "true");
+                    Settings.putString("pref_recents_trim", "true");
                 else
-                    mEditor.putString("pref_recents_trim", "false");
+                    Settings.putString("pref_recents_trim", "false");
                 break;
             case ID_RELATED_DELETED:
                 if (action.isChecked())
-                    mEditor.putString("pref_related_deleted", "true");
+                    Settings.putString("pref_related_deleted", "true");
                 else
-                    mEditor.putString("pref_related_deleted", "false");
+                    Settings.putString("pref_related_deleted", "false");
                 break;
             case ID_RELATED_WATCHED:
                 if (action.isChecked())
-                    mEditor.putString("pref_related_watched", "true");
+                    Settings.putString("pref_related_watched", "true");
                 else
-                    mEditor.putString("pref_related_watched", "false");
+                    Settings.putString("pref_related_watched", "false");
                 break;
             case ID_AUDIO_AUTO:
                 if (action.isChecked())
-                    mEditor.putString("pref_audio", "auto");
+                    Settings.putString("pref_audio", "auto");
                 break;
             case ID_AUDIO_MEDIACODEC:
                 if (action.isChecked())
-                    mEditor.putString("pref_audio", "mediacodec");
+                    Settings.putString("pref_audio", "mediacodec");
                 break;
             case ID_AUDIO_FFMPEG:
                 if (action.isChecked())
-                    mEditor.putString("pref_audio", "ffmpeg");
+                    Settings.putString("pref_audio", "ffmpeg");
                 break;
             case ID_ERROR_TOAST:
                 if (action.isChecked())
-                    mEditor.putString("pref_error_toast", "true");
+                    Settings.putString("pref_error_toast", "true");
                 else
-                    mEditor.putString("pref_error_toast", "false");
+                    Settings.putString("pref_error_toast", "false");
                 break;
             case ID_LETTERBOX_BLACK:
                 if (action.isChecked())
-                    mEditor.putString("pref_letterbox_color", String.valueOf(Color.BLACK));
+                    Settings.putString("pref_letterbox_color",group,
+                            String.valueOf(Color.BLACK));
                 else
-                    mEditor.putString("pref_letterbox_color", String.valueOf(Color.DKGRAY));
+                    Settings.putString("pref_letterbox_color",group,
+                            String.valueOf(Color.DKGRAY));
                 break;
             default:
                 return false;

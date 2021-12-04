@@ -145,13 +145,16 @@ public class PlaybackFragment extends VideoSupportFragment
     boolean mIsBounded = true;
     private long mOffsetBytes = 0;
     boolean mIsPlayResumable;
-    // Settings
+    // Settings - These are default values that will be changed if the video
+    // uses a different playback group
     private int mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd");
     private int mSkipBack = 1000 * Settings.getInt("pref_skip_back");
     private int mJump = 60000 * Settings.getInt("pref_jump");
     private String mAudio = Settings.getString("pref_audio");
     private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
     private int mSubtitleSize =  Settings.getInt("pref_subtitle_size");
+    private int mBgColor = Settings.getInt("pref_letterbox_color");
+    public boolean mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
 
     private View mFocusView;
     private Action mCurrentAction;
@@ -219,9 +222,8 @@ public class PlaybackFragment extends VideoSupportFragment
         // This also make controls difficult to see on light videos
         setBackgroundType(BG_LIGHT);
 
-        int bgColor = Settings.getInt("pref_letterbox_color");
         View view = getView();
-        view.setBackgroundColor(bgColor);
+        view.setBackgroundColor(mBgColor);
     }
 
     public void hideNavigation () {
@@ -261,7 +263,7 @@ public class PlaybackFragment extends VideoSupportFragment
     /**
      * Set a bookmark on MythTV.
      */
-    private void setBookmark() {
+    void setBookmark() {
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.myGetDuration();
         if (pos < 0)
@@ -466,6 +468,18 @@ public class PlaybackFragment extends VideoSupportFragment
     private void play(Video video) {
 
         mVideo = video;
+        // Settings
+        mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd",video.playGroup);
+        mSkipBack = 1000 * Settings.getInt("pref_skip_back",video.playGroup);
+        mJump = 60000 * Settings.getInt("pref_jump",video.playGroup);
+        mFrameMatch = "true".equals(Settings.getString("pref_framerate_match",video.playGroup));
+        mSubtitleSize =  Settings.getInt("pref_subtitle_size",video.playGroup);
+        mBgColor = Settings.getInt("pref_letterbox_color",video.playGroup);
+        mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump",video.playGroup));
+
+        View view = getView();
+        view.setBackgroundColor(mBgColor);
+
         if (mIsBounded) {
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);

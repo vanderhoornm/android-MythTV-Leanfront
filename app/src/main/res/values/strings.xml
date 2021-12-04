@@ -43,7 +43,6 @@
 
     <string name="search_results">Search results for \'%1$s\'</string>
     <string name="no_search_results">No search results found for \'%1$s\'</string>
-    <string name="global_search" translatable="false">GLOBALSEARCH</string>
     <string name="search_label">MythTV</string>
     <string name="search_hint">Search for videos and recordings</string>
     <string name="settings_description">MythTV Search Settings</string>
@@ -62,7 +61,6 @@
     </string>
 
     <string name="pref_title_settings">MythTV Settings</string>
-    <string name="playback_tag" translatable="false">PLAYBACK_TAG</string>
     <string name="pref_title_backend_ip">IP Address or DNS name</string>
     <string name="pref_title_backend">MythTV Backend</string>
     <string name="pref_title_myth_port">MythTV Backend Port</string>
@@ -71,7 +69,7 @@
     <string name="pref_bookmark_local">Store Bookmarks in Android</string>
     <string name="all_plus_tab">All&#9;</string>
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
-    <string name="pref_title_playback">Playback</string>
+    <string name="pref_title_playback">Playback: \%1$s\</string>
     <string name="pref_title_skip_back">Skip Back Seconds</string>
     <string name="pref_title_arrow_jump">Use Up/Down Arrows for Jump</string>
     <string name="pref_title_jump">Jump Minutes</string>
@@ -115,8 +113,8 @@
     <string name="pref_letterbox_black">Letterbox Black Matte</string>
     <string name="pref_letterbox_black_desc">If unchecked use Gray Matte</string>
     <string name="pref_msg_needs_6_0">Requires at least Android 6.0</string>
-    <string name="pref_tweaks_title">Tweaks</string>
-    <string name="pref_tweaks_desc">Please read the documentation on Tweaks before changing anything here.</string>
+    <string name="pref_tweaks_title">Advanced</string>
+    <string name="pref_tweaks_desc">Please read the documentation before changing TS Search Packets.</string>
     <string name="pref_tweak_ts_search_pkts">TS Search Packets (default 2600)</string>
     <string name="pref_livetv_rowsize">Number of Live TV channels per row (default 100)</string>
     <string name="pref_video_parental">Maximum Parental level for video list (default 4)</string>
@@ -323,5 +321,37 @@
     <string name="menu_exit_nosave">Exit Without Saving</string>
     <string name="guide_jump_to_channel">Jump to Channel Number</string>
 
+    <!--Fragment tag-->
+    <string name="playback_tag" translatable="false">PLAYBACK_TAG</string>
+
+    <!--Support for Global Search, never tested, may not work-->
+    <string name="global_search" translatable="false">GLOBALSEARCH</string>
+
+    <!--Settings default values, used in Settings.java-->
+    <string name="sdef_http_port" translatable="false">6544</string>
+    <string name="sdef_bookmark" translatable="false">mythtv</string>
+    <string name="sdef_skip_fwd" translatable="false">60</string>
+    <string name="sdef_skip_back" translatable="false">20</string>
+    <string name="sdef_seq" translatable="false">rectime</string>
+    <string name="sdef_seq_ascdesc" translatable="false">asc</string>
+    <string name="sdef_audio" translatable="false">auto</string>
+    <string name="sdef_arrow_jump" translatable="false">false</string>
+    <string name="sdef_jump" translatable="false">5</string>
+    <string name="sdef_livetv_duration" translatable="false">60</string>
+    <string name="sdef_framerate_match" translatable="false">false</string>
+    <string name="sdef_subtitle_size" translatable="false">100</string>
+    <string name="sdef_error_toast" translatable="false">false</string>
+    <string name="sdef_show_recents" translatable="false">true</string>
+    <string name="sdef_recents_deleted" translatable="false">false</string>
+    <string name="sdef_recents_watched" translatable="false">false</string>
+    <string name="sdef_recents_trim" translatable="false">true</string>
+    <string name="sdef_related_deleted" translatable="false">false</string>
+    <string name="sdef_related_watched" translatable="false">false</string>
+    <string name="sdef_recents_days" translatable="false">7</string>
+    <!--This value -12303292 is Dark Gray (Color.DKGRAY) -->
+    <string name="sdef_letterbox_color" translatable="false">-12303292</string>
+    <string name="sdef_tweak_ts_search_pkts" translatable="false">2600</string>
+    <string name="sdef_livetv_rowsize" translatable="false">100</string>
+    <string name="sdef_video_parental" translatable="false">4</string>
 
 </resources>

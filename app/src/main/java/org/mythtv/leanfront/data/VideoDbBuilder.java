@@ -60,6 +60,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_DESCRIPTION = "Description";
     public static final String XMLTAG_STORAGEGROUP = "StorageGroup";
     public static final String XMLTAG_RECGROUP = "RecGroup";
+    public static final String XMLTAG_PLAYGROUP = "PlayGroup";
     public static final String XMLTAG_RECORDEDID = "RecordedId";
     public static final String XMLTAG_RECORDID = "RecordId";
     public static final String XMLTAG_SEASON = "Season";
@@ -194,6 +195,7 @@ public class VideoDbBuilder {
             XmlNode recordingNode = null;
             int rectype = -1;
             String recGroup = null;
+            String playGroup = null;
             String storageGroup = null;
             String channel = null;
             String airdate = null;
@@ -214,6 +216,7 @@ public class VideoDbBuilder {
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)
                     recGroup = "Default";
+                playGroup = recordingNode.getString(XMLTAG_PLAYGROUP);
                 storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
                 channel = programNode.getString(XMLTAGS_CHANNELNAME);
                 airdate = programNode.getString(XMLTAG_AIRDATE);
@@ -249,6 +252,7 @@ public class VideoDbBuilder {
                 rectype = VideoContract.VideoEntry.RECTYPE_VIDEO;
                 recordingNode = programNode;
                 recGroup = null;
+                playGroup = null;
                 storageGroup = "Videos";
                 channel = null;
                 airdate = programNode.getString(XMLTAG_RELEASEDATE);
@@ -323,7 +327,7 @@ public class VideoDbBuilder {
             String cardImageURL = null;
             String dbFileName = null;
             dbFileName = videoFileName;
-            if (phase == 0) { // Recordings
+            if (phase == 0 && baseHostUrl.length() > 0) { // Recordings
                 cardImageURL = baseHostUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
             }
             if (phase == 1) { // Videos
@@ -358,6 +362,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_RECORDEDID, recordedid);
             videoValues.put(VideoContract.VideoEntry.COLUMN_STORAGEGROUP, storageGroup);
             videoValues.put(VideoContract.VideoEntry.COLUMN_RECGROUP, recGroup);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_PLAYGROUP, playGroup);
             videoValues.put(VideoContract.VideoEntry.COLUMN_SEASON, season);
             videoValues.put(VideoContract.VideoEntry.COLUMN_EPISODE, episode);
 

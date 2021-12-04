@@ -38,7 +38,7 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
 public class VideoDbHelper extends SQLiteOpenHelper {
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 14;
+    private static final int DATABASE_VERSION = 15;
 
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
@@ -54,7 +54,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 14) {
+        if (oldVersion < DATABASE_VERSION) {
             // On any upgrade just recreate this table
             db.execSQL("DROP TABLE IF EXISTS " + VideoEntry.TABLE_NAME);
             // Create a table to hold videos.
@@ -81,6 +81,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_RECORDEDID + " TEXT," +
                     VideoEntry.COLUMN_STORAGEGROUP + " TEXT," +
                     VideoEntry.COLUMN_RECGROUP + " TEXT," +
+                    VideoEntry.COLUMN_PLAYGROUP + " TEXT," +
                     VideoEntry.COLUMN_SEASON + " TEXT," +
                     VideoEntry.COLUMN_EPISODE + " TEXT," +
                     VideoEntry.COLUMN_PROGFLAGS + " TEXT," +
@@ -113,7 +114,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
         }
 
         // View for keeping track of recently watched
-        if (oldVersion < 14) {
+        if (oldVersion < DATABASE_VERSION) {
             final String DROP_VIEW = "DROP VIEW IF EXISTS " + VideoEntry.VIEW_NAME + ";";
             db.execSQL(DROP_VIEW);
             StringBuilder createView = new StringBuilder("CREATE VIEW " + VideoEntry.VIEW_NAME);
@@ -140,6 +141,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                         VideoEntry.COLUMN_RECORDEDID + " ," +
                         VideoEntry.COLUMN_STORAGEGROUP + " ," +
                         VideoEntry.COLUMN_RECGROUP + " ," +
+                        VideoEntry.COLUMN_PLAYGROUP + " ," +
                         VideoEntry.COLUMN_SEASON + " ," +
                         VideoEntry.COLUMN_EPISODE + " ," +
                         VideoEntry.COLUMN_PROGFLAGS + " ," +
@@ -171,6 +173,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_RECORDEDID + " ," +
                     VideoEntry.COLUMN_STORAGEGROUP + " ," +
                     VideoEntry.COLUMN_RECGROUP + " ," +
+                    VideoEntry.COLUMN_PLAYGROUP + " ," +
                     VideoEntry.COLUMN_SEASON + " ," +
                     VideoEntry.COLUMN_EPISODE + " ," +
                     VideoEntry.COLUMN_PROGFLAGS + " ," +

@@ -24,7 +24,6 @@
 
 package org.mythtv.leanfront.model;
 
-import android.content.SharedPreferences;
 import android.media.MediaDescription;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -48,6 +47,7 @@ public final class Video implements Parcelable, ListItem {
     public final String channel;
     public final String recordedid;
     public String recGroup;
+    public final String playGroup;
     // type takes one of the values in MainFragment to indicate
     // a type of UI element
     public int type;
@@ -140,6 +140,7 @@ public final class Video implements Parcelable, ListItem {
             final String channel,
             final String recordedid,
             final String recGroup,
+            final String playGroup,
             final String season,
             final String episode,
             final String airdate,
@@ -168,6 +169,7 @@ public final class Video implements Parcelable, ListItem {
         this.channel = channel;
         this.recordedid = recordedid;
         this.recGroup = recGroup;
+        this.playGroup = playGroup;
         this.season = season;
         this.episode = episode;
         this.airdate = airdate;
@@ -199,6 +201,7 @@ public final class Video implements Parcelable, ListItem {
         channel = in.readString();
         recordedid = in.readString();
         recGroup = in.readString();
+        playGroup = in.readString();
         season = in.readString();
         episode = in.readString();
         airdate = in.readString();
@@ -252,6 +255,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(channel);
         dest.writeString(recordedid);
         dest.writeString(recGroup);
+        dest.writeString(playGroup);
         dest.writeString(season);
         dest.writeString(episode);
         dest.writeString(airdate);
@@ -369,6 +373,7 @@ public final class Video implements Parcelable, ListItem {
         private String channel;
         private String recordedid;
         private String recGroup;
+        private String playGroup;
         private String season;
         private String episode;
         private String airdate;
@@ -442,6 +447,10 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder playGroup(String playGroup) {
+            this.playGroup = playGroup;
+            return this;
+        }
 
         public VideoBuilder season(String season) {
             this.season = season;
@@ -540,7 +549,7 @@ public final class Video implements Parcelable, ListItem {
                     String.valueOf(desc.getIconUri()),
                     String.valueOf(desc.getSubtitle()),
                     "", //recordid not provided
-                    "","","","","","","","","","","0","0","","","","", 0, false
+                    "","","","","","","","","","","","0","0","","","","", 0, false
             );
         }
 
@@ -557,6 +566,7 @@ public final class Video implements Parcelable, ListItem {
                     channel,
                     recordedid,
                     recGroup,
+                    playGroup,
                      season,
                      episode,
                      airdate,

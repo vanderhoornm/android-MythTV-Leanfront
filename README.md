@@ -36,6 +36,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Support for touch screen devices is usable, although it is not perfect.
 - Metadata lookup when scheduling recordings supports tvmaze and tmdb.
 - Note that some phones do not support MPEG-2 playback. There may be some android TV devices that do not support MPEG-2. NVidia shield supports MPEG-2 although there is a pixelation bug on some channels. Fire stick models since 2018 support MPEG-2. See https://developer.amazon.com/docs/fire-tv/device-specifications-fire-tv-streaming-media-player.html?v=ftvstick4k and select your model for full details.
+- Supports playback groups, allowing different values per playback group.
 
 ## Tips
 
@@ -83,9 +84,13 @@ There is support for the MythTV parental level on videos. It does not support th
 
 The settings icon on the tools row allows setup of the backend ip address and a number of options for this installation of leanfront.
 
-#### Tweaks
+#### Playback
 
-The tweaks section of settings provides for miscellaneous values that may need to be changed to suit unusual circumstances. Be careful when changing these as you may cause bad things to happen if you use inappropriate values.
+If you have playback groups defined in mythfrontend, the Playback section is repeated for each playback group. The settings can be varied for each playback group. When adding a playback group in mythfrontend, the new playback group will have default settings in leanfront. If you have a setting that you want to change for all playback groups, you have to set it here in each playback group.
+
+#### Advanced
+
+The advanced section of settings includes a value that may need to be changed to suit unusual circumstances. Be careful when changing it as you may cause bad things to happen if you use inappropriate values.
 
 - **TS Search Packets.** Increase this if when playing a recording or other TS file, the recording length does not show in the OSD, and you cannot use skips or bookmarks. The default value supplied with exoplayer is 600. I have set a default value of 2600 in leanfront. The value is limited to a range of 600 - 100,000. Increasing the value will cause the start of playback to take longer and use more memory. Also skips forwards and back will take longer. Thus it is best to make this the smallest value that works for you.
 

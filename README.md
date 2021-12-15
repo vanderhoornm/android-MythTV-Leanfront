@@ -52,6 +52,11 @@ Now, if you watched and deleted an episode yesterday, the deleted episode shows 
 
 In the case of Videos, the related list will show unwatched videos from the same directory. If you have all episodes of a series in one directory, this will make it easy to select the next episode to watch.
 
+### Copy recently viewed list to another device
+
+If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. There is a script to copy from one to another.
+See the section below titled "Copy from one Android device to another".
+
 ### Easily Schedule Recordings
 
 Using the search orb at the top of the page, you can search for a title using voice or keyboard. This will respond with a list of recordings that match as well as a list of matches in the program guide. If you press enter on an item from the program guide, you can create a recording rule to record all episodes, one episode, etc.
@@ -283,11 +288,31 @@ If the show that has been selected has a different name from what is shown in th
 
 The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can press enter to schedule or modify recordings. Note that to use voice search on Amazon Fire Stick you have to right arrow into the text entry field, then press the microphone button. Otherwise pressing the microphone button searches Amazon instead.
 
+## Extras
+
+### Copy from one Android device to another
+
+There is a script acopy.sh in the extras directory of the git repository. This has be be copied to a Linux system. It needs adb installed on the Linux system. acopy.sh can be used to copy settings and databases from one android device (e.g. fire stick) to another. Since the "Recently watched" list is stored locally it is different on each android device. Also local bookmarks are different per device. You can copy these from one device to another. The prior values on the receiving device are lost. There is no merging of databases this way.
+
+Run acopy.sh to see a list of options. 
+
+- Option --db to copy database. This copies the recently used list and local bookmarks (if you selected "Store Bookmarks in Android" in the Settngs).  
+- Option --settings to copy settings. This copies everything that was input from the Settings section.
+
+acopy.sh can be used for any application to copy any files, but it requires that the application be debuggable. The release builds of leanfront are debuggable, but most apps from the play store are not, so it will not work on those.
+
+#### Important Notes
+
+- Make sure you have set up debugging and authorized adb on both machines.
+- Before using acopy.sh make sure you exit from leanfront on both devices, not by pressing HOME, but by pressing BACK repeatedly until you get to the home screen.
+- Do not copy from a newer version to an older version of leanfront.
+
 ## Problems
 
 In earlier versions of leanfront, some recordings or videos may not play correctly, or may not play at all. In some cases,
-videos may play but the duration may not show in the OSD and skipping forward may not work.
-These problems have been fixed as far as I know. Please let me know if you experience this.
+videos may play but the duration may not show in the OSD and skipping forward may not work. These problems have been fixed as far as I know.
+If this still happens, try increasing the **TS Search Packets** in the Advanced section of Settings. See documentation of Settings above.
+Please let me know if you still experience this.
 
 In videos that have been cut or processed using mythtranscode, audio may be garbled.
 If the recording plays correctly with mythfrontend or VLC but not with leanfront,

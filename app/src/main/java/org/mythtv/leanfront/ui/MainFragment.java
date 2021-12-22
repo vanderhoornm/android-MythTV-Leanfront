@@ -540,7 +540,11 @@ public class MainFragment extends BrowseSupportFragment
                     String totalStr = grp.getAttribute("total");
                     long used = Long.parseLong(usedStr);
                     long total = Long.parseLong(totalStr);
-                    setUsage((int)(used * 100 / total));
+                    if (total > 0)
+                        setUsage((int)(used * 100 / total));
+                    else
+                        // If the total storage is 0 set usage as 100%
+                        setUsage(100);
                 }
                 break;
 

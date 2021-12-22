@@ -87,8 +87,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
 
     private static final String KEY_EXPAND = "EXPAND";
 
-    private SharedPreferences.Editor mEditor;
-
     private GuidedAction mBackendAction;
     private GuidedAction mAudioAction;
 
@@ -115,7 +113,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
-        mEditor = Settings.getEditor();
 
         List<GuidedAction> subActions = new ArrayList<>();
         subActions.add(new GuidedAction.Builder(getActivity())
@@ -414,6 +411,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
 
     @Override
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
+        SharedPreferences.Editor editor = Settings.getEditor();
         int id = (int) action.getId();
         int actualId = id % 100;
         int groupId = id / 100;
@@ -421,57 +419,57 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
         switch(actualId) {
             case ID_BACKEND_IP:
                 String newVal = action.getDescription().toString();
-                Settings.putString("pref_backend",newVal);
+                Settings.putString(editor, "pref_backend",newVal);
                 mBackendAction.setDescription(newVal);
                 notifyActionChanged(findActionPositionById(ID_BACKEND));
                 break;
             case ID_HTTP_PORT:
-                Settings.putString("pref_http_port",
+                Settings.putString(editor, "pref_http_port",
                     validateNumber(action, 1, 65535, 6544));
                 break;
             case ID_BACKEND_MAC:
-                Settings.putString("pref_backend_mac",action.getDescription().toString());
+                Settings.putString(editor, "pref_backend_mac",action.getDescription().toString());
                 break;
             case ID_SKIP_FWD:
-                Settings.putString("pref_skip_fwd",group,
+                Settings.putString(editor, "pref_skip_fwd",group,
                         action.getDescription().toString());
                 break;
             case ID_SKIP_BACK:
-                Settings.putString("pref_skip_back",group,
+                Settings.putString(editor, "pref_skip_back",group,
                         action.getDescription().toString());
                 break;
             case ID_JUMP:
-                Settings.putString("pref_jump",group,
+                Settings.putString(editor, "pref_jump",group,
                         action.getDescription().toString());
                 break;
             case ID_LIVETV_DURATION:
-                Settings.putString("pref_livetv_duration",
+                Settings.putString(editor, "pref_livetv_duration",
                         validateNumber(action, 30, 240, 60));
                 break;
             case ID_SUBTITLE_SIZE:
-                Settings.putString("pref_subtitle_size",group,
+                Settings.putString(editor, "pref_subtitle_size",group,
                         validateNumber(action, 25, 300, 100));
                 break;
             case ID_RECENTS_DAYS:
-                Settings.putString("pref_recents_days",
+                Settings.putString(editor, "pref_recents_days",
                         validateNumber(action, 1, 60, 7));
                 break;
             case ID_TWEAK_SEARCH_PKTS:
-                Settings.putString("pref_tweak_ts_search_pkts",
+                Settings.putString(editor, "pref_tweak_ts_search_pkts",
                         validateNumber(action, 600, 100000, 2600));
                 break;
             case ID_LIVETV_ROWSIZE:
-                Settings.putString("pref_livetv_rowsize",
+                Settings.putString(editor, "pref_livetv_rowsize",
                         validateNumber(action, 1, 100, 100));
                 break;
             case ID_VIDEO_PARENTAL:
-                Settings.putString("pref_video_parental",
+                Settings.putString(editor, "pref_video_parental",
                         validateNumber(action, 1, 4, 4));
                 break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
-        mEditor.apply();
+        editor.apply();
         return GuidedAction.ACTION_ID_CURRENT;
     }
 
@@ -541,6 +539,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
 
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
+        SharedPreferences.Editor editor = Settings.getEditor();
         int id = (int) action.getId();
         int actualId = id % 100;
         int groupId = id / 100;
@@ -548,105 +547,105 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
         switch(actualId) {
             case ID_BOOKMARK_LOCAL:
                 if (action.isChecked())
-                    Settings.putString("pref_bookmark", "local");
+                    Settings.putString(editor, "pref_bookmark", "local");
                 else
-                    Settings.putString("pref_bookmark", "mythtv");
+                    Settings.putString(editor, "pref_bookmark", "mythtv");
                 break;
             case ID_FRAMERATE_MATCH:
                 if (action.isChecked())
-                    Settings.putString("pref_framerate_match",group,"true");
+                    Settings.putString(editor, "pref_framerate_match",group,"true");
                 else
-                    Settings.putString("pref_framerate_match",group,"false");
+                    Settings.putString(editor, "pref_framerate_match",group,"false");
                 break;
             case ID_ARROW_JUMP:
                 if (action.isChecked())
-                    Settings.putString("pref_arrow_jump",group,"true");
+                    Settings.putString(editor, "pref_arrow_jump",group,"true");
                 else
-                    Settings.putString("pref_arrow_jump",group,"false");
+                    Settings.putString(editor, "pref_arrow_jump",group,"false");
                 break;
             case ID_SORT_ORIG_AIRDATE:
                 if (action.isChecked())
-                    Settings.putString("pref_seq", "airdate");
+                    Settings.putString(editor, "pref_seq", "airdate");
                 else
-                    Settings.putString("pref_seq", "rectime");
+                    Settings.putString(editor, "pref_seq", "rectime");
                 break;
             case ID_DESCENDING:
                 if (action.isChecked())
-                    Settings.putString("pref_seq_ascdesc", "desc");
+                    Settings.putString(editor, "pref_seq_ascdesc", "desc");
                 else
-                    Settings.putString("pref_seq_ascdesc", "asc");
+                    Settings.putString(editor, "pref_seq_ascdesc", "asc");
                 break;
             case ID_SHOW_RECENTS:
                 if (action.isChecked())
-                    Settings.putString("pref_show_recents", "true");
+                    Settings.putString(editor, "pref_show_recents", "true");
                 else
-                    Settings.putString("pref_show_recents", "false");
+                    Settings.putString(editor, "pref_show_recents", "false");
                 restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_DELETED:
                 if (action.isChecked())
-                    Settings.putString("pref_recents_deleted", "true");
+                    Settings.putString(editor, "pref_recents_deleted", "true");
                 else
-                    Settings.putString("pref_recents_deleted", "false");
+                    Settings.putString(editor, "pref_recents_deleted", "false");
                 if (! "true".equals(Settings.getString("pref_recents_watched")))
                     restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_WATCHED:
                 if (action.isChecked())
-                    Settings.putString("pref_recents_watched", "true");
+                    Settings.putString(editor, "pref_recents_watched", "true");
                 else
-                    Settings.putString("pref_recents_watched", "false");
+                    Settings.putString(editor, "pref_recents_watched", "false");
                 if (! "true".equals(Settings.getString("pref_recents_deleted")))
                     restart(ID_PROG_LIST_OPTIONS);
                 break;
             case ID_RECENTS_TRIM:
                 if (action.isChecked())
-                    Settings.putString("pref_recents_trim", "true");
+                    Settings.putString(editor, "pref_recents_trim", "true");
                 else
-                    Settings.putString("pref_recents_trim", "false");
+                    Settings.putString(editor, "pref_recents_trim", "false");
                 break;
             case ID_RELATED_DELETED:
                 if (action.isChecked())
-                    Settings.putString("pref_related_deleted", "true");
+                    Settings.putString(editor, "pref_related_deleted", "true");
                 else
-                    Settings.putString("pref_related_deleted", "false");
+                    Settings.putString(editor, "pref_related_deleted", "false");
                 break;
             case ID_RELATED_WATCHED:
                 if (action.isChecked())
-                    Settings.putString("pref_related_watched", "true");
+                    Settings.putString(editor, "pref_related_watched", "true");
                 else
-                    Settings.putString("pref_related_watched", "false");
+                    Settings.putString(editor, "pref_related_watched", "false");
                 break;
             case ID_AUDIO_AUTO:
                 if (action.isChecked())
-                    Settings.putString("pref_audio", "auto");
+                    Settings.putString(editor, "pref_audio", "auto");
                 break;
             case ID_AUDIO_MEDIACODEC:
                 if (action.isChecked())
-                    Settings.putString("pref_audio", "mediacodec");
+                    Settings.putString(editor, "pref_audio", "mediacodec");
                 break;
             case ID_AUDIO_FFMPEG:
                 if (action.isChecked())
-                    Settings.putString("pref_audio", "ffmpeg");
+                    Settings.putString(editor, "pref_audio", "ffmpeg");
                 break;
             case ID_ERROR_TOAST:
                 if (action.isChecked())
-                    Settings.putString("pref_error_toast", "true");
+                    Settings.putString(editor, "pref_error_toast", "true");
                 else
-                    Settings.putString("pref_error_toast", "false");
+                    Settings.putString(editor, "pref_error_toast", "false");
                 break;
             case ID_LETTERBOX_BLACK:
                 if (action.isChecked())
-                    Settings.putString("pref_letterbox_color",group,
+                    Settings.putString(editor, "pref_letterbox_color",group,
                             String.valueOf(Color.BLACK));
                 else
-                    Settings.putString("pref_letterbox_color",group,
+                    Settings.putString(editor, "pref_letterbox_color",group,
                             String.valueOf(Color.DKGRAY));
                 break;
             default:
                 return false;
         }
-        mEditor.apply();
+        editor.apply();
         notifyActionChanged(findActionPositionById(ID_PLAYBACK));
         mAudioAction.setDescription(audiodesc());
         notifyActionChanged(findActionPositionById(ID_AUDIO));

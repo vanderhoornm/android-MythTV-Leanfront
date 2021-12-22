@@ -53,7 +53,6 @@ public class VideoDetailsActivity extends LeanbackActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Settings.init(getApplicationContext());
         setContentView(R.layout.fragment_details);
         Fragment fragment =
                 getSupportFragmentManager().findFragmentById(R.id.details_fragment);

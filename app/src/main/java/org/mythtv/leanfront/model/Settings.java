@@ -19,11 +19,9 @@
 
 package org.mythtv.leanfront.model;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Color;
 
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
@@ -32,23 +30,14 @@ import org.mythtv.leanfront.MyApplication;
 
 public class Settings {
 
-    private SharedPreferences mPrefs;
-    private SharedPreferences.Editor mEditor;
-    private static Settings mSingleton;
-
     private Settings() {
     }
 
-    public static void init(Context context) {
-        if (mSingleton != null)
-            return;
-        mSingleton = new Settings();
-        mSingleton.mPrefs =  PreferenceManager.getDefaultSharedPreferences (context);
-        mSingleton.mEditor = mSingleton.mPrefs.edit();
-    }
-
     public static SharedPreferences.Editor getEditor() {
-        return mSingleton.mEditor;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences
+                (MyApplication.getAppContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        return editor;
     }
 
     // Omit the "pref_" prefix when calling this
@@ -58,11 +47,13 @@ public class Settings {
     public static String getString(String key, @Nullable String group) {
         if (key.startsWith("pref_"))
             key = key.substring(5);
-        if (mSingleton != null && mSingleton.mPrefs != null) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences
+                (MyApplication.getAppContext());
+        if (prefs != null) {
             if (group == null || group.equals("Default"))
                 group = "";
             String actualKey = "pref" + group + "_" + key;
-            String result = mSingleton.mPrefs.getString(actualKey, null);
+            String result = prefs.getString(actualKey, null);
             if (result == null) {
                 actualKey = "sdef" + "_" + key;
                 Context context = MyApplication.getAppContext();
@@ -99,18 +90,19 @@ public class Settings {
         return getInt(key,null);
     }
 
-    public static void putString(String key, @Nullable String group, String value) {
+    public static void putString(SharedPreferences.Editor editor, String key,
+                                 @Nullable String group, String value) {
         if (key.startsWith("pref_"))
             key = key.substring(5);
-        if (mSingleton.mEditor != null) {
+        if (editor != null) {
             if (group == null || group.equals("Default"))
                 group = "";
             String actualKey = "pref" + group + "_" + key;
-            mSingleton.mEditor.putString(actualKey,value);
+            editor.putString(actualKey,value);
         }
     }
 
-    public static void putString(String key, String value) {
-        putString(key, null, value);
+    public static void putString(SharedPreferences.Editor editor, String key, String value) {
+        putString(editor, key, null, value);
     }
 }

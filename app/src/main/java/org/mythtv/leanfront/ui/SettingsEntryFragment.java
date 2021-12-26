@@ -469,7 +469,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
-        editor.apply();
+        editor.commit();
         return GuidedAction.ACTION_ID_CURRENT;
     }
 
@@ -645,7 +645,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
             default:
                 return false;
         }
-        editor.apply();
+        editor.commit();
         notifyActionChanged(findActionPositionById(ID_PLAYBACK));
         mAudioAction.setDescription(audiodesc());
         notifyActionChanged(findActionPositionById(ID_AUDIO));

@@ -1658,8 +1658,8 @@ public class MainFragment extends BrowseSupportFragment
                             toastMsg = R.string.msg_no_delayshutdown;
                             toastLeng = Toast.LENGTH_LONG;
                             mVersionMessageShown = true;
-                            connection = true;
                         }
+                        connection = true;
                     } catch (IOException e) {
                         toastMsg = R.string.msg_no_connection;
                         toastLeng = Toast.LENGTH_LONG;

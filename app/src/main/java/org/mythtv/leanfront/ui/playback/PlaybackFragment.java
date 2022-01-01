@@ -93,6 +93,7 @@ import org.mythtv.leanfront.ui.VideoDetailsActivity;
 import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.SubtitleDecoderFactory;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.SubtitleView;
@@ -872,34 +873,38 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         if (trackSelection >= 0) {
             TrackEntry entry = tracks.trackList.get(trackSelection);
-            DefaultTrackSelector.SelectionOverride ovr
-                    = new DefaultTrackSelector.SelectionOverride(
-                    entry.ixTrackGroup, entry.ixTrack);
+            if (SubtitleDecoderFactory.DEFAULT.supportsFormat(entry.format)) {
+                DefaultTrackSelector.SelectionOverride ovr
+                        = new DefaultTrackSelector.SelectionOverride(
+                        entry.ixTrackGroup, entry.ixTrack);
 
-            MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
-            TrackGroupArray tga = mti.getTrackGroups(entry.ixRenderer);
-            DefaultTrackSelector.ParametersBuilder parms
-                    = mTrackSelector
-                    .buildUponParameters()
-                    .setSelectionOverride(entry.ixRenderer, tga, ovr);
-            if (disable)
-                parms = parms.setRendererDisabled(entry.ixRenderer, false);
-            // This line causes playback to pause when enabling subtitle
-            mTrackSelector.setParameters(parms);
-            String language = entry.format.language;
-            if (language == null) {
-                if (entry.format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
-                    language = trackSelection+1 + " " + getContext().getString(R.string.msg_subtitle_cc);
-                else
-                    language = String.valueOf(trackSelection+1);
+                MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
+                TrackGroupArray tga = mti.getTrackGroups(entry.ixRenderer);
+                DefaultTrackSelector.ParametersBuilder parms
+                        = mTrackSelector
+                        .buildUponParameters()
+                        .setSelectionOverride(entry.ixRenderer, tga, ovr);
+                if (disable)
+                    parms = parms.setRendererDisabled(entry.ixRenderer, false);
+                // This line causes playback to pause when enabling subtitle
+                mTrackSelector.setParameters(parms);
+                String language = entry.format.language;
+                if (language == null) {
+                    if (entry.format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
+                        language = trackSelection + 1 + " " + getContext().getString(R.string.msg_subtitle_cc);
+                    else
+                        language = String.valueOf(trackSelection + 1);
+                } else {
+                    Locale locale = new Locale(language);
+                    String langDesc = locale.getDisplayLanguage();
+                    language = trackSelection + 1 + " " + langDesc;
+                }
+                if (msgOn > 0)
+                    msg.append(getActivity().getString(msgOn, language));
+            } else {
+                msg.append(getActivity().getString(R.string.msg_subtitle_notsupp,
+                        entry.format.sampleMimeType));
             }
-            else {
-                Locale locale = new Locale(language);
-                String langDesc = locale.getDisplayLanguage();
-                language = trackSelection+1 + " " + langDesc;
-            }
-            if (msgOn > 0)
-                msg.append(getActivity().getString(msgOn, language));
         } else if (trackSelection == -1){
             if (tracks.trackList.size() > 0) {
                 for (int ix = 0; ix < tracks.renderList.size(); ix++) {

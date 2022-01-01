@@ -147,6 +147,7 @@
     <!-- In the next 2, %1 in the track number, %2 is the language if known
          in parens e.g (English) or empty string if not known -->
     <string name="msg_subtitle_on">Subtitle %1$s enabled.</string>
+    <string name="msg_subtitle_notsupp">Error: Subtitle type %1$s is not supported.</string>
     <string name="msg_subtitle_cc">Closed Caption</string>
     <string name="msg_audio_track">Audio Track %1$s enabled.</string>
     <string name="msg_no_audio_track">No Audio Track.</string>

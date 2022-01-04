@@ -873,7 +873,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         if (trackSelection >= 0) {
             TrackEntry entry = tracks.trackList.get(trackSelection);
-            if (SubtitleDecoderFactory.DEFAULT.supportsFormat(entry.format)) {
+            if (trackType != C.TRACK_TYPE_TEXT || SubtitleDecoderFactory.DEFAULT.supportsFormat(entry.format)) {
                 DefaultTrackSelector.SelectionOverride ovr
                         = new DefaultTrackSelector.SelectionOverride(
                         entry.ixTrackGroup, entry.ixTrack);

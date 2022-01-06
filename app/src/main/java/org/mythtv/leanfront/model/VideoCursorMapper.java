@@ -174,4 +174,15 @@ public final class VideoCursorMapper extends CursorMapper {
                 .showRecent(showRecent)
                 .build();
     }
+
+    private Cursor myCursor;
+    public void changeCursor(Cursor cursor) {
+        myCursor = cursor;
+    }
+
+    public Object get(int index) {
+        if (index >= 0)
+            myCursor.moveToPosition(index);
+        return convert(myCursor);
+    }
 }

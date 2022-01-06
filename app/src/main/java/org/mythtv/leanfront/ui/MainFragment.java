@@ -139,7 +139,7 @@ public class MainFragment extends BrowseSupportFragment
     private BackgroundManager mBackgroundManager;
     private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
     private CursorObjectAdapter videoCursorAdapter;
-    private int mType;
+    int mType;
     public static final String KEY_TYPE = "LEANFRONT_TYPE";
     // Type applicable to main screen
     public static final int TYPE_TOPLEVEL = 1;
@@ -172,11 +172,11 @@ public class MainFragment extends BrowseSupportFragment
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
     public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
     // mBase is the current recgroup or directory being displayed.
-    private String mBaseName;
-    private String mSelectedRowName;
-    private int mSelectedRowType = -1;
-    private String mSelectedItemId;
-    private int mSelectedItemType = -1;
+    String mBaseName;
+    String mSelectedRowName;
+    int mSelectedRowType = -1;
+    String mSelectedItemId;
+    int mSelectedItemType = -1;
     private TextView mUsageView;
 
     private static ScheduledExecutorService executor = null;
@@ -191,6 +191,8 @@ public class MainFragment extends BrowseSupportFragment
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
     private Loader loader;
+    private volatile boolean isLoaderRunning;
+    private static boolean NEWLOADER = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -206,9 +208,9 @@ public class MainFragment extends BrowseSupportFragment
             // delete stale entries from bookmark table
             String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
             // 60 days in milliseconds
-            String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L*24*60*60*1000)};
+            String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L * 24 * 60 * 60 * 1000)};
             // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
-            db.delete(VideoContract.StatusEntry.TABLE_NAME, where,selectionArgs);
+            db.delete(VideoContract.StatusEntry.TABLE_NAME, where, selectionArgs);
             db.close();
             // Initialize startup members
             if (executor != null)
@@ -226,7 +228,8 @@ public class MainFragment extends BrowseSupportFragment
             else
                 mSelectedRowType = TYPE_SERIES;
         }
-        startLoader();
+        if (!NEWLOADER)
+            startLoader();
     }
 
     private void setProgressBar(boolean show) {
@@ -252,25 +255,24 @@ public class MainFragment extends BrowseSupportFragment
             mUsageView.setTextSize(16.0f);
             mUsageView.setPadding(width / 15, height / 3, 0, 0);
             grp.addView(mUsageView, new FrameLayout.LayoutParams(width / 5, height,
-                    Gravity.TOP+Gravity.LEFT));
+                    Gravity.TOP + Gravity.LEFT));
             TextClock clock = new TextClock(getContext());
-            clock.setGravity(Gravity.BOTTOM+Gravity.RIGHT);
-            grp.addView(clock,new FrameLayout.LayoutParams(width/10, height/5,
-                    Gravity.BOTTOM+Gravity.RIGHT));
+            clock.setGravity(Gravity.BOTTOM + Gravity.RIGHT);
+            grp.addView(clock, new FrameLayout.LayoutParams(width / 10, height / 5,
+                    Gravity.BOTTOM + Gravity.RIGHT));
         }
-        mUsageView.setText(getContext().getResources().getString(R.string.title_disk_usage,used));
+        mUsageView.setText(getContext().getResources().getString(R.string.title_disk_usage, used));
     }
 
     /**
      * Fetch video list
      *
-     * @param rectype Set to -1 to fetch all, or to either
-     *                VideoContract.VideoEntry.RECTYPE_RECORDING or
-     *                VideoContract.VideoEntry.RECTYPE_VIDEO
+     * @param rectype    Set to -1 to fetch all, or to either
+     *                   VideoContract.VideoEntry.RECTYPE_RECORDING or
+     *                   VideoContract.VideoEntry.RECTYPE_VIDEO
      * @param recordedId Set to null, or recordedId if only one to be refreshed
-     * @param recGroup Set to a recordimng group if only that one is to
-     *                 be refreshed
-     *
+     * @param recGroup   Set to a recordimng group if only that one is to
+     *                   be refreshed
      */
     public void startFetch(int rectype, String recordedId, String recGroup) {
         if (rectype == -1)
@@ -285,8 +287,17 @@ public class MainFragment extends BrowseSupportFragment
 
     // Load user interface from local database.
     public void startLoader() {
+        int i = 1/0;
         LoaderManager manager = LoaderManager.getInstance(this);
         loader = manager.initLoader(CATEGORY_LOADER, null, this);
+    }
+
+    // Replacement for StartLoader. This needs to be called after any database update.
+    public synchronized void startAsyncLoader() {
+        if (!isLoaderRunning) {
+            new AsyncMainLoader().execute(this);
+            isLoaderRunning = true;
+        }
     }
 
     @Override
@@ -338,6 +349,8 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch(-1, null, null);
         }
+        if (NEWLOADER)
+            startAsyncLoader();
     }
 
     public static void restartMythTask() {
@@ -650,7 +663,7 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
+        int i = 1/0;
         String seq = Settings.getString("pref_seq");
         String ascdesc = Settings.getString("pref_seq_ascdesc");
         StringBuilder orderby = new StringBuilder();
@@ -769,8 +782,84 @@ public class MainFragment extends BrowseSupportFragment
         return titleSort;
     }
 
+    // replacement for onLoadFinished
+    // ArrayList return as follows
+    // Each entry is an ArrayList describing one row
+    // Each row arraylist has
+    //   [0] is a MyHeaderItem
+    //   [1] onwards are each a Video
+
+    public synchronized void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
+        // Every time we have to re-get the category loader, we must re-create the sidebar.
+        mCategoryRowAdapter.clear();
+        ListRow row;
+        for (int rownum = 0 ; rownum < list.size() ; rownum++) {
+            ArrayList<ListItem> rowList = list.get(rownum);
+            MyHeaderItem header = (MyHeaderItem) rowList.get(0);
+            ArrayObjectAdapter rowObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
+            rowList.remove(0);
+            if (rowList.size() > 0)
+                rowObjectAdapter.addAll(0, rowList);
+            row = new ListRow(header, rowObjectAdapter);
+            mCategoryRowAdapter.add(row);
+        }
+
+        // Create a row for tools.
+        MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.row_header_tools),
+                TYPE_TOOLS,mBaseName);
+        CardPresenter presenter = new CardPresenter();
+        ArrayObjectAdapter toolsRowAdapter = new ArrayObjectAdapter(presenter);
+        row = new ListRow(gridHeader, toolsRowAdapter);
+        mCategoryRowAdapter.add(row);
+
+        Video video = new Video.VideoBuilder()
+                .id(-1).title(getString(R.string.button_settings))
+                .subtitle("")
+                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                .progflags("0")
+                .build();
+        video.type = TYPE_SETTINGS;
+        toolsRowAdapter.add(video);
+
+        video = new Video.VideoBuilder()
+                .id(-1).title(getString(R.string.button_refresh_lists))
+                .subtitle("")
+                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                .progflags("0")
+                .build();
+        video.type = TYPE_REFRESH;
+        toolsRowAdapter.add(video);
+
+        video = new Video.VideoBuilder()
+                .id(-1).title(getString(R.string.button_backend_status))
+                .subtitle("")
+                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                .progflags("0")
+                .build();
+        video.type = TYPE_INFO;
+        toolsRowAdapter.add(video);
+
+        video = new Video.VideoBuilder()
+                .id(-1).title(getString(R.string.button_manage_recordings))
+                .subtitle("")
+                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                .progflags("0")
+                .build();
+        video.type = TYPE_MANAGE;
+        toolsRowAdapter.add(video);
+
+        if (loader.mSelectedRowNum != -1) {
+            SelectionSetter setter = new SelectionSetter(loader.mSelectedRowNum, loader.mSelectedItemNum);
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(setter, 100);
+        }
+        isLoaderRunning = false;
+        setProgressBar(false);
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        int i = 1/0;
         // the mLoadStarted check is needed because for some reason onLoadFinished
         // gets called every time the screen goes into the BG and this causes
         // the current selection and focus to be lost.
@@ -1551,7 +1640,8 @@ public class MainFragment extends BrowseSupportFragment
 
     public void onMenuClicked(Action action, Row row) {
         saveSelected();
-        loader.stopLoading();
+        if (!NEWLOADER)
+            loader.stopLoading();
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
         AsyncBackendCall call = new AsyncBackendCall(
@@ -1582,7 +1672,8 @@ public class MainFragment extends BrowseSupportFragment
                             builder.setMessage(msg);
                             builder.show();
                         }
-                        loader.startLoading();
+                        if (!NEWLOADER)
+                            loader.startLoading();
                     }
         });
         call.setBookmark(0);

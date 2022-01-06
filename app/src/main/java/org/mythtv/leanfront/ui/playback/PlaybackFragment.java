@@ -439,6 +439,8 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void enableTrack(int trackType, boolean enable) {
+        if (mTrackSelector == null)
+            return;
         MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
         if (mti == null)
             return;

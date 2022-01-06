@@ -129,6 +129,11 @@ public class FetchVideoService extends IntentService {
             db.close();
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);
+            MainFragment main = MainFragment.getActiveFragment();
+            if (main != null)
+                synchronized (main) {
+                    main.startAsyncLoader();
+                }
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);

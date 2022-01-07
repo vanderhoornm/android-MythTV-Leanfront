@@ -790,6 +790,9 @@ public class MainFragment extends BrowseSupportFragment
     //   [1] onwards are each a Video
 
     public synchronized void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
+        // Fill in disk usage
+        new AsyncBackendCall(null, 0L, false,
+                this).execute(Video.ACTION_BACKEND_INFO);
         // Every time we have to re-get the category loader, we must re-create the sidebar.
         mCategoryRowAdapter.clear();
         ListRow row;

@@ -381,6 +381,8 @@ public class PlaybackFragment extends VideoSupportFragment
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             audioFixTask = null;
+                            if (mPlaybackActionListener == null)
+                                return;
                             // Enable subtitle if necessary
                             if (setTracks && mTextSelection != -2)
                                 mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
@@ -397,6 +399,8 @@ public class PlaybackFragment extends VideoSupportFragment
                                     Thread.sleep(100);
                                 } catch (InterruptedException e) {
                                 }
+                                if (mPlaybackActionListener == null)
+                                    return;
                                 enableTrack(C.TRACK_TYPE_AUDIO, true);
                                 if (mPlaybackActionListener.sampleOffsetUs != 0)
                                     mPlaybackActionListener.setAudioSync();

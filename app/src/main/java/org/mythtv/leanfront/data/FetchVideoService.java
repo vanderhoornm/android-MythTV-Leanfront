@@ -105,7 +105,7 @@ public class FetchVideoService extends IntentService {
             }
             ContentValues[] downloadedVideoContentValues =
                     contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
-            VideoDbHelper dbh = new VideoDbHelper(this);
+            VideoDbHelper dbh = VideoDbHelper.getInstance(this);
             SQLiteDatabase db = dbh.getWritableDatabase();
             if (recType == -1)
                 db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table

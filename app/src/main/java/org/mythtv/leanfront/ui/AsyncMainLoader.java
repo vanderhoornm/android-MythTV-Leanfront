@@ -173,7 +173,7 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
 //        videoCursorAdapter.setMapper(new VideoCursorMapper());
 
         Context context = MyApplication.getAppContext();
-        VideoDbHelper dbh = new VideoDbHelper(context);
+        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
         SQLiteDatabase db = dbh.getReadableDatabase();
         Cursor cursor = db.query(
                 VideoContract.VideoEntry.VIEW_NAME,   // The table to query

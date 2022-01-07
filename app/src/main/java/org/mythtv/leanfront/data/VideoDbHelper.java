@@ -37,14 +37,25 @@ import org.mythtv.leanfront.data.VideoContract.StatusEntry;
  */
 public class VideoDbHelper extends SQLiteOpenHelper {
 
+    private static VideoDbHelper mInstance = null;
+
     // Change this when you change the database schema.
     private static final int DATABASE_VERSION = 15;
-
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
 
-    public VideoDbHelper(Context context) {
+    private VideoDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    public static VideoDbHelper getInstance(Context context) {
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (mInstance == null) {
+            mInstance = new VideoDbHelper(context.getApplicationContext());
+        }
+        return mInstance;
     }
 
     @Override

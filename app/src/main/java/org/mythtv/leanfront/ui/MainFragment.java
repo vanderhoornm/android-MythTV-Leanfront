@@ -203,7 +203,7 @@ public class MainFragment extends BrowseSupportFragment
         if (mType == TYPE_TOPLEVEL) {
             // Clear ip address cache
             XmlNode.clearCache();
-            VideoDbHelper dbh = new VideoDbHelper(getContext());
+            VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
             // delete stale entries from bookmark table
             String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";

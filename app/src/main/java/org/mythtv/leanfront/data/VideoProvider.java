@@ -61,7 +61,7 @@ public class VideoProvider extends ContentProvider {
     public boolean onCreate() {
         Context context = getContext();
         mContentResolver = context.getContentResolver();
-        mOpenHelper = new VideoDbHelper(context);
+        mOpenHelper = VideoDbHelper.getInstance(context);
         return true;
     }
 

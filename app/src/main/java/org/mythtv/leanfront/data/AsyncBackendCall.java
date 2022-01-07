@@ -244,7 +244,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // for a MythTV bookmark.
 
                         // Look for a local bookmark
-                        VideoDbHelper dbh = new VideoDbHelper(context);
+                        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getReadableDatabase();
 
                         // Define a projection that specifies which columns from the database
@@ -441,7 +441,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // Update local bookmark
 
                         // Gets the data repository in write mode
-                        VideoDbHelper dbh = new VideoDbHelper(context);
+                        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getWritableDatabase();
 
                         // Create a new map of values, where column names are the keys
@@ -500,7 +500,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
                 case Video.ACTION_REMOVE_RECENT: {
                     // Gets the data repository in write mode
-                    VideoDbHelper dbh = new VideoDbHelper(context);
+                    VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                     SQLiteDatabase db = dbh.getWritableDatabase();
                     // Create a new map of values, where column names are the keys
                     ContentValues values = new ContentValues();
@@ -668,7 +668,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 downloadedVideoContentValues);
 
                         // Get recording from DB
-                        VideoDbHelper dbh = new VideoDbHelper(context);
+                        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getReadableDatabase();
 
                         // Filter results

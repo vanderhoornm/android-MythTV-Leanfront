@@ -335,7 +335,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             return;
         }
         mPriorGridStartTime = mGridStartTime.getTime();
-        VideoDbHelper dbh = new VideoDbHelper(getContext());
+        VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
         SQLiteDatabase db = dbh.getReadableDatabase();
 
         // Define a projection that specifies which columns from the database

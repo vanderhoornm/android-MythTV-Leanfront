@@ -201,6 +201,15 @@ public class MainFragment extends BrowseSupportFragment
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
+            // Fire TV starts a new main activity if the application goes into
+            // the background and is then restarted. This shuts down that new
+            // activity so the previously active one will show.
+            // I believe this is a bug in Fire TV. NVidia shield does not create
+            // a new activity that way.
+            if (MainActivity.getContext() != null) {
+                getActivity().finish();
+                return;
+            }
             // Clear ip address cache
             XmlNode.clearCache();
             VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());

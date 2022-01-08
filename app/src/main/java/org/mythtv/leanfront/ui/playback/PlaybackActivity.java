@@ -66,8 +66,6 @@ public class PlaybackActivity extends LeanbackActivity {
         if (fragment instanceof PlaybackFragment) {
             mPlaybackFragment = (PlaybackFragment) fragment;
         }
-        // Prevent screen saver during playback
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Touch screen
         rewindListener = new RepeatListener(400,100,mPlaybackFragment,-1);
         ffListener = new RepeatListener(400,100,mPlaybackFragment,1);

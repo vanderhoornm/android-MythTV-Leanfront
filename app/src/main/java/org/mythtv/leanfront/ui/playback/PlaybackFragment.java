@@ -1459,6 +1459,18 @@ public class PlaybackFragment extends VideoSupportFragment
             handlePlayerError(ex, -1);
         }
 
+        @Override
+        public void onIsPlayingChanged(boolean isPlaying) {
+            if (isPlaying)
+                // Prevent screen saver during playback
+                getActivity().getWindow()
+                    .addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            else
+                // Enable screen saver during pause
+                getActivity().getWindow()
+                    .clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+
         private void handlePlayerError(Exception ex, int msgNum) {
             Throwable cause = null;
             if (ex != null)

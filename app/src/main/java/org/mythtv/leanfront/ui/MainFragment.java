@@ -30,7 +30,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -46,7 +45,6 @@ import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.CursorObjectAdapter;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
@@ -59,14 +57,10 @@ import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
 import androidx.leanback.widget.RowPresenter;
 import androidx.core.app.ActivityOptionsCompat;
-import androidx.leanback.widget.SparseArrayObjectAdapter;
 import androidx.leanback.widget.TitleViewAdapter;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
-import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
-import androidx.loader.content.CursorLoader;
-import androidx.loader.content.Loader;
 
 import android.os.Looper;
 import android.text.Html;
@@ -76,7 +70,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
 import android.widget.TextClock;
 import android.widget.TextView;
@@ -98,7 +91,6 @@ import org.mythtv.leanfront.model.ListItem;
 import org.mythtv.leanfront.model.MyHeaderItem;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
-import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
 import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
@@ -110,11 +102,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -123,7 +111,7 @@ import java.util.concurrent.TimeUnit;
  * Main class to show BrowseFragment with header and rows of videos
  */
 public class MainFragment extends BrowseSupportFragment
-        implements LoaderManager.LoaderCallbacks<Cursor>, AsyncBackendCall.OnBackendCallListener {
+        implements AsyncBackendCall.OnBackendCallListener {
 
     private static final String TAG = "lfe";
     private static final String CLASS = "MainFragment";
@@ -137,8 +125,6 @@ public class MainFragment extends BrowseSupportFragment
     private Runnable mBackgroundTask;
     private Uri mBackgroundURI;
     private BackgroundManager mBackgroundManager;
-    private static final int CATEGORY_LOADER = 123; // Unique ID for Category Loader.
-    private CursorObjectAdapter videoCursorAdapter;
     int mType;
     public static final String KEY_TYPE = "LEANFRONT_TYPE";
     // Type applicable to main screen
@@ -190,9 +176,7 @@ public class MainFragment extends BrowseSupportFragment
     private static int TASK_INTERVAL = 240;
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
-    private Loader loader;
     private volatile boolean isLoaderRunning;
-    private static boolean NEWLOADER = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -237,8 +221,6 @@ public class MainFragment extends BrowseSupportFragment
             else
                 mSelectedRowType = TYPE_SERIES;
         }
-        if (!NEWLOADER)
-            startLoader();
     }
 
     private void setProgressBar(boolean show) {
@@ -292,13 +274,6 @@ public class MainFragment extends BrowseSupportFragment
         serviceIntent.putExtra(FetchVideoService.RECORDEDID, recordedId);
         serviceIntent.putExtra(FetchVideoService.RECGROUP, recGroup);
         getActivity().startService(serviceIntent);
-    }
-
-    // Load user interface from local database.
-    public void startLoader() {
-        int i = 1/0;
-        LoaderManager manager = LoaderManager.getInstance(this);
-        loader = manager.initLoader(CATEGORY_LOADER, null, this);
     }
 
     // Replacement for StartLoader. This needs to be called after any database update.
@@ -358,8 +333,7 @@ public class MainFragment extends BrowseSupportFragment
         if (mFetchTime < System.currentTimeMillis() - 60*60*1000) {
             startFetch(-1, null, null);
         }
-        if (NEWLOADER)
-            startAsyncLoader();
+        startAsyncLoader();
     }
 
     public static void restartMythTask() {
@@ -394,8 +368,7 @@ public class MainFragment extends BrowseSupportFragment
             if (selectedItemNum >= 0) {
                 ObjectAdapter itemAdapter = selectedRow.getAdapter();
                 if (itemAdapter != null
-                    && (itemAdapter instanceof SparseArrayObjectAdapter
-                        || selectedItemNum < itemAdapter.size())) {
+                    && (selectedItemNum < itemAdapter.size())) {
                     Video item = (Video) itemAdapter.get(selectedItemNum);
                     if (item != null) {
                         mSelectedItemId = item.recordedid;
@@ -670,104 +643,6 @@ public class MainFragment extends BrowseSupportFragment
         getActivity().startService(recommendationIntent);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        int i = 1/0;
-        String seq = Settings.getString("pref_seq");
-        String ascdesc = Settings.getString("pref_seq_ascdesc");
-        StringBuilder orderby = new StringBuilder();
-        StringBuilder selection = new StringBuilder();
-        String [] selectionArgs = null;
-
-        /*
-        SQL "order by" is complicated. Below are examples for the various cases
-
-        Top Level list or Videos list
-            CASE WHEN rectype = 3 THEN 1 ELSE rectype END,
-            CASE WHEN rectype = 2
-             THEN REPLACE(REPLACE(REPLACE('/'||UPPER(filename),'/THE ','/'),'/A ','/'),'/AN ','/')
-             ELSE NULL END,
-            recgroup,
-            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
-            starttime asc, airdate asc
-
-        Recording Group list
-            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
-            starttime asc, airdate asc
-
-        LiveTV list
-            CAST (channum as real), channum,
-            REPLACE(REPLACE(REPLACE('^'||UPPER(suggest_text_1),'^THE ','^'),'^A ','^'),'^AN ','^'),
-            starttime asc, airdate asc
-         */
-
-        if (mType == TYPE_TOPLEVEL || mType == TYPE_VIDEODIR) {
-            // This case will sort channels together with videos
-            orderby.append("CASE WHEN ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
-            orderby.append(VideoContract.VideoEntry.RECTYPE_CHANNEL);
-            orderby.append(" THEN ").append(VideoContract.VideoEntry.RECTYPE_RECORDING);
-            orderby.append(" ELSE ").append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" END, ");
-            orderby.append("CASE WHEN ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
-            orderby.append(VideoContract.VideoEntry.RECTYPE_VIDEO).append(" THEN ");
-            StringBuilder fnSort = makeTitleSort(VideoContract.VideoEntry.COLUMN_FILENAME, '/');
-            orderby.append(fnSort);
-            orderby.append(" ELSE NULL END, ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(", ");
-        }
-        // for Recording Group page, limit selection to those recordings.
-        if (mType == TYPE_RECGROUP) {
-            // Only the "All" recgroup basename ends with \t
-            if (!mBaseName.endsWith("\t")) {
-                selection.append(VideoContract.VideoEntry.COLUMN_RECGROUP).append(" = ? ");
-                selectionArgs = new String[1];
-                selectionArgs[0] = mBaseName;
-                if (mBaseName.equals("LiveTV")) {
-                    orderby.append("CAST (").append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(" as real), ");
-                    orderby.append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(", ");
-                }
-            }
-        }
-        // for Video Directory page, limit selection to videos
-        if (mType == TYPE_VIDEODIR) {
-            selection.append(VideoContract.VideoEntry.COLUMN_RECTYPE).append(" = ");
-            selection.append(VideoContract.VideoEntry.RECTYPE_VIDEO);
-        }
-
-        StringBuilder titleSort = makeTitleSort(VideoContract.VideoEntry.COLUMN_TITLE, '^');
-        orderby.append(titleSort).append(", ");
-        if ("airdate".equals(seq)) {
-            orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
-                    .append(ascdesc).append(", ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
-                    .append(ascdesc);
-        }
-        else {
-            orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
-                    .append(ascdesc).append(", ");
-            orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
-                    .append(ascdesc);
-        }
-
-        // Add recordedid to sort for in case of duplicates or split recordings
-        orderby.append(", ").append(VideoContract.VideoEntry.COLUMN_RECORDEDID).append(" ")
-                .append(ascdesc);
-
-        Loader ret = new CursorLoader(
-                getContext(),
-                VideoContract.VideoEntry.CONTENT_URI, // Table to query
-                null, // Projection to return - null means return all fields
-                selection.toString(), // Selection clause
-                selectionArgs,  // Select based on the category id.
-                orderby.toString());
-        // Map video results from the database to Video objects.
-        videoCursorAdapter =
-                new CursorObjectAdapter(new CardPresenter());
-        videoCursorAdapter.setMapper(new VideoCursorMapper());
-        return ret;
-    }
-
     static final String[] articles = MyApplication.getAppContext().getResources().getStringArray(R.array.title_sort_articles);
     /**
      * Create the Sql to sort with excluding articles "the" "a" etc at the front
@@ -799,6 +674,8 @@ public class MainFragment extends BrowseSupportFragment
     //   [1] onwards are each a Video
 
     public synchronized void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
+        if (getContext() == null)
+            return;
         // Fill in disk usage
         new AsyncBackendCall(null, 0L, false,
                 this).execute(Video.ACTION_BACKEND_INFO);
@@ -867,531 +744,6 @@ public class MainFragment extends BrowseSupportFragment
         }
         isLoaderRunning = false;
         setProgressBar(false);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        int i = 1/0;
-        // the mLoadStarted check is needed because for some reason onLoadFinished
-        // gets called every time the screen goes into the BG and this causes
-        // the current selection and focus to be lost.
-        if (videoCursorAdapter != null && data != null) {
-            // Fill in usage
-            new AsyncBackendCall(null, 0L, false,
-                    MainFragment.this).execute(Video.ACTION_BACKEND_INFO);
-
-            String seq = Settings.getString("pref_seq");
-            String ascdesc = Settings.getString("pref_seq_ascdesc");
-            boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
-            boolean recentsTrim = "true".equals(Settings.getString("pref_recents_trim"));
-            boolean showRecentDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
-            boolean showRecentWatched = "true".equals(Settings.getString("pref_recents_watched"));
-            recentsTrim = recentsTrim && (showRecentDeleted || showRecentWatched);
-
-            int allType = TYPE_RECGROUP_ALL;
-            String allTitle = null;
-            if (mType == TYPE_TOPLEVEL) {
-                allTitle = getString(R.string.all_title) + "\t";
-                allType = TYPE_TOP_ALL;
-            }
-            if (mType == TYPE_RECGROUP) {
-                if (!mBaseName.endsWith("\t"))
-                    allTitle = mBaseName + "\t";
-                allType = TYPE_RECGROUP_ALL;
-            }
-
-            final int loaderId = loader.getId();
-            if (loaderId == CATEGORY_LOADER) {
-                int rectypeIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECTYPE);
-                int recgroupIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECGROUP);
-                int titleIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
-                int airdateIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_AIRDATE);
-                int starttimeIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_STARTTIME);
-                int filenameIndex =
-                        data.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
-                SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat dbTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                int sortkey;
-                SimpleDateFormat sortKeyFormat;
-                if ("airdate".equals(seq)) {
-                    sortkey = airdateIndex;
-                    sortKeyFormat = dbDateFormat;
-                }
-                else {
-                    sortkey = starttimeIndex;
-                    sortKeyFormat = dbTimeFormat;
-                }
-                boolean cursorHasData = data.moveToFirst();
-                int selectedRowNum = -1;
-                int selectedItemNum = -1;
-
-                // Every time we have to re-get the category loader, we must re-create the sidebar.
-                mCategoryRowAdapter.clear();
-                ArrayObjectAdapter rowObjectAdapter = null;
-                SparseArrayObjectAdapter allObjectAdapter = null;
-                SparseArrayObjectAdapter recentsObjectAdapter = null;
-                ArrayObjectAdapter rootObjectAdapter = null;
-                videoCursorAdapter.changeCursor(data);
-
-                String currentCategory = null;
-                int currentRowType = -1;
-                String currentItem = null;
-                int currentRowNum = -1;
-                int allRowNum = -1;
-                int recentsRowNum = -1;
-                int rootRowNum = -1;
-                MyHeaderItem header;
-                ListRow row;
-
-                // Create the recents row, only for top level
-                if (mType == TYPE_TOPLEVEL && showRecents) {
-                    String title = getString(R.string.recents_title) + "\t";
-                    header = new MyHeaderItem(title, TYPE_RECENTS, mBaseName);
-                    recentsObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
-                    row = new ListRow(header, recentsObjectAdapter);
-                    row.setContentDescription(title);
-                    mCategoryRowAdapter.add(row);
-                    recentsRowNum = mCategoryRowAdapter.size() - 1;
-                    if (mSelectedRowType == TYPE_RECENTS
-                            && Objects.equals(title,mSelectedRowName))
-                        selectedRowNum = recentsRowNum;
-                }
-
-                // Create "All" row (but not for videos)
-                if (mType != TYPE_VIDEODIR) {
-                    header = new MyHeaderItem(allTitle,
-                            allType, mBaseName);
-                    allObjectAdapter = new SparseArrayObjectAdapter(new CardPresenter());
-                    row = new ListRow(header, allObjectAdapter);
-                    row.setContentDescription(allTitle);
-                    mCategoryRowAdapter.add(row);
-                    allRowNum = mCategoryRowAdapter.size() - 1;
-                    if (mSelectedRowType == allType
-                            && Objects.equals(allTitle,mSelectedRowName))
-                        selectedRowNum = allRowNum;
-                }
-
-                // Create "Root" row
-                if (mType == TYPE_VIDEODIR) {
-                    String rootTitle = "\t";
-                    header = new MyHeaderItem(rootTitle,
-                            TYPE_VIDEODIR,mBaseName);
-                    rootObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
-                    row = new ListRow(header, rootObjectAdapter);
-                    row.setContentDescription(rootTitle);
-                    mCategoryRowAdapter.add(row);
-                    rootRowNum = mCategoryRowAdapter.size() - 1;
-                    if (mSelectedRowType == TYPE_VIDEODIR
-                            && Objects.equals(rootTitle,mSelectedRowName))
-                        selectedRowNum = rootRowNum;
-                }
-
-                // Iterate through each category entry and add it to the ArrayAdapter.
-                while (cursorHasData && !data.isAfterLast()) {
-
-                    boolean addToRow = true;
-                    int itemType = -1;
-                    int rowType = -1;
-
-                    String recgroup = data.getString(recgroupIndex);
-                    int rectype = data.getInt(rectypeIndex);
-
-                    String category = null;
-                    Video video = (Video) videoCursorAdapter.get(data.getPosition());
-                    Video dbVideo = video;
-
-                    // For Rec Group type, only use recordings from that recording group.
-                    // categories are titles.
-                    if (mType == TYPE_RECGROUP) {
-                        category = data.getString(titleIndex);
-                        if (recgroup != null
-                            && (getString(R.string.all_title) + "\t").equals(mBaseName)) {
-                            // Do not mix deleted episodes or LiveTV in the All group
-                            if ("Deleted".equals(recgroup) || "LiveTV".equals(recgroup)) {
-                                data.moveToNext();
-                                continue;
-                            }
-                        } else {
-                            if (!Objects.equals(mBaseName,recgroup)) {
-                                data.moveToNext();
-                                continue;
-                            }
-                        }
-                        if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
-                            rowType = TYPE_SERIES;
-                            itemType = TYPE_EPISODE;
-                        }
-                        else if (rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
-                            rowType = TYPE_CHANNEL_ALL;
-                            itemType = TYPE_CHANNEL;
-                        }
-                    }
-
-                    // For Top Level type, only use 1 recording from each title
-                    // categories are recgroups
-                    String filename = data.getString(filenameIndex);
-                    String [] fileparts;
-                    String dirname = null;
-                    String itemname = null;
-                    // Split file name and see if it is a directory
-                    if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO && filename != null) {
-                        String shortName = filename;
-                        // itemlevel 0 means there is only one row for all
-                        // videos so the first part of the name is the entry
-                        // in the row.
-                        int itemlevel = 1;
-                        if (mType == TYPE_VIDEODIR) {
-                            // itemlevel 1 means there is one row for each
-                            // directory so the second part of the name is the entry
-                            // in the row.
-                            itemlevel = 2;
-                            if (mBaseName.length() == 0)
-                                shortName = filename;
-                            else if (shortName.startsWith(mBaseName + "/"))
-                                shortName = filename.substring(mBaseName.length()+1);
-                            else {
-                                data.moveToNext();
-                                continue;
-                            }
-                        }
-                        fileparts = shortName.split("/");
-                        if (fileparts.length == 1 || mType == TYPE_TOPLEVEL) {
-                            itemname = fileparts[0];
-                        }
-                        else {
-                            dirname = fileparts[0];
-                            itemname = fileparts[1];
-                        }
-                        if ((fileparts.length <= 2 && mType == TYPE_VIDEODIR)
-                                || fileparts.length == 1)
-                            itemType = TYPE_VIDEO;
-                        else
-                            itemType = TYPE_VIDEODIR;
-                        if (itemType == TYPE_VIDEODIR && Objects.equals(itemname,currentItem)) {
-                            itemType = TYPE_VIDEO;
-                            addToRow = false;
-                        }
-                        else
-                            currentItem = itemname;
-                    }
-
-                    if (mType == TYPE_TOPLEVEL) {
-                        if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
-                            category = getString(R.string.row_header_videos)+ "\t";
-                            rowType = TYPE_VIDEODIR_ALL;
-                        }
-                        else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
-                                || rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
-                            category = recgroup;
-                            String title;
-                            if (rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL)
-                                title = "Channels\t";
-                            else
-                                title = data.getString(titleIndex);
-                            if (Objects.equals(title,currentItem)) {
-                                addToRow = false;
-                            }
-                            else {
-                                currentItem = title;
-                                rowType = TYPE_RECGROUP;
-                                itemType = TYPE_SERIES;
-                            }
-                        }
-                    }
-
-                    // For Video Directory type, only use videos (recgroup null)
-                    // category is full directory name.
-                    // Only one videos page
-                    // First is "all" row, then "root" row, then dir rows
-                    // mBaseName = "Videos" String
-                    // Display = "Videos" String
-                    if (mType == TYPE_VIDEODIR) {
-                        category = dirname;
-                        rowType = TYPE_VIDEODIR;
-                    }
-
-                    // Change of row
-                    if (addToRow && category != null && !Objects.equals(category,currentCategory)) {
-                        // Finish off prior row
-                        if (rowObjectAdapter != null) {
-                            // Create header for this category.
-                            header = new MyHeaderItem(currentCategory,
-                                    currentRowType,mBaseName);
-                            row = new ListRow(header, rowObjectAdapter);
-                            row.setContentDescription(currentCategory);
-                            mCategoryRowAdapter.add(row);
-                        }
-                        currentRowNum = mCategoryRowAdapter.size();
-                        currentRowType = rowType;
-                        rowObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
-                        currentCategory = category;
-                        if (mSelectedRowType == rowType
-                                && Objects.equals(currentCategory,mSelectedRowName))
-                            selectedRowNum = currentRowNum;
-                    }
-
-                    // If a directory, create a placeholder for directory name
-                    if (itemType == TYPE_VIDEODIR)
-                        video = new Video.VideoBuilder()
-                                .id(-1).title(itemname)
-                                .recordedid(itemname)
-                                .subtitle("")
-                                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                                .progflags("0")
-                                .build();
-                    video.type = itemType;
-
-                    // Add video to row
-                    if (addToRow && category != null) {
-                        Video tVideo = video;
-                        if (mType == TYPE_TOPLEVEL && video.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
-                            // Create dummy video for "All Channels"
-                            tVideo = new Video.VideoBuilder()
-                                    .id(-1).channel(getString(R.string.row_header_channels))
-                                    .rectype(VideoContract.VideoEntry.RECTYPE_CHANNEL)
-                                    .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                                    .progflags("0")
-                                    .build();
-                            tVideo.type = TYPE_CHANNEL_ALL;
-                        }
-                        rowObjectAdapter.add(tVideo);
-                        if (selectedRowNum == currentRowNum) {
-                            if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(mSelectedItemId,video.recordedid))
-                                selectedItemNum = rowObjectAdapter.size() - 1;
-                        }
-                    }
-
-                    // Add video to "Root" row
-                    if (addToRow && rootObjectAdapter != null
-                        && category == null) {
-                        rootObjectAdapter.add(video);
-                        if (selectedRowNum == rootRowNum) {
-                            if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(video.recordedid,mSelectedItemId))
-                                selectedItemNum = rootObjectAdapter.size() - 1;
-                        }
-                    }
-
-                    // Add video to "All" row
-                    if (addToRow && allObjectAdapter != null && rowType != TYPE_VIDEODIR_ALL
-                        && rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
-                        && !(mType == TYPE_TOPLEVEL && "Deleted".equals(recgroup))) {
-                        int position = 0;
-                        String sortKeyStr = data.getString(sortkey);
-                        if (sortKeyStr != null) {
-                            try {
-                                Date date = sortKeyFormat.parse(sortKeyStr);
-                                // 525960 minutes in a year
-                                // Get position as number of minutes since 1970
-                                position = (int) (date.getTime() / 60000L);
-                                // Add 70 years in case it is before 1970
-                                position += 36817200;
-                                if ("desc".equals(ascdesc))
-                                    position = Integer.MAX_VALUE - position;
-                            } catch (ParseException | NullPointerException e) {
-                                e.printStackTrace();
-                                position = 0;
-                            }
-                        }
-                        // Make sure we have an empty slot
-                        try {
-                            while (allObjectAdapter.lookup(position) != null)
-                                position++;
-                        } catch (ArrayIndexOutOfBoundsException e) { }
-
-                        allObjectAdapter.set(position,video);
-
-                        if (selectedRowNum == allRowNum) {
-                            if (video.getItemType() == mSelectedItemType
-                                    && Objects.equals(video.recordedid,mSelectedItemId))
-                                selectedItemNum = position;
-                        }
-                    }
-
-                    // Add to recents row if applicable
-                    if (recentsObjectAdapter != null
-                            && dbVideo.isRecentViewed()) {
-                        // 525960 minutes in a year
-                        // Get key as number of minutes since 1970
-                        // Will stop working in the year 5982
-                        int key = (int) (dbVideo.lastUsed / 60000L);
-                        // Add 70 years in case it is before 1970
-                        key += 36817200;
-                        // descending
-                        key = Integer.MAX_VALUE - key;
-                        // Make sure we have an empty slot
-                        try {
-                            while (recentsObjectAdapter.lookup(key) != null)
-                                key++;
-                        } catch (ArrayIndexOutOfBoundsException e) { }
-
-                        if (selectedRowNum == recentsRowNum) {
-                            if (dbVideo.getItemType() == mSelectedItemType
-                                    && Objects.equals(dbVideo.recordedid, mSelectedItemId))
-                                selectedItemNum = key;
-                        }
-
-                        // Check if there is already an entry for that series / directory
-                        // If the user does not want duplicates of recent titles that were
-                        // watched or deleted
-
-                        boolean isDeleted = "Deleted".equals(dbVideo.recGroup);
-                        boolean isWatched = dbVideo.isWatched();
-                        if (recentsTrim) {
-
-                            // If all recently viewed episodes of a series are watched/deleted, show the most
-                            // recently viewed.
-                            // If some recently viewed episodes of a series are watched/deleted and some are not,
-                            // show only the ones not watched/deleted
-
-                            String series = dbVideo.getSeries();
-                            if (series != null) {
-                                for (int fx = 0; fx < recentsObjectAdapter.size(); fx++) {
-                                    Video fvid = (Video) recentsObjectAdapter.get(fx);
-                                    boolean fisDeleted = "Deleted".equals(fvid.recGroup);
-                                    if (series.equals(fvid.getSeries())
-                                            && (isDeleted || fisDeleted || Objects.equals(dbVideo.recGroup,fvid.recGroup))) {
-                                        int fkey = Integer.MAX_VALUE - ((int) (fvid.lastUsed / 60000L) + 36817200);
-                                        boolean fisWatched = fvid.isWatched();
-                                        if ((isDeleted || isWatched) && (fisDeleted || fisWatched)) {
-                                            // If the episode we are processing is watched/deleted and the matched
-                                            // episode in the list is also, keep the most recent
-                                            if (key < fkey) {
-                                                if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
-                                                    selectedItemNum = key;
-                                                // position is closer to front, delete the other one
-                                                recentsObjectAdapter.clear(fkey);
-                                                break;
-                                            } else {
-                                                if (selectedRowNum == recentsRowNum && selectedItemNum == key)
-                                                    selectedItemNum = fkey;
-                                                // position is later in list - drop this one
-                                                key = -1;
-                                                break;
-                                            }
-                                        } else if (isDeleted || isWatched) {
-                                            // If the episode we are processing is watched/deleted and the matched
-                                            // episode in the list is not, keep the non-watched
-                                            if (selectedRowNum == recentsRowNum && selectedItemNum == key)
-                                                selectedItemNum = fkey;
-                                            key = -1;
-                                            break;
-                                        } else if (fisDeleted || fisWatched) {
-                                            // If the episode we are processing is not watched/deleted and the matched
-                                            // episode in the list is, keep the non-watched
-                                            if (selectedRowNum == recentsRowNum && selectedItemNum == fkey)
-                                                selectedItemNum = key;
-                                            recentsObjectAdapter.clear(fkey);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (key != -1)
-                            recentsObjectAdapter.set(key, dbVideo);
-                    }
-
-                    data.moveToNext();
-                }
-                // Finish off prior row
-                if (rowObjectAdapter != null) {
-                    // Create header for this category.
-                    header = new MyHeaderItem(currentCategory,
-                            currentRowType,mBaseName);
-                    row = new ListRow(header, rowObjectAdapter);
-                    mCategoryRowAdapter.add(row);
-                }
-
-                // Remove recents if empty
-                if (recentsObjectAdapter != null && recentsObjectAdapter.size() == 0) {
-                    mCategoryRowAdapter.removeItems(recentsRowNum,1);
-                    if (selectedRowNum > 0)
-                        selectedRowNum --;
-                }
-
-                // Create a row for tools.
-                MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.row_header_tools),
-                        TYPE_TOOLS,mBaseName);
-                CardPresenter presenter = new CardPresenter();
-                ArrayObjectAdapter toolsRowAdapter = new ArrayObjectAdapter(presenter);
-                row = new ListRow(gridHeader, toolsRowAdapter);
-                mCategoryRowAdapter.add(row);
-
-                Video video = new Video.VideoBuilder()
-                        .id(-1).title(getString(R.string.button_settings))
-                        .subtitle("")
-                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                        .progflags("0")
-                        .build();
-                video.type = TYPE_SETTINGS;
-                toolsRowAdapter.add(video);
-
-                video = new Video.VideoBuilder()
-                        .id(-1).title(getString(R.string.button_refresh_lists))
-                        .subtitle("")
-                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                        .progflags("0")
-                        .build();
-                video.type = TYPE_REFRESH;
-                toolsRowAdapter.add(video);
-
-                video = new Video.VideoBuilder()
-                        .id(-1).title(getString(R.string.button_backend_status))
-                        .subtitle("")
-                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                        .progflags("0")
-                        .build();
-                video.type = TYPE_INFO;
-                toolsRowAdapter.add(video);
-
-                video = new Video.VideoBuilder()
-                        .id(-1).title(getString(R.string.button_manage_recordings))
-                        .subtitle("")
-                        .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                        .progflags("0")
-                        .build();
-                video.type = TYPE_MANAGE;
-                toolsRowAdapter.add(video);
-
-                if (selectedRowNum == allRowNum) {
-                    if (allObjectAdapter == null)
-                        selectedItemNum = -1;
-                    else
-                        selectedItemNum = allObjectAdapter.indexOf(selectedItemNum);
-                }
-
-                if (selectedRowNum == recentsRowNum) {
-                    if (recentsObjectAdapter == null)
-                        selectedItemNum = -1;
-                    else
-                        selectedItemNum = recentsObjectAdapter.indexOf(selectedItemNum);
-                }
-
-                if (selectedRowNum != -1) {
-                    SelectionSetter setter = new SelectionSetter(selectedRowNum, selectedItemNum);
-
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(setter, 100);
-                }
-            }
-            setProgressBar(false);
-        }
-    }
-
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        int loaderId = loader.getId();
-        if (loaderId == CATEGORY_LOADER)
-            mCategoryRowAdapter.clear();
     }
 
     public int getType() {
@@ -1652,14 +1004,14 @@ public class MainFragment extends BrowseSupportFragment
 
     public void onMenuClicked(Action action, Row row) {
         saveSelected();
-        if (!NEWLOADER)
-            loader.stopLoading();
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
         AsyncBackendCall call = new AsyncBackendCall(
                 new AsyncBackendCall.OnBackendCallListener() {
                     @Override
                     public void onPostExecute(AsyncBackendCall taskRunner) {
+                        if (getContext() == null)
+                            return;
                         ArrayList<XmlNode> results = taskRunner.getXmlResults();
                         int nSuccess = 0;
                         int nFail = 0;
@@ -1684,8 +1036,6 @@ public class MainFragment extends BrowseSupportFragment
                             builder.setMessage(msg);
                             builder.show();
                         }
-                        if (!NEWLOADER)
-                            loader.startLoading();
                     }
         });
         call.setBookmark(0);

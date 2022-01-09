@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2014 The Android Open Source Project
+ * Copyright (c) 2019-2021 Peter Bennett
+ *
+ * Incorporates code from "Android TV Samples"
+ * <https://github.com/android/tv-samples>
+ * Modified by Peter Bennett
+ *
+ * This file is part of MythTV-leanfront.
+ *
+ * MythTV-leanfront is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * MythTV-leanfront is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package org.mythtv.leanfront.ui;
 
 import static org.mythtv.leanfront.ui.MainFragment.TYPE_CHANNEL;
@@ -160,18 +184,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
         orderby.append(", ").append(VideoContract.VideoEntry.COLUMN_RECORDEDID).append(" ")
                 .append(ascdesc);
 
-//        Loader ret = new CursorLoader(
-//                getContext(),
-//                VideoContract.VideoEntry.CONTENT_URI, // Table to query
-//                null, // Projection to return - null means return all fields
-//                selection.toString(), // Selection clause
-//                selectionArgs,  // Select based on the category id.
-//                orderby.toString());
-        // Map video results from the database to Video objects.
-//        videoCursorAdapter =
-//                new CursorObjectAdapter(new CardPresenter());
-//        videoCursorAdapter.setMapper(new VideoCursorMapper());
-
         Context context = MyApplication.getAppContext();
         VideoDbHelper dbh = VideoDbHelper.getInstance(context);
         SQLiteDatabase db = dbh.getReadableDatabase();
@@ -264,8 +276,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             header = new MyHeaderItem(title, TYPE_RECENTS, mBaseName);
             recentsSparse = new SparseArray<>();
             recentsList = new ArrayList<>();
-//            row = new ListRow(header, recentsObjectAdapter);
-//            row.setContentDescription(title);
             categoryList.add(recentsList);
             recentsList.add(header);
             recentsRowNum = categoryList.size() - 1;
@@ -283,8 +293,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             allList = new ArrayList<>();
             ;
             allList.add(header);
-//            row = new ListRow(header, allObjectAdapter);
-//            row.setContentDescription(allTitle);
             categoryList.add(allList);
             allRowNum = categoryList.size() - 1;
             if (mSelectedRowType == allType
@@ -299,8 +307,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     TYPE_VIDEODIR, mBaseName);
             rootList = new ArrayList<>();
             rootList.add(header);
-//            row = new ListRow(header, rootObjectAdapter);
-//            row.setContentDescription(rootTitle);
             categoryList.add(rootList);
             rootRowNum = categoryList.size() - 1;
             if (mSelectedRowType == TYPE_VIDEODIR
@@ -429,17 +435,7 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
 
             // Change of row
             if (addToRow && category != null && !Objects.equals(category, currentCategory)) {
-                // Finish off prior row
-//                if (rowObjectAdapter != null) {
-//                    // Create header for this category.
-//                    header = new MyHeaderItem(currentCategory,
-//                            currentRowType,mBaseName);
-//                    row = new ListRow(header, rowObjectAdapter);
-//                    row.setContentDescription(currentCategory);
-//                    mCategoryRowAdapter.add(row);
-//                }
                 currentRowNum = categoryList.size();
-//                currentRowType = rowType;
                 rowList = new ArrayList<>();
                 header = new MyHeaderItem(category,
                         rowType, mBaseName);
@@ -618,14 +614,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             }
             data.moveToNext();
         }
-//            // Finish off prior row
-//            if (rowList != null) {
-//                // Create header for this category.
-//                header = new MyHeaderItem(currentCategory,
-//                        currentRowType,mBaseName);
-//                row = new ListRow(header, rowList);
-//                categoryList.add(row);
-//            }
 
         if (mSelectedRowNum == allRowNum) {
             if (allSparse == null)

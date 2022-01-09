@@ -1465,10 +1465,12 @@ public class PlaybackFragment extends VideoSupportFragment
                 // Prevent screen saver during playback
                 getActivity().getWindow()
                     .addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            else
+            else {
+                setBookmark();
                 // Enable screen saver during pause
                 getActivity().getWindow()
-                    .clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        .clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
         }
 
         private void handlePlayerError(Exception ex, int msgNum) {

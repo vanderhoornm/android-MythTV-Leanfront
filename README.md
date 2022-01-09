@@ -61,6 +61,14 @@ See the section below titled "Copy from one Android device to another".
 
 Using the search orb at the top of the page, you can search for a title using voice or keyboard. This will respond with a list of recordings that match as well as a list of matches in the program guide. If you press enter on an item from the program guide, you can create a recording rule to record all episodes, one episode, etc.
 
+### Screen saver and idle shutdown
+
+If you have a mythbackend earlier than v30 you need to disable the mythbackend idle shutdown, as leanfront cannot prevent shutdown, even while playing. On v30 and later, leanfront prevents backend shutdown while leanfront is in the foreground on the TV.
+
+If you have screen saver enabled on the android tv stick, when it starts leanfront will go into the background. While leanfront is in the background mythbackend can shut down. When you press a remote key, the tv shows leanfront again but the backend may be shut down. Leanfront does not recover gracefully from this. Attempts to play will display a generic error message.
+
+If you have auto shutdown enabled on the backend, then I recommend you disable the tv stick screen saver or else set it to a long period and be aware that when waking again, the backend must be restarted if it has shut down.
+
 ## Release Notes
 
 You can see a list of changes in each version by looking at the commit list in github. See https://github.com/bennettpeter/android-MythTV-Leanfront/commits/master .

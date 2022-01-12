@@ -204,7 +204,6 @@ public class MainFragment extends BrowseSupportFragment
             String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L * 24 * 60 * 60 * 1000)};
             // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
             db.delete(VideoContract.StatusEntry.TABLE_NAME, where, selectionArgs);
-            db.close();
             // Initialize startup members
             if (executor != null)
                 executor.shutdown();

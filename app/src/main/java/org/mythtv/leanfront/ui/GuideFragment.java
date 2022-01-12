@@ -414,7 +414,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             mGridAdapter.add(rightArrowSlot);
         }
         cursor.close();
-        db.close();
     }
 
     private void updateCells() {

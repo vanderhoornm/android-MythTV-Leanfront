@@ -37,6 +37,7 @@ import androidx.fragment.app.Fragment;
 
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.Locale;
@@ -87,6 +88,9 @@ public class MainActivity extends LeanbackActivity {
         super.onDestroy();
         if (context == this) {
             context = null;
+            // Close database
+            VideoDbHelper dbh = VideoDbHelper.getInstance(context);
+            dbh.close();
             int pid = android.os.Process.myPid();
             android.os.Process.killProcess(pid);
         }

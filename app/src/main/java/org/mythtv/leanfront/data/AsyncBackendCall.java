@@ -279,7 +279,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             mVideo.showRecent = cursor.getInt(colno) != 0;
                         }
                         cursor.close();
-                        db.close();
 
                         String pref = Settings.getString("pref_bookmark");
                         XmlNode bkmrkData = null;
@@ -467,7 +466,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
                                     null, values);
                         }
-                        db.close();
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -516,7 +514,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             selection,
                             selectionArgs);
 
-                    db.close();
                     if (main != null)
                         main.getMainFragment().startFetch(mVideo.rectype, mVideo.recordedid, null);
                     // Fake out an xml node with true to pass back success status
@@ -694,7 +691,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             Log.e(TAG, CLASS + " Failed to find recording on SQLite.");
 
                         cursor.close();
-                        db.close();
                         Thread.sleep(5000);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception setting up Live TV.", e);

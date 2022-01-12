@@ -126,7 +126,6 @@ public class FetchVideoService extends IntentService {
                                 + " WHERE RECTYPE = '" + VideoContract.VideoEntry.RECTYPE_CHANNEL + "'");
                 }
             }
-            db.close();
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);
             MainFragment main = MainFragment.getActiveFragment();

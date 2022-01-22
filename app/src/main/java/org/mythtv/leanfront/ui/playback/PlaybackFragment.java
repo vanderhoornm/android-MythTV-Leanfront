@@ -814,20 +814,15 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private void moveForward(int millis) {
-        boolean doReset = false;
-        boolean resetDone = false;
-        if (!mIsBounded) {
+        if (!mIsBounded)
             seekTo(-1,true);
-            resetDone = true;
-        }
         long duration = mPlayerGlue.myGetDuration();
         if (duration > -1) {
             long newPosition = mPlayerGlue.getCurrentPosition() + millis;
-            if (newPosition > duration - 1000) {
-                newPosition = duration - 1000;
-                doReset = true;
+            if (newPosition > duration) {
+                newPosition = duration;
             }
-            seekTo(newPosition, doReset && !resetDone);
+            seekTo(newPosition, false);
         }
     }
 

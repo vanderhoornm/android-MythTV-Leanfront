@@ -15,11 +15,11 @@ task gitinfo {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 31
     defaultConfig {
         applicationId "org.mythtv.leanfront"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 31
         versionCode gitinfo.ext.version
         versionName gitinfo.ext.describe
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -61,8 +61,8 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.9.0'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.14.2'
-    implementation 'com.google.android.exoplayer:extension-leanback:2.14.2'
+    implementation 'com.google.android.exoplayer:exoplayer:2.16.1'
+    implementation 'com.google.android.exoplayer:extension-leanback:2.16.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     testImplementation 'junit:junit:4.12'

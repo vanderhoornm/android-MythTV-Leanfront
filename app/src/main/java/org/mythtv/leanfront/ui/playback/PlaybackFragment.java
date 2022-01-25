@@ -80,10 +80,11 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SeekParameters;
-import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import org.mythtv.leanfront.exoplayer2.source.ProgressiveMediaSource;
@@ -93,6 +94,7 @@ import org.mythtv.leanfront.ui.VideoDetailsActivity;
 import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.SubtitleDecoderFactory;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
@@ -102,6 +104,7 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -118,7 +121,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
     VideoPlayerGlue mPlayerGlue;
     private LeanbackPlayerAdapter mPlayerAdapter;
-    SimpleExoPlayer mPlayer;
+    ExoPlayer mPlayer;
     private DefaultTrackSelector mTrackSelector;
     PlaybackActionListener mPlaybackActionListener;
     private PlayerEventListener mPlayerEventListener;
@@ -336,7 +339,7 @@ public class PlaybackFragment extends VideoSupportFragment
             extMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
         rFactory.setExtensionRendererMode(extMode);
         rFactory.setEnableDecoderFallback(true);
-        SimpleExoPlayer.Builder builder = new SimpleExoPlayer.Builder(getContext(),rFactory);
+        ExoPlayer.Builder builder = new ExoPlayer.Builder(getContext(),rFactory);
         builder.setTrackSelector(mTrackSelector);
         // This api is no longer available. Hopefully we will be ok without it.
 //        if (possibleEmptyTrack)
@@ -344,11 +347,12 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
-        SimpleExoPlayer.TextComponent textComponent = mPlayer.getTextComponent();
-        if (textComponent != null && mSubtitles != null) {
+//        ExoPlayer.TextComponent textComponent = mPlayer.getTextComponent();
+//        if (textComponent != null && mSubtitles != null) {
+        if (mSubtitles != null) {
             mSubtitles.setFractionalTextSize
                     (SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * mSubtitleSize / 100.0f);
-            textComponent.addTextOutput(mSubtitles);
+//            textComponent.addTextOutput(mSubtitles);
         }
 
         mPlayerEventListener = new PlayerEventListener();
@@ -845,7 +849,7 @@ public class PlaybackFragment extends VideoSupportFragment
             mBookmark = newPosition;
             mOffsetBytes = 0;
             mPlayerGlue.setOffsetMillis(0);
-            mPlayer.stop(true);
+            mPlayer.stop();
             play(mVideo);
         }
     }
@@ -884,6 +888,8 @@ public class PlaybackFragment extends VideoSupportFragment
                 DefaultTrackSelector.ParametersBuilder parms
                         = mTrackSelector
                         .buildUponParameters()
+                        // deprecated - should use setTrackSelectionOverrides, which
+                        // takes different parameters and works differently
                         .setSelectionOverride(entry.ixRenderer, tga, ovr);
                 if (disable)
                     parms = parms.setRendererDisabled(entry.ixRenderer, false);
@@ -1350,7 +1356,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private static final long[] FPS_INTERVALS = {
             15000, 18000,  30000, 35000,  40800, 43000, Long.MAX_VALUE};
 
-    class PlayerEventListener implements Player.EventListener {
+    class PlayerEventListener implements Player.Listener {
         private int mDialogStatus = 0;
         private static final int DIALOG_NONE   = 0;
         private static final int DIALOG_ACTIVE = 1;
@@ -1450,7 +1456,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onPlayerError(ExoPlaybackException ex) {
+        public void onPlayerError(PlaybackException ex) {
             handlePlayerError(ex, -1);
         }
 
@@ -1466,6 +1472,12 @@ public class PlaybackFragment extends VideoSupportFragment
                 getActivity().getWindow()
                         .clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            if (mSubtitles != null)
+                mSubtitles.onCues(cues);
         }
 
         private void handlePlayerError(Exception ex, int msgNum) {
@@ -1588,6 +1600,7 @@ public class PlaybackFragment extends VideoSupportFragment
                     }
                 }
             }
+
         }
 
         class AlertDialogListener implements DialogInterface.OnClickListener {

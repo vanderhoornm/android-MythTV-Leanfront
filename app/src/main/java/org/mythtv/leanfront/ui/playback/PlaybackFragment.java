@@ -1462,7 +1462,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
         @Override
         public void onIsPlayingChanged(boolean isPlaying) {
-            if (isPlaying)
+            // use mPlayerGlue.isPlaying instead of the value
+            // passed in because this is called with false on a skip
+            if (mPlayerGlue.isPlaying())
                 // Prevent screen saver during playback
                 getActivity().getWindow()
                     .addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

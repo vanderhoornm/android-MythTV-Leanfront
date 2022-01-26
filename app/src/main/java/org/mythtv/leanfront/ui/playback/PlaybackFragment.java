@@ -825,12 +825,15 @@ public class PlaybackFragment extends VideoSupportFragment
         if (!mIsBounded)
             seekTo(-1,true);
         long duration = mPlayerGlue.myGetDuration();
+        boolean doReset = false;
         if (duration > -1) {
             long newPosition = mPlayerGlue.getCurrentPosition() + millis;
             if (newPosition > duration) {
+                if (isIncreasing)
+                    doReset=true;
                 newPosition = duration;
             }
-            seekTo(newPosition, false);
+            seekTo(newPosition, doReset);
         }
     }
 

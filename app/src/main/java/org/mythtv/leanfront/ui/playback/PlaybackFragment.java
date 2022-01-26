@@ -172,6 +172,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean playWhenPrepared;
     private ScheduledFuture<?> audioFixTask;
     private boolean isTV;
+    private boolean isIncreasing;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -272,7 +273,8 @@ public class PlaybackFragment extends VideoSupportFragment
         long leng = mPlayerGlue.myGetDuration();
         if (pos < 0)
             pos = mPlayerGlue.getSavedCurrentPosition();
-        if (leng == -1 || (pos > 10000 && pos < (leng - 10000)))
+        if (leng == -1 || isIncreasing
+                || (pos > 10000 && pos < leng - 10000))
             mBookmark = pos;
         else
             mBookmark = 0;
@@ -692,7 +694,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         mFileLength = -1;
         mIsPlayResumable = false;
-        getFileLength();
+        getFileLength(false);
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
         MyExtractorsFactory extFactory = new MyExtractorsFactory();
@@ -704,6 +706,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mMediaSource.setPossibleEmptyTrack(possibleEmptyTrack);
         mPlayer.setMediaSource(mMediaSource);
         mPlayer.prepare();
+        // Get file length again to see if it is increasing
+        getFileLength(true);
     }
 
 
@@ -982,8 +986,15 @@ public class PlaybackFragment extends VideoSupportFragment
                 null).execute(Video.ACTION_SET_WATCHED);
     }
 
-    public void getFileLength() {
-        new AsyncBackendCall(mVideo, mFileLength, mWatched,
+    /**
+     * Get the file length at this time
+     * @param multiCheck indicates to check up to 5 times to see if it changed
+     */
+    public void getFileLength(boolean multiCheck) {
+        long priorFileLeng = -1;
+        if (multiCheck)
+            priorFileLeng = mFileLength;
+        new AsyncBackendCall(mVideo, priorFileLeng, mWatched,
                 this).execute(Video.ACTION_FILELENGTH);
     }
 
@@ -1000,6 +1011,8 @@ public class PlaybackFragment extends VideoSupportFragment
                 if (fileLength == -1) {
                     mPlayerEventListener.handlePlayerError(null, R.string.pberror_file_length_fail);
                 }
+                if (mFileLength > -1 && fileLength > mFileLength)
+                    isIncreasing=true;
                 if (mIsPlayResumable) {
                     if (fileLength > mFileLength) {
                         mFileLength = fileLength;

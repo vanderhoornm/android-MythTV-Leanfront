@@ -148,7 +148,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         else if (playbackFragment.mIsBounded) {
             Log.i(TAG, CLASS + " onPlayCompleted checking File Length.");
             playbackFragment.mIsPlayResumable = true;
-            playbackFragment.getFileLength();
+            playbackFragment.getFileLength(true);
         }
     }
 

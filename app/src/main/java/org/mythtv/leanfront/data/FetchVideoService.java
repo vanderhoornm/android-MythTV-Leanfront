@@ -130,9 +130,12 @@ public class FetchVideoService extends IntentService {
                     downloadedVideoContentValues);
             MainFragment main = MainFragment.getActiveFragment();
             if (main != null)
-                synchronized (main) {
-                    main.startAsyncLoader();
-                }
+                main.getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        main.startAsyncLoader();
+                    }
+                });
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);

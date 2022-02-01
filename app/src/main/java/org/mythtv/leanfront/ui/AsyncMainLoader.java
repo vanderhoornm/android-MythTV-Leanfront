@@ -71,12 +71,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
     MainFragment mainFragment;
     int mType;
     String mBaseName;
-    String mSelectedRowName;
-    int mSelectedRowType;
-    String mSelectedItemId;
-    int mSelectedItemType;
-    int mSelectedItemNum = -1;
-    int mSelectedRowNum = -1;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncMainLoader";
@@ -91,10 +85,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
         mainFragment = mainFragments[0];
         mType = mainFragment.mType;
         mBaseName = mainFragment.mBaseName;
-        mSelectedRowName = mainFragment.mSelectedRowName;
-        mSelectedRowType = mainFragment.mSelectedRowType;
-        mSelectedItemId = mainFragment.mSelectedItemId;
-        mSelectedItemType = mainFragment.mSelectedItemType;
         Cursor csr = queryDb();
         ArrayList<ArrayList<ListItem>> list = buildRows(csr);
         csr.close();
@@ -279,9 +269,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             categoryList.add(recentsList);
             recentsList.add(header);
             recentsRowNum = categoryList.size() - 1;
-            if (mSelectedRowType == TYPE_RECENTS
-                    && Objects.equals(title, mSelectedRowName))
-                mSelectedRowNum = recentsRowNum;
         }
 
         // Create "All" row (but not for videos)
@@ -295,9 +282,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             allList.add(header);
             categoryList.add(allList);
             allRowNum = categoryList.size() - 1;
-            if (mSelectedRowType == allType
-                    && Objects.equals(allTitle, mSelectedRowName))
-                mSelectedRowNum = allRowNum;
         }
 
         // Create "Root" row
@@ -309,9 +293,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             rootList.add(header);
             categoryList.add(rootList);
             rootRowNum = categoryList.size() - 1;
-            if (mSelectedRowType == TYPE_VIDEODIR
-                    && Objects.equals(rootTitle, mSelectedRowName))
-                mSelectedRowNum = rootRowNum;
         }
 
         // Iterate through each category entry and add it to the ArrayAdapter.
@@ -442,9 +423,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                 rowList.add(header);
                 categoryList.add(rowList);
                 currentCategory = category;
-                if (mSelectedRowType == rowType
-                        && Objects.equals(currentCategory, mSelectedRowName))
-                    mSelectedRowNum = currentRowNum;
             }
 
             // If a directory, create a placeholder for directory name
@@ -472,22 +450,12 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     tVideo.type = TYPE_CHANNEL_ALL;
                 }
                 rowList.add(tVideo);
-                if (mSelectedRowNum == currentRowNum) {
-                    if (video.getItemType() == mSelectedItemType
-                            && Objects.equals(mSelectedItemId, video.recordedid))
-                        mSelectedItemNum = rowList.size() - 2;
-                }
             }
 
             // Add video to "Root" row
             if (addToRow && rootList != null
                     && category == null) {
                 rootList.add(video);
-                if (mSelectedRowNum == rootRowNum) {
-                    if (video.getItemType() == mSelectedItemType
-                            && Objects.equals(video.recordedid, mSelectedItemId))
-                        mSelectedItemNum = rootList.size() - 2;
-                }
             }
 
             // Add video to "All" row
@@ -520,11 +488,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
 
                 allSparse.put(position, video);
 
-                if (mSelectedRowNum == allRowNum) {
-                    if (video.getItemType() == mSelectedItemType
-                            && Objects.equals(video.recordedid, mSelectedItemId))
-                        mSelectedItemNum = position;
-                }
             }
 
             // Add to recents row if applicable
@@ -543,12 +506,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     while (recentsSparse.get(key) != null)
                         key++;
                 } catch (ArrayIndexOutOfBoundsException e) {
-                }
-
-                if (mSelectedRowNum == recentsRowNum) {
-                    if (dbVideo.getItemType() == mSelectedItemType
-                            && Objects.equals(dbVideo.recordedid, mSelectedItemId))
-                        mSelectedItemNum = key;
                 }
 
                 // Check if there is already an entry for that series / directory
@@ -577,14 +534,10 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                                     // If the episode we are processing is watched/deleted and the matched
                                     // episode in the list is also, keep the most recent
                                     if (key < fkey) {
-                                        if (mSelectedRowNum == recentsRowNum && mSelectedItemNum == fkey)
-                                            mSelectedItemNum = key;
                                         // position is closer to front, delete the other one
                                         recentsSparse.delete(fkey);
                                         break;
                                     } else {
-                                        if (mSelectedRowNum == recentsRowNum && mSelectedItemNum == key)
-                                            mSelectedItemNum = fkey;
                                         // position is later in list - drop this one
                                         key = -1;
                                         break;
@@ -592,15 +545,11 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                                 } else if (isDeleted || isWatched) {
                                     // If the episode we are processing is watched/deleted and the matched
                                     // episode in the list is not, keep the non-watched
-                                    if (mSelectedRowNum == recentsRowNum && mSelectedItemNum == key)
-                                        mSelectedItemNum = fkey;
                                     key = -1;
                                     break;
                                 } else if (fisDeleted || fisWatched) {
                                     // If the episode we are processing is not watched/deleted and the matched
                                     // episode in the list is, keep the non-watched
-                                    if (mSelectedRowNum == recentsRowNum && mSelectedItemNum == fkey)
-                                        mSelectedItemNum = key;
                                     recentsSparse.delete(fkey);
                                     break;
                                 }
@@ -615,21 +564,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             data.moveToNext();
         }
 
-        if (mSelectedRowNum == allRowNum) {
-            if (allSparse == null)
-                mSelectedItemNum = -1;
-            else
-                mSelectedItemNum = allSparse.indexOfKey(mSelectedItemNum);
-        }
-
-        if (mSelectedRowNum == recentsRowNum) {
-            if (recentsSparse == null)
-                mSelectedItemNum = -1;
-            else
-                mSelectedItemNum = recentsSparse.indexOfKey(mSelectedItemNum);
-        }
-
-
         if (recentsSparse != null) {
             // Add sparse entries to arraylist
             for (int ix = 0; ix < recentsSparse.size(); ix++) {
@@ -638,8 +572,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
             // Remove recents if empty
             if (recentsSparse.size() <= 1) {
                 categoryList.remove(recentsRowNum);
-                if (mSelectedRowNum > 0)
-                    mSelectedRowNum--;
             }
         }
         if (allSparse != null) {

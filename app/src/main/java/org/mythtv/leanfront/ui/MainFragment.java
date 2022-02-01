@@ -159,10 +159,6 @@ public class MainFragment extends BrowseSupportFragment
     public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
     // mBase is the current recgroup or directory being displayed.
     String mBaseName;
-    String mSelectedRowName;
-    int mSelectedRowType = -1;
-    String mSelectedItemId;
-    int mSelectedItemType = -1;
     private TextView mUsageView;
 
     private static ScheduledExecutorService executor = null;
@@ -176,7 +172,7 @@ public class MainFragment extends BrowseSupportFragment
     private static int TASK_INTERVAL = 240;
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
-    private volatile boolean isLoaderRunning;
+    volatile boolean isLoaderRunning;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -212,14 +208,8 @@ public class MainFragment extends BrowseSupportFragment
             mActiveFragment = null;
             mWasInBackground = true;
 
-        } else {
+        } else
             mBaseName = intent.getStringExtra(KEY_BASENAME);
-            mSelectedRowName = intent.getStringExtra(KEY_ROWNAME);
-            if (mType == TYPE_VIDEODIR)
-                mSelectedRowType = TYPE_VIDEODIR;
-            else
-                mSelectedRowType = TYPE_SERIES;
-        }
     }
 
     private void setProgressBar(boolean show) {
@@ -276,7 +266,8 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     // Replacement for StartLoader. This needs to be called after any database update.
-    public synchronized void startAsyncLoader() {
+    // Must be called on UI Thread
+    public void startAsyncLoader() {
         if (!isLoaderRunning) {
             new AsyncMainLoader().execute(this);
             isLoaderRunning = true;
@@ -288,11 +279,6 @@ public class MainFragment extends BrowseSupportFragment
         // Final initialization, modifying UI elements.
         super.onActivityCreated(savedInstanceState);
 
-        if (savedInstanceState != null) {
-            mSelectedRowName = savedInstanceState.getString("SELECTEDROWNAME");
-            mSelectedItemId = savedInstanceState.getString("SELECTEDITEMID");
-            mSelectedItemType = savedInstanceState.getInt("SELECTEDITEMTYPE", -1);
-        }
         // Prepare the manager that maintains the same background image between activities.
         prepareBackgroundManager();
 
@@ -347,52 +333,42 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onPause() {
         mActiveFragment = null;
-        saveSelected();
         super.onPause();
     }
 
-    private void saveSelected() {
-        int selectedRowNum = getSelectedPosition();
-        int selectedItemNum = -1;
-        if (selectedRowNum >= 0 && selectedRowNum < mCategoryRowAdapter.size()) {
-            ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
-            ListItem headerItem = (ListItem) selectedRow.getHeaderItem();
-            mSelectedRowName = headerItem.getName();
-            mSelectedRowType = headerItem.getItemType();
-            ListRowPresenter.ViewHolder selectedViewHolder
-                    = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
-                    .getRowViewHolder(selectedRowNum);
-            if (selectedViewHolder != null)
-                selectedItemNum = selectedViewHolder.getSelectedPosition();
-            if (selectedItemNum >= 0) {
-                ObjectAdapter itemAdapter = selectedRow.getAdapter();
-                if (itemAdapter != null
-                    && (selectedItemNum < itemAdapter.size())) {
-                    Video item = (Video) itemAdapter.get(selectedItemNum);
-                    if (item != null) {
-                        mSelectedItemId = item.recordedid;
-                        mSelectedItemType = item.getItemType();
-                    }
-                }
-            }
-        }
-
-    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (outState != null) {
-            outState.putString("SELECTEDROWNAME", mSelectedRowName);
-            outState.putString("SELECTEDITEMID", mSelectedItemId);
-            outState.putInt("SELECTEDITEMTYPE", mSelectedItemType);
-        }
     }
 
     @Override
     public void onStop() {
         mBackgroundManager.release();
         super.onStop();
+    }
+
+    /*
+        Get current selection
+        Returns array:
+            [0]: Selected row
+            [1]: Selected item
+        Either or both can be -1 to indicate no selection.
+     */
+    // TODO: Other places duplicate this code. Call this instead
+    int [] getSelection() {
+        int selectedRowNum = getSelectedPosition();
+        int selectedItemNum = -1;
+        if (selectedRowNum >= 0) {
+            if (!isShowingHeaders()) {
+                ListRowPresenter.ViewHolder selectedViewHolder
+                        = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
+                        .getRowViewHolder(selectedRowNum);
+                if (selectedViewHolder != null)
+                    selectedItemNum = selectedViewHolder.getSelectedPosition();
+            }
+        }
+        return new int[]{selectedRowNum, selectedItemNum};
     }
 
     public boolean onPlay() {
@@ -672,9 +648,19 @@ public class MainFragment extends BrowseSupportFragment
     //   [0] is a MyHeaderItem
     //   [1] onwards are each a Video
 
-    public synchronized void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
-        if (getContext() == null)
+    public void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
+        isLoaderRunning = false;
+        MainActivity main = (MainActivity) getActivity();
+        if (main == null)
             return;
+        setProgressBar(false);
+
+        // To avoid crash if scrolling when refresh occurs
+        // Do not reload if less than 1 second after key access
+        if (System.currentTimeMillis() - main.mMultipleKeyTime < 1000)
+            return;
+
+        int [] selection = getSelection();
         // Fill in disk usage
         new AsyncBackendCall(null, 0L, false,
                 this).execute(Video.ACTION_BACKEND_INFO);
@@ -736,13 +722,9 @@ public class MainFragment extends BrowseSupportFragment
         video.type = TYPE_MANAGE;
         toolsRowAdapter.add(video);
 
-        if (loader.mSelectedRowNum != -1) {
-            SelectionSetter setter = new SelectionSetter(loader.mSelectedRowNum, loader.mSelectedItemNum);
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(setter, 100);
-        }
-        isLoaderRunning = false;
-        setProgressBar(false);
+        SelectionSetter setter = new SelectionSetter(selection[0], selection[1]);
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(setter, 100);
     }
 
     public int getType() {
@@ -822,8 +804,6 @@ public class MainFragment extends BrowseSupportFragment
                     startActivity(intent);
                     break;
                 case TYPE_REFRESH:
-                    mSelectedRowType = -1;
-                    mSelectedRowName = null;
                     setProgressBar(true);
                     int recType = -1;
                     String recGroup = null;
@@ -1002,7 +982,6 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     public void onMenuClicked(Action action, Row row) {
-        saveSelected();
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
         AsyncBackendCall call = new AsyncBackendCall(
@@ -1142,8 +1121,6 @@ public class MainFragment extends BrowseSupportFragment
                         return;
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
-                            if (mActiveFragment != null)
-                                mActiveFragment.saveSelected();
                             MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
                         }
                     });
@@ -1243,6 +1220,9 @@ public class MainFragment extends BrowseSupportFragment
         public void run() {
             RowsSupportFragment frag = getRowsSupportFragment();
             if (frag != null) {
+                // Note we do not need to check selectedRowNum or
+                // selectedItemNum, if either is more than the maximum
+                // there is no exception - it just selects the last item.
                 frag.setSelectedPosition(selectedRowNum, false,
                         new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
                 if (selectedItemNum == -1)

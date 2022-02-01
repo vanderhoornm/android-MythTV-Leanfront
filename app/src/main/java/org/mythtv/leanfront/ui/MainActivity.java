@@ -49,6 +49,7 @@ public class MainActivity extends LeanbackActivity {
 
     private static final String TAG = "lfe";
     private static final String CLASS = "MainActivity";
+    long mMultipleKeyTime;
 
     static MainActivity context = null;
     MainFragment mainFragment = null;
@@ -105,6 +106,11 @@ public class MainActivity extends LeanbackActivity {
                     if (mainFragment.onPlay())
                         return true;
                 }
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                mMultipleKeyTime=System.currentTimeMillis();
+                break;
         }
         return super.onKeyDown(keyCode, event);
     }

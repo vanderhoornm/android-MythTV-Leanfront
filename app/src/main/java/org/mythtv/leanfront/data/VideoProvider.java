@@ -179,6 +179,12 @@ public class VideoProvider extends ContentProvider {
                 break;
             }
             case VIDEO: {
+                // In case any argument is null, a crash occurs, so
+                // default it to empty string.
+                for (int ix = 0 ; ix < selectionArgs.length; ix++) {
+                    if (selectionArgs[ix] == null)
+                        selectionArgs[ix] = "";
+                }
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         VideoContract.VideoEntry.VIEW_NAME,
                         projection,

@@ -100,13 +100,6 @@ public class MainActivity extends LeanbackActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
-            case KeyEvent.KEYCODE_MEDIA_PLAY:
-            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                if (mainFragment != null) {
-                    if (mainFragment.onPlay())
-                        return true;
-                }
-                break;
             case KeyEvent.KEYCODE_DPAD_UP:
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 mMultipleKeyTime=System.currentTimeMillis();

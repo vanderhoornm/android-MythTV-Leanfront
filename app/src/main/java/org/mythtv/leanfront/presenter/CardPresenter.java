@@ -24,6 +24,12 @@
 
 package org.mythtv.leanfront.presenter;
 
+import static org.mythtv.leanfront.ui.MainFragment.TYPE_EPISODE;
+import static org.mythtv.leanfront.ui.MainFragment.TYPE_SERIES;
+import static org.mythtv.leanfront.ui.MainFragment.TYPE_VIDEO;
+
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 
 import androidx.leanback.widget.BaseCardView;
@@ -31,16 +37,21 @@ import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.Presenter;
 import androidx.core.content.ContextCompat;
 
+import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainFragment;
+import org.mythtv.leanfront.ui.VideoDetailsActivity;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -52,6 +63,15 @@ import java.io.IOException;
 public class CardPresenter extends Presenter {
     private int mSelectedBackgroundColor = -1;
     private int mDefaultBackgroundColor = -1;
+    private int mType = 0;
+    public static final int TYPE_PLAYBACK = 1;
+
+    public CardPresenter() {
+    }
+
+    public CardPresenter(int type) {
+        mType = type;
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
@@ -72,7 +92,7 @@ public class CardPresenter extends Presenter {
         cardView.setFocusableInTouchMode(true);
         cardView.setInfoVisibility(BaseCardView.CARD_REGION_VISIBLE_ALWAYS);
         updateCardBackgroundColor(cardView, false);
-        return new ViewHolder(cardView);
+        return new MyViewHolder(cardView);
     }
 
     private void updateCardBackgroundColor(ImageCardView view, boolean selected) {
@@ -85,8 +105,10 @@ public class CardPresenter extends Presenter {
     }
 
     @Override
-    public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object item) {
-        Video video = (Video) item;
+    public void onBindViewHolder(Presenter.ViewHolder viewHolderIn, Object item) {
+        MyViewHolder viewHolder = (MyViewHolder) viewHolderIn;
+        viewHolder.mVideo = (Video) item;
+        Video video = (Video) viewHolder.mVideo;
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         String imageUrl = null;
@@ -190,11 +212,66 @@ public class CardPresenter extends Presenter {
     }
 
     @Override
-    public void onUnbindViewHolder(Presenter.ViewHolder viewHolder) {
+    public void onUnbindViewHolder(Presenter.ViewHolder viewHolderIn) {
+        MyViewHolder viewHolder = (MyViewHolder) viewHolderIn;
         ImageCardView cardView = (ImageCardView) viewHolder.view;
 
         // Remove references to images so that the garbage collector can free up memory.
         cardView.setBadgeImage(null);
         cardView.setMainImage(null);
+        viewHolder.mVideo = null;
+    }
+    class MyViewHolder extends Presenter.ViewHolder implements AsyncBackendCall.OnBackendCallListener {
+        Video mVideo;
+
+        public MyViewHolder(View viewIn) {
+            super(viewIn);
+            view.setOnKeyListener((v, keyCode, event) -> {
+                int liType = -1;
+                switch (keyCode) {
+                    // Support play from the card unless already playing
+                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                        if (mVideo == null || mType == TYPE_PLAYBACK)
+                            return true;
+                        liType = mVideo.getItemType();
+                        switch (liType) {
+                            case TYPE_EPISODE:
+                            case TYPE_VIDEO:
+                            case TYPE_SERIES:
+                                new AsyncBackendCall(mVideo, 0L, false,
+                                        this).execute(Video.ACTION_REFRESH);
+                                return true;
+                        }
+                        break;
+                    // Menu while playing is passed through. In other cases is thrown away.
+                    // To avoid clicking menu on an item in the related videos list
+                    // and finding it actually operates on the main video.
+                    case KeyEvent.KEYCODE_MENU:
+                        if (mType == TYPE_PLAYBACK)
+                            return false;
+                        return true;
+                }
+                return false;
+            });
+        }
+        public void onPostExecute(AsyncBackendCall taskRunner) {
+            Context context = view.getContext();
+            if (taskRunner == null)
+                return;
+            int[] tasks = taskRunner.getTasks();
+            Intent intent;
+            switch (tasks[0]) {
+                case Video.ACTION_REFRESH:
+                    if (context == null)
+                        break;
+                    intent = new Intent(context, PlaybackActivity.class);
+                    intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
+                    intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
+                    intent.putExtra(VideoDetailsActivity.POSBOOKMARK, taskRunner.getPosBookmark());
+                    context.startActivity(intent);
+                    break;
+            }
+        }
     }
 }

@@ -371,52 +371,6 @@ public class MainFragment extends BrowseSupportFragment
         return new int[]{selectedRowNum, selectedItemNum};
     }
 
-    public boolean onPlay() {
-        int selectedRowNum = getSelectedPosition();
-        int selectedItemNum = -1;
-        if (selectedRowNum >= 0) {
-            int liType = -1;
-            Video video = null;
-            if (!isShowingHeaders()) {
-                ListRow selectedRow = (ListRow) mCategoryRowAdapter.get(selectedRowNum);
-                ListRowPresenter.ViewHolder selectedViewHolder
-                        = (ListRowPresenter.ViewHolder) getRowsSupportFragment()
-                        .getRowViewHolder(selectedRowNum);
-                if (selectedViewHolder != null)
-                    selectedItemNum = selectedViewHolder.getSelectedPosition();
-                if (selectedItemNum >= 0) {
-                    ObjectAdapter itemAdapter = selectedRow.getAdapter();
-                    video = (Video) itemAdapter.get(selectedItemNum);
-                    liType = video.getItemType();
-                }
-                switch (liType) {
-                    case TYPE_EPISODE:
-                    case TYPE_VIDEO:
-                    case TYPE_SERIES:
-                        new AsyncBackendCall(video, 0L, false,
-                                this).execute(Video.ACTION_REFRESH);
-                        return true;
-                    // This could be used to start live tv, but commented
-                    // to suppress live tv play from channel list
-                    // to discourage channel surfing
-                    //                    case TYPE_CHANNEL:
-                    //                        playLiveTV(video);
-                    //                        return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public void playLiveTV(Video video) {
-        // Schedule a recording for 3 hours starting now
-        // Wait for recording to be ready
-        // Play recording, passing in the info needed for cancelling it on exit.
-        setProgressBar(true);
-        new AsyncBackendCall(video, 0L, false,
-                this).execute(Video.ACTION_LIVETV);
-    }
-
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
         Context context = getContext();
@@ -425,51 +379,6 @@ public class MainFragment extends BrowseSupportFragment
         int [] tasks = taskRunner.getTasks();
         Intent intent;
         switch (tasks[0]) {
-            case Video.ACTION_REFRESH:
-                if (context == null)
-                    break;
-                intent = new Intent(context, PlaybackActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
-                intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
-                intent.putExtra(VideoDetailsActivity.POSBOOKMARK, taskRunner.getPosBookmark());
-                startActivity(intent);
-                break;
-            case Video.ACTION_LIVETV:
-                setProgressBar(false);
-                Video video = taskRunner.getVideo();
-                // video null means recording failed
-                // activity null means user pressed back button
-                if (video == null || context == null) {
-                    if (context != null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
-                                R.style.Theme_AppCompat_Dialog_Alert);
-                        builder.setTitle(R.string.title_alert_livetv);
-                        builder.setMessage(R.string.alert_livetv_message);
-                        // add a button
-                        builder.setPositiveButton(android.R.string.ok, null);
-                        builder.show();
-                    }
-                    long recordId = taskRunner.getRecordId();
-                    long recordedId = taskRunner.getRecordedId();
-                    video = new Video.VideoBuilder()
-                            .recGroup("LiveTV")
-                            .recordedid(String.valueOf(recordedId))
-                            .build();
-                    if (recordId >= 0) {
-                        // Terminate Live TV
-                        new AsyncBackendCall(video, recordId, false,
-                                null).execute(
-                                Video.ACTION_STOP_RECORDING,
-                                Video.ACTION_REMOVE_RECORD_RULE);
-                    }
-                    break;
-                }
-                intent = new Intent(context, PlaybackActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
-                intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
-                intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
-                startActivity(intent);
-                break;
             case Video.ACTION_BACKEND_INFO_HTML:
                 String result = taskRunner.getStringResult();
                 if (result == null)

@@ -738,7 +738,8 @@ public class PlaybackFragment extends VideoSupportFragment
     }
 
     private CursorObjectAdapter setupRelatedVideosCursor() {
-        CursorObjectAdapter videoCursorAdapter = new CursorObjectAdapter(new CardPresenter());
+        CursorObjectAdapter videoCursorAdapter = new CursorObjectAdapter
+                (new CardPresenter(CardPresenter.TYPE_PLAYBACK));
         videoCursorAdapter.setMapper(new VideoCursorMapper());
 
         Bundle args = new Bundle();

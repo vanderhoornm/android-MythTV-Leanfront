@@ -247,8 +247,10 @@ public class PlaybackFragment extends VideoSupportFragment
     @Override
     public void onPause() {
         super.onPause();
+        boolean isPlaying=false;
 
         if (mPlayerGlue != null && mPlayerGlue.isPlaying()) {
+            isPlaying = true;
             mPlayerGlue.pause();
         }
         if (mRecordid >= 0) {
@@ -258,7 +260,7 @@ public class PlaybackFragment extends VideoSupportFragment
                     Video.ACTION_STOP_RECORDING,
                     Video.ACTION_REMOVE_RECORD_RULE);
         }
-        else
+        else if (isPlaying)
             setBookmark();
         if (Util.SDK_INT <= 23) {
             releasePlayer();
@@ -279,7 +281,7 @@ public class PlaybackFragment extends VideoSupportFragment
         else
             mBookmark = 0;
         int action2 = Video.ACTION_DUMMY;
-        if (pos > leng - 10000) {
+        if (leng > 1000 && pos > leng - 10000) {
             mWatched = true;
             action2 = Video.ACTION_SET_WATCHED;
         }

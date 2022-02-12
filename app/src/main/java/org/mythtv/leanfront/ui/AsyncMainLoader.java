@@ -385,7 +385,10 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                 if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
                     category = context.getString(R.string.row_header_videos) + "\t";
                     rowType = TYPE_VIDEODIR_ALL;
-                } else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
+                    itemType = TYPE_VIDEO;
+                } else if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                    itemType = TYPE_EPISODE;
+                if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                         || rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
                     category = recgroup;
                     String title;
@@ -398,7 +401,6 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     } else {
                         currentItem = title;
                         rowType = TYPE_RECGROUP;
-                        itemType = TYPE_SERIES;
                     }
                 }
             }

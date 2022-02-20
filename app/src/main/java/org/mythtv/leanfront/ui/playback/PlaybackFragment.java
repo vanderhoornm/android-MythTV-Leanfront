@@ -159,6 +159,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mSubtitleSize =  Settings.getInt("pref_subtitle_size");
     private int mBgColor = Settings.getInt("pref_letterbox_color");
     public boolean mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
+    public boolean mAudioPause = "true".equals(Settings.getString("pref_audio_pause"));
 
     private View mFocusView;
     private Action mCurrentAction;
@@ -400,7 +401,7 @@ public class PlaybackFragment extends VideoSupportFragment
                                 mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
                                         0, 0, true, false);
                             // This may not be needed with new Exoplayer release
-                            else {
+                            else if (mAudioPause) {
                                 // disable and enable to fix audio sync
                                 enableTrack(C.TRACK_TYPE_AUDIO, false);
                                 try {

@@ -29,6 +29,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -207,7 +208,7 @@ public class MainFragment extends BrowseSupportFragment
             mFetchTime = 0;
             mActiveFragment = null;
             mWasInBackground = true;
-
+            showNotes();
         } else
             mBaseName = intent.getStringExtra(KEY_BASENAME);
     }
@@ -319,6 +320,42 @@ public class MainFragment extends BrowseSupportFragment
             startFetch(-1, null, null);
         }
         startAsyncLoader();
+    }
+
+    // Notes dialog that comes up when you start for the first time.
+    // To advise users of new features etc.
+    // Currently no messages are displayed but an array of strings can be provided
+    // in sNotes in the parens, e.g. {R.string.notes_audio}
+    void showNotes() {
+        final int[] sNotes = {};
+        int notesVersion = Settings.getInt("pref_notes_version");
+        if (notesVersion >= sNotes.length)
+            return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(R.string.notes_title);
+        StringBuilder msg = new StringBuilder();
+        for (int ix = notesVersion ; ix < sNotes.length ; ix++) {
+            msg.append(getContext().getString(sNotes[ix]));
+        }
+        builder.setMessage(msg);
+        builder.setPositiveButton(R.string.notes_seen, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                SharedPreferences.Editor editor = Settings.getEditor();
+                Settings.putString(editor,"pref_notes_version",String.valueOf(sNotes.length));
+                editor.commit();
+                dialog.cancel();
+            }
+        });
+        builder.setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     public static void restartMythTask() {

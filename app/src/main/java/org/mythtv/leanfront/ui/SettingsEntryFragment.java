@@ -82,8 +82,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_TWEAK_SEARCH_PKTS = 34;
     private static final int ID_LIVETV_ROWSIZE = 35;
     private static final int ID_VIDEO_PARENTAL = 36;
-    private static final int ID_PLAYBACK_GP_LIST = 37;
-    private static final int ID_PLAYBACK_GP = 38;
+    private static final int ID_AUDIO_PAUSE = 37;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -378,7 +377,15 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .description(R.string.pref_error_toast_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        actions.add(mAudioAction = new GuidedAction.Builder(getActivity())
+        str = Settings.getString("pref_audio_pause");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_AUDIO_PAUSE)
+                .title(R.string.pref_audio_pause)
+                .checked("true".equals(str))
+                .description(R.string.pref_audio_pause_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
+        actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_TWEAKS)
                 .title(R.string.pref_tweaks_title)
                 .subActions(subActions)
@@ -633,6 +640,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     Settings.putString(editor, "pref_error_toast", "true");
                 else
                     Settings.putString(editor, "pref_error_toast", "false");
+                break;
+            case ID_AUDIO_PAUSE:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_audio_pause", "true");
+                else
+                    Settings.putString(editor, "pref_audio_pause", "false");
                 break;
             case ID_LETTERBOX_BLACK:
                 if (action.isChecked())

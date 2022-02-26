@@ -74,7 +74,7 @@ if [[ $fromdev == "" && $todev == "" || $filenames == "" || $error == y ]] ; the
     echo "Do not duplicate options. That may cause unexpected results."
     exit 2
 fi
-androidtemp=/sdcard/tmp
+androidtemp=/data/local/tmp
 set -e
 mkdir -p $stage
 for filename in $filenames ; do
@@ -83,28 +83,24 @@ for filename in $filenames ; do
     if [[ $fromdev != "" ]] ; then
         adb disconnect
         adb connect $fromdev
-        adb shell run-as $app<<EOF
-mkdir -p $androidtemp
-rm -f $androidtemp/$bname
-cp -f $filename $androidtemp/$bname
-EOF
         mkdir -p $stage/$dname
-        adb pull $androidtemp/$bname $stage/$dname/
-        adb shell run-as $app<<EOF
-rm -f $androidtemp/$bname
+        adb shell run-as $app<<EOF > $stage/$dname/$bname
+cat $filename
 EOF
         adb disconnect
         echo "File $fromdev:$filename pulled to $stage/$filename"
     fi
     if [[ $todev != "" ]] ; then
         adb connect $todev
-        adb shell run-as $app<<EOF
+        adb shell <<EOF
 mkdir -p $androidtemp
 EOF
         adb push $stage/$filename $androidtemp/
         adb shell run-as $app<<EOF
 mkdir -p $dname
 cp -f $androidtemp/$bname $filename
+EOF
+        adb shell<<EOF
 rm -f $androidtemp/$bname
 EOF
         adb disconnect

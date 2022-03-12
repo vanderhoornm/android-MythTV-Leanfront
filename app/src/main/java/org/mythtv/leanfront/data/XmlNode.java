@@ -71,8 +71,13 @@ public class XmlNode {
                             + hostname);
             XmlNode response = XmlNode.fetch(urlString, null);
             String hostIp = response.getString();
-            if (hostIp == null || hostIp.length() == 0)
-                return "";
+            // This is needed to support mythbackend v0.28, where there is
+            // no setting for BackendServerAddr
+            if (hostIp == null)
+                hostIp = backendIP;
+            // These are removed now. I don't know why this was here
+//            if (hostIp == null || hostIp.length() == 0)
+//                return "";
             urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendStatusPort&HostName="
                             + hostname);

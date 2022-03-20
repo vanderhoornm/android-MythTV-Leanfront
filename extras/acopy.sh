@@ -77,33 +77,35 @@ fi
 androidtemp=/data/local/tmp
 set -e
 mkdir -p $stage
+if [[ $fromdev != "" ]] ; then
+    adb connect $fromdev
+fi
+if [[ $todev != "" ]] ; then
+    adb connect $todev
+fi
 for filename in $filenames ; do
     bname=$(basename "$filename")
     dname=$(dirname "$filename")
     if [[ $fromdev != "" ]] ; then
-        adb disconnect
-        adb connect $fromdev
         mkdir -p $stage/$dname
-        adb shell run-as $app<<EOF > $stage/$dname/$bname
-cat $filename
+        adb -s $fromdev shell run-as $app<<EOF > $stage/$dname/$bname
+if [ -f $filename ] ; then cat $filename ; fi
 EOF
-        adb disconnect
         echo "File $fromdev:$filename pulled to $stage/$filename"
     fi
     if [[ $todev != "" ]] ; then
-        adb connect $todev
-        adb shell <<EOF
+        adb -s $todev shell <<EOF
 mkdir -p $androidtemp
 EOF
-        adb push $stage/$filename $androidtemp/
-        adb shell run-as $app<<EOF
+        adb -s $todev push $stage/$filename $androidtemp/
+        adb -s $todev shell run-as $app<<EOF
 mkdir -p $dname
 cp -f $androidtemp/$bname $filename
 EOF
-        adb shell<<EOF
+        adb -s $todev shell<<EOF
 rm -f $androidtemp/$bname
 EOF
-        adb disconnect
         echo "File $stage/$filename pushed to $todev:$filename"
     fi
 done
+adb disconnect

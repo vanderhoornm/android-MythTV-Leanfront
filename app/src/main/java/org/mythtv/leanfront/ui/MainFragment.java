@@ -1169,8 +1169,10 @@ public class MainFragment extends BrowseSupportFragment
                 // Note we do not need to check selectedRowNum or
                 // selectedItemNum, if either is more than the maximum
                 // there is no exception - it just selects the last item.
-                frag.setSelectedPosition(selectedRowNum, false,
-                        new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum));
+                ListRowPresenter.SelectItemViewHolderTask task
+                        = new ListRowPresenter.SelectItemViewHolderTask(selectedItemNum);
+                task.setSmoothScroll(false);
+                frag.setSelectedPosition(selectedRowNum, false, task);
                 if (selectedItemNum == -1)
                     getHeadersSupportFragment().getView().requestFocus();
             }

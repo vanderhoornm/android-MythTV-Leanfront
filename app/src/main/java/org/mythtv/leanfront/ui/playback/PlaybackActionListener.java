@@ -20,6 +20,7 @@
 package org.mythtv.leanfront.ui.playback;
 
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
@@ -135,6 +136,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         return true;
@@ -230,6 +235,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
     }
@@ -281,6 +290,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
     }
@@ -305,6 +318,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 2;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
@@ -317,7 +334,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_DPAD_CENTER:
                     case KeyEvent.KEYCODE_ENTER:
-                        dlg.dismiss();
+                        if (event.getAction() == KeyEvent.ACTION_UP)
+                            dlg.dismiss();
                         return true;
                 }
                 if (event.getAction() != KeyEvent.ACTION_DOWN)
@@ -385,6 +403,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 2;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
@@ -399,7 +421,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     switch (keyCode) {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
-                            dlg.dismiss();
+                            if (event.getAction() == KeyEvent.ACTION_UP)
+                                dlg.dismiss();
                             return true;
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
@@ -480,6 +503,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 2;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
@@ -494,7 +521,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     switch (keyCode) {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
-                            dlg.dismiss();
+                            if (event.getAction() == KeyEvent.ACTION_UP)
+                                dlg.dismiss();
                             return true;
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
@@ -577,6 +605,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         messageText.setGravity(Gravity.CENTER);
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 2;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         mDialog.setOnKeyListener(
@@ -584,7 +616,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     switch (keyCode) {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
-                            dlg.dismiss();
+                            if (event.getAction() == KeyEvent.ACTION_UP)
+                                dlg.dismiss();
                             return true;
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
@@ -681,6 +714,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     private void showAudioSyncSelector() {
         playbackFragment.hideControlsOverlay(true);
+        playbackFragment.mPlayerGlue.setEnableControls(false);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_audiosync)
@@ -689,6 +723,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
         lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 2;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
         SeekBar seekBar = mDialog.findViewById(R.id.seekbar);
@@ -702,7 +740,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     switch (keyCode) {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
-                            dlg.dismiss();
+                            if (event.getAction() == KeyEvent.ACTION_UP)
+                                dlg.dismiss();
                             return true;
                     }
                     if (event.getAction() != KeyEvent.ACTION_DOWN)
@@ -750,6 +789,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 (DialogInterface dialog) -> {
                     mDialog = null;
                     playbackFragment.hideNavigation();
+                    playbackFragment.mPlayerGlue.setEnableControls(true);
                 }
         );
     }

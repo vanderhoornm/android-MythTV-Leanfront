@@ -113,6 +113,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private final boolean isTV;
     private boolean playerClosed;
     private boolean playCompleted;
+    private boolean enableControls = true;
 
     public VideoPlayerGlue(
             Context context,
@@ -277,9 +278,15 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         }
     }
 
+    // To prevent controls showing when changing audio sync, they are "disabled" here.
+    public void setEnableControls(boolean enable) {
+        enableControls = enable;
+    }
+
     @Override
     protected void onPlayStateChanged() {
-        super.onPlayStateChanged();
+        if (enableControls)
+            super.onPlayStateChanged();
         if (isPlaying())
             playCompleted = false;
     }
@@ -317,11 +324,6 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mActionListener.onPlayCompleted(mPlaylistPlayAction);
         playCompleted = true;
         super.onPlayCompleted();
-    }
-
-    @Override
-    public boolean onKey(View v, int keyCode, KeyEvent event) {
-        return super.onKey(v, keyCode, event);
     }
 
     static int getIconHighlightColor(Context context) {

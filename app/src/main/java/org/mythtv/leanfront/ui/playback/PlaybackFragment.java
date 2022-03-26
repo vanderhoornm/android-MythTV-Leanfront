@@ -945,10 +945,11 @@ public class PlaybackFragment extends VideoSupportFragment
             mToast.show();
         }
         // For some reason changing the subtitle pauses playback. This fixes that.
-        if (trackType == C.TRACK_TYPE_TEXT && isPlaying) {
-            mPlayerGlue.pause();
-            mPlayerGlue.play();
-        }
+        // That seems to be No longer necessary...
+//        if (trackType == C.TRACK_TYPE_TEXT && isPlaying) {
+//            mPlayerGlue.pause();
+//            mPlayerGlue.play();
+//        }
         return trackSelection;
     }
 

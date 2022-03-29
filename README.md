@@ -206,7 +206,7 @@ Below the progress bar is displayed the description of the currently selected ic
 | Move Picture | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size. |
 | Change Audio Track | Shows a menu of available audio tracks plus audio disabled. You can select one to change or disable audio track. |
 | Adjust Audio Sync | Shows a seekbar where you can change audio sync. Use this if lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended. |
-| Play Related Videos | Toggle automatic playback of all videos in the related videos list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the related videos list. |
+| Autoplay | Toggle automatic playback of all videos in the related videos list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the related videos list. |
 
 ### Related videos
 

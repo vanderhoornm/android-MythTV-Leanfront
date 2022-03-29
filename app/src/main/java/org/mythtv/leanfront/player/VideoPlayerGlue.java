@@ -30,8 +30,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
-import android.view.KeyEvent;
-import android.view.View;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.leanback.media.PlaybackTransportControlGlue;
@@ -102,7 +100,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mSpeedAction;
     private MyAction mAudioTrackAction;
     private MyAction mAudioSyncAction;
-    private MyAction mPlaylistPlayAction;
+    private MyAction mAutoPlayAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
     // Skip means go to next or previous track
@@ -137,7 +135,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mSpeedAction = new MyAction(context,Video.ACTION_SPEEDUP, R.drawable.ic_speed_increase,R.string.button_speedup);
         mAudioTrackAction = new MyAction(context,Video.ACTION_AUDIOTRACK, R.drawable.ic_audiotrack,R.string.button_audiotrack);
         mAudioSyncAction = new MyAction(context,Video.ACTION_AUDIOSYNC, R.drawable.ic_av_timer,R.string.button_audiosync);
-        mPlaylistPlayAction = new MyAction(context,Video.ACTION_PLAYLIST_PLAY,
+        mAutoPlayAction = new MyAction(context,Video.ACTION_PLAYLIST_PLAY,
                 new int[] {R.drawable.ic_playlist_play,R.drawable.ic_playlist_play_actve},
                 new int[] {R.string.button_playlistplay,R.string.button_playlistplay_active});
         mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(context);
@@ -173,8 +171,17 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mPivotAction);
         adapter.add(mAudioTrackAction);
         adapter.add(mAudioSyncAction);
-        adapter.add(mPlaylistPlayAction);
+        adapter.add(mAutoPlayAction);
         mActionsVisible = true;
+    }
+
+    public void setAutoPlay(boolean enable) {
+        int value;
+        if (enable)
+            value=1;
+        else
+            value=0;
+        mAutoPlayAction.setIndex(value);
     }
 
     public void setActions(boolean showActions) {
@@ -239,7 +246,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mSpeedAction
                 || action == mAudioTrackAction
                 || action == mAudioSyncAction
-                || action == mPlaylistPlayAction;
+                || action == mAutoPlayAction;
     }
 
     private void dispatchAction(Action action) {
@@ -271,8 +278,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                     multiAction,
                     (ArrayObjectAdapter) getControlsRow().getSecondaryActionsAdapter());
         }
-        if (action == mPlaylistPlayAction) {
-            if (mPlaylistPlayAction.getIndex() == 1
+        if (action == mAutoPlayAction) {
+            if (mAutoPlayAction.getIndex() == 1
                 && playCompleted)
                 next();
         }
@@ -321,7 +328,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     @Override
     protected void onPlayCompleted() {
-        mActionListener.onPlayCompleted(mPlaylistPlayAction);
+        mActionListener.onPlayCompleted(mAutoPlayAction);
         playCompleted = true;
         super.onPlayCompleted();
     }

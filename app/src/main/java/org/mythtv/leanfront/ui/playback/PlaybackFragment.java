@@ -160,6 +160,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private int mBgColor = Settings.getInt("pref_letterbox_color");
     public boolean mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
     public boolean mAudioPause = "true".equals(Settings.getString("pref_audio_pause"));
+    int mCaptions = 0;
 
     private View mFocusView;
     private Action mCurrentAction;
@@ -393,9 +394,21 @@ public class PlaybackFragment extends VideoSupportFragment
                             if (mPlaybackActionListener == null)
                                 return;
                             // Enable subtitle if necessary
+                            int msgOn = 0;
+                            int msgOff = 0;
+                            if (setTracks && mCaptions > 0) {
+                                TrackInfo tracks
+                                        = new TrackInfo(PlaybackFragment.this, C.TRACK_TYPE_TEXT);
+                                if (mCaptions <= tracks.trackList.size()) {
+                                    mTextSelection = mCaptions - 1;
+                                    msgOn = R.string.msg_subtitle_on;
+                                    msgOff = R.string.msg_subtitle_off;
+                                }
+                                mCaptions = 0;  // Reset - this should only be used once pre playback
+                            }
                             if (setTracks && mTextSelection != -2)
                                 mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
-                                        0, 0, true, false);
+                                        msgOn, msgOff, true, false);
                             // change audio track if necessary
                             if (setTracks && mAudioSelection != -2)
                                 mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
@@ -492,7 +505,15 @@ public class PlaybackFragment extends VideoSupportFragment
         mSubtitleSize =  Settings.getInt("pref_subtitle_size",video.playGroup);
         mBgColor = Settings.getInt("pref_letterbox_color",video.playGroup);
         mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump",video.playGroup));
-
+        if ("true".equals(Settings.getString("pref_autoplay",video.playGroup))) {
+            mPlayerGlue.setAutoPlay(true);
+        }
+        int sampleOffsetUs = 1000 * Settings.getInt("pref_audio_sync",video.playGroup);
+        if (sampleOffsetUs != 0) {
+            mPlaybackActionListener.sampleOffsetUs = sampleOffsetUs;
+            mAudioPause = true;
+        }
+        mCaptions = Settings.getInt("pref_captions",video.playGroup);
         View view = getView();
         view.setBackgroundColor(mBgColor);
 
@@ -528,6 +549,7 @@ public class PlaybackFragment extends VideoSupportFragment
         // This makes future seeks faster.
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         playWhenPrepared = false;
+        audioFix(5000, true);
     }
 
     private void setupRefreshRate() {
@@ -1389,7 +1411,7 @@ public class PlaybackFragment extends VideoSupportFragment
         public void onPositionDiscontinuity(int reason) {
             if (reason == Player.DISCONTINUITY_REASON_SEEK) {
                 // disable and enable to fix audio sync
-                audioFix(5000, false);
+                audioFix(5000, true);
             }
         }
 

@@ -83,6 +83,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_LIVETV_ROWSIZE = 35;
     private static final int ID_VIDEO_PARENTAL = 36;
     private static final int ID_AUDIO_PAUSE = 37;
+    private static final int ID_AUTOPLAY = 38;
+    private static final int ID_AUDIO_SYNC = 39;
+    private static final int ID_CAPTIONS = 40;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -198,6 +201,30 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .checked(i == Color.BLACK)
                     .description(R.string.pref_letterbox_black_desc)
                     .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                    .build());
+            str = Settings.getString("pref_autoplay", group);
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_AUTOPLAY + addon)
+                    .title(R.string.pref_autoplay)
+                    .checked("true".equals(str))
+                    .description(R.string.pref_autoplay_desc)
+                    .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_CAPTIONS + addon)
+                    .title(R.string.pref_captions)
+                    .description(Settings.getString("pref_captions", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_AUDIO_SYNC + addon)
+                    .title(R.string.pref_audio_sync)
+                    .description(Settings.getString("pref_audio_sync", group))
+                    .descriptionEditable(true)
+                    // Fire Stick ignores the SIGNED part and allows on positive numbers.
+//                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER
+//                            | InputType.TYPE_NUMBER_FLAG_SIGNED)
                     .build());
             str = getContext().getString(R.string.pref_title_playback,group);
             actions.add(new GuidedAction.Builder(getActivity())
@@ -473,6 +500,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 Settings.putString(editor, "pref_video_parental",
                         validateNumber(action, 1, 4, 4));
                 break;
+            case ID_AUDIO_SYNC:
+                Settings.putString(editor, "pref_audio_sync",
+                        validateNumber(action, -2500, 2500, 0));
+                break;
+            case ID_CAPTIONS:
+                Settings.putString(editor, "pref_captions",
+                        validateNumber(action, 0, 10, 0));
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -540,6 +575,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 break;
             case ID_VIDEO_PARENTAL:
                 action.setDescription(Settings.getString("pref_video_parental"));
+                break;
+            case ID_AUDIO_SYNC:
+                action.setDescription(Settings.getString("pref_audio_sync"));
+                break;
+            case ID_CAPTIONS:
+                action.setDescription(Settings.getString("pref_captions"));
                 break;
         }
     }
@@ -654,6 +695,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 else
                     Settings.putString(editor, "pref_letterbox_color",group,
                             String.valueOf(Color.DKGRAY));
+                break;
+            case ID_AUTOPLAY:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_autoplay", "true");
+                else
+                    Settings.putString(editor, "pref_autoplay", "false");
                 break;
             default:
                 return false;

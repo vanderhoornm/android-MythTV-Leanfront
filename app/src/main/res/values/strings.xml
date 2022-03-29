@@ -123,6 +123,10 @@
         Enable if playback sometimes starts with audio out of sync.
         This will cause a brief audio pause.
     </string>
+    <string name="pref_autoplay">Autoplay</string>
+    <string name="pref_autoplay_desc">At the end of playback automatically start the next video or episode.</string>
+    <string name="pref_captions">Caption number to enable</string>
+    <string name="pref_audio_sync">Audio Sync Adjustment in milliseconds</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>
@@ -196,8 +200,8 @@
     <string name="button_cc">Subtitles</string>
     <string name="button_audiotrack">Change Audio Track</string>
     <string name="button_audiosync">Adjust Audio Sync</string>
-    <string name="button_playlistplay">Play Related Videos</string>
-    <string name="button_playlistplay_active">Will Play Related Videos</string>
+    <string name="button_playlistplay">Turn Autoplay On</string>
+    <string name="button_playlistplay_active">Turn Autoplay Off</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>
@@ -364,6 +368,9 @@
     <string name="sdef_livetv_rowsize" translatable="false">100</string>
     <string name="sdef_video_parental" translatable="false">4</string>
     <string name="sdef_audio_pause" translatable="false">true</string>
+    <string name="sdef_autoplay" translatable="false">false</string>
+    <string name="sdef_audio_sync" translatable="false">0</string>
+    <string name="sdef_captions" translatable="false">0</string>
     <string name="sdef_notes_version" translatable="false">0</string>
 
 </resources>

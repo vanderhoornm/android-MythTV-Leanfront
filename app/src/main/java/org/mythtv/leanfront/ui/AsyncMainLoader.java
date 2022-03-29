@@ -572,7 +572,7 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                 recentsList.add(recentsSparse.get(recentsSparse.keyAt(ix)));
             }
             // Remove recents if empty
-            if (recentsSparse.size() <= 1) {
+            if (recentsSparse.size() <= 0) {
                 categoryList.remove(recentsRowNum);
             }
         }

@@ -239,7 +239,7 @@ public class CardPresenter extends Presenter {
                             case TYPE_EPISODE:
                             case TYPE_VIDEO:
                             case TYPE_SERIES:
-                                new AsyncBackendCall(mVideo, 0L, false,
+                                new AsyncBackendCall(mVideo,
                                         this).execute(Video.ACTION_REFRESH);
                                 return true;
                         }

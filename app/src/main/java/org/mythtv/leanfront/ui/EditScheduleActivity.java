@@ -51,8 +51,7 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
         int chanId = getIntent().getIntExtra(CHANID, 0);
         Date startTime = (Date) getIntent().getSerializableExtra(STARTTIME);
         mRecordId = getIntent().getIntExtra(RECORDID,0);
-        AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
-                this);
+        AsyncBackendCall call = new AsyncBackendCall(this);
         int firstCall;
         if (chanId != 0 && startTime != null) {
             firstCall = 0;

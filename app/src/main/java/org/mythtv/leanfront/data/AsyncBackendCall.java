@@ -59,9 +59,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     }
 
     private Video mVideo;
-    // if posBookmark is >=0 use that, else use mValue for bookmark
-    private long mValue; // Used for bookmark or recordid or file length
-    private long posBookmark = -1;
+    private long mValue; // Used for recordid or file length
+    // if posBookmark is >=0 use that, else use mBookmark for bookmark
+    private long mBookmark = -1;
+    private long mPosBookmark = -1;
+    private long mLastPlay = -1;
+    private long mPosLastPlay = -1;
     private OnBackendCallListener mBackendCallListener;
     private boolean mWatched;
     private int [] mTasks;
@@ -93,32 +96,30 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private static long mTimeAdjustment = 0;
     private static int mythTvVersion;
 
-    public AsyncBackendCall(Video videoA, long valueA, boolean watched,
+    public AsyncBackendCall(Video videoA,
             OnBackendCallListener backendCallListener) {
         mVideo = videoA;
-        mValue = valueA;
         mBackendCallListener = backendCallListener;
-        mWatched = watched;
     }
 
     public AsyncBackendCall(OnBackendCallListener backendCallListener) {
         mBackendCallListener = backendCallListener;
     }
 
-    public void setBookmark(long mValue) {
-        this.mValue = mValue;
+    public void setBookmark(long bookmark) {
+        this.mBookmark = bookmark;
     }
 
     public long getBookmark() {
-        return mValue;
+        return mBookmark;
     }
 
     public long getPosBookmark() {
-        return posBookmark;
+        return mPosBookmark;
     }
 
     public void setPosBookmark(long posBookmark) {
-        this.posBookmark = posBookmark;
+        this.mPosBookmark = posBookmark;
     }
 
     public long getFileLength() {
@@ -197,6 +198,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return mythTvVersion;
     }
 
+    public void setmValue(long mValue) {
+        this.mValue = mValue;
+    }
+
+
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
         MainActivity main = MainActivity.getContext();
@@ -235,8 +241,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             XmlNode xmlResult = null;
             switch (task) {
                 case Video.ACTION_REFRESH:
-                    mValue = 0;
-                    posBookmark = -1;
+                    mBookmark = 0;
+                    mPosBookmark = -1;
                     try {
                         if (context == null)
                             return null;
@@ -274,7 +280,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // We expect one or zero results, never more than one.
                         if (cursor.moveToNext()) {
                             int colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_BOOKMARK);
-                            mValue = cursor.getLong(colno);
+                            mBookmark = cursor.getLong(colno);
                             colno = cursor.getColumnIndex(VideoContract.StatusEntry.COLUMN_SHOW_RECENT);
                             mVideo.showRecent = cursor.getInt(colno) != 0;
                         }
@@ -284,26 +290,26 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         XmlNode bkmrkData = null;
 
                         // If no local bookmark was found look for one on MythTV
-                        if (mValue <= 0 && ("mythtv".equals(pref) || "auto".equals(pref))) {
+                        if (mBookmark <= 0 && ("mythtv".equals(pref) || "auto".equals(pref))) {
                             if (isRecording) {
                                 urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                         "/Dvr/GetSavedBookmark?OffsetType=duration&RecordedId="
                                                 + mVideo.recordedid);
                                 bkmrkData = XmlNode.safeFetch(urlString, null);
                                 try {
-                                    mValue = Long.parseLong(bkmrkData.getString());
+                                    mBookmark = Long.parseLong(bkmrkData.getString());
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
-                                    mValue = -1;
+                                    mBookmark = -1;
                                 }
                                 // sanity check bookmark - between 0 and 24 hrs.
                                 // note -1 means a bookmark but no seek table
                                 // older version of service returns garbage value when there is
                                 // no seek table.
-                                if (mValue > 24 * 60 * 60 * 1000 || mValue < 0)
-                                    mValue = -1;
+                                if (mBookmark > 24 * 60 * 60 * 1000 || mBookmark < 0)
+                                    mBookmark = -1;
                             }
-                            if (mValue == -1 || !isRecording) {
+                            if (mBookmark == -1 || !isRecording) {
                                 // look for a position bookmark (for recording with no seek table)
                                 if (isRecording)
                                     urlString = XmlNode.mythApiUrl(mVideo.hostname,
@@ -315,10 +321,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                                     + mVideo.recordedid);
                                 bkmrkData = XmlNode.safeFetch(urlString, null);
                                 try {
-                                    posBookmark = Long.parseLong(bkmrkData.getString());
+                                    mPosBookmark = Long.parseLong(bkmrkData.getString());
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
-                                    posBookmark = -1;
+                                    mPosBookmark = -1;
                                 }
                             }
                         }
@@ -355,7 +361,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             }
                         }
                     } catch(IOException | XmlPullParserException e){
-                        mValue = 0;
+                        mBookmark = 0;
                         e.printStackTrace();
                     }
                     break;
@@ -396,11 +402,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     break;
                 case Video.ACTION_REMOVE_BOOKMARK:
-                    mValue = 0;
-                    posBookmark = 0;
+                    mBookmark = 0;
+                    mPosBookmark = 0;
                     // fall through
                 case Video.ACTION_SET_BOOKMARK:
-                    // when using this method, mValue and posBookmark must both be set.
+                    // when using this method, mBookmark and posBookmark must both be set.
                     try {
                         found = false;
                         String pref = Settings.getString("pref_bookmark");
@@ -409,22 +415,22 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             if (isRecording) {
                                 urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                         "/Dvr/SetSavedBookmark?OffsetType=duration&RecordedId="
-                                                + mVideo.recordedid + "&Offset=" + mValue);
+                                                + mVideo.recordedid + "&Offset=" + mBookmark);
                                 xmlResult = XmlNode.safeFetch(urlString, "POST");
                                 String result = xmlResult.getString();
                                 if ("true".equals(result))
                                     found = true;
                             }
-                            if (!found && posBookmark >= 0) {
+                            if (!found && mPosBookmark >= 0) {
                                 // store a mythtv position bookmark (in case there is no seek table)
                                 if (isRecording)
                                     urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                             "/Dvr/SetSavedBookmark?RecordedId="
-                                                    + mVideo.recordedid + "&Offset=" + posBookmark);
+                                                    + mVideo.recordedid + "&Offset=" + mPosBookmark);
                                 else
                                     urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                             "/Video/SetSavedBookmark?Id="
-                                                    + mVideo.recordedid + "&Offset=" + posBookmark);
+                                                    + mVideo.recordedid + "&Offset=" + mPosBookmark);
                                 xmlResult = XmlNode.safeFetch(urlString, "POST");
                                 String result = xmlResult.getString();
                                 if ("true".equals(result))
@@ -434,7 +440,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // If bookmark was updated on MythTV, reset local one to 0.
                         long localBkmark = 0;
                         if (!found) {
-                            localBkmark = mValue;
+                            localBkmark = mBookmark;
                         }
 
                         // Update local bookmark
@@ -759,6 +765,29 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             }
                         }
                     }
+                    // Find if we support the LastPlayPos API's
+                    long tResult = 0;
+                    XmlNode testNode = null;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetLastPlayPos?RecordedId=-1");
+                        testNode = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception in GetLastPlayPos. " + e);
+                    }
+                    if (testNode != null) {
+                        try {
+                            tResult = Long.parseLong(testNode.getString());
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                            tResult = 0;
+                        }
+                    }
+                    if (tResult == -1)
+                        MainFragment.supportLastPlayPos = true;
+                    else
+                        MainFragment.supportLastPlayPos = false;
+                    Log.i(TAG, CLASS + " Last Play Position Support:" + MainFragment.supportLastPlayPos);
                     break;
                 case Video.ACTION_BACKEND_INFO_HTML:
                     InputStream is = null;

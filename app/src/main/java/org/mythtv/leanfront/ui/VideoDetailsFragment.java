@@ -135,7 +135,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private FullWidthDetailsOverviewSharedElementHelper mHelper;
     private final VideoCursorMapper mVideoCursorMapper = new VideoCursorMapper();
     private long mBookmark = 0;     // milliseconds
-    private long posBookmark = -1;  // position in frames
+    private long mPosBookmark = -1;  // position in frames
     private SparseArrayObjectAdapter mActionsAdapter = null;
     private DetailsOverviewRow mDetailsOverviewRow = null;
     private boolean mWatched;
@@ -164,7 +164,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         if (savedInstanceState != null) {
             mBookmark = savedInstanceState.getLong("mBookmark");
-            posBookmark = savedInstanceState.getLong("posBookmark");
+            mPosBookmark = savedInstanceState.getLong("posBookmark");
         }
 
         if (mSelectedVideo != null) {
@@ -177,7 +177,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             int progflags = Integer.parseInt(mSelectedVideo.progflags);
             mWatched = ((progflags & Video.FL_WATCHED) != 0);
             if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this).execute(Video.ACTION_REFRESH);
 
             // When a Related Video item is clicked.
@@ -189,7 +189,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public void onSaveInstanceState (Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong("mBookmark", mBookmark);
-        outState.putLong("posBookmark", posBookmark);
+        outState.putLong("posBookmark", mPosBookmark);
     }
 
     private void removeNotification(int notificationId) {
@@ -311,10 +311,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL
             && (id == Video.ACTION_PLAY_FROM_BOOKMARK || id == Video.ACTION_PLAY))
             id = Video.ACTION_LIVETV;
+        AsyncBackendCall call;
         switch (id) {
             case Video.ACTION_PLAY_FROM_BOOKMARK:
                 bookmark = mBookmark;
-                posbookmark = posBookmark;
+                posbookmark = mPosBookmark;
             case Video.ACTION_PLAY:
                 Intent intent = new Intent(getActivity(), PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
@@ -324,42 +325,43 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 break;
             case Video.ACTION_LIVETV:
                 setProgressBar(true);
-                new AsyncBackendCall(mSelectedVideo, 0L, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this).execute(Video.ACTION_LIVETV);
                 break;
             case Video.ACTION_DELETE:
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this)
                         .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_DELETE_AND_RERECORD:
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this)
                         .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE_AND_RERECORD, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_ALLOW_RERECORD:
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this)
                         .execute(Video.ACTION_ALLOW_RERECORD);
                 break;
             case Video.ACTION_UNDELETE:
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this)
                         .execute(Video.ACTION_UNDELETE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_SET_WATCHED:
             case Video.ACTION_SET_UNWATCHED:
                 mWatched = (id == Video.ACTION_SET_WATCHED);
-                new AsyncBackendCall(mSelectedVideo, 0, mWatched,
-                        this)
-                        .execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
+                call = new AsyncBackendCall(mSelectedVideo, this);
+                call.setWatched(mWatched);
+                call.execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_REMOVE_BOOKMARK:
                 mBookmark = 0;
-                posBookmark = 0;
-                AsyncBackendCall call = new AsyncBackendCall(mSelectedVideo, mBookmark, false,
+                mPosBookmark = 0;
+                call = new AsyncBackendCall(mSelectedVideo,
                         this);
-                call.setPosBookmark(posBookmark);
+                call.setBookmark(mBookmark);
+                call.setPosBookmark(mPosBookmark);
                 call.execute(Video.ACTION_SET_BOOKMARK, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_QUERY_STOP_RECORDING:
@@ -376,7 +378,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 if (mSelectedVideo.recordedid != null) {
                     // Terminate a recording that may be a scheduled event
                     // so don't remove the record rule.
-                    new AsyncBackendCall(mSelectedVideo, 0, false,
+                    new AsyncBackendCall(mSelectedVideo,
                             this)
                             .execute(Video.ACTION_STOP_RECORDING,
                                     Video.ACTION_REFRESH);
@@ -394,7 +396,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 builder.show();
                 break;
             case Video.ACTION_REMOVE_RECENT:
-                new AsyncBackendCall(mSelectedVideo, 0, false,
+                new AsyncBackendCall(mSelectedVideo,
                         this)
                         .execute(Video.ACTION_REMOVE_RECENT, Video.ACTION_REFRESH);
                 break;
@@ -425,7 +427,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     actions.add(new Action(Video.ACTION_SET_WATCHED));
                 }
 
-                if (mBookmark > 0 || posBookmark > 0) {
+                if (mBookmark > 0 || mPosBookmark > 0) {
                     prompts.add(getString(R.string.menu_remove_bookmark));
                     actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
                 }
@@ -491,7 +493,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                   Intent intent) {
         if (requestCode == Video.ACTION_PLAY
                 && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
-            new AsyncBackendCall(mSelectedVideo, 0, false,
+            new AsyncBackendCall(mSelectedVideo,
                     this).execute(Video.ACTION_REFRESH);
     }
 
@@ -642,7 +644,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     setupDetailsOverviewRow();
                     setupMovieListRow();
                     updateBackground(mSelectedVideo.bgImageUrl);
-                    new AsyncBackendCall(mSelectedVideo, 0, false,
+                    new AsyncBackendCall(mSelectedVideo,
                             this).execute(Video.ACTION_REFRESH);
                     // When a Related Video item is clicked.
                     setOnItemViewClickedListener(itemViewClickedListener);
@@ -862,8 +864,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             .build();
                     if (recordId >= 0) {
                         // Terminate Live TV
-                        new AsyncBackendCall(video, recordId, false,
-                                null).execute(
+                        AsyncBackendCall call = new AsyncBackendCall(video,  null);
+                        call.setmValue(recordId);
+                        call.execute(
                                 Video.ACTION_STOP_RECORDING,
                                 Video.ACTION_REMOVE_RECORD_RULE);
                     }
@@ -891,17 +894,18 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 break;
 
             default:
+                // Assume ACTION_REFRESH was in the list
                 if (context == null)
                     break;
                 xml = taskRunner.getXmlResult();
                 mBookmark = taskRunner.getBookmark();
-                posBookmark = taskRunner.getPosBookmark();
+                mPosBookmark = taskRunner.getPosBookmark();
                 int progflags = Integer.parseInt(mSelectedVideo.progflags);
                 mWatched = ((progflags & Video.FL_WATCHED) != 0);
                 mDetailsDescriptionPresenter.setupDescription();
                 int i = 0;
                 mActionsAdapter.clear();
-                if (mBookmark > 0 || posBookmark > 0)
+                if (mBookmark > 0 || mPosBookmark > 0)
                     mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
                             .getString(R.string.resume_1),
                             getResources().getString(R.string.resume_2)));

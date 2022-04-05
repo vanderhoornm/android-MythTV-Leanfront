@@ -45,8 +45,7 @@ public class SettingsActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AsyncBackendCall call = new AsyncBackendCall(null, 0L, false,
-                this);
+        AsyncBackendCall call = new AsyncBackendCall(this);
         call.execute(Video.ACTION_GETPLAYGROUPLIST);
     }
     @Override

@@ -257,8 +257,9 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         if (mRecordid >= 0) {
             // Terminate Live TV
-            new AsyncBackendCall(mVideo, mRecordid, false,
-                    null).execute(
+            AsyncBackendCall call = new AsyncBackendCall(mVideo, null);
+            call.setmValue(mRecordid);
+            call.execute(
                     Video.ACTION_STOP_RECORDING,
                     Video.ACTION_REMOVE_RECORD_RULE);
         }
@@ -289,9 +290,9 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         posBookmark = mBookmark * (long)(frameRate * 100.0f) / 100000;
-        AsyncBackendCall call =  new AsyncBackendCall(mVideo, mBookmark, mWatched,
-                null);
+        AsyncBackendCall call =  new AsyncBackendCall(mVideo, null);
         call.setPosBookmark(posBookmark);
+        call.setBookmark(mBookmark);
         posBookmark = -1;
         call.execute(Video.ACTION_SET_BOOKMARK, action2);
         try {
@@ -1012,8 +1013,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
     public void markWatched(boolean watched) {
         mWatched = watched;
-        new AsyncBackendCall(mVideo, mBookmark, mWatched,
-                null).execute(Video.ACTION_SET_WATCHED);
+        AsyncBackendCall call = new AsyncBackendCall(mVideo, null);
+        call.setWatched(mWatched);
+        call.execute(Video.ACTION_SET_WATCHED);
     }
 
     /**
@@ -1024,8 +1026,10 @@ public class PlaybackFragment extends VideoSupportFragment
         long priorFileLeng = -1;
         if (multiCheck)
             priorFileLeng = mFileLength;
-        new AsyncBackendCall(mVideo, priorFileLeng, mWatched,
-                this).execute(Video.ACTION_FILELENGTH);
+        AsyncBackendCall call = new AsyncBackendCall(mVideo,
+                this);
+        call.setmValue(priorFileLeng);
+        call.execute(Video.ACTION_FILELENGTH);
     }
 
     @Override

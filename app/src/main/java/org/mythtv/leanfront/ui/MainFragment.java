@@ -174,6 +174,9 @@ public class MainFragment extends BrowseSupportFragment
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
     volatile boolean isLoaderRunning;
+    // This flag will be set true during refresh if it is found that we are on a
+    // backend that supports the LastPlayPos APIs (V32 or later).
+    public static boolean supportLastPlayPos;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -608,8 +611,7 @@ public class MainFragment extends BrowseSupportFragment
 
         int [] selection = getSelection();
         // Fill in disk usage
-        new AsyncBackendCall(null, 0L, false,
-                this).execute(Video.ACTION_BACKEND_INFO);
+        new AsyncBackendCall(null, this).execute(Video.ACTION_BACKEND_INFO);
         // Every time we have to re-get the category loader, we must re-create the sidebar.
         mCategoryRowAdapter.clear();
         ListRow row;
@@ -763,7 +765,7 @@ public class MainFragment extends BrowseSupportFragment
                     startFetch(recType, null, recGroup);
                     break;
                 case TYPE_INFO:
-                    new AsyncBackendCall(null, 0L, false,
+                    new AsyncBackendCall(null,
                             MainFragment.this).execute(Video.ACTION_BACKEND_INFO_HTML);
                     break;
                 case TYPE_MANAGE:

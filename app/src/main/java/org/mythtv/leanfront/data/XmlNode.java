@@ -50,6 +50,7 @@ public class XmlNode {
     private XmlNode nextSibling;
     private static HashMap<String, String> sHostMap;
     private static String sBackendIP;
+    private static String sMainPort;
 
     private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
@@ -58,8 +59,9 @@ public class XmlNode {
             Log.e(TAG, CLASS + " Backend port or IP address not specified");
             return null;
         }
-        if (!backendIP.equals(sBackendIP)) {
+        if (!backendIP.equals(sBackendIP) || !mainPort.equals(sMainPort)) {
             sBackendIP = backendIP;
+            sMainPort = mainPort;
             sHostMap = new HashMap<>();
         }
         if (hostname == null)
@@ -78,14 +80,18 @@ public class XmlNode {
             // These are removed now. I don't know why this was here
 //            if (hostIp == null || hostIp.length() == 0)
 //                return "";
-            urlString = XmlNode.mythApiUrl(null,
-                    "/Myth/GetSetting?Key=BackendStatusPort&HostName="
-                            + hostname);
-            response = XmlNode.fetch(urlString, null);
-            String port = response.getString();
-            if (port == null)
-                port = mainPort;
-            hostIpAndPort = hostIp + ":" + port;
+
+            // This removed because the system may use 6744 when 6544 is the status port
+            // If your slave backend has a different port you are out of luck.
+//            urlString = XmlNode.mythApiUrl(null,
+//                    "/Myth/GetSetting?Key=BackendStatusPort&HostName="
+//                            + hostname);
+//            response = XmlNode.fetch(urlString, null);
+//            String port = response.getString();
+//            if (port == null)
+//                port = mainPort;
+//            hostIpAndPort = hostIp + ":" + port;
+            hostIpAndPort = hostIp + ":" + sMainPort;
             sHostMap.put(hostname, hostIpAndPort);
         }
         return hostIpAndPort;

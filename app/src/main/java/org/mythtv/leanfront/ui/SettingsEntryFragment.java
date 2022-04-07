@@ -388,6 +388,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
+        // This is actually last play pos but stored as pref_bookmark
+        // for backward compatibility
         str = Settings.getString("pref_bookmark");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_BOOKMARK_LOCAL)

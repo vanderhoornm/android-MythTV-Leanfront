@@ -95,7 +95,6 @@ import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
 import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
-import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -896,6 +895,10 @@ public class MainFragment extends BrowseSupportFragment
                 actions.add(new Action(Video.ACTION_SET_UNWATCHED));
                 prompts.add(getString(R.string.menu_mark_watched));
                 actions.add(new Action(Video.ACTION_SET_WATCHED));
+                if (supportLastPlayPos) {
+                    prompts.add(getString(R.string.menu_remove_lastplaypos));
+                    actions.add(new Action(Video.ACTION_REMOVE_LASTPLAYPOS));
+                }
                 prompts.add(getString(R.string.menu_remove_bookmark));
                 actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
                 prompts.add(getString(R.string.menu_remove_from_recent));

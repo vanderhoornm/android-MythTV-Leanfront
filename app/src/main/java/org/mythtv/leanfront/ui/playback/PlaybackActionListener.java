@@ -147,7 +147,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onPlayCompleted(VideoPlayerGlue.MyAction playlistPlayAction) {
-        playbackFragment.setBookmark();
+        playbackFragment.setBookmark(Video.ACTION_SET_LASTPLAYPOS);
         if (playlistPlayAction.getIndex() == 1) // playlist selected
             onNext();
         else if (playbackFragment.mIsBounded) {
@@ -812,6 +812,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         }
     }
 
+    @Override
+    public void onBookmark() {
+        playbackFragment.setBookmark(Video.ACTION_SET_BOOKMARK);
+    }
     @Override
     public void onRewind() {
         playbackFragment.rewind();

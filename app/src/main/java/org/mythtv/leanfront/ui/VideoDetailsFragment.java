@@ -136,6 +136,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private final VideoCursorMapper mVideoCursorMapper = new VideoCursorMapper();
     private long mBookmark = 0;     // milliseconds
     private long mPosBookmark = -1;  // position in frames
+    private long mLastPlay = 0;     // milliseconds
+    private long mPosLastPlay = -1;  // position in frames
     private SparseArrayObjectAdapter mActionsAdapter = null;
     private DetailsOverviewRow mDetailsOverviewRow = null;
     private boolean mWatched;
@@ -309,13 +311,24 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         String alertTitle = null;
 
         if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL
-            && (id == Video.ACTION_PLAY_FROM_BOOKMARK || id == Video.ACTION_PLAY))
+            && (id == Video.ACTION_PLAY_FROM_BOOKMARK || id == Video.ACTION_PLAY
+                || id == Video.ACTION_PLAY_FROM_LASTPOS))
             id = Video.ACTION_LIVETV;
+        if (id == Video.ACTION_PLAY_FROM_LASTPOS && mLastPlay <= 0 && mPosLastPlay <= 0)
+            id = Video.ACTION_PLAY_FROM_BOOKMARK;
         AsyncBackendCall call;
+        boolean set = false;
         switch (id) {
             case Video.ACTION_PLAY_FROM_BOOKMARK:
                 bookmark = mBookmark;
                 posbookmark = mPosBookmark;
+                set = true;
+            case Video.ACTION_PLAY_FROM_LASTPOS:
+                if (!set) {
+                    bookmark = mLastPlay;
+                    posbookmark = mPosLastPlay;
+                    set = true;
+                }
             case Video.ACTION_PLAY:
                 Intent intent = new Intent(getActivity(), PlaybackActivity.class);
                 intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
@@ -354,6 +367,15 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 call = new AsyncBackendCall(mSelectedVideo, this);
                 call.setWatched(mWatched);
                 call.execute(Video.ACTION_SET_WATCHED, Video.ACTION_REFRESH);
+                break;
+            case Video.ACTION_REMOVE_LASTPLAYPOS:
+                mBookmark = 0;
+                mPosBookmark = 0;
+                call = new AsyncBackendCall(mSelectedVideo,
+                        this);
+                call.setLastPlay(mBookmark);
+                call.setPosLastPlay(mPosBookmark);
+                call.execute(Video.ACTION_SET_LASTPLAYPOS, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_REMOVE_BOOKMARK:
                 mBookmark = 0;
@@ -400,6 +422,24 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         this)
                         .execute(Video.ACTION_REMOVE_RECENT, Video.ACTION_REFRESH);
                 break;
+            case Video.ACTION_PLAY_FROM_OTHER:
+                prompts = new ArrayList<>();
+                actions = new ArrayList<>();
+
+                if (mLastPlay > 0 || mPosLastPlay > 0) {
+                    prompts.add(getString(R.string.resume_last_1) + " "
+                            + getString(R.string.resume_last_2));
+                    actions.add(new Action(Video.ACTION_PLAY_FROM_LASTPOS));
+                }
+                if (mBookmark > 0 || mPosBookmark > 0) {
+                    prompts.add(getString(R.string.resume_bkmrk_1) + " "
+                            + getString(R.string.resume_bkmrk_2));
+                    actions.add(new Action(Video.ACTION_PLAY_FROM_BOOKMARK));
+                }
+                prompts.add(getString(R.string.play_1) + " "
+                        + getString(R.string.play_2));
+                actions.add(new Action(Video.ACTION_PLAY));
+                break;
             case Video.ACTION_OTHER:
                 if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_RECORDING
                         && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_VIDEO)
@@ -426,7 +466,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     prompts.add(getString(R.string.menu_mark_watched));
                     actions.add(new Action(Video.ACTION_SET_WATCHED));
                 }
-
+                if (mLastPlay > 0 || mPosLastPlay > 0) {
+                    prompts.add(getString(R.string.menu_remove_lastplaypos));
+                    actions.add(new Action(Video.ACTION_REMOVE_LASTPLAYPOS));
+                }
                 if (mBookmark > 0 || mPosBookmark > 0) {
                     prompts.add(getString(R.string.menu_remove_bookmark));
                     actions.add(new Action(Video.ACTION_REMOVE_BOOKMARK));
@@ -900,18 +943,31 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 xml = taskRunner.getXmlResult();
                 mBookmark = taskRunner.getBookmark();
                 mPosBookmark = taskRunner.getPosBookmark();
+                mLastPlay = taskRunner.getLastPlay();
+                mPosLastPlay = taskRunner.getPosLastPlay();
                 int progflags = Integer.parseInt(mSelectedVideo.progflags);
                 mWatched = ((progflags & Video.FL_WATCHED) != 0);
                 mDetailsDescriptionPresenter.setupDescription();
                 int i = 0;
                 mActionsAdapter.clear();
-                if (mBookmark > 0 || mPosBookmark > 0)
-                    mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
-                            .getString(R.string.resume_1),
-                            getResources().getString(R.string.resume_2)));
-                mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
-                        .getString(R.string.play_1),
-                        getResources().getString(R.string.play_2)));
+                if (mLastPlay > 0 || mPosLastPlay > 0)
+                    mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_LASTPOS, getResources()
+                            .getString(R.string.resume_last_1),
+                            getResources().getString(R.string.resume_last_2)));
+                if (mBookmark > 0 || mPosBookmark > 0) {
+                    if (i == 0)
+                        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_BOOKMARK, getResources()
+                                .getString(R.string.resume_bkmrk_1),
+                                getResources().getString(R.string.resume_bkmrk_2)));
+                    else
+                        mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY_FROM_OTHER, getResources()
+                                .getString(R.string.play_other_1),
+                                getResources().getString(R.string.play_other_2)));
+                }
+                if (i <= 1)
+                    mActionsAdapter.set(++i, new Action(Video.ACTION_PLAY, getResources()
+                            .getString(R.string.play_1),
+                            getResources().getString(R.string.play_2)));
                 // These add extra if needed buttons - these are now done with menu instead
                 //        if ("Deleted".equals(mSelectedVideo.recGroup))
                 //            mActionsAdapter.set(++i, new Action(Video.ACTION_UNDELETE, getResources()

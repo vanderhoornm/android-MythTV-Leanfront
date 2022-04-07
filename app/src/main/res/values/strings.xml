@@ -34,8 +34,12 @@
     <string name="play_2">From Start</string>
     <string name="play_livetv_1">Play</string>
     <string name="play_livetv_2">Live TV</string>
-    <string name="resume_1">Play from</string>
-    <string name="resume_2">Bookmark</string>
+    <string name="resume_bkmrk_1">Play from</string>
+    <string name="resume_bkmrk_2">Bookmark</string>
+    <string name="resume_last_1">Play from Last</string>
+    <string name="resume_last_2">Play Position</string>
+    <string name="play_other_1">Play From</string>
+    <string name="play_other_2">Other...</string>
     <string name="delete_1">Delete</string>
     <string name="delete_2">Recording</string>
     <string name="undelete_1">UnDelete</string>
@@ -65,8 +69,10 @@
     <string name="pref_title_backend">MythTV Backend</string>
     <string name="pref_title_myth_port">MythTV Backend Port</string>
     <string name="pref_title_http_port">Status Port</string>
+<!--    This is actually last play pos but stored as pref_bookmark-->
+<!--    for backward compatibility-->
     <string name="pref_bookmark_mythtv">If Unchecked, Store in MythTV</string>
-    <string name="pref_bookmark_local">Store Bookmarks in Android</string>
+    <string name="pref_bookmark_local">Store Last Play Position in Android</string>
     <string name="all_plus_tab">All&#9;</string>
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
     <string name="pref_title_playback">Playback: %1$s</string>
@@ -144,6 +150,7 @@
     <string name="menu_mark_unwatched">Mark as Unwatched</string>
     <string name="menu_mark_watched">Mark as Watched</string>
     <string name="menu_remove_bookmark">Remove Bookmark</string>
+    <string name="menu_remove_lastplaypos">Remove Last Play Position</string>
     <string name="menu_stop_recording">Stop Recording</string>
     <string name="menu_view_description">View Description</string>
     <string name="menu_dont_stop_recording">Don\'t Stop Recording</string>
@@ -185,6 +192,7 @@
 
     <string name="msg_setting_framerate">Using refresh rate %1$.2f.</string>
     <string name="msg_no_good_refresh">There is no suitable refresh rate for frame rate %1$.2f.</string>
+    <string name="msg_bookmark_set">Bookmark Set.</string>
     <string name="button_settings">Settings</string>
     <string name="button_no_recent">No Recent</string>
     <string name="button_refresh_lists">Refresh Lists</string>
@@ -202,6 +210,7 @@
     <string name="button_audiosync">Adjust Audio Sync</string>
     <string name="button_playlistplay">Turn Autoplay On</string>
     <string name="button_playlistplay_active">Turn Autoplay Off</string>
+    <string name="button_bookmark">Set Bookmark</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>
@@ -343,6 +352,8 @@
 
     <!--Settings default values, used in Settings.java-->
     <string name="sdef_http_port" translatable="false">6544</string>
+    <!--    This is actually last play pos but stored as pref_bookmark-->
+    <!--    for backward compatibility-->
     <string name="sdef_bookmark" translatable="false">mythtv</string>
     <string name="sdef_skip_fwd" translatable="false">60</string>
     <string name="sdef_skip_back" translatable="false">20</string>

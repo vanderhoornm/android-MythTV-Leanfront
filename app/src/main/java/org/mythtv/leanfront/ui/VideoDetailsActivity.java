@@ -68,7 +68,7 @@ public class VideoDetailsActivity extends LeanbackActivity {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 if (mFragment != null) {
-                    mFragment.onActionClicked(new Action(Video.ACTION_PLAY_FROM_BOOKMARK));
+                    mFragment.onActionClicked(new Action(Video.ACTION_PLAY_FROM_LASTPOS));
                     return true;
                 }
                 break;

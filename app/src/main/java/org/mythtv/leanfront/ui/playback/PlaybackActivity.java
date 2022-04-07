@@ -127,6 +127,9 @@ public class PlaybackActivity extends LeanbackActivity {
                 return true;
             case KeyEvent.KEYCODE_MENU:
                 return mPlaybackFragment.getPlaybackActionListener().onMenu();
+            case KeyEvent.KEYCODE_BOOKMARK:
+                mPlaybackFragment.getPlaybackActionListener().onBookmark();
+                return true;
         }
 
         return super.onKeyDown(keyCode, event);

@@ -45,6 +45,7 @@ import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Video;
+import org.mythtv.leanfront.ui.MainFragment;
 
 /**
  * Manages customizing the actions in the {@link PlaybackControlsRow}. Adds and manages the
@@ -83,6 +84,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onSpeed();
         void onAudioTrack();
         void onAudioSync();
+        void onBookmark();
         void onActionSelected(Action action);
     }
 
@@ -101,6 +103,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mAudioTrackAction;
     private MyAction mAudioSyncAction;
     private MyAction mAutoPlayAction;
+    private MyAction mBookmarkAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
     // Skip means go to next or previous track
@@ -144,6 +147,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         labels[0] = res.getString(R.string.button_cc);
         mClosedCaptioningAction.setLabels(labels);
         mPivotAction = new MyAction(context,Video.ACTION_PIVOT, R.drawable.ic_up_down_button,R.string.button_pivot);
+        mBookmarkAction = new MyAction(context,Video.ACTION_SET_BOOKMARK, R.drawable.ic_bookmark_border,R.string.button_bookmark);
     }
 
     @Override
@@ -160,6 +164,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         if (mAllowSkip)
             adapter.add(mSkipNextAction);
         adapter.add(mSpeedAction);
+        if (MainFragment.supportLastPlayPos)
+            adapter.add(mBookmarkAction);
     }
 
     @Override
@@ -246,6 +252,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mSpeedAction
                 || action == mAudioTrackAction
                 || action == mAudioSyncAction
+                || action == mBookmarkAction
                 || action == mAutoPlayAction;
     }
 
@@ -269,6 +276,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onAudioTrack();
         } else if (action == mAudioSyncAction) {
             mActionListener.onAudioSync();
+        } else if (action == mBookmarkAction) {
+            mActionListener.onBookmark();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();

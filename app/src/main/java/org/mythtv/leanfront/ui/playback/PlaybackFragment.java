@@ -264,41 +264,55 @@ public class PlaybackFragment extends VideoSupportFragment
                     Video.ACTION_REMOVE_RECORD_RULE);
         }
         else if (isPlaying)
-            setBookmark();
+            setBookmark(Video.ACTION_SET_LASTPLAYPOS);
         if (Util.SDK_INT <= 23) {
             releasePlayer();
         }
     }
 
     /**
-     * Set a bookmark on MythTV.
+     * Set a last play pos or bookmark on MythTV. If backend does not support last play pos, the
+     * last play pos will be set as a bookmark. So you should only use the ACTION_SET_BOOKMARK option
+     * if the backend supports last play position.
+     * @param action Value from Video ACTIONS Video.ACTION_SET_LASTPLAYPOS or Video.ACTION_SET_BOOKMARK
      */
-    void setBookmark() {
+    void setBookmark(int action) {
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.myGetDuration();
         if (pos < 0)
             pos = mPlayerGlue.getSavedCurrentPosition();
         if (leng == -1 || isIncreasing
-                || (pos > 10000 && pos < leng - 10000))
+                || (pos > 10000 && pos < leng - 10000)
+                || action == Video.ACTION_SET_BOOKMARK)
             mBookmark = pos;
         else
             mBookmark = 0;
         int action2 = Video.ACTION_DUMMY;
-        if (leng > 1000 && pos > leng - 10000) {
-            mWatched = true;
-            action2 = Video.ACTION_SET_WATCHED;
-        }
-
         posBookmark = mBookmark * (long)(frameRate * 100.0f) / 100000;
-        AsyncBackendCall call =  new AsyncBackendCall(mVideo, null);
-        call.setPosBookmark(posBookmark);
-        call.setBookmark(mBookmark);
+        AsyncBackendCall call =  new AsyncBackendCall(mVideo, this);
+        switch (action) {
+            case Video.ACTION_SET_LASTPLAYPOS:
+                if (leng > 1000 && pos > leng - 10000) {
+                    mWatched = true;
+                    action2 = Video.ACTION_SET_WATCHED;
+                }
+                call.setLastPlay(mBookmark);
+                call.setPosLastPlay(posBookmark);
+                break;
+            case Video.ACTION_SET_BOOKMARK:
+                call.setBookmark(mBookmark);
+                call.setPosBookmark(posBookmark);
+                break;
+            default:
+                Log.e(TAG, CLASS + " setBookmark invalid parameter:" + action, new Throwable());
+                return;
+        }
         posBookmark = -1;
-        call.execute(Video.ACTION_SET_BOOKMARK, action2);
+        call.execute(action, action2);
+        // Wait for the update to complete before returning. Hope it takes less than 100 ms
         try {
             Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
         }
     }
 
@@ -787,7 +801,7 @@ public class PlaybackFragment extends VideoSupportFragment
             return;
         Video v = mPlaylist.next();
         if (v != null) {
-            setBookmark();
+            setBookmark(Video.ACTION_SET_LASTPLAYPOS);
             mBookmark = 0;
             mVideo = v;
             play(mVideo);
@@ -801,7 +815,7 @@ public class PlaybackFragment extends VideoSupportFragment
             return;
         Video v = mPlaylist.previous();
         if (v != null) {
-            setBookmark();
+            setBookmark(Video.ACTION_SET_LASTPLAYPOS);
             // TODO: Refactor so that we can resume from bookmark
             mBookmark = 0;
             mVideo = v;
@@ -1063,6 +1077,14 @@ public class PlaybackFragment extends VideoSupportFragment
                 }
                 mFileLength = fileLength;
                 mIsPlayResumable = false;
+                break;
+            case Video.ACTION_SET_BOOKMARK:
+                if (mToast != null)
+                    mToast.cancel();
+                mToast = Toast.makeText(getActivity(),
+                        getActivity().getString(R.string.msg_bookmark_set),
+                        Toast.LENGTH_LONG);
+                mToast.show();
                 break;
         }
     }
@@ -1516,7 +1538,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 getActivity().getWindow()
                     .addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             else {
-                setBookmark();
+                setBookmark(Video.ACTION_SET_LASTPLAYPOS);
                 // Enable screen saver during pause
                 getActivity().getWindow()
                         .clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

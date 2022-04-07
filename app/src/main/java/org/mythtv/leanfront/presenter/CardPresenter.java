@@ -265,10 +265,18 @@ public class CardPresenter extends Presenter {
                 case Video.ACTION_REFRESH:
                     if (context == null)
                         break;
+                    long bookmark = taskRunner.getBookmark();
+                    long posBookmark = taskRunner.getPosBookmark();
+                    long lastPlay = taskRunner.getLastPlay();
+                    long posLastPlay = taskRunner.getPosLastPlay();
+                    if (lastPlay > 0 || posLastPlay > 0) {
+                        bookmark = lastPlay;
+                        posBookmark = posLastPlay;
+                    }
                     intent = new Intent(context, PlaybackActivity.class);
                     intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
-                    intent.putExtra(VideoDetailsActivity.BOOKMARK, taskRunner.getBookmark());
-                    intent.putExtra(VideoDetailsActivity.POSBOOKMARK, taskRunner.getPosBookmark());
+                    intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
+                    intent.putExtra(VideoDetailsActivity.POSBOOKMARK, posBookmark);
                     context.startActivity(intent);
                     break;
             }

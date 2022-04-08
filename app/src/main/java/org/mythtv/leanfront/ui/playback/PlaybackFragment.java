@@ -295,6 +295,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 if (leng > 1000 && pos > leng - 10000) {
                     mWatched = true;
                     action2 = Video.ACTION_SET_WATCHED;
+                    call.setWatched(mWatched);
                 }
                 call.setLastPlay(mBookmark);
                 call.setPosLastPlay(posBookmark);

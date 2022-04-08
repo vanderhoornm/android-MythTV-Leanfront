@@ -159,6 +159,7 @@ public class MainFragment extends BrowseSupportFragment
     public static final String KEY_ITEMNAME = "LEANFRONT_ITEMNAME";
     // mBase is the current recgroup or directory being displayed.
     String mBaseName;
+    String mRowName;
     private TextView mUsageView;
 
     private static ScheduledExecutorService executor = null;
@@ -211,8 +212,10 @@ public class MainFragment extends BrowseSupportFragment
             mActiveFragment = null;
             mWasInBackground = true;
             showNotes();
-        } else
+        } else {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
+            mRowName = intent.getStringExtra(KEY_ROWNAME);
+        }
     }
 
     private void setProgressBar(boolean show) {
@@ -617,6 +620,8 @@ public class MainFragment extends BrowseSupportFragment
         for (int rownum = 0 ; rownum < list.size() ; rownum++) {
             ArrayList<ListItem> rowList = list.get(rownum);
             MyHeaderItem header = (MyHeaderItem) rowList.get(0);
+            if (mRowName != null && mRowName.equals(header.getName()))
+                selection[0] = rownum;
             ArrayObjectAdapter rowObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
             rowList.remove(0);
             if (rowList.size() > 0)
@@ -624,6 +629,7 @@ public class MainFragment extends BrowseSupportFragment
             row = new ListRow(header, rowObjectAdapter);
             mCategoryRowAdapter.add(row);
         }
+        mRowName = null;
 
         // Create a row for tools.
         MyHeaderItem gridHeader = new MyHeaderItem(getString(R.string.row_header_tools),

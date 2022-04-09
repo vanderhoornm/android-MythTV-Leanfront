@@ -420,9 +420,18 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         String pref = Settings.getString("pref_bookmark");
                         if ("mythtv".equals(pref) || "auto".equals(pref)) {
                             xmlResult = updateBookmark(method, mLastPlay, mPosLastPlay);
+                            String result = xmlResult.getString();
+                            if ("true".equals(result))
+                                found = true;
                         }
+
                         // If bookmark was updated on MythTV, reset local one to 0.
                         long localBkmark = 0;
+                        if (!found) {
+                            // We need this to force local update for mythbackend V30 or older
+                            // where bookmarks are not supported by the api.
+                            localBkmark = mLastPlay;
+                        }
 
                         // Update local bookmark
 
@@ -1063,7 +1072,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         return retValue;
     }
 
-    //    found = updateBookmark("SetSavedBookmark");
     // method: SetSavedBookmark or SetLastPlayPos
     // Return object contains true if successful
     private XmlNode updateBookmark(String method, long mark, long pos)

@@ -38,6 +38,12 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Note that some phones do not support MPEG-2 playback. There may be some android TV devices that do not support MPEG-2. NVidia shield supports MPEG-2 although there is a pixelation bug on some channels. Fire stick models since 2018 support MPEG-2. See https://developer.amazon.com/docs/fire-tv/device-specifications-fire-tv-streaming-media-player.html?v=ftvstick4k and select your model for full details.
 - Supports playback groups, allowing different values per playback group.
 
+## V32 Port Number
+
+In mythbackend V32 and current master, the web server has been rewritten and there is a new status port. The old status port still works but does not support the latest features, like "Last Play Position". To use the latest features, change your port number in settings to 6744. If you have any problems with this please open a ticket.
+
+This is a temporary change, in a later version (probably V33) the port will change back to 6544, with the new features, and port 6744 will no longer be used. You will then have to change your settings back to port 6544.
+
 ## Tips
 
 ### To easily get back to a series you were watching recently:

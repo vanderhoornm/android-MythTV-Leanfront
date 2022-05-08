@@ -388,7 +388,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             int chanNum = -1;
             if (chanNumStr != null) {
                 String[] chanNumSplit = chanNumStr.split("[^0123456789]");
-                if (chanNumSplit.length > 0 && chanNumSplit[0] != null)
+                if (chanNumSplit.length > 0 && chanNumSplit[0] != null
+                  && chanNumSplit[0].length() > 0)
                     chanNum = Integer.parseInt(chanNumSplit[0]);
             }
             // channel slot at front

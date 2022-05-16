@@ -102,7 +102,13 @@ public class MainActivity extends LeanbackActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_UP:
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                mMultipleKeyTime=System.currentTimeMillis();
+                long newKeyTime=System.currentTimeMillis();
+                long diff = newKeyTime - mMultipleKeyTime;
+//                Log.i(TAG, CLASS + " key interval:" + diff);
+                // Restrict key interval to 100ms to prevent crash
+                if (diff < 100)
+                    return true;
+                mMultipleKeyTime=newKeyTime;
                 break;
         }
         return super.onKeyDown(keyCode, event);

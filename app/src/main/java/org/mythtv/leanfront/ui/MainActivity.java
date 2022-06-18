@@ -84,18 +84,20 @@ public class MainActivity extends LeanbackActivity {
         return mainFragment;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (context == this) {
-            context = null;
-            // Close database
-            VideoDbHelper dbh = VideoDbHelper.getInstance(context);
-            dbh.close();
-            int pid = android.os.Process.myPid();
-            android.os.Process.killProcess(pid);
-        }
-    }
+//    Commented this as it seems to result in app being killed as soon  as you
+//    navigate away from the main screen on some android 11 boxes.
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        if (context == this) {
+//            context = null;
+//            // Close database
+//            VideoDbHelper dbh = VideoDbHelper.getInstance(context);
+//            dbh.close();
+//            int pid = android.os.Process.myPid();
+//            android.os.Process.killProcess(pid);
+//        }
+//    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {

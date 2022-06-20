@@ -37,7 +37,6 @@ import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
-import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
@@ -739,7 +738,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
             || !Objects.equals(mPriorHttpPort, Settings.getString("pref_http_port"))
             || !Objects.equals(mPriorRowsize, Settings.getString("pref_livetv_rowsize"))
             || !Objects.equals(mPriorParental, Settings.getString("pref_video_parental")))
-            MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
+            MainFragment.startFetch(-1, null, null);
         mPriorBackend = null;
         mPriorHttpPort = null;
         mPriorRowsize = null;

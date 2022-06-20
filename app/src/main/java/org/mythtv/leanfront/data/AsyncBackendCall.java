@@ -33,7 +33,6 @@ import org.mythtv.leanfront.model.RecordRule;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.model.VideoCursorMapper;
-import org.mythtv.leanfront.ui.MainActivity;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -221,7 +220,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
-        MainActivity main = MainActivity.getContext();
+        Context context = MyApplication.getAppContext();
         HttpURLConnection urlConnection = null;
         int videoIndex = 0;
         int taskIndex = -1;
@@ -252,7 +251,6 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             if (mVideo != null)
                 isRecording = (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING);
             String urlString = null;
-            Context context = MyApplication.getAppContext();
             boolean allowRerecord = false;
             XmlNode xmlResult = null;
             switch (task) {
@@ -327,9 +325,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             mVideo.progflags = xmlResult.getString(XMLTAGS_PROGRAMFLAGS);
                             String newEndtime = xmlResult.getString(XMLTAGS_ENDTIME);
 
-                            if (main != null && !Objects.equals(mVideo.endtime, newEndtime)) {
+                            if (context != null && !Objects.equals(mVideo.endtime, newEndtime)) {
                                 mVideo.endtime = newEndtime;
-                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                                MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
                                         mVideo.recordedid, null);
                             }
                         }
@@ -344,8 +342,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             else
                                 watched = "0";
                             mVideo.progflags = watched;
-                            if (main != null) {
-                                main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO,
+                            if (context != null) {
+                                MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO,
                                         mVideo.recordedid, null);
                             }
                         }
@@ -368,8 +366,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                         + mVideo.recordedid
                                         + "&AllowRerecord=" + allowRerecord);
                         xmlResult = XmlNode.fetch(urlString, "POST");
-                        if (main != null)
-                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                        if (context != null)
+                            MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
                                     mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
@@ -384,8 +382,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                                 "/Dvr/UnDeleteRecording?RecordedId="
                                         + mVideo.recordedid);
                         xmlResult = XmlNode.fetch(urlString, "POST");
-                        if (main != null)
-                            main.getMainFragment().startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
+                        if (context != null)
+                            MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
                                     mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
@@ -486,8 +484,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             type = VideoContract.VideoEntry.RECTYPE_VIDEO;
                         }
                         xmlResult = XmlNode.fetch(urlString, "POST");
-                        if (main != null)
-                            main.getMainFragment().startFetch(type, mVideo.recordedid, null);
+                        if (context != null)
+                            MainFragment.startFetch(type, mVideo.recordedid, null);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -510,8 +508,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                             selection,
                             selectionArgs);
 
-                    if (main != null)
-                        main.getMainFragment().startFetch(mVideo.rectype, mVideo.recordedid, null);
+                    if (context != null)
+                        MainFragment.startFetch(mVideo.rectype, mVideo.recordedid, null);
                     // Fake out an xml node with true to pass back success status
                     xmlResult = new XmlNode();
                     xmlResult.setString("true");

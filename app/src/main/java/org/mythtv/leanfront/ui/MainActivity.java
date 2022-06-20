@@ -33,11 +33,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import androidx.fragment.app.Fragment;
-
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.Locale;
@@ -51,15 +48,11 @@ public class MainActivity extends LeanbackActivity {
     private static final String CLASS = "MainActivity";
     long mMultipleKeyTime;
 
-    static MainActivity context = null;
-    MainFragment mainFragment = null;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        if (context == null)
-            context = this;
-        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         int memoryClass = am.getMemoryClass();
         int lMemoryClass = am.getLargeMemoryClass();
         Log.i(TAG, CLASS + " memoryClass:" + memoryClass +" lMemoryClass:" + lMemoryClass);
@@ -70,34 +63,7 @@ public class MainActivity extends LeanbackActivity {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
         }
-        Fragment fragment =
-                getSupportFragmentManager().findFragmentByTag("main");
-        if (fragment instanceof MainFragment) {
-            mainFragment = (MainFragment) fragment;
-        }
     }
-    static public MainActivity getContext(){
-        return context;
-    }
-
-    public MainFragment getMainFragment(){
-        return mainFragment;
-    }
-
-//    Commented this as it seems to result in app being killed as soon  as you
-//    navigate away from the main screen on some android 11 boxes.
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        if (context == this) {
-//            context = null;
-//            // Close database
-//            VideoDbHelper dbh = VideoDbHelper.getInstance(context);
-//            dbh.close();
-//            int pid = android.os.Process.myPid();
-//            android.os.Process.killProcess(pid);
-//        }
-//    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -106,7 +72,6 @@ public class MainActivity extends LeanbackActivity {
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 long newKeyTime=System.currentTimeMillis();
                 long diff = newKeyTime - mMultipleKeyTime;
-//                Log.i(TAG, CLASS + " key interval:" + diff);
                 // Restrict key interval to 100ms to prevent crash
                 if (diff < 100)
                     return true;

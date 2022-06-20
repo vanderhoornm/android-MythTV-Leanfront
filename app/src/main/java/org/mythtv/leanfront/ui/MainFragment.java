@@ -161,6 +161,7 @@ public class MainFragment extends BrowseSupportFragment
     String mBaseName;
     String mRowName;
     private TextView mUsageView;
+    private int[] mSavedSelection = null;
 
     private static ScheduledExecutorService executor = null;
     private static MythTask mythTask = new MythTask();
@@ -181,19 +182,14 @@ public class MainFragment extends BrowseSupportFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState == null)
+            mSavedSelection = null;
+        else
+            mSavedSelection = savedInstanceState.getIntArray("selection");
         scrollSupport = new ScrollSupport((getContext()));
         Intent intent = getActivity().getIntent();
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
-            // Fire TV starts a new main activity if the application goes into
-            // the background and is then restarted. This shuts down that new
-            // activity so the previously active one will show.
-            // I believe this is a bug in Fire TV. NVidia shield does not create
-            // a new activity that way.
-            if (MainActivity.getContext() != null) {
-                getActivity().finish();
-                return;
-            }
             // Clear ip address cache
             XmlNode.clearCache();
             VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
@@ -205,12 +201,8 @@ public class MainFragment extends BrowseSupportFragment
             // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
             db.delete(VideoContract.StatusEntry.TABLE_NAME, where, selectionArgs);
             // Initialize startup members
-            if (executor != null)
-                executor.shutdown();
-            executor = null;
             mFetchTime = 0;
             mActiveFragment = null;
-            mWasInBackground = true;
             showNotes();
         } else {
             mBaseName = intent.getStringExtra(KEY_BASENAME);
@@ -260,15 +252,15 @@ public class MainFragment extends BrowseSupportFragment
      * @param recGroup   Set to a recordimng group if only that one is to
      *                   be refreshed
      */
-    public void startFetch(int rectype, String recordedId, String recGroup) {
+    static public void startFetch(int rectype, String recordedId, String recGroup) {
         if (rectype == -1)
             mFetchTime = System.currentTimeMillis();
         // Start an Intent to fetch the videos.
-        Intent serviceIntent = new Intent(getActivity(), FetchVideoService.class);
+        Intent serviceIntent = new Intent(MyApplication.getAppContext(), FetchVideoService.class);
         serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);
         serviceIntent.putExtra(FetchVideoService.RECORDEDID, recordedId);
         serviceIntent.putExtra(FetchVideoService.RECGROUP, recGroup);
-        getActivity().startService(serviceIntent);
+        MyApplication.getAppContext().startService(serviceIntent);
     }
 
     // Replacement for StartLoader. This needs to be called after any database update.
@@ -304,11 +296,6 @@ public class MainFragment extends BrowseSupportFragment
     public void onDestroy() {
         mHandler.removeCallbacks(mBackgroundTask);
         mBackgroundManager = null;
-        if (mType == TYPE_TOPLEVEL) {
-            if (executor != null)
-                executor.shutdown();
-            executor = null;
-        }
         super.onDestroy();
     }
 
@@ -380,8 +367,10 @@ public class MainFragment extends BrowseSupportFragment
 
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        int [] selection = getSelection();
+        savedInstanceState.putIntArray("selection",selection);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -399,6 +388,11 @@ public class MainFragment extends BrowseSupportFragment
      */
     // TODO: Other places duplicate this code. Call this instead
     int [] getSelection() {
+        if (mSavedSelection != null) {
+            int [] ret = mSavedSelection;
+            mSavedSelection = null;
+            return ret;
+        }
         int selectedRowNum = getSelectedPosition();
         int selectedItemNum = -1;
         if (selectedRowNum >= 0) {
@@ -601,15 +595,7 @@ public class MainFragment extends BrowseSupportFragment
 
     public void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
         isLoaderRunning = false;
-        MainActivity main = (MainActivity) getActivity();
-        if (main == null)
-            return;
         setProgressBar(false);
-
-        // To avoid crash if scrolling when refresh occurs
-        // Do not reload if less than 1 second after key access
-        if (System.currentTimeMillis() - main.mMultipleKeyTime < 1000)
-            return;
 
         int [] selection = getSelection();
         // Fill in disk usage
@@ -1061,11 +1047,12 @@ public class MainFragment extends BrowseSupportFragment
                             toastMsg = R.string.msg_wake_backend;
 
                     if (toastMsg != 0) {
-                        Activity activity = MainActivity.getContext();
-                        if (activity == null)
+                        Context context = MyApplication.getAppContext();
+                        if (context == null)
                             return;
-                        ToastShower toastShower = new ToastShower(activity, toastMsg, toastLeng);
-                        activity.runOnUiThread(toastShower);
+                        ToastShower toastShower = new ToastShower(context, toastMsg, toastLeng);
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(toastShower);
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException ignored) {
@@ -1073,14 +1060,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                 }
                 if (mFetchTime < System.currentTimeMillis() - 60 * 60 * 1000) {
-                    Activity activity = MainActivity.getContext();
-                    if (activity == null)
-                        return;
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            MainActivity.getContext().getMainFragment().startFetch(-1, null, null);
-                        }
-                    });
+                    MainFragment.startFetch(-1, null, null);
                 }
             } finally {
                 scheduledTaskRunning = false;
@@ -1088,8 +1068,8 @@ public class MainFragment extends BrowseSupportFragment
         }
 
         public boolean wakeBackend() {
-            MainActivity main = MainActivity.getContext();
-            if (main == null)
+            Context context = MyApplication.getAppContext();
+            if (context == null)
                 return false;
             String backendMac = Settings.getString("pref_backend_mac");
             if (backendMac.length() == 0)
@@ -1145,13 +1125,13 @@ public class MainFragment extends BrowseSupportFragment
 
     private static class ToastShower implements Runnable {
 
-        private Activity activity;
+        private Context context;
         private int toastMsg;
         private int toastLeng;
         private static Toast mToast;
 
-        public ToastShower(Activity activity, int toastMsg, int toastLeng) {
-            this.activity = activity;
+        public ToastShower(Context context, int toastMsg, int toastLeng) {
+            this.context = context;
             this.toastMsg = toastMsg;
             this.toastLeng = toastLeng;
         }
@@ -1159,8 +1139,8 @@ public class MainFragment extends BrowseSupportFragment
             // show toast here
             if (mToast != null)
                 mToast.cancel();
-            mToast = Toast.makeText(activity,
-                    activity.getString(toastMsg), toastLeng);
+            mToast = Toast.makeText(context,
+                    context.getString(toastMsg), toastLeng);
             mToast.show();
         }
     }

@@ -934,7 +934,7 @@ public class PlaybackFragment extends VideoSupportFragment
 
                 MappingTrackSelector.MappedTrackInfo mti = mTrackSelector.getCurrentMappedTrackInfo();
                 TrackGroupArray tga = mti.getTrackGroups(entry.ixRenderer);
-                DefaultTrackSelector.ParametersBuilder parms
+                DefaultTrackSelector.Parameters.Builder parms
                         = mTrackSelector
                         .buildUponParameters()
                         // deprecated - should use setTrackSelectionOverrides, which
@@ -1145,7 +1145,8 @@ public class PlaybackFragment extends VideoSupportFragment
                 mIsBounded = true;
                 mOffsetBytes = 0;
                 mPlayerGlue.setOffsetMillis(0);
-                mPlayer.stop(true);
+                mPlayer.stop();
+                mPlayer.clearMediaItems();
                 initializePlayer();
                 return;
             }
@@ -1549,7 +1550,7 @@ public class PlaybackFragment extends VideoSupportFragment
         @Override
         public void onCues(List<Cue> cues) {
             if (mSubtitles != null)
-                mSubtitles.onCues(cues);
+                mSubtitles.setCues(cues);
         }
 
         private void handlePlayerError(Exception ex, int msgNum) {

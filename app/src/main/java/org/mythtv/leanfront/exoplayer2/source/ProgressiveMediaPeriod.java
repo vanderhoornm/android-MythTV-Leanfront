@@ -566,7 +566,7 @@ import java.util.Map;
       durationUs =
           largestQueuedTimestampUs == Long.MIN_VALUE
               ? 0
-          : largestQueuedTimestampUs + DEFAULT_LAST_SAMPLE_DURATION_US;
+              : largestQueuedTimestampUs + DEFAULT_LAST_SAMPLE_DURATION_US;
       listener.onSourceInfoRefreshed(durationUs, isSeekable, isLive);
     }
     StatsDataSource dataSource = loadable.dataSource;
@@ -729,11 +729,7 @@ import java.util.Map;
       }
     }
     SampleQueue trackOutput =
-        SampleQueue.createWithDrm(
-            allocator,
-            /* playbackLooper= */ handler.getLooper(),
-            drmSessionManager,
-            drmEventDispatcher);
+        SampleQueue.createWithDrm(allocator, drmSessionManager, drmEventDispatcher);
     trackOutput.setUpstreamFormatChangeListener(this);
     /*@NullableType*/
     TrackId[] sampleQueueTrackIds = Arrays.copyOf(this.sampleQueueTrackIds, trackCount + 1);
@@ -832,7 +828,7 @@ import java.util.Map;
         }
       }
       trackFormat = trackFormat.copyWithCryptoType(drmSessionManager.getCryptoType(trackFormat));
-      trackArray[i] = new TrackGroup(trackFormat);
+      trackArray[i] = new TrackGroup(/* id= */ Integer.toString(i), trackFormat);
     }
     trackState = new TrackState(new TrackGroupArray(trackArray), trackIsAudioVideoFlags);
     prepared = true;
@@ -1130,7 +1126,7 @@ import java.util.Map;
       TrackOutput icyTrackOutput = Assertions.checkNotNull(this.icyTrackOutput);
       icyTrackOutput.sampleData(metadata, length);
       icyTrackOutput.sampleMetadata(
-          timeUs, C.BUFFER_FLAG_KEY_FRAME, length, /* offset= */ 0, /* encryptionData= */ null);
+          timeUs, C.BUFFER_FLAG_KEY_FRAME, length, /* offset= */ 0, /* cryptoData= */ null);
       seenIcyMetadata = true;
     }
 

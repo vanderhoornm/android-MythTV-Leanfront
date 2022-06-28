@@ -15,7 +15,13 @@
  */
 package org.mythtv.leanfront.exoplayer2.source;
 
+import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.DefaultExtractorInput;
@@ -29,6 +35,12 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.google.android.exoplayer2.upstream.DataReader;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
+import org.mythtv.leanfront.MyApplication;
+import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.ui.MainFragment;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.List;
@@ -124,7 +136,36 @@ public final class BundledExtractorsAdapter implements ProgressiveMediaExtractor
 
   @Override
   public int read(PositionHolder positionHolder) throws IOException {
-    return Assertions.checkNotNull(extractor)
-        .read(Assertions.checkNotNull(extractorInput), positionHolder);
+    int ret;
+    try {
+      ret = Assertions.checkNotNull(extractor)
+              .read(Assertions.checkNotNull(extractorInput), positionHolder);
+    }
+    catch(ArrayIndexOutOfBoundsException ex) {
+      handleError(ex);
+      ret = Extractor.RESULT_CONTINUE;
+    }
+    return ret;
+  }
+
+  private static final String TAG = "lfe";
+  private static final String CLASS = "BundledExtractorsAdapter";
+  private int errorCount;
+
+  void handleError(ArrayIndexOutOfBoundsException ex) {
+    ++errorCount;
+    Log.e(TAG, CLASS + " ArrayIndexOutOfBoundsException in BundledExtractorsAdapter.read, "
+      + errorCount + " occurrences", ex);
+    if ("true".equals(Settings.getString("pref_error_toast"))) {
+        Context context = MyApplication.getAppContext();
+        if (context == null)
+          return;
+        MainFragment.ToastShower toastShower = new MainFragment.ToastShower(context, R.string.pberror_extractor_array, Toast.LENGTH_LONG);
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(toastShower);
+    }
+    // This normally occurs twice in a playback. Fail if it happens more than 10 times
+    if (errorCount > 10)
+      throw ex;
   }
 }

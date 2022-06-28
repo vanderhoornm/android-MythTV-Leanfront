@@ -1122,8 +1122,7 @@ public class MainFragment extends BrowseSupportFragment
         }
     }
 
-
-    private static class ToastShower implements Runnable {
+    public static class ToastShower implements Runnable {
 
         private Context context;
         private int toastMsg;

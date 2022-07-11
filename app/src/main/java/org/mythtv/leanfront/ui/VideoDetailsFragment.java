@@ -344,12 +344,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             case Video.ACTION_DELETE:
                 new AsyncBackendCall(mSelectedVideo,
                         this)
-                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE, Video.ACTION_REFRESH);
+                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE,
+                                Video.ACTION_PAUSE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_DELETE_AND_RERECORD:
                 new AsyncBackendCall(mSelectedVideo,
                         this)
-                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE_AND_RERECORD, Video.ACTION_REFRESH);
+                        .execute(Video.ACTION_REFRESH, Video.ACTION_DELETE_AND_RERECORD,
+                                Video.ACTION_PAUSE, Video.ACTION_REFRESH);
                 break;
             case Video.ACTION_ALLOW_RERECORD:
                 new AsyncBackendCall(mSelectedVideo,
@@ -403,6 +405,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     new AsyncBackendCall(mSelectedVideo,
                             this)
                             .execute(Video.ACTION_STOP_RECORDING,
+                                    Video.ACTION_PAUSE,
                                     Video.ACTION_REFRESH);
                 }
                 break;
@@ -446,6 +449,20 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     break;
                 prompts = new ArrayList<>();
                 actions = new ArrayList<>();
+                boolean busyRecording = false;
+                // Check End Time
+                try {
+                    SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
+                    if (mSelectedVideo.endtime != null) {
+                        Date dateEnd = dbFormat.parse(mSelectedVideo.endtime + "+0000");
+                        long dateMS = dateEnd.getTime();
+                        // If end time is more than 2 mins in the future allow stopping
+                        if (dateMS > System.currentTimeMillis() + 120000)
+                            busyRecording = true;
+                    }
+                } catch (ParseException e) {
+                    Log.e(TAG, CLASS + " Exception parsing endtime.", e);
+                }
                 if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
                     if ("Deleted".equals(mSelectedVideo.recGroup)) {
                         prompts.add(getString(R.string.menu_undelete));
@@ -478,21 +495,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     prompts.add(getString(R.string.menu_remove_from_recent));
                     actions.add(new Action(Video.ACTION_REMOVE_RECENT));
                 }
-
-                // End Time
-                try {
-                    SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
-                    if (mSelectedVideo.endtime != null) {
-                        Date dateEnd = dbFormat.parse(mSelectedVideo.endtime + "+0000");
-                        long dateMS = dateEnd.getTime();
-                        // If end time is more than 2 mins in the future allow stopping
-                        if (dateMS > System.currentTimeMillis() + 120000) {
-                            prompts.add(getString(R.string.menu_stop_recording));
-                            actions.add(new Action(Video.ACTION_QUERY_STOP_RECORDING));
-                        }
-                    }
-                } catch (ParseException e) {
-                    Log.e(TAG, CLASS + " Exception parsing endtime.", e);
+                if (busyRecording) {
+                    prompts.add(getString(R.string.menu_stop_recording));
+                    actions.add(new Action(Video.ACTION_QUERY_STOP_RECORDING));
                 }
 
                 // View Description

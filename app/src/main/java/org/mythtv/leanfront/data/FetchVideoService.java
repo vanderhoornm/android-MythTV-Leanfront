@@ -73,7 +73,7 @@ public class FetchVideoService extends IntentService {
             if (recType == -1) {
                 // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
                 // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
-                urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList");
+                urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList?IncCast=false");
                 urls[1] = mythApiUrl(null, "/Video/GetVideoList");
                 urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
             }

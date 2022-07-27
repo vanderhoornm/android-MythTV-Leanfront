@@ -24,7 +24,10 @@
 
 package org.mythtv.leanfront.data;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -40,7 +43,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     private static VideoDbHelper mInstance = null;
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 15;
+    private static final int DATABASE_VERSION = 16;
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
 
@@ -76,6 +79,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_TITLE + " TEXT, " +
                     VideoEntry.COLUMN_SUBTITLE + " TEXT, " +
                     VideoEntry.COLUMN_VIDEO_URL + " TEXT, " +
+                    VideoEntry.COLUMN_VIDEO_URL_PATH + " TEXT," +
                     VideoEntry.COLUMN_FILENAME + " TEXT, " +
                     VideoEntry.COLUMN_HOSTNAME + " TEXT, " +
                     VideoEntry.COLUMN_DESC + " TEXT, " +
@@ -112,7 +116,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
             // LAST_USED column is datetime, used to delete entries older than a month.
             final String SQL_CREATE_VIDEOSTATUS_TABLE = "CREATE TABLE " + StatusEntry.TABLE_NAME + " (" +
                     StatusEntry._ID + " INTEGER PRIMARY KEY," +
-                    StatusEntry.COLUMN_VIDEO_URL + " TEXT NOT NULL UNIQUE, " +
+                    StatusEntry.COLUMN_VIDEO_URL_PATH + " TEXT NOT NULL UNIQUE, " +
                     StatusEntry.COLUMN_LAST_USED + " INTEGER NOT NULL, " +
                     StatusEntry.COLUMN_BOOKMARK + " INTEGER);";
             db.execSQL(SQL_CREATE_VIDEOSTATUS_TABLE);
@@ -124,6 +128,47 @@ public class VideoDbHelper extends SQLiteOpenHelper {
             db.execSQL(SQL);
         }
 
+        // For DB version 16, update video_url in status table to have only the path part of URL
+        // If this creates duplicates, delete the duplicates, keeping the latest.
+        if (oldVersion < 16) {
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            String[] projection = {
+                    StatusEntry._ID,
+                    StatusEntry.COLUMN_VIDEO_URL_PATH
+            };
+            String orderby = StatusEntry.COLUMN_LAST_USED + " DESC ";
+
+            Cursor cursor = db.query(
+                    VideoContract.StatusEntry.TABLE_NAME,   // The table to query
+                    projection,             // The array of columns to return (pass null to get all)
+                    null,              // The columns for the WHERE clause
+                    null,          // The values for the WHERE clause
+                    null,                   // don't group the rows
+                    null,                   // don't filter by row groups
+                    orderby               // The sort order
+            );
+
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(0);
+                String url = cursor.getString(1);
+                if (url.startsWith("http")) {
+                    int ix = url.indexOf("//");
+                    ix = url.indexOf('/',ix+2);
+                    url = url.substring(ix);
+                    ContentValues values = new ContentValues();
+                    values.put(StatusEntry.COLUMN_VIDEO_URL_PATH,url);
+                    try {
+                        db.update(VideoContract.StatusEntry.TABLE_NAME,
+                                values,
+                                "_id = ?", new String[]{id});
+                    } catch (SQLiteConstraintException ex) {
+                        db.delete(VideoContract.StatusEntry.TABLE_NAME,
+                                "_id = ?", new String[]{id});
+                    }
+                }
+            }
+        }
         // View for keeping track of recently watched
         if (oldVersion < DATABASE_VERSION) {
             final String DROP_VIEW = "DROP VIEW IF EXISTS " + VideoEntry.VIEW_NAME + ";";
@@ -136,6 +181,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                         VideoEntry.COLUMN_TITLE + " , " +
                         VideoEntry.COLUMN_SUBTITLE + " , " +
                         VideoEntry.COLUMN_VIDEO_URL + " , " +
+                        VideoEntry.COLUMN_VIDEO_URL_PATH + " , " +
                         VideoEntry.COLUMN_FILENAME + " , " +
                         VideoEntry.COLUMN_HOSTNAME + " , " +
                         VideoEntry.COLUMN_DESC + " , " +
@@ -167,7 +213,8 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_RECTYPE + " , " +
                     VideoEntry.COLUMN_TITLE + " , " +
                     VideoEntry.COLUMN_SUBTITLE + " , " +
-                    VideoEntry.COLUMN_VIDEO_URL + " , " +
+                    VideoEntry.TABLE_NAME+"."+VideoEntry.COLUMN_VIDEO_URL + " , " +
+                    VideoEntry.COLUMN_VIDEO_URL_PATH + " , " +
                     VideoEntry.COLUMN_FILENAME + " , " +
                     VideoEntry.COLUMN_HOSTNAME + " , " +
                     VideoEntry.COLUMN_DESC + " , " +
@@ -195,8 +242,9 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     StatusEntry.COLUMN_LAST_USED + " , " +
                     StatusEntry.COLUMN_SHOW_RECENT + " FROM " +
                     VideoEntry.TABLE_NAME + " LEFT OUTER JOIN " +
-                    StatusEntry.TABLE_NAME + " USING ( " +
-                    VideoEntry.COLUMN_VIDEO_URL + " ); ");
+                    StatusEntry.TABLE_NAME + " ON " +
+                    VideoEntry.TABLE_NAME + "." + VideoEntry.COLUMN_VIDEO_URL_PATH + " = " +
+                    StatusEntry.TABLE_NAME + "." + StatusEntry.COLUMN_VIDEO_URL_PATH + " ; ");
             db.execSQL(createView.toString());
         }
     }

@@ -42,6 +42,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int nameIndex;
     private static int descIndex;
     private static int videoUrlIndex;
+    private static int videoUrlPathIndex;
     private static int bgImageUrlIndex;
     private static int cardImageUrlIndex;
     private static int channelIndex;
@@ -74,6 +75,7 @@ public final class VideoCursorMapper extends CursorMapper {
         nameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         descIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DESC);
         videoUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEO_URL);
+        videoUrlPathIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEO_URL_PATH);
         bgImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL);
         cardImageUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CARD_IMG);
         channelIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNEL);
@@ -114,6 +116,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String subtitle = cursor.getString(nameIndex);
         String desc = cursor.getString(descIndex);
         String videoUrl = cursor.getString(videoUrlIndex);
+        String videoUrlPath = cursor.getString(videoUrlPathIndex);
         String bgImageUrl = cursor.getString(bgImageUrlIndex);
         String cardImageUrl = cursor.getString(cardImageUrlIndex);
         String channel = cursor.getString(channelIndex);
@@ -149,6 +152,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .subtitle(subtitle)
                 .description(desc)
                 .videoUrl(videoUrl)
+                .videoUrlPath(videoUrlPath)
                 .bgImageUrl(bgImageUrl)
                 .cardImageUrl(cardImageUrl)
                 .channel(channel)

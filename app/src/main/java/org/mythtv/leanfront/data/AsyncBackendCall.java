@@ -273,15 +273,15 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         // you will actually use after this query.
                         String[] projection = {
                                 VideoContract.StatusEntry._ID,
-                                VideoContract.StatusEntry.COLUMN_VIDEO_URL,
+                                VideoContract.StatusEntry.COLUMN_VIDEO_URL_PATH,
                                 VideoContract.StatusEntry.COLUMN_LAST_USED,
                                 VideoContract.StatusEntry.COLUMN_BOOKMARK,
                                 VideoContract.StatusEntry.COLUMN_SHOW_RECENT
                         };
 
                         // Filter results
-                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                        String[] selectionArgs = {mVideo.videoUrl};
+                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL_PATH + " = ?";
+                        String[] selectionArgs = {mVideo.videoUrlPath};
 
                         Cursor cursor = db.query(
                                 VideoContract.StatusEntry.TABLE_NAME,   // The table to query
@@ -444,8 +444,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 1);
 
                         // First try an update
-                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                        String[] selectionArgs = {mVideo.videoUrl};
+                        String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL_PATH + " = ?";
+                        String[] selectionArgs = {mVideo.videoUrlPath};
 
                         int sqlCount = db.update(
                                 VideoContract.StatusEntry.TABLE_NAME,
@@ -455,7 +455,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                         if (sqlCount == 0) {
                             // Try an insert instead
-                            values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL, mVideo.videoUrl);
+                            values.put(VideoContract.StatusEntry.COLUMN_VIDEO_URL_PATH, mVideo.videoUrlPath);
                             // Insert the new row, returning the primary key value of the new row
                             long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
                                     null, values);
@@ -499,8 +499,8 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 0);
 
                     // First try an update
-                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL + " = ?";
-                    String[] selectionArgs = {mVideo.videoUrl};
+                    String selection = VideoContract.StatusEntry.COLUMN_VIDEO_URL_PATH + " = ?";
+                    String[] selectionArgs = {mVideo.videoUrlPath};
 
                     db.update(
                             VideoContract.StatusEntry.TABLE_NAME,

@@ -24,10 +24,8 @@
 
 package org.mythtv.leanfront.data;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -272,6 +270,7 @@ public class VideoDbBuilder {
             String subtitle = null;
             String description = null;
             String videoUrl = null;
+            String videoUrlPath = null;
             String hostName = null;
             String fanArtUrl = null;
             String prodYear = null;
@@ -289,10 +288,9 @@ public class VideoDbBuilder {
                 videoFileName = recordingNode.getString(XMLTAG_FILENAME);
                 baseUrl = XmlNode.mythApiUrl(hostName, null);
                 baseHostUrl = XmlNode.mythApiUrl(recordingNode.getString(XMLTAG_HOSTNAME), null);
-                videoUrl = baseUrl
-//                videoUrl = "http://emulator:6744"
-                        + "/Content/GetFile?StorageGroup="
+                videoUrlPath = "/Content/GetFile?StorageGroup="
                         + storageGroup + "&FileName=/" + URLEncoder.encode(videoFileName, "UTF-8");
+                videoUrl = baseUrl + videoUrlPath;
                 XmlNode artInfoNode = null;
                 for (; ; ) {
                     if (artInfoNode == null)
@@ -349,6 +347,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL_PATH, videoUrlPath);
             videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, dbFileName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_HOSTNAME, hostName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);

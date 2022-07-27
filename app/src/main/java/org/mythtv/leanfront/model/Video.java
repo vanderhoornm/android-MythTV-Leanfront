@@ -44,6 +44,7 @@ public final class Video implements Parcelable, ListItem {
     public final String bgImageUrl;
     public final String cardImageUrl;
     public final String videoUrl;
+    public final String videoUrlPath;
     public final String channel;
     public final String recordedid;
     public String recGroup;
@@ -138,6 +139,7 @@ public final class Video implements Parcelable, ListItem {
             final String subtitle,
             final String desc,
             final String videoUrl,
+            final String videoUrlPath,
             final String bgImageUrl,
             final String cardImageUrl,
             final String channel,
@@ -167,6 +169,7 @@ public final class Video implements Parcelable, ListItem {
         this.subtitle = subtitle;
         this.description = desc;
         this.videoUrl = videoUrl;
+        this.videoUrlPath = videoUrlPath;
         this.bgImageUrl = bgImageUrl;
         this.cardImageUrl = cardImageUrl;
         this.channel = channel;
@@ -201,6 +204,7 @@ public final class Video implements Parcelable, ListItem {
         bgImageUrl = in.readString();
         cardImageUrl = in.readString();
         videoUrl = in.readString();
+        videoUrlPath = in.readString();
         channel = in.readString();
         recordedid = in.readString();
         recGroup = in.readString();
@@ -255,6 +259,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(bgImageUrl);
         dest.writeString(cardImageUrl);
         dest.writeString(videoUrl);
+        dest.writeString(videoUrlPath);
         dest.writeString(channel);
         dest.writeString(recordedid);
         dest.writeString(recGroup);
@@ -373,6 +378,7 @@ public final class Video implements Parcelable, ListItem {
         private String bgImageUrl;
         private String cardImageUrl;
         private String videoUrl;
+        private String videoUrlPath;
         private String channel;
         private String recordedid;
         private String recGroup;
@@ -422,6 +428,11 @@ public final class Video implements Parcelable, ListItem {
 
         public VideoBuilder videoUrl(String videoUrl) {
             this.videoUrl = videoUrl;
+            return this;
+        }
+
+        public VideoBuilder videoUrlPath(String videoUrlPath) {
+            this.videoUrlPath = videoUrlPath;
             return this;
         }
 
@@ -540,21 +551,26 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
-        public Video buildFromMediaDesc(MediaDescription desc) {
-            return new Video(
-                    Long.parseLong(desc.getMediaId()),
-                    VideoContract.VideoEntry.RECTYPE_VIDEO,
-                    String.valueOf(desc.getTitle()),
-                    "",
-                    String.valueOf(desc.getDescription()),
-                    "", // Media URI - not provided by MediaDescription.
-                    "", // Background Image URI - not provided by MediaDescription.
-                    String.valueOf(desc.getIconUri()),
-                    String.valueOf(desc.getSubtitle()),
-                    "", //recordid not provided
-                    "","","","","","","","","","","","0","0","","","","", 0, false
-            );
-        }
+        // This is removed because t is only used in case you are playing videos from
+        // sources outside of this application. That is not a supported function of
+        // this application.
+//        public Video buildFromMediaDesc(MediaDescription desc) {
+//            return new Video(
+//                    Long.parseLong(desc.getMediaId()),
+//                    VideoContract.VideoEntry.RECTYPE_VIDEO,
+//                    String.valueOf(desc.getTitle()),
+//                    "",
+//                    String.valueOf(desc.getDescription()),
+//                    "", // Media URI - not provided by MediaDescription.
+//                    "", // Background Image URI - not provided by MediaDescription.
+//                    String.valueOf(desc.getIconUri()),
+//                    String.valueOf(desc.getSubtitle()),
+//                    "", //recordid not provided
+//                    "","","","","","","",
+//                    "","","","", "", "0","0","",
+//                    "","","","", 0, false
+//            );
+//        }
 
         public Video build() {
             return new Video(
@@ -564,6 +580,7 @@ public final class Video implements Parcelable, ListItem {
                     subtitle,
                     desc,
                     videoUrl,
+                    videoUrlPath,
                     bgImageUrl,
                     cardImageUrl,
                     channel,

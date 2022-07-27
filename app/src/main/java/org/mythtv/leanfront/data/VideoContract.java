@@ -64,6 +64,9 @@ public final class VideoContract {
         public static final String COLUMN_SUBTITLE = SearchManager.SUGGEST_COLUMN_TEXT_2;
         // The url to the video content.
         public static final String COLUMN_VIDEO_URL = "video_url";
+        // path part of video URL
+        // e.g. /Content/GetFile?StorageGroup=Default&FileName=/10763_20220711145100.ts
+        public static final String COLUMN_VIDEO_URL_PATH = "video_url_path";
         // Directory and name of video file, applies only to Videos storage group
         public static final String COLUMN_FILENAME = "filename";
         // Host name of video file
@@ -114,7 +117,10 @@ public final class VideoContract {
         /* Inner class that defines the status table */
     public static class StatusEntry implements BaseColumns {
         public static final String TABLE_NAME = "videostatus";
-        public static final String COLUMN_VIDEO_URL = "video_url";
+        // video_url has only the path and matches video_url_path
+        // in video table. Name discrepancy is due to difficulty of renaming
+        // a database column that is unique and used in a view.
+        public static final String COLUMN_VIDEO_URL_PATH = "video_url";
         public static final String COLUMN_LAST_USED = "last_used";
         public static final String COLUMN_BOOKMARK = "bookmark";
         public static final String COLUMN_SHOW_RECENT = "show_recent";

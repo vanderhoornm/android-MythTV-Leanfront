@@ -44,9 +44,16 @@ public class SettingsActivity extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        AsyncBackendCall call = new AsyncBackendCall(this);
-        call.execute(Video.ACTION_GETPLAYGROUPLIST);
+        if (XmlNode.isIsConnected()) {
+            AsyncBackendCall call = new AsyncBackendCall(this);
+            call.execute(Video.ACTION_GETPLAYGROUPLIST);
+        }
+        else {
+            mPlayGroupList = new ArrayList<>();
+            mPlayGroupList.add("Default");
+            GuidedStepSupportFragment.addAsRoot(this,
+                    new SettingsEntryFragment(mPlayGroupList), android.R.id.content);
+        }
     }
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {

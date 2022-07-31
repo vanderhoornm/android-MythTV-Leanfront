@@ -741,6 +741,9 @@ public class MainFragment extends BrowseSupportFragment
                 case TYPE_SETTINGS:
                     intent = new Intent(context, SettingsActivity.class);
                     startActivity(intent);
+                    if (executor != null)
+                        executor.shutdown();
+                    executor = null;
                     break;
                 case TYPE_REFRESH:
                     setProgressBar(true);
@@ -1014,8 +1017,9 @@ public class MainFragment extends BrowseSupportFragment
                         if (executor != null)
                             executor.shutdown();
                         executor = null;
-                        return;
                     }
+                    if (executor == null)
+                        return;
                     int toastMsg = 0;
                     int toastLeng = 0;
                     try {

@@ -51,6 +51,7 @@ public class XmlNode {
     private static HashMap<String, String> sHostMap;
     private static String sBackendIP;
     private static String sMainPort;
+    private static boolean isConnected = false;
 
     private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
@@ -146,6 +147,10 @@ public class XmlNode {
         return ret;
     }
 
+    public static boolean isIsConnected() {
+        return isConnected;
+    }
+
     /**
      * Fetch XML object from a given URL.
      *
@@ -173,11 +178,13 @@ public class XmlNode {
             Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             ret = XmlNode.parseStream(is);
+            isConnected = true;
         } catch(FileNotFoundException e) {
             Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             throw e;
         } catch(IOException e) {
+            isConnected = false;
             Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             if (!urlString.endsWith("/Myth/DelayShutdown"))

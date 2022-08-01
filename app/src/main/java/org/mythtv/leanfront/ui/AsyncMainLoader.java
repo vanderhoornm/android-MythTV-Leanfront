@@ -82,13 +82,18 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     + mainFragments.length + " of parameters.");
             return null;
         }
-        mainFragment = mainFragments[0];
-        mType = mainFragment.mType;
-        mBaseName = mainFragment.mBaseName;
-        Cursor csr = queryDb();
-        ArrayList<ArrayList<ListItem>> list = buildRows(csr);
-        csr.close();
-        return list;
+        try {
+            mainFragment = mainFragments[0];
+            mType = mainFragment.mType;
+            mBaseName = mainFragment.mBaseName;
+            Cursor csr = queryDb();
+            ArrayList<ArrayList<ListItem>> list = buildRows(csr);
+            csr.close();
+            return list;
+        } catch (Exception ex) {
+            Log.e(TAG, CLASS + " doInBackground exception",ex);
+            return null;
+        }
     }
 
     // This replaces Loader<Cursor> onCreateLoader(int id, Bundle args)

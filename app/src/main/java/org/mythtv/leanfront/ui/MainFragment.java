@@ -596,6 +596,8 @@ public class MainFragment extends BrowseSupportFragment
     public void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
         isLoaderRunning = false;
         setProgressBar(false);
+        if (list == null)
+            list = new ArrayList<>();
 
         int [] selection = getSelection();
         // Fill in disk usage

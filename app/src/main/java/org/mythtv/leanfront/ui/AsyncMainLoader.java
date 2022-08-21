@@ -564,7 +564,9 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                     }
                 }
 
-                if (key != -1)
+                // dbVideo.showRecent - if this is false the one we have selected has been
+                // Removed from recent list, so do not show it.
+                if (key != -1 && dbVideo.showRecent)
                     recentsSparse.put(key, dbVideo);
             }
             data.moveToNext();

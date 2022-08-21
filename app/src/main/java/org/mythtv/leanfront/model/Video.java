@@ -327,7 +327,6 @@ public final class Video implements Parcelable, ListItem {
         long recentsDays = Settings.getInt("pref_recents_days");
         long recentsStart = System.currentTimeMillis() - recentsDays * 24*60*60*1000;
         return showRecents
-                        && showRecent
                         && lastUsed > recentsStart
                         && (showDeleted || !"Deleted".equals(recGroup))
                         && (showWatched

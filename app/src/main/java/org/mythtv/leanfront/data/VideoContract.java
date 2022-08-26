@@ -58,6 +58,8 @@ public final class VideoContract {
         public static final int RECTYPE_CHANNEL = 3;
         // Recording or video title
         public static final String COLUMN_TITLE = SearchManager.SUGGEST_COLUMN_TEXT_1;
+        // Simplified title for sorting and matching
+        public static final String COLUMN_TITLEMATCH = "titlematch";
         // Description of the video.
         public static final String COLUMN_DESC = "description";
         // Subtitle.

@@ -29,6 +29,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 
 import org.mythtv.leanfront.model.Settings;
@@ -42,6 +43,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -147,6 +149,7 @@ public class VideoDbBuilder {
         buildMedia(videoData, phase, -1, videosToInsert);
     }
 
+    static final String[] articles = MyApplication.getAppContext().getResources().getStringArray(R.array.title_sort_articles);
     /**
      * Takes the contents of an XML object and populates the database
      *
@@ -255,8 +258,10 @@ public class VideoDbBuilder {
                 channel = null;
                 airdate = programNode.getString(XMLTAG_RELEASEDATE);
                 if (airdate != null && airdate.length() > 10)
-                    airdate = programNode.getString(XMLTAG_RELEASEDATE).substring(0, 10);
-                starttime = null;
+                    airdate = airdate.substring(0, 10);
+                if (airdate != null)
+                    // Default starttime for videos to the airdate 12noon UCT
+                    starttime = airdate + "T12:00:00Z";
                 String watched = programNode.getString(XMLTAG_WATCHED);
                 if ("true".equals(watched))
                     progflags = VALUE_WATCHED;
@@ -341,9 +346,21 @@ public class VideoDbBuilder {
             if (description == null || description.length() == 0)
                 description = " ";
 
+            String titlematch = title.toUpperCase(Locale.ROOT);
+            for (String article : articles) {
+                if (article != null && article.length() > 0) {
+                    titlematch = titlematch.replaceFirst("^" + article + " ", "");
+                }
+            }
+            // Replace text in parens at end of title as long as there are no spaces
+            // in the text, for example Ghosts (2019) or Ghosts (US) become Ghosts
+            titlematch = titlematch.replaceFirst("\\([^ ]*\\)$", "");
+            titlematch = titlematch.trim();
+
             ContentValues videoValues = new ContentValues();
             videoValues.put(VideoContract.VideoEntry.COLUMN_RECTYPE, rectype);
             videoValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_TITLEMATCH, titlematch);
             videoValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, subtitle);
             videoValues.put(VideoContract.VideoEntry.COLUMN_DESC, description);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
@@ -428,6 +445,7 @@ public class VideoDbBuilder {
             ContentValues channelValues = new ContentValues();
             channelValues.put(VideoContract.VideoEntry.COLUMN_RECTYPE, rectype);
             channelValues.put(VideoContract.VideoEntry.COLUMN_TITLE, title);
+            channelValues.put(VideoContract.VideoEntry.COLUMN_TITLEMATCH, title);
             channelValues.put(VideoContract.VideoEntry.COLUMN_SUBTITLE, channum + " " + channelname + " " + callsign);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CHANID, chanid);
             channelValues.put(VideoContract.VideoEntry.COLUMN_CHANNUM, channum);

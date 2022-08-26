@@ -85,6 +85,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_AUTOPLAY = 38;
     private static final int ID_AUDIO_SYNC = 39;
     private static final int ID_CAPTIONS = 40;
+    private static final int ID_MERGE_VIDEOS = 41;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -233,6 +234,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .build());
         }
 
+        // Program List Options
         subActions = new ArrayList<>();
         str = Settings.getString("pref_seq");
         subActions.add(new GuidedAction.Builder(getActivity())
@@ -250,6 +252,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .description(R.string.pref_seq_descending_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
+        str = Settings.getString("pref_merge_videos");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_MERGE_VIDEOS)
+                .title(R.string.pref_merge_videos)
+                .checked("true".equals(str))
+                .description(R.string.pref_merge_videos_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
         String recents = Settings.getString("pref_show_recents");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_SHOW_RECENTS)
@@ -258,7 +268,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .description(R.string.pref_show_recents_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        str = Settings.getString("pref_recents_days");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_RECENTS_DAYS)
                 .title(R.string.pref_recents_days)
@@ -623,6 +632,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     Settings.putString(editor, "pref_seq_ascdesc", "desc");
                 else
                     Settings.putString(editor, "pref_seq_ascdesc", "asc");
+                break;
+            case ID_MERGE_VIDEOS:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_merge_videos", "true");
+                else
+                    Settings.putString(editor, "pref_merge_videos", "false");
                 break;
             case ID_SHOW_RECENTS:
                 if (action.isChecked())

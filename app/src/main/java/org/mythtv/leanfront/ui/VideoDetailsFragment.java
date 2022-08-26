@@ -24,6 +24,21 @@
 
 package org.mythtv.leanfront.ui;
 
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_AIRDATE;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_EPISODE;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_FILENAME;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_PROGFLAGS;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_RECGROUP;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_RECTYPE;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_SEASON;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_STARTTIME;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLE;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLEMATCH;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.CONTENT_URI;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_CHANNEL;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_RECORDING;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_VIDEO;
+
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.UiModeManager;
@@ -178,7 +193,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             updateBackground(mSelectedVideo.bgImageUrl);
             int progflags = Integer.parseInt(mSelectedVideo.progflags);
             mWatched = ((progflags & Video.FL_WATCHED) != 0);
-            if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
+            if (mSelectedVideo.rectype != RECTYPE_CHANNEL)
                 new AsyncBackendCall(mSelectedVideo,
                         this).execute(Video.ACTION_REFRESH);
 
@@ -310,7 +325,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         ArrayList<Action> actions = null;
         String alertTitle = null;
 
-        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL
+        if (mSelectedVideo.rectype == RECTYPE_CHANNEL
             && (id == Video.ACTION_PLAY_FROM_BOOKMARK || id == Video.ACTION_PLAY
                 || id == Video.ACTION_PLAY_FROM_LASTPOS))
             id = Video.ACTION_LIVETV;
@@ -444,8 +459,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 actions.add(new Action(Video.ACTION_PLAY));
                 break;
             case Video.ACTION_OTHER:
-                if (mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_RECORDING
-                        && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_VIDEO)
+                if (mSelectedVideo.rectype != RECTYPE_RECORDING
+                        && mSelectedVideo.rectype != RECTYPE_VIDEO)
                     break;
                 prompts = new ArrayList<>();
                 actions = new ArrayList<>();
@@ -463,7 +478,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 } catch (ParseException e) {
                     Log.e(TAG, CLASS + " Exception parsing endtime.", e);
                 }
-                if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                if (mSelectedVideo.rectype == RECTYPE_RECORDING) {
                     if ("Deleted".equals(mSelectedVideo.recGroup)) {
                         prompts.add(getString(R.string.menu_undelete));
                         actions.add(new Action(Video.ACTION_UNDELETE));
@@ -540,7 +555,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                   int resultCode,
                                   Intent intent) {
         if (requestCode == Video.ACTION_PLAY
-                && mSelectedVideo.rectype != VideoContract.VideoEntry.RECTYPE_CHANNEL)
+                && mSelectedVideo.rectype != RECTYPE_CHANNEL)
             new AsyncBackendCall(mSelectedVideo,
                     this).execute(Video.ACTION_REFRESH);
     }
@@ -557,11 +572,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
             case RELATED_VIDEO_LOADER: {
                 // When loading related videos or videos for the playlist, query by category.
-                int rectype = args.getInt(VideoContract.VideoEntry.COLUMN_RECTYPE, -1);
-                String recgroup = args.getString(VideoContract.VideoEntry.COLUMN_RECGROUP);
-                String filename = args.getString(VideoContract.VideoEntry.COLUMN_FILENAME);
+                int rectype = args.getInt(COLUMN_RECTYPE, -1);
+                String recgroup = args.getString(COLUMN_RECGROUP);
+                String filename = args.getString(COLUMN_FILENAME);
                 StringBuilder orderby;
-                if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                if (rectype == RECTYPE_VIDEO) {
                     // Videos
                     int pos = filename.lastIndexOf('/');
                     String dirname = "";
@@ -571,90 +586,71 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     String subdirname = dirname + "%/%";
 
                     orderby = MainFragment.makeTitleSort
-                            (VideoContract.VideoEntry.COLUMN_FILENAME, '/');
+                            (COLUMN_FILENAME, '/');
                     StringBuilder where = new StringBuilder();
-                    where   .append(VideoContract.VideoEntry.COLUMN_RECTYPE)
-                            .append(" = ").append(VideoContract.VideoEntry.RECTYPE_VIDEO)
+                    where   .append(COLUMN_RECTYPE)
+                            .append(" = ").append(RECTYPE_VIDEO)
                             .append(" and ")
-                            .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                            .append(COLUMN_FILENAME)
                             .append(" like ? and ")
-                            .append(VideoContract.VideoEntry.COLUMN_FILENAME)
+                            .append(COLUMN_FILENAME)
                             .append(" not like ? ");
                     if (!showWatched)
                         where.append(" and ")
-                             .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                             .append(COLUMN_PROGFLAGS)
                              .append(" & ").append(Video.FL_WATCHED)
                              .append(" == 0");
 
                     return new CursorLoader(
                             getActivity(),
-                            VideoContract.VideoEntry.CONTENT_URI,
+                            CONTENT_URI,
                             null,
                             where.toString(),
                             new String[]{dirname, subdirname},
                             orderby.toString());
                 } else {
-                    // Recordings or LiveTV
-                    String category;
-                    if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
-                        category = args.getString(VideoContract.VideoEntry.COLUMN_TITLE);
-                    else
-                        category = "X\t"; // To prevent anything being found
+                    // Recordings, LiveTV or videos that are part of a series
+                    String category = args.getString(COLUMN_TITLEMATCH);
                     StringBuilder where = new StringBuilder();
-                    where.append(VideoContract.VideoEntry.COLUMN_RECTYPE)
-                            .append(" = ")
-                            .append(VideoContract.VideoEntry.RECTYPE_RECORDING);
-                    boolean deleted = "Deleted".equals(recgroup);
-                    if (deleted) {
-                        // when we are in the Deleted group, show all rec groups
-                        // unless asked to exclude deleted.
-                        if (!showDeleted) {
-                            where.append(" and ");
-                            where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                                    .append(" != 'Deleted' ");
-                        }
-                    } else {
-                        where.append(" and ");
-                        if (showDeleted)
-                            where.append(" ( ");
-                        where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                             .append(" = ? ");
-                        if (showDeleted) {
-                            where.append(" or ");
-                            where.append(VideoContract.VideoEntry.COLUMN_RECGROUP)
-                                    .append(" = 'Deleted' ) ");
-                        }
+                    where.append(COLUMN_TITLEMATCH).append(" = ? ")
+                            .append(" AND ( ").append(COLUMN_RECGROUP)
+                            .append(" IS NULL OR ( ")
+                            .append(COLUMN_RECGROUP)
+                            .append(" != 'LiveTV' ");
+                    if (!showDeleted) {
+                        where.append(" AND ").append(COLUMN_RECGROUP)
+                            .append(" != 'Deleted' ");
                     }
-                    where.append(" and ")
-                            .append(VideoContract.VideoEntry.COLUMN_TITLE)
-                            .append(" = ? ");
+                    where.append(" ) ) ");
                     if (!showWatched)
-                        where.append(" and ")
-                                .append(VideoContract.VideoEntry.COLUMN_PROGFLAGS)
+                        where.append(" AND ")
+                                .append(COLUMN_PROGFLAGS)
                                 .append(" & ").append(Video.FL_WATCHED)
                                 .append(" == 0 ");
-                    orderby = MainFragment.makeTitleSort(VideoContract.VideoEntry.COLUMN_TITLE, '^')
-                        .append(", ");
+
+                    orderby = new StringBuilder();
                     if ("airdate".equals(seq)) {
-                        orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                        // +0 is used to convert the value to a number
+                        orderby.append(COLUMN_SEASON).append("+0 ")
                                 .append(ascdesc).append(", ");
-                        orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                        orderby.append(COLUMN_EPISODE).append("+0 ")
+                                .append(ascdesc).append(", ");
+                        orderby.append(COLUMN_AIRDATE).append(" ")
+                                .append(ascdesc).append(", ");
+                        orderby.append(COLUMN_STARTTIME).append(" ")
                                 .append(ascdesc);
                     }
                     else {
-                        orderby.append(VideoContract.VideoEntry.COLUMN_STARTTIME).append(" ")
+                        orderby.append(COLUMN_STARTTIME).append(" ")
                                 .append(ascdesc).append(", ");
-                        orderby.append(VideoContract.VideoEntry.COLUMN_AIRDATE).append(" ")
+                        orderby.append(COLUMN_AIRDATE).append(" ")
                                 .append(ascdesc);
                     }
                     String [] selectionArgs;
-                    if (deleted)
-                        selectionArgs = new String[]{category};
-                    else
-                        selectionArgs = new String[]{recgroup,category};
+                    selectionArgs = new String[]{category};
                     return new CursorLoader(
                             getActivity(),
-                            VideoContract.VideoEntry.CONTENT_URI,
+                            CONTENT_URI,
                             null,
                             where.toString(),
                             selectionArgs,
@@ -666,7 +662,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 String videoId = args.getString(VideoContract.VideoEntry._ID);
                 return new CursorLoader(
                         getActivity(),
-                        VideoContract.VideoEntry.CONTENT_URI,
+                        CONTENT_URI,
                         null,
                         VideoContract.VideoEntry._ID + " = ?",
                         new String[]{videoId},
@@ -756,7 +752,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         int defaultIcon = R.drawable.im_movie;
         String imageUrl = mSelectedVideo.cardImageUrl;
-        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+        if (mSelectedVideo.rectype == RECTYPE_CHANNEL) {
             defaultIcon = R.drawable.im_live_tv;
             try {
                 imageUrl = XmlNode.mythApiUrl(null, "/Guide/GetChannelIcon?ChanId=" + mSelectedVideo.chanid);
@@ -803,7 +799,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     .into(target);
 
         mActionsAdapter = new SparseArrayObjectAdapter();
-        if (mSelectedVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
+        if (mSelectedVideo.rectype == RECTYPE_CHANNEL) {
             mActionsAdapter.set(0, new Action(Video.ACTION_LIVETV, getResources()
                     .getString(R.string.play_livetv_1),
                     getResources().getString(R.string.play_livetv_2)));
@@ -816,15 +812,18 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
     private void setupMovieListRow() {
         String[] subcategories = {getString(R.string.related_movies)};
-
-        // Generating related video list.
-        String category = mSelectedVideo.title;
-
         Bundle args = new Bundle();
-        args.putInt(VideoContract.VideoEntry.COLUMN_RECTYPE, mSelectedVideo.rectype);
-        args.putString(VideoContract.VideoEntry.COLUMN_TITLE, category);
-        args.putString(VideoContract.VideoEntry.COLUMN_RECGROUP, mSelectedVideo.recGroup);
-        args.putString(VideoContract.VideoEntry.COLUMN_FILENAME, mSelectedVideo.filename);
+        // related videos only display directory list in this case
+        // otherwise treated as tv series
+        if (mSelectedVideo.rectype == RECTYPE_VIDEO
+                && (mSelectedVideo.season == null || mSelectedVideo.season.equals("0"))
+                && (mSelectedVideo.episode == null || mSelectedVideo.episode.equals("0"))
+                && mSelectedVideo.airdate == null)
+            args.putInt(COLUMN_RECTYPE, mSelectedVideo.rectype);
+        args.putString(COLUMN_TITLE, mSelectedVideo.title);
+        args.putString(COLUMN_TITLEMATCH, mSelectedVideo.titlematch);
+        args.putString(COLUMN_RECGROUP, mSelectedVideo.recGroup);
+        args.putString(COLUMN_FILENAME, mSelectedVideo.filename);
         LoaderManager manager = LoaderManager.getInstance(this);
         manager.initLoader(RELATED_VIDEO_LOADER, args, this);
 

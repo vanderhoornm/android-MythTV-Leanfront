@@ -133,6 +133,8 @@
     <string name="pref_autoplay_desc">At the end of playback automatically start the next video or episode.</string>
     <string name="pref_captions">Caption number to enable</string>
     <string name="pref_audio_sync">Audio Sync Adjustment in milliseconds</string>
+    <string name="pref_merge_videos">Merge Videos with Recordings</string>
+    <string name="pref_merge_videos_desc">Recording lists will include episodes of the series from Videos.</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>
@@ -367,6 +369,7 @@
     <string name="sdef_framerate_match" translatable="false">false</string>
     <string name="sdef_subtitle_size" translatable="false">100</string>
     <string name="sdef_error_toast" translatable="false">false</string>
+    <string name="sdef_merge_videos" translatable="false">false</string>
     <string name="sdef_show_recents" translatable="false">true</string>
     <string name="sdef_recents_deleted" translatable="false">false</string>
     <string name="sdef_recents_watched" translatable="false">false</string>

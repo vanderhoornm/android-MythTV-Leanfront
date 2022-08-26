@@ -31,7 +31,6 @@ import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.Action;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 
 /*

@@ -39,6 +39,7 @@ public final class Video implements Parcelable, ListItem {
     public final long id;
     public final int rectype;
     public final String title;
+    public final String titlematch;
     public final String subtitle;
     public final String description;
     public final String bgImageUrl;
@@ -136,6 +137,7 @@ public final class Video implements Parcelable, ListItem {
             final long id,
             final int rectype,
             final String title,
+            final String titlematch,
             final String subtitle,
             final String desc,
             final String videoUrl,
@@ -166,6 +168,7 @@ public final class Video implements Parcelable, ListItem {
         this.id = id;
         this.rectype = rectype;
         this.title = title;
+        this.titlematch = titlematch;
         this.subtitle = subtitle;
         this.description = desc;
         this.videoUrl = videoUrl;
@@ -199,6 +202,7 @@ public final class Video implements Parcelable, ListItem {
         id = in.readLong();
         rectype = in.readInt();
         title = in.readString();
+        titlematch = in.readString();
         subtitle = in.readString();
         description = in.readString();
         bgImageUrl = in.readString();
@@ -254,6 +258,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeLong(id);
         dest.writeInt(rectype);
         dest.writeString(title);
+        dest.writeString(titlematch);
         dest.writeString(subtitle);
         dest.writeString(description);
         dest.writeString(bgImageUrl);
@@ -354,24 +359,12 @@ public final class Video implements Parcelable, ListItem {
                 && (Integer.parseInt(videoProps) & damagedFlag) != 0;
     }
 
-    public String getSeries() {
-        if (rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
-            return title;
-        else if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO
-            && filename != null) {
-            int lastslashpos = filename.lastIndexOf('/');
-            if (lastslashpos == -1)
-                return "";
-            return filename.substring(0,lastslashpos);
-        }
-        return null;
-    }
-
     // Builder for Video object.
     public static class VideoBuilder {
         private long id;
         private int rectype;
         private String title;
+        private String titlematch;
         private String subtitle;
         private String desc;
         private String bgImageUrl;
@@ -412,6 +405,11 @@ public final class Video implements Parcelable, ListItem {
 
         public VideoBuilder title(String title) {
             this.title = title;
+            return this;
+        }
+
+        public VideoBuilder titlematch(String titlematch) {
+            this.titlematch = titlematch;
             return this;
         }
 
@@ -576,6 +574,7 @@ public final class Video implements Parcelable, ListItem {
                     id,
                     rectype,
                     title,
+                    titlematch,
                     subtitle,
                     desc,
                     videoUrl,

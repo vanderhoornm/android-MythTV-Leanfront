@@ -39,6 +39,7 @@ public final class VideoCursorMapper extends CursorMapper {
 //    private static int idIndex;
     private static int rectypeIndex;
     private static int titleIndex;
+    private static int titlematchIndex;
     private static int nameIndex;
     private static int descIndex;
     private static int videoUrlIndex;
@@ -72,6 +73,7 @@ public final class VideoCursorMapper extends CursorMapper {
 //        idIndex = cursor.getColumnIndex(VideoContract.VideoEntry._ID);
         rectypeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_RECTYPE);
         titleIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLE);
+        titlematchIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_TITLEMATCH);
         nameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
         descIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DESC);
         videoUrlIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEO_URL);
@@ -113,6 +115,7 @@ public final class VideoCursorMapper extends CursorMapper {
         // Get the values of the video.
         int rectype = cursor.getInt(rectypeIndex);
         String title = cursor.getString(titleIndex);
+        String titlematch = cursor.getString(titlematchIndex);
         String subtitle = cursor.getString(nameIndex);
         String desc = cursor.getString(descIndex);
         String videoUrl = cursor.getString(videoUrlIndex);
@@ -149,6 +152,7 @@ public final class VideoCursorMapper extends CursorMapper {
         return new Video.VideoBuilder()
                 .rectype(rectype)
                 .title(title)
+                .titlematch(titlematch)
                 .subtitle(subtitle)
                 .description(desc)
                 .videoUrl(videoUrl)

@@ -276,10 +276,6 @@ public class MainFragment extends BrowseSupportFragment
     public void onActivityCreated(Bundle savedInstanceState) {
         // Final initialization, modifying UI elements.
         super.onActivityCreated(savedInstanceState);
-
-        // Prepare the manager that maintains the same background image between activities.
-        prepareBackgroundManager();
-
         setupUIElements();
         setupEventListeners();
         prepareEntranceTransition();
@@ -290,6 +286,14 @@ public class MainFragment extends BrowseSupportFragment
         setAdapter(mCategoryRowAdapter);
 
         updateRecommendations();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Prepare the manager that maintains the same background image between activities.
+        // Moved from onActivityCreated
+        prepareBackgroundManager();
     }
 
     @Override

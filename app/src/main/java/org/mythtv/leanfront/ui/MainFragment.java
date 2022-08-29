@@ -962,6 +962,7 @@ public class MainFragment extends BrowseSupportFragment
                             builder.setMessage(msg);
                             builder.show();
                         }
+                        setProgressBar(false);
                     }
         });
         call.setBookmark(0);

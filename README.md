@@ -11,7 +11,8 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Voice search within the application is supported, for recordings, videos and programs in the guide.
 - With backend on master or recent MythTV v30 or later this frontend will prevent idle shutdown on the backend. On older backends you need to take steps to ensure the backend does not shut down while playback is occurring.
 - Bookmarks are supported. Bookmarks can be stored on MythTV or on the local leanback frontend (for recordings or videos). In order to store bookmarks for videos on MythTV you need backend version v32-Pre-658-g48557d32c2 or later or v31.0-73-g7bf1284867 or later. If you have an earlier version that does not support the Video/GetSavedBookmark and Video/SetSavedBookmark methods, the bookmarks for videos will be stored locally on the android device.
-- There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching separately and at different places in the recordings, they can keep track of bookmarks separately. 
+- There is a setting option to always store bookmarks locally if you prefer. That way each android device can have its own bookmarks, so that if different people are watching separately and at different places in the recordings, they can keep track of bookmarks separately.
+- Last Play Position is supported on versions of MythTV that support it. The last play position is always stored on the backend.
 - The "Watched" flag is set if you get to the end of the recording or video during playback. To ensure it is set, press forward to get to the end before exiting playback.
 - There is a delete/undelete option so that you can delete shows after watching. Also there set watched or unwatched and remove bookmark options.
 - There is a "Stop Recording" option that stops a recording. This works whether the recording was scheduled or is "Live TV" in progress.
@@ -74,6 +75,12 @@ If you have a mythbackend earlier than v30 you need to disable the mythbackend i
 If you have screen saver enabled on the android tv stick, when it starts leanfront will go into the background. While leanfront is in the background mythbackend can shut down. When you press a remote key, the tv shows leanfront again but the backend may be shut down. Leanfront does not recover gracefully from this. Attempts to play will display a generic error message.
 
 If you have auto shutdown enabled on the backend, then I recommend you disable the tv stick screen saver or else set it to a long period and be aware that when waking again, the backend must be restarted if it has shut down.
+
+### Videos and Recordings
+
+Videos are items from the MythTV Video storage group. They are shown at the bottom of the main summary page. You can click on them to open subdirectories, through multiple levels.
+
+There is a new option, Program List Options, Merge Videos with Recordings. That is for when you have a series that is partly in recordings and partly in Videos. In the row of the screen for the recording group, any videos that match a series will also be shown. This way, if you have some episodes that were recorded outside of MythTV, you can add them to Videos and see them with the recordings you made on MythTV. You need to have the correct series title, season and episode with the video metadata. In most cases the metadata lookup will fill that in for you. You also need to select sort option of "original air date" to get the episodes in correct order. 
 
 ## Release Notes
 
@@ -143,16 +150,20 @@ If you select a video or recording in the list and press enter, it opens the Det
 - Pressing Enter or Down brings up the OSD playback controls. Note if you have enabled up/down jumping then Down will cause a jump instead.
 - Pressing Back dismisses the OSD controls. Pressing Up a couple of times will also dismiss them. This is better because you will not accidentally end playback if you press Up when they are already timing out.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
-- Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow`, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
+- Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 
 ### Frame Rate Synchronization.
 
  If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. Select "Match original frame rate" in the playback settings. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
 
-### Bookmarks.
+### Bookmarks and Last Play Position.
 
 Bookmarks in a recording or video can be stored in the android device or in the MythTV backend. In Settings, Playback you can select an option to store them locally. On versions of mythbackend before v32-Pre-658-g48557d32c2 or v31.0-73-g7bf1284867, video bookmarks are always stored locally.
+
+Bookmarks must be set explicity using the bookmark OSD option of playback menu. They can be removed from the video details page menu.
+
+Last Play Position is always set upon stopping playback and the default on starting playback is to start at Last Play Position. It can be cleared from the Video deatils page menu.
 
 If local bookmarks are not selected:
 
@@ -194,6 +205,7 @@ The following controls are available when pressing enter during playback. Select
 | Jump Forward | This skips forward by the time set in the settings. |
 | Skip Next | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
 | Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
+| Set Bookmark | Sets the bookmark at the current playback position. It replces any existing bookmark in that recording. You will then see an option in the Recording Details page to play from bookmark. The bookmark can also be cleared from the Recording Details page. |
 
 **Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 
@@ -423,22 +435,6 @@ After installing [Android Studio][studio], use SDK Manager to install the emulat
 ```
     $HOME/Android/Sdk/emulator/emulator -avd <virtual device name>
 ```
-
-## To Do List
-
-Possible additions.
-
-Further development will continue. These are some possible additions.
-
-- Allow search from android home screen.
-- Allow recommendations from android home screen.
-- Amazon specific search and recommendations.
-
-The following items will need api changes on the backend
-
-- Video scan
-- Video delete
-- Change recording group on a recording.
 
 ## Building
 

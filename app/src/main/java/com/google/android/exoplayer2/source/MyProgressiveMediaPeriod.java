@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mythtv.leanfront.exoplayer2.source;
+package com.google.android.exoplayer2.source;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -39,15 +39,8 @@ import com.google.android.exoplayer2.extractor.SeekMap.Unseekable;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.icy.IcyHeaders;
-import com.google.android.exoplayer2.source.LoadEventInfo;
-import com.google.android.exoplayer2.source.MediaLoadData;
-import com.google.android.exoplayer2.source.MediaPeriod;
-import com.google.android.exoplayer2.source.MediaSourceEventListener;
-import org.mythtv.leanfront.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
-import com.google.android.exoplayer2.source.SampleStream;
+import com.google.android.exoplayer2.source.MySampleQueue.UpstreamFormatChangedListener;
 import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
-import com.google.android.exoplayer2.source.TrackGroup;
-import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -64,6 +57,7 @@ import com.google.android.exoplayer2.util.ConditionVariable;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
@@ -71,16 +65,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 //import org.checkerframework.checker.nullness.compatqual.NullableType;
 //import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 //import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /** A {@link MediaPeriod} that extracts data using an {@link Extractor}. */
-/* package */ final class ProgressiveMediaPeriod
+/* package */ final class MyProgressiveMediaPeriod
     implements MediaPeriod,
         ExtractorOutput,
-        Loader.Callback<ProgressiveMediaPeriod.ExtractingLoadable>,
+        Loader.Callback<MyProgressiveMediaPeriod.ExtractingLoadable>,
         Loader.ReleaseCallback,
         UpstreamFormatChangedListener {
 
@@ -128,7 +121,7 @@ import java.util.Map;
 
   @Nullable private Callback callback;
   @Nullable private IcyHeaders icyHeaders;
-  private SampleQueue[] sampleQueues;
+  private MySampleQueue[] sampleQueues;
   private TrackId[] sampleQueueTrackIds;
   private boolean sampleQueuesBuilt;
 
@@ -138,7 +131,7 @@ import java.util.Map;
   private /*@MonotonicNonNull*/ SeekMap seekMap;
   private long durationUs;
   private boolean isLive;
-  @DataType private int dataType;
+  private @DataType int dataType;
 
   private boolean seenFirstTrackSelection;
   private boolean notifyDiscontinuity;
@@ -175,7 +168,7 @@ import java.util.Map;
    */
   // maybeFinishPrepare is not posted to the handler until initialization completes.
   @SuppressWarnings({"nullness:argument", "nullness:methodref.receiver.bound"})
-  public ProgressiveMediaPeriod(
+  public MyProgressiveMediaPeriod(
       Uri uri,
       DataSource dataSource,
       ProgressiveMediaExtractor progressiveMediaExtractor,
@@ -197,7 +190,7 @@ import java.util.Map;
     this.allocator = allocator;
     this.customCacheKey = customCacheKey;
     this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
-    loader = new Loader("ProgressiveMediaPeriod");
+    loader = new Loader("MyProgressiveMediaPeriod");
     this.progressiveMediaExtractor = progressiveMediaExtractor;
     loadCondition = new ConditionVariable();
     maybeFinishPrepareRunnable = this::maybeFinishPrepare;
@@ -205,12 +198,12 @@ import java.util.Map;
         () -> {
           if (!released) {
             Assertions.checkNotNull(callback)
-                .onContinueLoadingRequested(ProgressiveMediaPeriod.this);
+                .onContinueLoadingRequested(MyProgressiveMediaPeriod.this);
           }
         };
     handler = Util.createHandlerForCurrentLooper();
     sampleQueueTrackIds = new TrackId[0];
-    sampleQueues = new SampleQueue[0];
+    sampleQueues = new MySampleQueue[0];
     pendingResetPositionUs = C.TIME_UNSET;
     length = C.LENGTH_UNSET;
     durationUs = C.TIME_UNSET;
@@ -221,7 +214,7 @@ import java.util.Map;
     if (prepared) {
       // Discard as much as we can synchronously. We only do this if we're prepared, since otherwise
       // sampleQueues may still be being modified by the loading thread.
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.preRelease();
       }
     }
@@ -233,7 +226,7 @@ import java.util.Map;
 
   @Override
   public void onLoaderReleased() {
-    for (SampleQueue sampleQueue : sampleQueues) {
+    for (MySampleQueue sampleQueue : sampleQueues) {
       sampleQueue.release();
     }
     progressiveMediaExtractor.release();
@@ -299,7 +292,7 @@ import java.util.Map;
         streamResetFlags[i] = true;
         // If there's still a chance of avoiding a seek, try and seek within the sample queue.
         if (!seekRequired) {
-          SampleQueue sampleQueue = sampleQueues[track];
+          MySampleQueue sampleQueue = sampleQueues[track];
           // A seek can be avoided if we're able to seek to the current playback position in the
           // sample queue, or if we haven't read anything from the queue since the previous seek
           // (this case is common for sparse tracks such as metadata tracks). In all other cases a
@@ -315,12 +308,12 @@ import java.util.Map;
       notifyDiscontinuity = false;
       if (loader.isLoading()) {
         // Discard as much as we can synchronously.
-        for (SampleQueue sampleQueue : sampleQueues) {
+        for (MySampleQueue sampleQueue : sampleQueues) {
           sampleQueue.discardToEnd();
         }
         loader.cancelLoading();
       } else {
-        for (SampleQueue sampleQueue : sampleQueues) {
+        for (MySampleQueue sampleQueue : sampleQueues) {
           sampleQueue.reset();
         }
       }
@@ -446,13 +439,13 @@ import java.util.Map;
     loadingFinished = false;
     if (loader.isLoading()) {
       // Discard as much as we can synchronously.
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.discardToEnd();
       }
       loader.cancelLoading();
     } else {
       loader.clearFatalError();
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.reset();
       }
     }
@@ -508,7 +501,7 @@ import java.util.Map;
       return 0;
     }
     maybeNotifyDownstreamFormat(track);
-    SampleQueue sampleQueue = sampleQueues[track];
+    MySampleQueue sampleQueue = sampleQueues[track];
     int skipCount = sampleQueue.getSkipCount(positionUs, loadingFinished);
     sampleQueue.skip(skipCount);
     if (skipCount == 0) {
@@ -545,7 +538,7 @@ import java.util.Map;
     notifyDiscontinuity = true;
     lastSeekPositionUs = 0;
     extractedSamplesCountAtStartOfLoad = 0;
-    for (SampleQueue sampleQueue : sampleQueues) {
+    for (MySampleQueue sampleQueue : sampleQueues) {
       sampleQueue.reset();
     }
     Assertions.checkNotNull(callback).onContinueLoadingRequested(this);
@@ -619,7 +612,7 @@ import java.util.Map;
         durationUs);
     if (!released) {
       copyLengthFromLoader(loadable);
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.reset();
       }
       if (enabledTrackCount > 0) {
@@ -728,14 +721,14 @@ import java.util.Map;
         return sampleQueues[i];
       }
     }
-    SampleQueue trackOutput =
-        SampleQueue.createWithDrm(allocator, drmSessionManager, drmEventDispatcher);
+    MySampleQueue trackOutput =
+        MySampleQueue.createWithDrm(allocator, drmSessionManager, drmEventDispatcher);
     trackOutput.setUpstreamFormatChangeListener(this);
     /*@NullableType*/
     TrackId[] sampleQueueTrackIds = Arrays.copyOf(this.sampleQueueTrackIds, trackCount + 1);
     sampleQueueTrackIds[trackCount] = id;
     this.sampleQueueTrackIds = Util.castNonNullTypeArray(sampleQueueTrackIds);
-    /*@NullableType*/ SampleQueue[] sampleQueues = Arrays.copyOf(this.sampleQueues, trackCount + 1);
+    /*@NullableType*/ MySampleQueue[] sampleQueues = Arrays.copyOf(this.sampleQueues, trackCount + 1);
     sampleQueues[trackCount] = trackOutput;
     this.sampleQueues = Util.castNonNullTypeArray(sampleQueues);
     return trackOutput;
@@ -758,7 +751,7 @@ import java.util.Map;
     }
 
     // Peter
-//    for (SampleQueue sampleQueue : sampleQueues) {
+//    for (MySampleQueue sampleQueue : sampleQueues) {
 //      if (sampleQueue.getUpstreamFormat() == null) {
 //        return;
 //      }
@@ -788,9 +781,9 @@ import java.util.Map;
     }
     if (nullStreamCount == 1 && videoFound && audioFound && possibleEmptyTrack) {
       // Remove the garbage track
-      ArrayList<SampleQueue> list = new ArrayList<>(Arrays.asList(sampleQueues));
+      ArrayList<MySampleQueue> list = new ArrayList<>(Arrays.asList(sampleQueues));
       list.remove(nullStream).release();
-      sampleQueues = list.toArray(new SampleQueue[0]);
+      sampleQueues = list.toArray(new MySampleQueue[0]);
       nullStreamCount = 0;
     }
     if (nullStreamCount > 0)
@@ -855,7 +848,7 @@ import java.util.Map;
       loadable.setLoadPosition(
           Assertions.checkNotNull(seekMap).getSeekPoints(pendingResetPositionUs).first.position,
           pendingResetPositionUs);
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.setStartTimeUs(pendingResetPositionUs);
       }
       pendingResetPositionUs = C.TIME_UNSET;
@@ -911,7 +904,7 @@ import java.util.Map;
       notifyDiscontinuity = prepared;
       lastSeekPositionUs = 0;
       extractedSamplesCountAtStartOfLoad = 0;
-      for (SampleQueue sampleQueue : sampleQueues) {
+      for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.reset();
       }
       loadable.setLoadPosition(0, 0);
@@ -929,7 +922,7 @@ import java.util.Map;
   private boolean seekInsideBufferUs(boolean[] trackIsAudioVideoFlags, long positionUs) {
     int trackCount = sampleQueues.length;
     for (int i = 0; i < trackCount; i++) {
-      SampleQueue sampleQueue = sampleQueues[i];
+      MySampleQueue sampleQueue = sampleQueues[i];
       boolean seekInsideQueue = sampleQueue.seekTo(positionUs, /* allowTimeBeyondBuffer= */ false);
       // If we have AV tracks then an in-buffer seek is successful if the seek into every AV queue
       // is successful. We ignore whether seeks within non-AV queues are successful in this case, as
@@ -944,7 +937,7 @@ import java.util.Map;
 
   private int getExtractedSamplesCount() {
     int extractedSamplesCount = 0;
-    for (SampleQueue sampleQueue : sampleQueues) {
+    for (MySampleQueue sampleQueue : sampleQueues) {
       extractedSamplesCount += sampleQueue.getWriteIndex();
     }
     return extractedSamplesCount;
@@ -952,7 +945,7 @@ import java.util.Map;
 
   private long getLargestQueuedTimestampUs() {
     long largestQueuedTimestampUs = Long.MIN_VALUE;
-    for (SampleQueue sampleQueue : sampleQueues) {
+    for (MySampleQueue sampleQueue : sampleQueues) {
       largestQueuedTimestampUs =
           max(largestQueuedTimestampUs, sampleQueue.getLargestQueuedTimestampUs());
     }
@@ -971,7 +964,7 @@ import java.util.Map;
   }
 
   // Peter
-  /* package */ SampleQueue[] getSampleQueues() {
+  /* package */ MySampleQueue[] getSampleQueues() {
     return sampleQueues;
   }
 
@@ -990,23 +983,23 @@ import java.util.Map;
 
     @Override
     public boolean isReady() {
-      return ProgressiveMediaPeriod.this.isReady(track);
+      return MyProgressiveMediaPeriod.this.isReady(track);
     }
 
     @Override
     public void maybeThrowError() throws IOException {
-      ProgressiveMediaPeriod.this.maybeThrowError(track);
+      MyProgressiveMediaPeriod.this.maybeThrowError(track);
     }
 
     @Override
     public int readData(
         FormatHolder formatHolder, DecoderInputBuffer buffer, @ReadFlags int readFlags) {
-      return ProgressiveMediaPeriod.this.readData(track, formatHolder, buffer, readFlags);
+      return MyProgressiveMediaPeriod.this.readData(track, formatHolder, buffer, readFlags);
     }
 
     @Override
     public int skipData(long positionUs) {
-      return ProgressiveMediaPeriod.this.skipData(track, positionUs);
+      return MyProgressiveMediaPeriod.this.skipData(track, positionUs);
     }
   }
 

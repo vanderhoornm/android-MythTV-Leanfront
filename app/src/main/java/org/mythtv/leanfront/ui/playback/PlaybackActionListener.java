@@ -27,7 +27,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -40,7 +39,7 @@ import androidx.leanback.widget.PlaybackControlsRow;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackParameters;
-import org.mythtv.leanfront.exoplayer2.source.SampleQueue;
+import com.google.android.exoplayer2.source.MySampleQueue;
 import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.mythtv.leanfront.R;
@@ -796,8 +795,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     public void setAudioSync() {
         boolean found = false;
-        SampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
-        for (SampleQueue sampleQueue : sampleQueues) {
+        MySampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
+        for (MySampleQueue sampleQueue : sampleQueues) {
             if (MimeTypes.isAudio(sampleQueue.getUpstreamFormat().sampleMimeType)) {
                 sampleQueue.setSampleOffsetUs(sampleOffsetUs);
                 found = true;

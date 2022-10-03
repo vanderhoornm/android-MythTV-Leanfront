@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mythtv.leanfront.exoplayer2.source;
+package com.google.android.exoplayer2.source;
 
 import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
 
@@ -29,15 +29,9 @@ import com.google.android.exoplayer2.drm.DrmSessionManagerProvider;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
-import com.google.android.exoplayer2.source.BaseMediaSource;
-import com.google.android.exoplayer2.source.ForwardingTimeline;
-import com.google.android.exoplayer2.source.MediaPeriod;
-import com.google.android.exoplayer2.source.MediaSourceFactory;
-import com.google.android.exoplayer2.source.SinglePeriodTimeline;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy;
-import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
 import com.google.android.exoplayer2.upstream.TransferListener;
 
@@ -52,10 +46,10 @@ import com.google.android.exoplayer2.upstream.TransferListener;
  *
  * <p>Note that the built-in extractor for FLV streams does not support seeking.
  */
-public final class ProgressiveMediaSource extends BaseMediaSource
-    implements ProgressiveMediaPeriod.Listener {
+public final class MyProgressiveMediaSource extends BaseMediaSource
+    implements MyProgressiveMediaPeriod.Listener {
 
-  /** Factory for {@link ProgressiveMediaSource}s. */
+  /** Factory for {@link MyProgressiveMediaSource}s. */
   @SuppressWarnings("deprecation") // Implement deprecated type for backwards compatibility.
   public static final class Factory implements MediaSourceFactory {
 
@@ -69,7 +63,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     @Nullable private Object tag;
 
     /**
-     * Creates a new factory for {@link ProgressiveMediaSource}s.
+     * Creates a new factory for {@link MyProgressiveMediaSource}s.
      *
      * <p>The factory will use the following default components:
      *
@@ -107,7 +101,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     }
 
     /**
-     * Creates a new factory for {@link ProgressiveMediaSource}s.
+     * Creates a new factory for {@link MyProgressiveMediaSource}s.
      *
      * <p>The factory will use the following default components:
      *
@@ -133,7 +127,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     }
 
     /**
-     * Creates a new factory for {@link ProgressiveMediaSource}s.
+     * Creates a new factory for {@link MyProgressiveMediaSource}s.
      *
      * @param dataSourceFactory A factory for {@linkplain DataSource data sources} to read the
      *     media.
@@ -198,14 +192,14 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     }
 
     /**
-     * Returns a new {@link ProgressiveMediaSource} using the current parameters.
+     * Returns a new {@link MyProgressiveMediaSource} using the current parameters.
      *
      * @param mediaItem The {@link MediaItem}.
-     * @return The new {@link ProgressiveMediaSource}.
+     * @return The new {@link MyProgressiveMediaSource}.
      * @throws NullPointerException if {@link MediaItem#localConfiguration} is {@code null}.
      */
     @Override
-    public ProgressiveMediaSource createMediaSource(MediaItem mediaItem) {
+    public MyProgressiveMediaSource createMediaSource(MediaItem mediaItem) {
       checkNotNull(mediaItem.localConfiguration);
       boolean needsTag = mediaItem.localConfiguration.tag == null && tag != null;
       boolean needsCustomCacheKey =
@@ -217,7 +211,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
       } else if (needsCustomCacheKey) {
         mediaItem = mediaItem.buildUpon().setCustomCacheKey(customCacheKey).build();
       }
-      return new ProgressiveMediaSource(
+      return new MyProgressiveMediaSource(
           mediaItem,
           dataSourceFactory,
           progressiveMediaExtractorFactory,
@@ -253,10 +247,10 @@ public final class ProgressiveMediaSource extends BaseMediaSource
   @Nullable private TransferListener transferListener;
 
   // Peter
-  ProgressiveMediaPeriod mediaPeriod;
+  MyProgressiveMediaPeriod mediaPeriod;
   private boolean possibleEmptyTrack;
 
-  private ProgressiveMediaSource(
+  private MyProgressiveMediaSource(
       MediaItem mediaItem,
       DataSource.Factory dataSourceFactory,
       ProgressiveMediaExtractor.Factory progressiveMediaExtractorFactory,
@@ -300,7 +294,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
       dataSource.addTransferListener(transferListener);
     }
     // Peter
-    mediaPeriod = new ProgressiveMediaPeriod(
+    mediaPeriod = new MyProgressiveMediaPeriod(
         localConfiguration.uri,
         dataSource,
         progressiveMediaExtractorFactory.createProgressiveMediaExtractor(getPlayerId()),
@@ -318,14 +312,14 @@ public final class ProgressiveMediaSource extends BaseMediaSource
 
   @Override
   public void releasePeriod(MediaPeriod mediaPeriod) {
-    ((ProgressiveMediaPeriod) mediaPeriod).release();
+    ((MyProgressiveMediaPeriod) mediaPeriod).release();
     // Peter
     if (mediaPeriod == this.mediaPeriod)
       this.mediaPeriod = null;
   }
 
   // Peter
-  public SampleQueue [] getSampleQueues() {
+  public MySampleQueue [] getSampleQueues() {
     return mediaPeriod.getSampleQueues();
   }
 
@@ -339,7 +333,7 @@ public final class ProgressiveMediaSource extends BaseMediaSource
     drmSessionManager.release();
   }
 
-  // ProgressiveMediaPeriod.Listener implementation.
+  // MyProgressiveMediaPeriod.Listener implementation.
 
   @Override
   public void onSourceInfoRefreshed(long durationUs, boolean isSeekable, boolean isLive) {

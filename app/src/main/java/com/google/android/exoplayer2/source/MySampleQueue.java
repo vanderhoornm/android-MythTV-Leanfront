@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mythtv.leanfront.exoplayer2.source;
+package com.google.android.exoplayer2.source;
 
 import static com.google.android.exoplayer2.source.SampleStream.FLAG_OMIT_SAMPLE_DATA;
 import static com.google.android.exoplayer2.source.SampleStream.FLAG_PEEK;
@@ -52,7 +52,7 @@ import java.io.IOException;
 //import org.checkerframework.checker.nullness.compatqual.NullableType;
 
 /** A queue of media samples. */
-public class SampleQueue implements TrackOutput {
+public class MySampleQueue implements TrackOutput {
 
   /** A listener for changes to the upstream format. */
   public interface UpstreamFormatChangedListener {
@@ -66,9 +66,9 @@ public class SampleQueue implements TrackOutput {
   }
 
   @VisibleForTesting /* package */ static final int SAMPLE_CAPACITY_INCREMENT = 1000;
-  private static final String TAG = "SampleQueue";
+  private static final String TAG = "MySampleQueue";
 
-  private final SampleDataQueue sampleDataQueue;
+  private final MySampleDataQueue sampleDataQueue;
   private final SampleExtrasHolder extrasHolder;
   private final SpannedData<SharedSampleMetadata> sharedSampleMetadata;
   @Nullable private final DrmSessionManager drmSessionManager;
@@ -112,8 +112,8 @@ public class SampleQueue implements TrackOutput {
    *
    * @param allocator An {@link Allocator} from which allocations for sample data can be obtained.
    */
-  public static SampleQueue createWithoutDrm(Allocator allocator) {
-    return new SampleQueue(
+  public static MySampleQueue createWithoutDrm(Allocator allocator) {
+    return new MySampleQueue(
         allocator, /* drmSessionManager= */ null, /* drmEventDispatcher= */ null);
   }
 
@@ -127,13 +127,13 @@ public class SampleQueue implements TrackOutput {
    * @param drmSessionManager The {@link DrmSessionManager} to obtain {@link DrmSession DrmSessions}
    *     from. The created instance does not take ownership of this {@link DrmSessionManager}.
    * @param drmEventDispatcher A {@link DrmSessionEventListener.EventDispatcher} to notify of events
-   *     related to this SampleQueue.
+   *     related to this MySampleQueue.
    */
-  public static SampleQueue createWithDrm(
+  public static MySampleQueue createWithDrm(
       Allocator allocator,
       DrmSessionManager drmSessionManager,
       DrmSessionEventListener.EventDispatcher drmEventDispatcher) {
-    return new SampleQueue(
+    return new MySampleQueue(
         allocator,
         Assertions.checkNotNull(drmSessionManager),
         Assertions.checkNotNull(drmEventDispatcher));
@@ -145,25 +145,25 @@ public class SampleQueue implements TrackOutput {
    *     {@link DrmSessionManager#setPlayer(Looper, PlayerId)}.
    */
   @Deprecated
-  public static SampleQueue createWithDrm(
+  public static MySampleQueue createWithDrm(
       Allocator allocator,
       Looper playbackLooper,
       DrmSessionManager drmSessionManager,
       DrmSessionEventListener.EventDispatcher drmEventDispatcher) {
     drmSessionManager.setPlayer(playbackLooper, PlayerId.UNSET);
-    return new SampleQueue(
+    return new MySampleQueue(
         allocator,
         Assertions.checkNotNull(drmSessionManager),
         Assertions.checkNotNull(drmEventDispatcher));
   }
 
-  protected SampleQueue(
+  protected MySampleQueue(
       Allocator allocator,
       @Nullable DrmSessionManager drmSessionManager,
       @Nullable DrmSessionEventListener.EventDispatcher drmEventDispatcher) {
     this.drmSessionManager = drmSessionManager;
     this.drmEventDispatcher = drmEventDispatcher;
-    sampleDataQueue = new SampleDataQueue(allocator);
+    sampleDataQueue = new MySampleDataQueue(allocator);
     extrasHolder = new SampleExtrasHolder();
     capacity = SAMPLE_CAPACITY_INCREMENT;
     sourceIds = new int[capacity];

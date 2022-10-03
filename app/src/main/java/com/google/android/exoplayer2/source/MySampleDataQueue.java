@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mythtv.leanfront.exoplayer2.source;
+package com.google.android.exoplayer2.source;
 
 import static java.lang.Math.min;
 
@@ -23,7 +23,7 @@ import com.google.android.exoplayer2.decoder.CryptoInfo;
 import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
 import com.google.android.exoplayer2.decoder.DecoderInputBuffer.InsufficientCapacityException;
 import com.google.android.exoplayer2.extractor.TrackOutput.CryptoData;
-import org.mythtv.leanfront.exoplayer2.source.SampleQueue.SampleExtrasHolder;
+import com.google.android.exoplayer2.source.MySampleQueue.SampleExtrasHolder;
 import com.google.android.exoplayer2.upstream.Allocation;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.DataReader;
@@ -36,7 +36,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /** A queue of media sample data. */
-/* package */ class SampleDataQueue {
+/* package */ class MySampleDataQueue {
 
   private static final int INITIAL_SCRATCH_SIZE = 32;
 
@@ -52,7 +52,7 @@ import java.util.Arrays;
   // Accessed only by the loading thread (or the consuming thread when there is no loading thread).
   private long totalBytesWritten;
 
-  public SampleDataQueue(Allocator allocator) {
+  public MySampleDataQueue(Allocator allocator) {
     this.allocator = allocator;
     allocationLength = allocator.getIndividualAllocationLength();
     scratch = new ParsableByteArray(INITIAL_SCRATCH_SIZE);

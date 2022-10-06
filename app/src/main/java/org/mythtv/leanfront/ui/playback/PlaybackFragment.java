@@ -81,6 +81,7 @@ import androidx.loader.content.Loader;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.MythHttpDataSource;
+import org.mythtv.leanfront.data.SeekTable;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -189,6 +190,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private ScheduledFuture<?> audioFixTask;
     private boolean isTV;
     private boolean isIncreasing;
+    private SeekTable seekTable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -759,7 +761,9 @@ public class PlaybackFragment extends VideoSupportFragment
         getFileLength(false);
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
+        seekTable = new SeekTable();
         MyExtractorsFactory extFactory = new MyExtractorsFactory();
+        extFactory.setSeekTable(seekTable);
         MyProgressiveMediaSource.Factory pmf = new MyProgressiveMediaSource.Factory
                 (mDsFactory,
                         extFactory);
@@ -770,6 +774,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.prepare();
         // Get file length again to see if it is increasing
         getFileLength(true);
+        if (mIsBounded && "true".equals(Settings.getString("pref_use_seektable")))
+            fillSeekTable();
     }
 
 
@@ -1073,6 +1079,15 @@ public class PlaybackFragment extends VideoSupportFragment
                 this);
         call.setmValue(priorFileLeng);
         call.execute(Video.ACTION_FILELENGTH);
+    }
+
+    private void fillSeekTable() {
+        if (seekTable == null)
+            return;
+        AsyncBackendCall call = new AsyncBackendCall(mVideo,
+                null);
+        call.setSeekTable(seekTable);
+        call.execute(Video.ACTION_SEEK_DURATION, Video.ACTION_SEEK_BYTES, Video.ACTION_SEEK_LOAD);
     }
 
     @Override

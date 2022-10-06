@@ -79,6 +79,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private RecordRule mRecordRule;
     private String mStringParameter;
     private ObjectAdapter rowAdapter;
+    private SeekTable seekTable;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -217,6 +218,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         this.mValue = mValue;
     }
 
+    public void setSeekTable(SeekTable seekTable) {
+        this.seekTable = seekTable;
+    }
 
     protected Void doInBackground(Integer ... tasks) {
         mTasks = new int[tasks.length];
@@ -253,6 +257,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             String urlString = null;
             boolean allowRerecord = false;
             XmlNode xmlResult = null;
+            String paramValue = null;
             switch (task) {
                 case Video.ACTION_REFRESH:
                     mBookmark = 0;
@@ -982,6 +987,29 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
+                    break;
+
+                case Video.ACTION_SEEK_BYTES:
+                    paramValue = "Bytes";
+                case Video.ACTION_SEEK_DURATION:
+                    if (paramValue == null)
+                        paramValue = "Duration";
+                    if (!isRecording)
+                        break;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordedSeek?RecordedId="
+                                        + mVideo.recordedid
+                                        + "&OffsetType=" + paramValue);
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
+                case Video.ACTION_SEEK_LOAD:
+                    if (isRecording && seekTable != null)
+                        seekTable.load(this);
                     break;
 
                 default:

@@ -26,11 +26,12 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-import com.google.android.exoplayer2.extractor.ts.TsExtractor;
+import com.google.android.exoplayer2.extractor.ts.MyTsExtractor;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
 
+import org.mythtv.leanfront.data.SeekTable;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
@@ -40,9 +41,14 @@ import java.util.Map;
 public class MyExtractorsFactory implements ExtractorsFactory {
 
     private DefaultExtractorsFactory defaultFactory;
+    private SeekTable seekTable;
 
     public MyExtractorsFactory() {
         this.defaultFactory = new DefaultExtractorsFactory();
+    }
+
+    public void setSeekTable(SeekTable seekTable) {
+        this.seekTable = seekTable;
     }
 
     @Override
@@ -70,11 +76,13 @@ public class MyExtractorsFactory implements ExtractorsFactory {
                         =  new DefaultTsPayloadReaderFactory(
                         0,
                         closedCaptionFormats);
-                exts[ix] = new TsExtractor(
-                        TsExtractor.MODE_SINGLE_PMT,
+                MyTsExtractor ts = new MyTsExtractor(
+                        MyTsExtractor.MODE_SINGLE_PMT,
                         new TimestampAdjuster(0),
                         payloadReaderFactory,
-                        Settings.getInt("pref_tweak_ts_search_pkts") * TsExtractor.TS_PACKET_SIZE);
+                        Settings.getInt("pref_tweak_ts_search_pkts") * MyTsExtractor.TS_PACKET_SIZE);
+                ts.setSeekTable(seekTable);
+                exts[ix] = ts;
             }
         }
     }

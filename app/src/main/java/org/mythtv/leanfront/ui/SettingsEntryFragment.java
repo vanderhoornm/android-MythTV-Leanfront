@@ -86,6 +86,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_AUDIO_SYNC = 39;
     private static final int ID_CAPTIONS = 40;
     private static final int ID_MERGE_VIDEOS = 41;
+    private static final int ID_USE_SEEKTABLE = 42;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -422,6 +423,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .description(R.string.pref_audio_pause_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
+        str = Settings.getString("pref_use_seektable");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_USE_SEEKTABLE)
+                .title(R.string.pref_use_seektable)
+                .checked("true".equals(str))
+                .description(R.string.pref_use_seektable_desc)
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_TWEAKS)
                 .title(R.string.pref_tweaks_title)
@@ -703,6 +712,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     Settings.putString(editor, "pref_audio_pause", "true");
                 else
                     Settings.putString(editor, "pref_audio_pause", "false");
+                break;
+            case ID_USE_SEEKTABLE:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_use_seektable", "true");
+                else
+                    Settings.putString(editor, "pref_use_seektable", "false");
                 break;
             case ID_LETTERBOX_BLACK:
                 if (action.isChecked())

@@ -24,7 +24,6 @@
 
 package org.mythtv.leanfront.model;
 
-import android.media.MediaDescription;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -131,6 +130,9 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_ALLOW_RERECORD         = 46;
     public static final int ACTION_REMOVE_RECENT          = 47;
     public static final int ACTION_PLAYLIST_PLAY          = 48;
+    public static final int ACTION_SEEK_BYTES             = 49;
+    public static final int ACTION_SEEK_DURATION          = 50;
+    public static final int ACTION_SEEK_LOAD              = 51;
 
 
     private Video(

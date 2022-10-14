@@ -218,6 +218,8 @@
     <string name="button_playlistplay">Turn Autoplay On</string>
     <string name="button_playlistplay_active">Turn Autoplay Off</string>
     <string name="button_bookmark">Set Bookmark</string>
+    <string name="button_menu">Playback Menu</string>
+    <string name="button_commskip">Commercial Skip</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>
@@ -348,6 +350,23 @@
     <string name="menu_exit_nosave">Exit Without Saving</string>
     <string name="guide_jump_to_channel">Jump to Channel Number</string>
 
+    <string name="menu_commskip_off">Off</string>
+    <string name="menu_commskip_notify">Notify</string>
+    <string name="menu_commskip_skip">Automatically Skip</string>
+
+    <string name="pref_commskip_off_desc">No commercial skipping.</string>
+    <string name="pref_commskip_notify_desc">Notify of commercials and give an option to skip or not.</string>
+    <string name="pref_commskip_skip_desc">Automatically skip commercials.</string>
+
+
+    <string name="title_commskip">Commercial Skip</string>
+    <string name="msg_commskip_unavail">Commercial Skip not available on in-progress recordings.</string>
+    <string name="msg_commskip_none">There is no Commercial Break Data for this Recording.</string>
+
+    <string name="title_comm_playing">Commercial Playing</string>
+    <string name="menu_comm_skip">Skip Commercial</string>
+    <string name="menu_comm_notskip">Do not Skip</string>
+
     <!--  Release Notes  -->
     <string name="notes_title">Notes</string>
     <string name="notes_seen">Do not show again</string>
@@ -393,5 +412,7 @@
     <string name="sdef_captions" translatable="false">0</string>
     <string name="sdef_notes_version" translatable="false">0</string>
     <string name="sdef_use_seektable" translatable="false">true</string>
+    <!-- 0=off, 1=notify, 2=skip   -->
+    <string name="sdef_commskip" translatable="false">0</string>
 
 </resources>

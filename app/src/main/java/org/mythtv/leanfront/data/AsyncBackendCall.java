@@ -80,6 +80,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private String mStringParameter;
     private ObjectAdapter rowAdapter;
     private SeekTable seekTable;
+    private CommBreakTable commBreakTable;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -220,6 +221,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
     public void setSeekTable(SeekTable seekTable) {
         this.seekTable = seekTable;
+    }
+
+    public void setCommBreakTable(CommBreakTable commBreakTable) {
+        this.commBreakTable = commBreakTable;
     }
 
     protected Void doInBackground(Integer ... tasks) {
@@ -1009,7 +1014,26 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
 
                 case Video.ACTION_SEEK_LOAD:
                     if (isRecording && seekTable != null)
-                        seekTable.load(this);
+                        // This assumes that two calls have just been done,
+                        // for seek bytes and seek duration
+                        seekTable.load(this, mXmlResults.size()-2);
+                    break;
+
+                case Video.ACTION_COMMBREAK_LOAD:
+                    if (!isRecording)
+                        break;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordedCommBreak?RecordedId="
+                                        + mVideo.recordedid
+                                        + "&OffsetType=Duration");
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (isRecording && commBreakTable != null)
+                        commBreakTable.load(xmlResult);
                     break;
 
                 default:

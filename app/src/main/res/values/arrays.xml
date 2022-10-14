@@ -16,4 +16,13 @@
         <item>@string/sort_exclude_2</item>
         <item>@string/sort_exclude_3</item>
     </string-array>
+    <string-array name="menu_commskip">
+        <item>@string/menu_commskip_off</item>
+        <item>@string/menu_commskip_notify</item>
+        <item>@string/menu_commskip_skip</item>
+    </string-array>
+    <string-array name="menu_commplaying">
+        <item>@string/menu_comm_skip</item>
+        <item>@string/menu_comm_notskip</item>
+    </string-array>
 </resources>

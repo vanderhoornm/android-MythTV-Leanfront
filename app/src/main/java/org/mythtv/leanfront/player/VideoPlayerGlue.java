@@ -85,7 +85,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onAudioTrack();
         void onAudioSync();
         void onBookmark();
+        boolean onMenu();
+        void onCommSkip();
         void onActionSelected(Action action);
+        void onCommBreak(long nextCommBreakMs, long position);
+        void onEndCommBreak();
+        void onPlayStateChanged();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -104,6 +109,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mAudioSyncAction;
     private MyAction mAutoPlayAction;
     private MyAction mBookmarkAction;
+    public final MyAction mMenuAction;
+    private MyAction mCommSkipAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
     // Skip means go to next or previous track
@@ -115,6 +122,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean playerClosed;
     private boolean playCompleted;
     private boolean enableControls = true;
+    private long nextCommBreakMs = Long.MAX_VALUE;
+    private long endCommBreakMs = Long.MAX_VALUE;
 
     public VideoPlayerGlue(
             Context context,
@@ -148,6 +157,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mClosedCaptioningAction.setLabels(labels);
         mPivotAction = new MyAction(context,Video.ACTION_PIVOT, R.drawable.ic_up_down_button,R.string.button_pivot);
         mBookmarkAction = new MyAction(context,Video.ACTION_SET_BOOKMARK, R.drawable.ic_bookmark_border,R.string.button_bookmark);
+        mMenuAction = new MyAction(context,Video.ACTION_MENU, R.drawable.ic_menu,R.string.button_menu);
+        mCommSkipAction = new MyAction(context,Video.ACTION_COMMSKIP, R.drawable.ic_bolt,R.string.button_commskip);
     }
 
     @Override
@@ -164,8 +175,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         if (mAllowSkip)
             adapter.add(mSkipNextAction);
         adapter.add(mSpeedAction);
+        adapter.add(mMenuAction);
         if (MainFragment.supportLastPlayPos)
             adapter.add(mBookmarkAction);
+        adapter.add(mCommSkipAction);
     }
 
     @Override
@@ -243,17 +256,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         if (playerClosed)
             return false;
-        return action == mRewindAction
-                || action == mFastForwardAction
-                || action == mClosedCaptioningAction
-                || action == mZoomAction
-                || action == mAspectAction
-                || action == mPivotAction
-                || action == mSpeedAction
-                || action == mAudioTrackAction
-                || action == mAudioSyncAction
-                || action == mBookmarkAction
-                || action == mAutoPlayAction;
+        return true;
     }
 
     private void dispatchAction(Action action) {
@@ -278,6 +281,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onAudioSync();
         } else if (action == mBookmarkAction) {
             mActionListener.onBookmark();
+        } else if (action == mMenuAction) {
+            mActionListener.onMenu();
+        } else if (action == mCommSkipAction) {
+            mActionListener.onCommSkip();
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();
@@ -301,6 +308,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
 
     @Override
     protected void onPlayStateChanged() {
+        mActionListener.onPlayStateChanged();
         if (enableControls)
             super.onPlayStateChanged();
         if (isPlaying())
@@ -376,6 +384,39 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         else
             // This is to satisfy the @CallSuper annotation
             super.onUpdateDuration();
+    }
+
+    public void setNextCommBreakMs(long nextCommBreakMs) {
+        synchronized (this) {
+            this.nextCommBreakMs = nextCommBreakMs;
+        }
+    }
+
+    public void setEndCommBreakMs(long endCommBreakMs) {
+        this.endCommBreakMs = endCommBreakMs;
+    }
+
+    @Override
+    protected void onUpdateProgress() {
+        if (mOffsetMillis == 0) {
+            // only support comm breaks when offset is zero
+            // i.e. when bounded
+            long currPos = super.getCurrentPosition();
+            if (currPos >= endCommBreakMs) {
+                synchronized (this) {
+                    endCommBreakMs = Long.MAX_VALUE;
+                }
+                mActionListener.onEndCommBreak();
+            }
+            if (currPos >= nextCommBreakMs) {
+                long next = nextCommBreakMs;
+                synchronized (this) {
+                    nextCommBreakMs = Long.MAX_VALUE;
+                }
+                mActionListener.onCommBreak(next, currPos);
+            }
+        }
+        super.onUpdateProgress();
     }
 
     public long myGetDuration() {

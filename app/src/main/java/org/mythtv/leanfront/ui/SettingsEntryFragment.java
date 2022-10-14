@@ -22,6 +22,7 @@ package org.mythtv.leanfront.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -87,11 +88,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_CAPTIONS = 40;
     private static final int ID_MERGE_VIDEOS = 41;
     private static final int ID_USE_SEEKTABLE = 42;
+    private static final int ID_COMMSKIP = 43;
+    private static final int ID_COMMSKIP_OFF = 44;
+    private static final int ID_COMMSKIP_NOTIFY = 45;
+    private static final int ID_COMMSKIP_SKIP = 46;
 
     private static final String KEY_EXPAND = "EXPAND";
 
     private GuidedAction mBackendAction;
     private GuidedAction mAudioAction;
+    private GuidedAction mCommskipAction;
 
     private String mPriorBackend;
     private String mPriorHttpPort;
@@ -223,7 +229,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .title(R.string.pref_audio_sync)
                     .description(Settings.getString("pref_audio_sync", group))
                     .descriptionEditable(true)
-                    // Fire Stick ignores the SIGNED part and allows on positive numbers.
+                    // Fire Stick ignores the SIGNED part and allows only positive numbers.
 //                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER
 //                            | InputType.TYPE_NUMBER_FLAG_SIGNED)
                     .build());
@@ -234,6 +240,38 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .subActions(subActions)
                     .build());
         }
+
+        // Commercial Skip
+        subActions = new ArrayList<>();
+        // 0=off, 1=notify, 2=skip
+        int commskip = Settings.getInt("pref_commskip");
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP_OFF)
+                .title(R.string.menu_commskip_off)
+                .checked(commskip == 0)
+                .description(R.string.pref_commskip_off_desc)
+                .checkSetId(ID_COMMSKIP)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP_NOTIFY)
+                .title(R.string.menu_commskip_notify)
+                .checked(commskip == 1)
+                .description(R.string.pref_commskip_notify_desc)
+                .checkSetId(ID_COMMSKIP)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP_SKIP)
+                .title(R.string.menu_commskip_skip)
+                .checked(commskip == 2)
+                .description(R.string.pref_commskip_skip_desc)
+                .checkSetId(ID_COMMSKIP)
+                .build());
+        actions.add(mCommskipAction = new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP)
+                .title(R.string.title_commskip)
+                .description(commskipdesc())
+                .subActions(subActions)
+                .build());
 
         // Program List Options
         subActions = new ArrayList<>();
@@ -456,6 +494,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private String audiodesc() {
         return Settings.getString("pref_audio");
     }
+
+    private String commskipdesc() {
+        int ix = Settings.getInt("pref_commskip");
+        Resources res = getResources();
+        String[] values = res.getStringArray(R.array.menu_commskip);
+        if (ix >= 0 && ix < values.length)
+            return values[ix];
+        else return "";
+    }
+
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
@@ -733,6 +781,18 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 else
                     Settings.putString(editor, "pref_autoplay", "false");
                 break;
+            case ID_COMMSKIP_OFF:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_commskip", "0");
+                break;
+            case ID_COMMSKIP_NOTIFY:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_commskip", "1");
+                break;
+            case ID_COMMSKIP_SKIP:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_commskip", "2");
+                break;
             default:
                 return false;
         }
@@ -740,6 +800,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
         notifyActionChanged(findActionPositionById(ID_PLAYBACK));
         mAudioAction.setDescription(audiodesc());
         notifyActionChanged(findActionPositionById(ID_AUDIO));
+        mCommskipAction.setDescription(commskipdesc());
+        notifyActionChanged(findActionPositionById(ID_COMMSKIP));
         return false;
     }
 

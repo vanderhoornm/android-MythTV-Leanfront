@@ -36,7 +36,6 @@ import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLE;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLEMATCH;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_VIDEO_URL;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.CONTENT_URI;
-import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_RECORDING;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_VIDEO;
 
 import android.annotation.TargetApi;
@@ -80,6 +79,7 @@ import androidx.loader.content.Loader;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.CommBreakTable;
 import org.mythtv.leanfront.data.MythHttpDataSource;
 import org.mythtv.leanfront.data.SeekTable;
 import org.mythtv.leanfront.model.Playlist;
@@ -191,6 +191,12 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean isTV;
     private boolean isIncreasing;
     private SeekTable seekTable;
+    CommBreakTable commBreakTable = new CommBreakTable();
+    int commBreakOption =  Settings.getInt("pref_commskip");
+    public static final int COMMBREAK_OFF = 0;
+    public static final int COMMBREAK_NOTIFY = 1;
+    public static final int COMMBREAK_SKIP = 2;
+    long priorCommBreak = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -553,6 +559,7 @@ public class PlaybackFragment extends VideoSupportFragment
             mAudioPause = true;
         }
         mCaptions = Settings.getInt("pref_captions",video.playGroup);
+        commBreakOption = Settings.getInt("pref_commskip");
         View view = getView();
         view.setBackgroundColor(mBgColor);
 
@@ -762,6 +769,7 @@ public class PlaybackFragment extends VideoSupportFragment
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
         seekTable = new SeekTable();
+        commBreakTable = new CommBreakTable();
         MyExtractorsFactory extFactory = new MyExtractorsFactory();
         extFactory.setSeekTable(seekTable);
         MyProgressiveMediaSource.Factory pmf = new MyProgressiveMediaSource.Factory
@@ -774,8 +782,8 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.prepare();
         // Get file length again to see if it is increasing
         getFileLength(true);
-        if (mIsBounded && "true".equals(Settings.getString("pref_use_seektable")))
-            fillSeekTable();
+        if (mIsBounded)
+            fillTables();
     }
 
 
@@ -925,7 +933,7 @@ public class PlaybackFragment extends VideoSupportFragment
             newPosition = position;
         if (mIsBounded && !doReset) {
             if (position != -1)
-                mPlayerAdapter.seekTo(newPosition);
+                mPlayerGlue.seekTo(newPosition);
         }
         else {
             mIsBounded = true;
@@ -1081,13 +1089,17 @@ public class PlaybackFragment extends VideoSupportFragment
         call.execute(Video.ACTION_FILELENGTH);
     }
 
-    private void fillSeekTable() {
-        if (seekTable == null)
-            return;
+    private void fillTables() {
         AsyncBackendCall call = new AsyncBackendCall(mVideo,
-                null);
+                this);
         call.setSeekTable(seekTable);
-        call.execute(Video.ACTION_SEEK_DURATION, Video.ACTION_SEEK_BYTES, Video.ACTION_SEEK_LOAD);
+        call.setCommBreakTable(commBreakTable);
+        if (seekTable != null
+                && "true".equals(Settings.getString("pref_use_seektable")))
+            call.execute(Video.ACTION_COMMBREAK_LOAD,
+                    Video.ACTION_SEEK_DURATION, Video.ACTION_SEEK_BYTES, Video.ACTION_SEEK_LOAD);
+        else
+            call.execute(Video.ACTION_COMMBREAK_LOAD);
     }
 
     @Override
@@ -1129,6 +1141,10 @@ public class PlaybackFragment extends VideoSupportFragment
                         getActivity().getString(R.string.msg_bookmark_set),
                         Toast.LENGTH_LONG);
                 mToast.show();
+                break;
+            case Video.ACTION_COMMBREAK_LOAD:
+                if (commBreakTable.entries.length > 0)
+                    mPlaybackActionListener.setNextCommBreak(-1);
                 break;
         }
     }

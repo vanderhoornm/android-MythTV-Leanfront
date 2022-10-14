@@ -19,6 +19,7 @@
 
 package org.mythtv.leanfront.ui.playback;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -28,8 +29,10 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.Action;
@@ -43,6 +46,7 @@ import com.google.android.exoplayer2.source.MySampleQueue;
 import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.CommBreakTable;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
@@ -64,6 +68,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     long sampleOffsetUs = 0;
     long priorSampleOffsetUs = 0;
     AlertDialog mDialog;
+    private DialogDismiss dialogDismiss = new DialogDismiss();
 
     private static final String TAG = "lfe";
     private static final String CLASS = "PlaybackActionListener";
@@ -96,7 +101,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         for (Object obj : fullList) {
             if (obj instanceof PlaybackControlsRow.PlayPauseAction
                     || obj instanceof PlaybackControlsRow.FastForwardAction
-                    || obj instanceof PlaybackControlsRow.RewindAction)
+                    || obj instanceof PlaybackControlsRow.RewindAction
+                    || obj == playbackFragment.mPlayerGlue.mMenuAction)
                 continue;
             else if (obj instanceof PlaybackControlsRow.MultiAction) {
                 PlaybackControlsRow.MultiAction action
@@ -122,7 +128,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                         new DialogInterface.OnClickListener() {
                             ArrayList<Action> mActions = finalActions;
                             OnActionClickedListener mParent = parent;
-
                             public void onClick(DialogInterface dialog, int which) {
                                 // The 'which' argument contains the index position
                                 // of the selected item
@@ -130,7 +135,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                                     mParent.onActionClicked(mActions.get(which));
                                 }
                             }
-                        });
+                        })
+                .setOnDismissListener(dialogDismiss);
         mDialog = builder.create();
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
@@ -140,7 +146,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
         lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
-        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(128,128,128,128)));
         return true;
     }
 
@@ -219,7 +225,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 .setItems(prompts.toArray(new String[0]),
                         new DialogInterface.OnClickListener() {
                             ArrayList<Integer> mActions = finalActions;
-
                             public void onClick(DialogInterface dialog, int which) {
                                 // The 'which' argument contains the index position
                                 // of the selected item
@@ -229,7 +234,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                                          R.string.msg_subtitle_on, R.string.msg_subtitle_off,true,false);
                                 }
                             }
-                        });
+                        })
+                .setOnDismissListener(dialogDismiss);
         mDialog = builder.create();
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
@@ -239,7 +245,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
         lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
-        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(128,128,128,128)));
     }
 
     @Override
@@ -274,7 +280,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 .setItems(prompts.toArray(new String[0]),
                         new DialogInterface.OnClickListener() {
                             ArrayList<Integer> mActions = finalActions;
-
                             public void onClick(DialogInterface dialog, int which) {
                                 // The 'which' argument contains the index position
                                 // of the selected item
@@ -284,7 +289,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                                                     R.string.msg_audio_track, R.string.msg_audio_track_off,true,false);
                                 }
                             }
-                        });
+                        })
+                .setOnDismissListener(dialogDismiss);
         mDialog = builder.create();
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
@@ -294,7 +300,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
         lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
         mDialog.getWindow().setAttributes(lp);
-        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,0,0,0)));
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(128,128,128,128)));
     }
 
     @Override
@@ -310,7 +316,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     private void showSpeedSelector() {
         playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
-                R.style.Theme_AppCompat_Dialog_Alert);
+                R.style.Theme_AppCompat_Dialog_Alert)
+                .setOnDismissListener(dialogDismiss);
         builder.setTitle(R.string.title_select_speed)
                 .setView(R.layout.leanback_preference_widget_seekbar);
         mDialog = builder.create();
@@ -384,18 +391,13 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                public void onStopTrackingTouch(SeekBar seekBar) {  }
             }
         );
-        mDialog.setOnDismissListener(
-                (DialogInterface dialog) -> {
-                    mDialog = null;
-                    playbackFragment.hideNavigation();
-                }
-        );
     }
 
     private void showZoomSelector() {
         playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
-                R.style.Theme_AppCompat_Dialog_Alert);
+                R.style.Theme_AppCompat_Dialog_Alert)
+                .setOnDismissListener(dialogDismiss);
         builder.setTitle(R.string.title_select_zoom)
                 .setView(R.layout.leanback_preference_widget_seekbar);
         mDialog = builder.create();
@@ -484,18 +486,13 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
-        mDialog.setOnDismissListener(
-                (DialogInterface dialog) -> {
-                    mDialog = null;
-                    playbackFragment.hideNavigation();
-                }
-        );
     }
 
     private void showStretchSelector() {
         playbackFragment.hideControlsOverlay(true);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
-                R.style.Theme_AppCompat_Dialog_Alert);
+                R.style.Theme_AppCompat_Dialog_Alert)
+                .setOnDismissListener(dialogDismiss);
         builder.setTitle(R.string.title_select_stretch)
                 .setView(R.layout.leanback_preference_widget_seekbar);
         mDialog = builder.create();
@@ -581,12 +578,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
-        mDialog.setOnDismissListener(
-                (DialogInterface dialog) -> {
-                    mDialog = null;
-                    playbackFragment.hideNavigation();
-                }
-        );
     }
 
 
@@ -595,7 +586,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         int x = Math.round(mPivotX * 100.0f);
         int y = Math.round(mPivotY * 100.0f);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
-                R.style.Theme_AppCompat_Dialog_Alert);
+                R.style.Theme_AppCompat_Dialog_Alert)
+                .setOnDismissListener(dialogDismiss);
         builder.setTitle(R.string.title_select_position)
                 .setMessage(getPivotMessage());
         mDialog = builder.create();
@@ -662,12 +654,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     return true;
                 }
         );
-        mDialog.setOnDismissListener(
-                (DialogInterface dialog) -> {
-                    mDialog = null;
-                    playbackFragment.hideNavigation();
-                }
-        );
     }
 
     String getPivotMessage() {
@@ -717,7 +703,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_audiosync)
-                .setView(R.layout.leanback_preference_widget_seekbar);
+                .setView(R.layout.leanback_preference_widget_seekbar)
+                .setOnDismissListener(dialogDismiss);
         mDialog = builder.create();
         mDialog.show();
         WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
@@ -784,13 +771,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     public void onStopTrackingTouch(SeekBar seekBar) {  }
                 }
         );
-        mDialog.setOnDismissListener(
-                (DialogInterface dialog) -> {
-                    mDialog = null;
-                    playbackFragment.hideNavigation();
-                    playbackFragment.mPlayerGlue.setEnableControls(true);
-                }
-        );
     }
 
     public void setAudioSync() {
@@ -842,6 +822,171 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         playbackFragment.actionSelected(action);
     }
 
+    @Override
+    public void onPlayStateChanged() {
+        if (playbackFragment.mPlayerGlue == null)
+            return;
+        if (playbackFragment.commBreakOption != PlaybackFragment.COMMBREAK_OFF) {
+            long position = playbackFragment.mPlayerGlue.getCurrentPosition();
+            setNextCommBreak(position);
+        }
+    }
+
+    // pass in -1 to get current position, otherwise use position passed in
+    public void setNextCommBreak(long position) {
+        if (playbackFragment.commBreakOption != PlaybackFragment.COMMBREAK_OFF) {
+            if (position == -1)
+                position = playbackFragment.mPlayerGlue.getCurrentPosition();
+            long nextCommBreak = Long.MAX_VALUE;
+            CommBreakTable.Entry startEntry = null;
+            for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
+                if (entry.mark == CommBreakTable.MARK_COMM_START)
+                    startEntry = entry;
+                else if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_COMM_END
+                        && startEntry != null && startEntry.durationMs != playbackFragment.priorCommBreak) {
+                    nextCommBreak = startEntry.durationMs;
+                    break;
+                }
+            }
+            playbackFragment.mPlayerGlue.setNextCommBreakMs(nextCommBreak);
+        }
+    }
+
+
+    // Comm skip - present menu to choose which option you want
+    // off, notify or skip.
+    @Override
+    public void onCommSkip() {
+        if (!playbackFragment.mIsBounded) {
+            if (playbackFragment.mToast != null)
+                playbackFragment.mToast.cancel();
+            Context ctx = playbackFragment.getContext();
+            playbackFragment.mToast = Toast.makeText(ctx,
+                    ctx.getString(R.string.msg_commskip_unavail),
+                    Toast.LENGTH_LONG);
+            playbackFragment.mToast.show();
+            return;
+        }
+        if (playbackFragment.commBreakTable == null || playbackFragment.commBreakTable.entries.length == 0) {
+            if (playbackFragment.mToast != null)
+                playbackFragment.mToast.cancel();
+            Context ctx = playbackFragment.getContext();
+            playbackFragment.mToast = Toast.makeText(ctx,
+                    ctx.getString(R.string.msg_commskip_none),
+                    Toast.LENGTH_LONG);
+            playbackFragment.mToast.show();
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder
+                .setTitle(R.string.title_commskip)
+                .setItems(R.array.menu_commskip,
+                        (dialog, which) -> {
+                            // The 'which' argument contains the index position
+                            // of the selected item
+                            playbackFragment.commBreakOption = which;
+                            playbackFragment.priorCommBreak = Long.MAX_VALUE;
+                        })
+                .setOnDismissListener(dialogDismiss);
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        lp.x=0;
+        lp.y=0;
+        lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+        lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
+        mDialog.getWindow().setAttributes(lp);
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(128,128,128,128)));
+        ListView list = mDialog.getListView();
+        if (list != null)
+            list.setSelection(playbackFragment.commBreakOption);
+    }
+
+    @Override
+    public void onCommBreak(long nextCommBreakMs, long position) {
+        long newPosition = -1;
+        switch (playbackFragment.commBreakOption) {
+            case PlaybackFragment.COMMBREAK_SKIP:
+            case PlaybackFragment.COMMBREAK_NOTIFY:
+                for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
+                    // Skip past earlier entries
+                    if (entry.durationMs <= nextCommBreakMs)
+                        continue;
+                    // We should now be at the MARK_COMM_END of the selected comm break
+                    // If not or if we are past it, do nothing.
+                    if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_COMM_END) {
+                        newPosition = entry.durationMs + 2000;
+                    }
+                    else
+                        Log.e(TAG, CLASS + " No end commbreak entry for: " + nextCommBreakMs);
+                    break;
+                }
+                break;
+            default:
+                return;
+        }
+        if (newPosition > 0) {
+            playbackFragment.priorCommBreak = nextCommBreakMs;
+            final long finalNewPosition = newPosition;
+            switch (playbackFragment.commBreakOption) {
+                case PlaybackFragment.COMMBREAK_SKIP:
+                    playbackFragment.mPlayerGlue.setEnableControls(false);
+                    playbackFragment.mPlayerGlue.seekTo(newPosition);
+                    break;
+                case PlaybackFragment.COMMBREAK_NOTIFY:
+                    playbackFragment.hideControlsOverlay(false);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                            R.style.Theme_AppCompat_Dialog_Alert)
+                            .setTitle(R.string.title_comm_playing)
+                            .setItems(R.array.menu_commplaying,
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // The 'which' argument contains the index position
+                                            // of the selected item
+                                            switch (which) {
+                                                // 0 = skip commercial
+                                                case 0:
+                                                    if (playbackFragment.mPlayerGlue.getCurrentPosition()
+                                                            < finalNewPosition) {
+                                                        // controls will be re-enabled by onEndCommBreak
+                                                        playbackFragment.mPlayerGlue.setEnableControls(false);
+                                                        dialogDismiss.enableControls = false;
+                                                        playbackFragment.mPlayerGlue.seekTo(finalNewPosition);
+                                                    }
+                                                    break;
+                                                // 1 = do not skip commercial. Defaults to doing nothing
+                                            }
+                                        }
+                                    })
+                            .setOnDismissListener(dialogDismiss);
+                    // re-enable controls igf the dialog is dismissed
+                    dialogDismiss.enableControls = true;
+                    mDialog = builder.create();
+                    mDialog.show();
+                    WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+                    lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+                    lp.x=0;
+                    lp.y=0;
+                    lp.width= Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+                    lp.gravity = Gravity.BOTTOM | Gravity.LEFT;
+                    mDialog.getWindow().setAttributes(lp);
+                    mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(128,128,128,128)));
+                    break;
+            }
+            playbackFragment.mPlayerGlue.setEndCommBreakMs(newPosition + 500);
+        }
+    }
+
+    @Override
+    public void onEndCommBreak() {
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
+        playbackFragment.mPlayerGlue.setEnableControls(true);
+    }
+
     // Gestures
     public boolean onTap() {
         if (mDialog == null) {
@@ -859,4 +1004,16 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         return false;
     }
 
+    class DialogDismiss implements DialogInterface.OnDismissListener {
+        public boolean enableControls = false;
+        @Override
+        public void onDismiss(DialogInterface dialogInterface) {
+            mDialog = null;
+            playbackFragment.hideNavigation();
+            if (enableControls) {
+                playbackFragment.mPlayerGlue.setEnableControls(true);
+                enableControls = false;
+            }
+        }
+    }
 }

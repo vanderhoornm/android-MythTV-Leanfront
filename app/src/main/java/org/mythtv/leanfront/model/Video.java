@@ -133,6 +133,9 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_SEEK_BYTES             = 49;
     public static final int ACTION_SEEK_DURATION          = 50;
     public static final int ACTION_SEEK_LOAD              = 51;
+    public static final int ACTION_COMMBREAK_LOAD         = 52;
+    public static final int ACTION_MENU                   = 53;
+    public static final int ACTION_COMMSKIP               = 54;
 
 
     private Video(

@@ -18,7 +18,10 @@ public class CommBreakTable {
 
     public synchronized void load(XmlNode data) {
         XmlNode node = data;
-        node = node.getNode("Cuttings").getNode("Cutting");
+        if (node != null)
+            node = node.getNode("Cuttings");
+        if (node != null)
+            node = node.getNode("Cutting");
         int nodeCount = 0;
         while (node != null) {
             nodeCount++;
@@ -26,8 +29,11 @@ public class CommBreakTable {
         }
         Log.i(TAG, CLASS + " CommBreakTable size:" + nodeCount );
         clear(nodeCount);
-        node = data
-                .getNode("Cuttings").getNode("Cutting");
+        node = data;
+        if (node != null)
+            node = node.getNode("Cuttings");
+        if (node != null)
+            node = node.getNode("Cutting");
         int ix = 0;
         int prior = 0;
         while (node != null) {

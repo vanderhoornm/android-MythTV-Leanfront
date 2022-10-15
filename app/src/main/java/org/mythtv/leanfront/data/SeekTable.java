@@ -16,14 +16,20 @@ public class SeekTable {
 
     public synchronized void load(AsyncBackendCall taskRunner, int index) {
         XmlNode node = taskRunner.getXmlResults().get(index);
-        node = node.getNode("Cuttings").getNode("Cutting");
+        if (node != null)
+            node = node.getNode("Cuttings");
+        if (node != null)
+            node = node.getNode("Cutting");
         int durCount = 0;
         while (node != null) {
             durCount++;
             node = node.getNextSibling();
         }
         node = taskRunner.getXmlResults().get(index+1);
-        node = node.getNode("Cuttings").getNode("Cutting");
+        if (node != null)
+            node = node.getNode("Cuttings");
+        if (node != null)
+            node = node.getNode("Cutting");
         int byteCount = 0;
         while (node != null) {
             byteCount++;
@@ -32,10 +38,16 @@ public class SeekTable {
         Log.i(TAG, CLASS + " Seektable size dur:" + durCount + " byte:" + byteCount);
         int tabSize = Math.max(durCount, byteCount);
         clear(tabSize);
-        XmlNode dNode = taskRunner.getXmlResults().get(index)
-                .getNode("Cuttings").getNode("Cutting");
-        XmlNode bNode = taskRunner.getXmlResults().get(index+1)
-                .getNode("Cuttings").getNode("Cutting");
+        XmlNode dNode = taskRunner.getXmlResults().get(index);
+        if (dNode != null)
+            dNode = dNode.getNode("Cuttings");
+        if (dNode != null)
+            dNode = dNode.getNode("Cutting");
+        XmlNode bNode = taskRunner.getXmlResults().get(index+1);
+        if (bNode != null)
+            bNode = bNode.getNode("Cuttings");
+        if (bNode != null)
+            bNode = bNode.getNode("Cutting");
         int ix = 0;
         int prior = 0;
         while (dNode != null && bNode != null) {

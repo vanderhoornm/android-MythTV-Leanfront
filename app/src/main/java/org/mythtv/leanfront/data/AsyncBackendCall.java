@@ -995,10 +995,10 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
 
                 case Video.ACTION_SEEK_BYTES:
-                    paramValue = "Bytes";
+                    paramValue = "BYTES";
                 case Video.ACTION_SEEK_DURATION:
                     if (paramValue == null)
-                        paramValue = "Duration";
+                        paramValue = "DURATION";
                     if (!isRecording)
                         break;
                     try {

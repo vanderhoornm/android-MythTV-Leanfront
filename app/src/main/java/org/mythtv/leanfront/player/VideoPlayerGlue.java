@@ -256,7 +256,19 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         if (playerClosed)
             return false;
-        return true;
+        return action == mRewindAction
+                || action == mFastForwardAction
+                || action == mClosedCaptioningAction
+                || action == mZoomAction
+                || action == mAspectAction
+                || action == mPivotAction
+                || action == mSpeedAction
+                || action == mAudioTrackAction
+                || action == mAudioSyncAction
+                || action == mBookmarkAction
+                || action == mAutoPlayAction
+                || action == mMenuAction
+                || action == mCommSkipAction;
     }
 
     private void dispatchAction(Action action) {

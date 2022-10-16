@@ -1020,11 +1020,28 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
 
                 case Video.ACTION_COMMBREAK_LOAD:
-                    if (!isRecording)
+                    if (!isRecording || commBreakTable.entries.length > 0)
                         break;
                     try {
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Dvr/GetRecordedCommBreak?RecordedId="
+                                        + mVideo.recordedid
+                                        + "&OffsetType=Duration");
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (isRecording && commBreakTable != null)
+                        commBreakTable.load(xmlResult);
+                    break;
+
+                case Video.ACTION_CUTLIST_LOAD:
+                    if (!isRecording || commBreakTable.entries.length > 0)
+                        break;
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordedCutList?RecordedId="
                                         + mVideo.recordedid
                                         + "&OffsetType=Duration");
                         xmlResult = XmlNode.fetch(urlString, null);

@@ -840,9 +840,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             long nextCommBreak = Long.MAX_VALUE;
             CommBreakTable.Entry startEntry = null;
             for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
-                if (entry.mark == CommBreakTable.MARK_COMM_START)
+                if (entry.mark == CommBreakTable.MARK_CUT_START)
                     startEntry = entry;
-                else if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_COMM_END
+                else if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_CUT_END
                         && startEntry != null && startEntry.durationMs != playbackFragment.priorCommBreak) {
                     nextCommBreak = startEntry.durationMs;
                     break;
@@ -914,9 +914,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     // Skip past earlier entries
                     if (entry.durationMs <= nextCommBreakMs)
                         continue;
-                    // We should now be at the MARK_COMM_END of the selected comm break
+                    // We should now be at the MARK_CUT_END of the selected comm break
                     // If not or if we are past it, do nothing.
-                    if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_COMM_END) {
+                    if (position <= entry.durationMs && entry.mark == CommBreakTable.MARK_CUT_END) {
                         newPosition = entry.durationMs + 2000;
                     }
                     else

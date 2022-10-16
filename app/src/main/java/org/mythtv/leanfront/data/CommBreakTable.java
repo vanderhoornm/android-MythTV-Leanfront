@@ -11,6 +11,8 @@ public class CommBreakTable {
     private static final String CLASS = "CommBreakTable";
     public static final int MARK_COMM_START = 4;
     public static final int MARK_COMM_END   = 5;
+    public static final int MARK_CUT_START   = 1;
+    public static final int MARK_CUT_END   = 0;
 
     public synchronized void clear(int count) {
         entries = new Entry[count];
@@ -45,6 +47,14 @@ public class CommBreakTable {
                 return;
             }
             prior = duration;
+            switch (mark) {
+                case MARK_COMM_START:
+                    mark = MARK_CUT_START;
+                    break;
+                case MARK_COMM_END:
+                    mark = MARK_CUT_END;
+                    break;
+            }
             Entry entry = new Entry
                     (duration, mark);
             entries[ix++] = entry;

@@ -136,6 +136,7 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_COMMBREAK_LOAD         = 52;
     public static final int ACTION_MENU                   = 53;
     public static final int ACTION_COMMSKIP               = 54;
+    public static final int ACTION_CUTLIST_LOAD           = 55;
 
 
     private Video(

@@ -1096,10 +1096,10 @@ public class PlaybackFragment extends VideoSupportFragment
         call.setCommBreakTable(commBreakTable);
         if (seekTable != null
                 && "true".equals(Settings.getString("pref_use_seektable")))
-            call.execute(Video.ACTION_COMMBREAK_LOAD,
+            call.execute(Video.ACTION_CUTLIST_LOAD, Video.ACTION_COMMBREAK_LOAD,
                     Video.ACTION_SEEK_DURATION, Video.ACTION_SEEK_BYTES, Video.ACTION_SEEK_LOAD);
         else
-            call.execute(Video.ACTION_COMMBREAK_LOAD);
+            call.execute(Video.ACTION_CUTLIST_LOAD, Video.ACTION_COMMBREAK_LOAD);
     }
 
     @Override
@@ -1142,7 +1142,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         Toast.LENGTH_LONG);
                 mToast.show();
                 break;
-            case Video.ACTION_COMMBREAK_LOAD:
+            case Video.ACTION_CUTLIST_LOAD:
                 if (commBreakTable.entries.length > 0)
                     mPlaybackActionListener.setNextCommBreak(-1);
                 break;

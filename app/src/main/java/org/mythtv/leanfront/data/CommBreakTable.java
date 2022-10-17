@@ -20,15 +20,28 @@ public class CommBreakTable {
 
     public synchronized void load(XmlNode data) {
         XmlNode node = data;
+        int firstmark = -1;
+        int lastmark = -1;
         if (node != null)
             node = node.getNode("Cuttings");
         if (node != null)
             node = node.getNode("Cutting");
+        if (node != null)
+            firstmark = node.getInt("Mark", -99);
         int nodeCount = 0;
         while (node != null) {
             nodeCount++;
-            node = node.getNextSibling();
+            XmlNode nextNode = node.getNextSibling();
+            if (nextNode == null)
+                lastmark = node.getInt("Mark", -99);
+            node = nextNode;
         }
+        // Cater for "Cut to start" where there is no start entry
+        if (firstmark == MARK_COMM_END || firstmark == MARK_CUT_END)
+            nodeCount++;
+        // Cater for "Cut to end" where there is no end entry
+        if (lastmark == MARK_COMM_START || lastmark == MARK_CUT_START)
+            nodeCount++;
         Log.i(TAG, CLASS + " CommBreakTable size:" + nodeCount );
         clear(nodeCount);
         node = data;
@@ -38,6 +51,10 @@ public class CommBreakTable {
             node = node.getNode("Cutting");
         int ix = 0;
         int prior = 0;
+        // Cater for "Cut to start" where there is no start entry
+        // by creating a first entry
+        if (firstmark == MARK_COMM_END || firstmark == MARK_CUT_END)
+            entries[ix++] = new Entry(0,MARK_CUT_START);
         while (node != null) {
             int mark = node.getInt("Mark", 0);
             int duration = node.getInt("Offset", 0);
@@ -55,18 +72,20 @@ public class CommBreakTable {
                     mark = MARK_CUT_END;
                     break;
             }
-            Entry entry = new Entry
-                    (duration, mark);
-            entries[ix++] = entry;
+            entries[ix++] = new Entry (duration, mark);
             node = node.getNextSibling();
         }
         if (ix == 0) {
             clear(0);
             return;
         }
+        // Cater for "Cut to end" where there is no end entry
+        // by creating a last entry
+        if (lastmark == MARK_COMM_START || lastmark == MARK_CUT_START)
+            entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_END);
         // Fill in any unused entries with the last entry
         while (ix < nodeCount)
-            entries[ix++] = entries[ix-1];
+            entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_START);;
     }
 
     public static class Entry implements Comparable<Entry> {

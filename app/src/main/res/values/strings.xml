@@ -411,7 +411,7 @@
     <string name="sdef_audio_sync" translatable="false">0</string>
     <string name="sdef_captions" translatable="false">0</string>
     <string name="sdef_notes_version" translatable="false">0</string>
-    <string name="sdef_use_seektable" translatable="false">true</string>
+    <string name="sdef_use_seektablex" translatable="false">false</string>
     <!-- 0=off, 1=notify, 2=skip   -->
     <string name="sdef_commskip" translatable="false">0</string>
 

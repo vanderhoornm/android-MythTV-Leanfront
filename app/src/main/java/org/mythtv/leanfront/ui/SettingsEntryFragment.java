@@ -461,14 +461,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .description(R.string.pref_audio_pause_desc)
                 .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
                 .build());
-        str = Settings.getString("pref_use_seektable");
-        subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_USE_SEEKTABLE)
-                .title(R.string.pref_use_seektable)
-                .checked("true".equals(str))
-                .description(R.string.pref_use_seektable_desc)
-                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                .build());
+//        str = Settings.getString("pref_use_seektable");
+//        subActions.add(new GuidedAction.Builder(getActivity())
+//                .id(ID_USE_SEEKTABLE)
+//                .title(R.string.pref_use_seektable)
+//                .checked("true".equals(str))
+//                .description(R.string.pref_use_seektable_desc)
+//                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+//                .build());
         actions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_TWEAKS)
                 .title(R.string.pref_tweaks_title)

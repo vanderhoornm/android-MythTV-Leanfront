@@ -38,6 +38,7 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Metadata lookup when scheduling recordings supports tvmaze and tmdb.
 - Note that some phones do not support MPEG-2 playback. There may be some android TV devices that do not support MPEG-2. NVidia shield supports MPEG-2 although there is a pixelation bug on some channels. Fire stick models since 2018 support MPEG-2. See https://developer.amazon.com/docs/fire-tv/device-specifications-fire-tv-streaming-media-player.html?v=ftvstick4k and select your model for full details.
 - Supports playback groups, allowing different values per playback group.
+- Now supports MythTV commercial breaks and cut list.
 
 ## V32 Port Number
 
@@ -169,6 +170,22 @@ If local bookmarks are not selected:
 
 - Upon playback, if there is a local bookmark, it will be used. This can happen if you changed your local bookmarks setting after having already stored some local bookmarks. When exiting playback the bookmark will be stored on MythTV and the local bookmark erased. This can also happen if you upgrade your mythbackend to a version from v32-Pre-658-g48557d32c2 or from v31.0-73-g7bf1284867, the local video bookmarks will be used but will be cleared and set in MythTV from then on.
 
+### Commercial Break and Cut List
+
+If you run mythcommflag to detect commercials in a recording, or you use Edit mode in mythfrontend to add a cut list, leanfront now supports skipping over cuts or commercial breaks.
+
+There is a Setting on the Settings page, "Commercial or Cut Skip". You can select "Off", "Notify", or "Automatically Skip". These apply to both flagged commercials and cut lists. If a cut list exists the commercial breaks are ignored.
+
+If "Off" is selected, cut lists and commercial breaks flagged are ignored, and everything plays.
+ 
+If "Notify" is selected, when a Cut or Commercial Break is encountered, a menu is displayed at the bottom left of the screen, with options "Skip" or "Do Not Skip". If you select "Skip", playback immediately skips to the end of the cut or commercial. If you select "Do Not Skip" or leave the meunu without selecting anything, it will continue playing. At any stage of playing in the cut or commercial, you can select "Skip" to go to the end.
+
+If "Automatically Skip" is selected, playback will automatically skip each cut or commercial flagged.
+
+The three options can also be selected or changed during playback by using the playback menu and selecting "Commercial or Cut Skip". Changes made here only affect the current playback.
+
+There is currently no way to add a cut list in leanfront. That can only be done in mythfrontend.
+
 ## Live TV
 
 In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will set up a recording of that channel, and once the recording is available it will start playing it. There is a difference between this and mythfrontend Live TV. In leanfront, the LiveTV recording will be named "LiveTV" with the date. The recording time and channel will be shown as the subtitle. The recording length defaults to 60 minutes. This default can be changed in Settings. When you exit from playback by any method, the recording is stopped and the recording rule is deleted.
@@ -205,7 +222,7 @@ The following controls are available when pressing enter during playback. Select
 | Jump Forward | This skips forward by the time set in the settings. |
 | Skip Next | This plays, from the beginning, the next recording or video in the list without needing to exit from playback (see related videos, below). |
 | Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
-| Set Bookmark | Sets the bookmark at the current playback position. It replces any existing bookmark in that recording. You will then see an option in the Recording Details page to play from bookmark. The bookmark can also be cleared from the Recording Details page. |
+| Playback Menu | Shows a menu of playback actions that can be taken. |
 
 **Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 

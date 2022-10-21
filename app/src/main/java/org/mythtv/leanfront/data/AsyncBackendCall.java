@@ -1034,6 +1034,25 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     if (isRecording && commBreakTable != null)
                         commBreakTable.load(xmlResult);
+                    if (commBreakTable.entries.length > 0) {
+                        commBreakTable.offSetType = CommBreakTable.OFFSET_DURATION;
+                        break;
+                    }
+                    // If Duration failed, try Frame. This could happen if there is no
+                    // seek table
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordedCommBreak?RecordedId="
+                                        + mVideo.recordedid);
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (isRecording && commBreakTable != null)
+                        commBreakTable.load(xmlResult);
+                    if (commBreakTable.entries.length > 0)
+                        commBreakTable.offSetType = CommBreakTable.OFFSET_FRAME;
                     break;
 
                 case Video.ACTION_CUTLIST_LOAD:
@@ -1051,6 +1070,23 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     }
                     if (isRecording && commBreakTable != null)
                         commBreakTable.load(xmlResult);
+                    if (commBreakTable.entries.length > 0) {
+                        commBreakTable.offSetType = CommBreakTable.OFFSET_DURATION;
+                        break;
+                    }
+                    // If Duration failed, try Frame. This could happen if there is no
+                    // seek table
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Dvr/GetRecordedCutList?RecordedId="
+                                        + mVideo.recordedid);
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (commBreakTable.entries.length > 0)
+                        commBreakTable.offSetType = CommBreakTable.OFFSET_FRAME;
                     break;
 
                 default:

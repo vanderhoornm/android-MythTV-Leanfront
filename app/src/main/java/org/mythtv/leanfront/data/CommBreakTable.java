@@ -6,6 +6,11 @@ import androidx.annotation.Nullable;
 
 public class CommBreakTable {
     public Entry[] entries = new Entry[0];
+    public int offSetType = 0;
+    public static final int OFFSET_FRAME = 1;
+    public static final int OFFSET_DURATION = 2;
+    // default to 1 to prevent a zero division if not set.
+    public long frameratex1000 = 1;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "CommBreakTable";
@@ -88,25 +93,36 @@ public class CommBreakTable {
             entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_START);;
     }
 
+    public long getOffsetMs(Entry entry) {
+        if (offSetType == OFFSET_DURATION)
+            return entry.offset;
+        return entry.offset * 1000000 / frameratex1000;
+    }
+
     public static class Entry implements Comparable<Entry> {
 
-        public final int durationMs;
+        private final long offset;
         public final int mark;
 
-        public Entry(int durationMs, int mark) {
-            this.durationMs = durationMs;
+        public Entry(long offset, int mark) {
+            this.offset = offset;
             this.mark = mark;
         }
 
         @Override
         public int compareTo(Entry o) {
-            return durationMs - o.durationMs;
+            long diff =  offset - o.offset;
+            if (diff < 0)
+                return -1;
+            if (diff > 0)
+                return 1;
+            return 0;
         }
 
         @Override
         public boolean equals(@Nullable Object o) {
             if (o instanceof Entry)
-                return (durationMs == ((Entry) o).durationMs);
+                return (offset == ((Entry) o).offset);
             return super.equals(o);
         }
     }

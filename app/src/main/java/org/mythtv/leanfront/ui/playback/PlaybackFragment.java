@@ -1488,6 +1488,13 @@ public class PlaybackFragment extends VideoSupportFragment
                             int leng = sampleQueue.getWriteIndex();
                             long[] sortedTimes = Arrays.copyOf(timesUs, leng);
                             Arrays.sort(sortedTimes);
+
+                            // Another way to get interval ? Maybe better ?
+                            long tottimes = sortedTimes[sortedTimes.length - 1]
+                                    - sortedTimes[30];
+                            long avtime = tottimes / (sortedTimes.length - 31);
+                            float calcFrameRate = 1000000.0f / (float) avtime;
+
                             int[] counters = new int[FPS_INTERVALS.length];
                             for (int timeix = 1; timeix < sortedTimes.length; timeix++) {
                                 if (sortedTimes[timeix] == 0)
@@ -1526,10 +1533,19 @@ public class PlaybackFragment extends VideoSupportFragment
                                 if (frames > 0 && interval > 0)
                                     frameRate = (float) frames * 1_000_000.0f / (float)interval;
                             }
+
+                            Log.i(TAG, CLASS + " Frame rate Calculated:" + calcFrameRate + ", Normalized:"+frameRate);
+                            // Special Case for 60fps recordings
+                            if (calcFrameRate > 59.95 && calcFrameRate < 60.05) {
+                                frameRate = calcFrameRate;
+                                Log.i(TAG, CLASS + " Using Frame Rate:" + frameRate);
+                            }
+
                             break;
                         }
                     }
                 }
+                commBreakTable.frameratex1000 = (long)(frameRate * 1000.0f);
                 if (posBookmark >= 0 && frameRate > 0.0f) {
                     mBookmark = posBookmark * 100000 / (long) (frameRate * 100.0f);
                     posBookmark = -1;

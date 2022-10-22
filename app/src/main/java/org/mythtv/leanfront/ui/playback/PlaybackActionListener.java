@@ -839,13 +839,16 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 position = playbackFragment.mPlayerGlue.getCurrentPosition();
             long nextCommBreak = Long.MAX_VALUE;
             CommBreakTable.Entry startEntry = null;
+            long startOffsetMs = 0;
             for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
                 long offsetMs = playbackFragment.commBreakTable.getOffsetMs(entry);
-                if (entry.mark == CommBreakTable.MARK_CUT_START)
+                if (entry.mark == CommBreakTable.MARK_CUT_START) {
                     startEntry = entry;
+                    startOffsetMs = playbackFragment.commBreakTable.getOffsetMs(startEntry);
+                }
                 else if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END
-                        && startEntry != null && offsetMs != playbackFragment.priorCommBreak) {
-                    nextCommBreak = playbackFragment.commBreakTable.getOffsetMs(startEntry);;
+                        && startEntry != null && startOffsetMs != playbackFragment.priorCommBreak) {
+                    nextCommBreak = startOffsetMs;
                     break;
                 }
             }
@@ -938,9 +941,9 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     playbackFragment.mPlayerGlue.seekTo(newPosition);
                     break;
                 case PlaybackFragment.COMMBREAK_NOTIFY:
-                    if (mDialog != null) {
+                    if (mDialog != null  && mDialog.isShowing()) {
                         mDialog.dismiss();
-                        return;
+                        mDialog = null;
                     }
                     playbackFragment.hideControlsOverlay(false);
                     AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
@@ -966,7 +969,22 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                                             }
                                         }
                                     })
-                            .setOnDismissListener(dialogDismiss);
+                            .setOnDismissListener(dialogDismiss)
+                            .setOnKeyListener(
+                                    (DialogInterface dialog, int keyCode, KeyEvent event) -> {
+                                        switch(keyCode) {
+                                            case KeyEvent.KEYCODE_BUTTON_R2:
+                                            case KeyEvent.KEYCODE_BUTTON_L2:
+                                            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+                                            case KeyEvent.KEYCODE_MEDIA_REWIND:
+                                            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                                            case KeyEvent.KEYCODE_DPAD_LEFT:
+                                                dialog.dismiss();
+                                                break;
+                                        }
+                                        return false;
+                                    }
+                            );
                     // re-enable controls igf the dialog is dismissed
                     dialogDismiss.enableControls = true;
                     mDialog = builder.create();
@@ -987,9 +1005,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onEndCommBreak() {
-        if (mDialog != null && mDialog.isShowing()) {
+        if (mDialog != null && mDialog.isShowing())
             mDialog.dismiss();
-        }
         playbackFragment.mPlayerGlue.setEnableControls(true);
     }
 
@@ -1014,7 +1031,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         public boolean enableControls = false;
         @Override
         public void onDismiss(DialogInterface dialogInterface) {
-            mDialog = null;
+            if (mDialog == dialogInterface)
+                mDialog = null;
             playbackFragment.hideNavigation();
             if (enableControls) {
                 playbackFragment.mPlayerGlue.setEnableControls(true);

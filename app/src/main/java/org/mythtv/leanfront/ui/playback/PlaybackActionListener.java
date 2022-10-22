@@ -972,15 +972,17 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             .setOnDismissListener(dialogDismiss)
                             .setOnKeyListener(
                                     (DialogInterface dialog, int keyCode, KeyEvent event) -> {
-                                        switch(keyCode) {
-                                            case KeyEvent.KEYCODE_BUTTON_R2:
-                                            case KeyEvent.KEYCODE_BUTTON_L2:
-                                            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
-                                            case KeyEvent.KEYCODE_MEDIA_REWIND:
-                                            case KeyEvent.KEYCODE_DPAD_RIGHT:
-                                            case KeyEvent.KEYCODE_DPAD_LEFT:
-                                                dialog.dismiss();
-                                                break;
+                                        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                                            switch (keyCode) {
+                                                case KeyEvent.KEYCODE_BUTTON_R2:
+                                                case KeyEvent.KEYCODE_BUTTON_L2:
+                                                case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+                                                case KeyEvent.KEYCODE_MEDIA_REWIND:
+                                                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                                                case KeyEvent.KEYCODE_DPAD_LEFT:
+                                                    dialog.dismiss();
+                                                    break;
+                                            }
                                         }
                                         return false;
                                     }
@@ -1000,6 +1002,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     break;
             }
             playbackFragment.mPlayerGlue.setEndCommBreakMs(newPosition + 500);
+            setNextCommBreak(-1);
         }
     }
 

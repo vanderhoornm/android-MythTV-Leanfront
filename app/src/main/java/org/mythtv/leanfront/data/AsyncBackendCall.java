@@ -260,6 +260,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             if (mVideo != null)
                 isRecording = (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING);
             String urlString = null;
+            String urlMethod = null;
             boolean allowRerecord = false;
             XmlNode xmlResult = null;
             String paramValue = null;
@@ -1020,19 +1021,24 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     break;
 
                 case Video.ACTION_COMMBREAK_LOAD:
-                    if (!isRecording || commBreakTable.entries.length > 0)
+                    if (commBreakTable.entries.length > 0)
                         break;
+                    if (isRecording)
+                        urlMethod = "/Dvr/GetRecordedCommBreak?RecordedId=";
+                    else
+                        urlMethod = "/Video/GetVideoCommBreak?Id=";
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordedCommBreak?RecordedId="
+                                urlMethod
                                         + mVideo.recordedid
                                         + "&OffsetType=Duration");
                         xmlResult = XmlNode.fetch(urlString, null);
                     } catch (IOException | XmlPullParserException e) {
+                        Log.w(TAG, CLASS + " " + e);
                         e.printStackTrace();
                         break;
                     }
-                    if (isRecording && commBreakTable != null)
+                    if (commBreakTable != null)
                         commBreakTable.load(xmlResult);
                     if (commBreakTable.entries.length > 0) {
                         commBreakTable.offSetType = CommBreakTable.OFFSET_DURATION;
@@ -1042,33 +1048,38 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     // seek table
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordedCommBreak?RecordedId="
+                                urlMethod
                                         + mVideo.recordedid);
                         xmlResult = XmlNode.fetch(urlString, null);
                     } catch (IOException | XmlPullParserException e) {
-                        e.printStackTrace();
+                        Log.w(TAG, CLASS + " " + e);
                         break;
                     }
-                    if (isRecording && commBreakTable != null)
+                    if (commBreakTable != null)
                         commBreakTable.load(xmlResult);
                     if (commBreakTable.entries.length > 0)
                         commBreakTable.offSetType = CommBreakTable.OFFSET_FRAME;
                     break;
 
                 case Video.ACTION_CUTLIST_LOAD:
-                    if (!isRecording || commBreakTable.entries.length > 0)
+                    if (commBreakTable.entries.length > 0)
                         break;
+
+                    if (isRecording)
+                        urlMethod = "/Dvr/GetRecordedCutList?RecordedId=";
+                    else
+                        urlMethod = "/Video/GetVideoCutList?Id=";
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordedCutList?RecordedId="
+                                urlMethod
                                         + mVideo.recordedid
                                         + "&OffsetType=Duration");
                         xmlResult = XmlNode.fetch(urlString, null);
                     } catch (IOException | XmlPullParserException e) {
-                        e.printStackTrace();
+                        Log.w(TAG, CLASS + " " + e);
                         break;
                     }
-                    if (isRecording && commBreakTable != null)
+                    if (commBreakTable != null)
                         commBreakTable.load(xmlResult);
                     if (commBreakTable.entries.length > 0) {
                         commBreakTable.offSetType = CommBreakTable.OFFSET_DURATION;
@@ -1078,11 +1089,11 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     // seek table
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordedCutList?RecordedId="
+                                urlMethod
                                         + mVideo.recordedid);
                         xmlResult = XmlNode.fetch(urlString, null);
                     } catch (IOException | XmlPullParserException e) {
-                        e.printStackTrace();
+                        Log.w(TAG, CLASS + " " + e);
                         break;
                     }
                     if (commBreakTable.entries.length > 0)

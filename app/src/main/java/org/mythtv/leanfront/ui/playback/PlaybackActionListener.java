@@ -1011,6 +1011,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         if (mDialog != null && mDialog.isShowing())
             mDialog.dismiss();
         playbackFragment.mPlayerGlue.setEnableControls(true);
+        playbackFragment.hideControlsOverlay(true);
     }
 
     // Gestures

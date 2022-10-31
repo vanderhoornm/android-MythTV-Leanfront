@@ -92,6 +92,8 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_COMMSKIP_OFF = 44;
     private static final int ID_COMMSKIP_NOTIFY = 45;
     private static final int ID_COMMSKIP_SKIP = 46;
+    private static final int ID_COMMSKIP_START = 47;
+    private static final int ID_COMMSKIP_END = 48;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -265,6 +267,25 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 .checked(commskip == 2)
                 .description(R.string.pref_commskip_skip_desc)
                 .checkSetId(ID_COMMSKIP)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .title(R.string.pref_commskip_adj_title)
+                .description(R.string.pref_commskip_adj_desc)
+                .infoOnly(true)
+                .multilineDescription(true)
+                .build());
+        // This should be signed number but fire stick does not support that
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP_START)
+                .title(R.string.pref_commskip_start)
+                .description(Settings.getString("pref_commskip_start"))
+                .descriptionEditable(true)
+                .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_COMMSKIP_END)
+                .title(R.string.pref_commskip_end)
+                .description(Settings.getString("pref_commskip_end"))
+                .descriptionEditable(true)
                 .build());
         actions.add(mCommskipAction = new GuidedAction.Builder(getActivity())
                 .id(ID_COMMSKIP)
@@ -571,6 +592,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 Settings.putString(editor, "pref_audio_sync",
                         validateNumber(action, -2500, 2500, 0));
                 break;
+            case ID_COMMSKIP_START:
+                Settings.putString(editor, "pref_commskip_start",
+                        validateNumber(action, -10, 10, 0));
+                break;
+            case ID_COMMSKIP_END:
+                Settings.putString(editor, "pref_commskip_end",
+                        validateNumber(action, -10, 10, 0));
+                break;
             case ID_CAPTIONS:
                 Settings.putString(editor, "pref_captions",
                         validateNumber(action, 0, 10, 0));
@@ -645,6 +674,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 break;
             case ID_AUDIO_SYNC:
                 action.setDescription(Settings.getString("pref_audio_sync"));
+                break;
+            case ID_COMMSKIP_START:
+                action.setDescription(Settings.getString("pref_commskip_start"));
+                break;
+            case ID_COMMSKIP_END:
+                action.setDescription(Settings.getString("pref_commskip_end"));
                 break;
             case ID_CAPTIONS:
                 action.setDescription(Settings.getString("pref_captions"));

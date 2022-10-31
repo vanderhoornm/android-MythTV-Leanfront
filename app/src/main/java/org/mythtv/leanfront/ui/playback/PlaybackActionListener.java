@@ -48,6 +48,7 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.CommBreakTable;
 import org.mythtv.leanfront.model.Playlist;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 
@@ -848,7 +849,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 }
                 else if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END
                         && startEntry != null && startOffsetMs != playbackFragment.priorCommBreak) {
-                    nextCommBreak = startOffsetMs;
+                    nextCommBreak = startOffsetMs + Settings.getInt("pref_commskip_start") * 1000;
                     break;
                 }
             }
@@ -922,7 +923,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     // We should now be at the MARK_CUT_END of the selected comm break
                     // If not or if we are past it, do nothing.
                     if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END) {
-                        newPosition = offsetMs + 2000;
+                        newPosition = offsetMs + Settings.getInt("pref_commskip_end") * 1000;
                     }
                     else
                         Log.e(TAG, CLASS + " No end commbreak entry for: " + nextCommBreakMs);

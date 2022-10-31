@@ -138,6 +138,10 @@
     <string name="pref_autoplay_desc">At the end of playback automatically start the next video or episode.</string>
     <string name="pref_captions">Caption number to enable</string>
     <string name="pref_audio_sync">Audio Sync Adjustment in milliseconds</string>
+    <string name="pref_commskip_adj_title">Adjustments to Start and End Position</string>
+    <string name="pref_commskip_adj_desc">The numbers below can be set negative or positive to start or end skips early or late.</string>
+    <string name="pref_commskip_start">Start Position Adjustment (seconds)</string>
+    <string name="pref_commskip_end">End Position Adjustment (seconds)</string>
     <string name="pref_merge_videos">Merge Videos with Recordings</string>
     <string name="pref_merge_videos_desc">Recording lists will include episodes of the series from Videos.</string>
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
@@ -414,5 +418,8 @@
     <string name="sdef_use_seektablex" translatable="false">false</string>
     <!-- 0=off, 1=notify, 2=skip   -->
     <string name="sdef_commskip" translatable="false">0</string>
+    <!--  Number of seconds to add to start or end times  -->
+    <string name="sdef_commskip_start" translatable="false">0</string>
+    <string name="sdef_commskip_end" translatable="false">0</string>
 
 </resources>

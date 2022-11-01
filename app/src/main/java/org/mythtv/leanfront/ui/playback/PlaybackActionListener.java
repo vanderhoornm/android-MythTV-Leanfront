@@ -847,10 +847,13 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     startEntry = entry;
                     startOffsetMs = playbackFragment.commBreakTable.getOffsetMs(startEntry);
                 }
-                else if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END
-                        && startEntry != null && startOffsetMs != playbackFragment.priorCommBreak) {
-                    nextCommBreak = startOffsetMs + Settings.getInt("pref_commskip_start") * 1000;
-                    break;
+                else {
+                    long possible = startOffsetMs + Settings.getInt("pref_commskip_start") * 1000;
+                    if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END
+                            && startEntry != null && possible != playbackFragment.priorCommBreak) {
+                        nextCommBreak = possible;
+                        break;
+                    }
                 }
             }
             playbackFragment.mPlayerGlue.setNextCommBreakMs(nextCommBreak);

@@ -936,7 +936,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             default:
                 return;
         }
-        if (newPosition > 0) {
+        if (newPosition > 0 && newPosition > position) {
             playbackFragment.priorCommBreak = nextCommBreakMs;
             final long finalNewPosition = newPosition;
             switch (playbackFragment.commBreakOption) {
@@ -1006,8 +1006,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     break;
             }
             playbackFragment.mPlayerGlue.setEndCommBreakMs(newPosition + 500);
-            setNextCommBreak(-1);
         }
+        setNextCommBreak(-1);
     }
 
     @Override

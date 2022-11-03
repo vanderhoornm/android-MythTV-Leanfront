@@ -172,7 +172,7 @@ If local bookmarks are not selected:
 
 ### Commercial Break and Cut List
 
-If you run mythcommflag to detect commercials in a recording, or you use Edit mode in mythfrontend to add a cut list, leanfront now supports skipping over cuts or commercial breaks.
+If you run mythcommflag or comskip to detect commercials in a recording, or you use Edit mode in mythfrontend to add a cut list, leanfront now supports skipping over cuts or commercial breaks.
 
 There is a Setting on the Settings page, "Commercial or Cut Skip". You can select "Off", "Notify", or "Automatically Skip". These apply to both flagged commercials and cut lists. If a cut list exists the commercial breaks are ignored.
 
@@ -184,7 +184,11 @@ If "Automatically Skip" is selected, playback will automatically skip each cut o
 
 The three options can also be selected or changed during playback by using the playback menu and selecting "Commercial or Cut Skip". Changes made here only affect the current playback.
 
+In the settings there are adjustments to start and end position that can be set. Setting a negative value means that it will skip that number of seconds early, setting a positive value will skip that number of seconds late. To make sure that absolutely no commercial is shown, you can make the skip larger by setting a negative value for start adjustment and a positive value for end adjustment. However you could miss a second or two of actual show. In the opposite situation, if you are unsure whether commercial skip works correctly, you can make the skip shorter by setting a positive value in the start adjustment and a negative value in the end adjustment. Then you will see a few seconds of commercial at the start and end of the break, so that you can be sure it is only skipping commercial and not skipping part of the show.
+
 There is currently no way to add a cut list in leanfront. That can only be done in mythfrontend.
+
+Leanfront also supports skip and cut lists in Videos in the "Videos" storage group. For this you need mythbackend version v33-Pre-925-gf702d54093 or later, and you need to use the new http port (6744).
 
 ## Live TV
 

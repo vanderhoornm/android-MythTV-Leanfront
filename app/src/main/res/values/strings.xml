@@ -23,7 +23,7 @@
  * along with MythTV-leanfront.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">MythTV LeanBack Frontend</string>
     <string name="browse_title">MythTV LeanBack Frontend</string>
     <string name="related_movies">Related Videos</string>
@@ -77,7 +77,6 @@
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
     <string name="pref_title_playback">Playback: %1$s</string>
     <string name="pref_title_skip_back">Skip Back Seconds</string>
-    <string name="pref_title_arrow_jump">Use Up/Down Arrows for Jump</string>
     <string name="pref_title_jump">Jump Minutes</string>
     <string name="pref_title_subtitle_size">Subtitle Size as Percentage of Default</string>
     <string name="pref_error_toast">Show playback error toast</string>
@@ -88,7 +87,6 @@
     <string name="pref_seq_rec_time">Date/Time Recorded</string>
     <string name="pref_seq_descending">Sort Descending</string>
     <string name="pref_seq_descending_desc">When Unchecked Sort Ascending.</string>
-<!--    <string name="pref_seq_ascending">Ascending</string>-->
     <string name="pref_sort_order">Sort Sequence</string>
     <string name="pref_show_recents">Show Recently Viewed List</string>
     <string name="pref_show_recents_desc">This appears on the top level screen only.</string>
@@ -144,6 +142,16 @@
     <string name="pref_commskip_end">End Position Adjustment (seconds)</string>
     <string name="pref_merge_videos">Merge Videos with Recordings</string>
     <string name="pref_merge_videos_desc">Recording lists will include episodes of the series from Videos.</string>
+    <string name="pref_arrows">Customize Arrow Keys for Playback</string>
+    <string name="pref_updown_controls">Up/Down Keys: Show Playback Controls</string>
+    <string name="pref_updown_jump">Up/Down Keys: Jump Back / Forward</string>
+    <string name="pref_updown_skipcom">Up/Down Keys: Skip Commercial</string>
+    <string name="pref_leftright_rewff">Left/Right Keys: Skip Back / Forward</string>
+    <string name="pref_leftright_skipcom">Left/Right Keys: Skip Commercial</string>
+    <string name="pref_rewff">Customize Rewind and Fast Forward Keys</string>
+    <string name="pref_rewff_rewff">Rew/FF Keys: Skip Back / Forward</string>
+    <string name="pref_rewff_skipcom">Rew/FF Keys: Skip Commercial</string>
+
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
     <string name="all_title">All</string>
@@ -366,6 +374,10 @@
     <string name="title_commskip">Commercial or Cut Skip</string>
     <string name="msg_commskip_unavail">Commercial or Cut Skip not available on in-progress recordings.</string>
     <string name="msg_commskip_none">There is no Commercial Break or Cut List Data for this Recording.</string>
+    <string name="msg_commskip_start">Start of Commercial Break.</string>
+    <string name="msg_commskip_end">End of Commercial Break.</string>
+    <string name="msg_commskip_last">No More Commercial Breaks.</string>
+    <string name="msg_commskip_skipped">Commercial Break Skipped.</string>
 
     <string name="title_comm_playing">Commercial or Cut Playing</string>
     <string name="menu_comm_skip">Skip</string>
@@ -391,7 +403,6 @@
     <string name="sdef_seq" translatable="false">rectime</string>
     <string name="sdef_seq_ascdesc" translatable="false">asc</string>
     <string name="sdef_audio" translatable="false">auto</string>
-    <string name="sdef_arrow_jump" translatable="false">false</string>
     <string name="sdef_jump" translatable="false">5</string>
     <string name="sdef_livetv_duration" translatable="false">60</string>
     <string name="sdef_framerate_match" translatable="false">false</string>
@@ -421,5 +432,10 @@
     <!--  Number of seconds to add to start or end times  -->
     <string name="sdef_commskip_start" translatable="false">0</string>
     <string name="sdef_commskip_end" translatable="false">0</string>
-
+    <!-- Customizable keys -->
+    <!-- updown: values are controls, jump or skipcom    -->
+    <string name="sdef_updown" translatable="false">controls</string>
+    <!-- The next two have values rewff or skipcom  -->
+    <string name="sdef_leftright" translatable="false">rewff</string>
+    <string name="sdef_rewff" translatable="false">rewff</string>
 </resources>

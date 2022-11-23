@@ -33,10 +33,8 @@ import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.ui.LeanbackActivity;
 
 /**
@@ -86,52 +84,8 @@ public class PlaybackActivity extends LeanbackActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch(keyCode) {
-            case KeyEvent.KEYCODE_BUTTON_L1:
-                mPlaybackFragment.skipToPrevious();
-                return true;
-            case KeyEvent.KEYCODE_BUTTON_R1:
-                mPlaybackFragment.skipToNext();
-                return true;
-            case KeyEvent.KEYCODE_BUTTON_L2:
-                mPlaybackFragment.rewind();
-                return true;
-            case KeyEvent.KEYCODE_BUTTON_R2:
-                mPlaybackFragment.fastForward();
-                return true;
-            case KeyEvent.KEYCODE_MEDIA_STOP:
-                finish();
-                return true;
-            case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
-                mPlaybackFragment.getPlaybackActionListener().onAudioTrack();
-                return true;
-            case KeyEvent.KEYCODE_CAPTIONS:
-                mPlaybackFragment.getPlaybackActionListener().onCaption();
-                return true;
-            case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
-                mPlaybackFragment.tickle();
-                mPlaybackFragment.jumpForward();
-                return true;
-            case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
-                mPlaybackFragment.tickle();
-                mPlaybackFragment.jumpBack();
-                return true;
-            case KeyEvent.KEYCODE_TV_ZOOM_MODE:
-                mPlaybackFragment.getPlaybackActionListener().onAspect();
-                return true;
-            case KeyEvent.KEYCODE_ZOOM_IN:
-                mPlaybackFragment.getPlaybackActionListener().zoom(1);
-                return true;
-            case KeyEvent.KEYCODE_ZOOM_OUT:
-                mPlaybackFragment.getPlaybackActionListener().zoom(-1);
-                return true;
-            case KeyEvent.KEYCODE_MENU:
-                return mPlaybackFragment.getPlaybackActionListener().onMenu();
-            case KeyEvent.KEYCODE_BOOKMARK:
-                mPlaybackFragment.getPlaybackActionListener().onBookmark();
-                return true;
-        }
-
+        if (processKey(keyCode))
+            return true;
         return super.onKeyDown(keyCode, event);
     }
 
@@ -198,84 +152,108 @@ public class PlaybackActivity extends LeanbackActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event){
         int keycode = event.getKeyCode();
+        int newKeyCode = -1;
+        boolean overload = false;
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             View view = getCurrentFocus();
-            boolean isSeekBar = false;
-            if (view instanceof SeekBar)
-                isSeekBar = true;
+            boolean isSeekBar = view instanceof SeekBar;
 
             if ((keycode == KeyEvent.KEYCODE_DPAD_CENTER
                     || keycode == KeyEvent.KEYCODE_ENTER)
                     && ! mPlaybackFragment.isControlsOverlayVisible()) {
                 if (event.isLongPress()) {
                     isLongKeyPress = true;
-                    return mPlaybackFragment.mPlaybackActionListener.onMenu();
+                    newKeyCode = KeyEvent.KEYCODE_MENU;
                 }
                 else
                     return true;
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                mPlaybackFragment.tickle();
-                mPlaybackFragment.fastForward();
-                return true;
+                switch (mPlaybackFragment.optRewFF) {
+                    case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                    default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                }
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                if (mPlaybackFragment.mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mPlaybackFragment.optUpDown != PlaybackFragment.CMD_CONTROLS
+                        && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump,!mArrowSkipJump);
                 if (mArrowSkipJump || isSeekBar) {
-                    mPlaybackFragment.fastForward();
-                    return true;
+                    overload = true;
+                    switch (mPlaybackFragment.optLeftRight) {
+                        case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                        default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                    }
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                mPlaybackFragment.tickle();
-                mPlaybackFragment.rewind();
-                return true;
+                switch (mPlaybackFragment.optRewFF) {
+                    case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                    default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                }
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_LEFT) {
-                if (mPlaybackFragment.mJumpEnabled && !mPlaybackFragment.isControlsOverlayVisible()) {
+                if (mPlaybackFragment.optUpDown != PlaybackFragment.CMD_CONTROLS
+                        && !mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
                 if (mArrowSkipJump || isSeekBar) {
-                    mPlaybackFragment.rewind();
-                    return true;
+                    overload = true;
+                    switch (mPlaybackFragment.optLeftRight) {
+                        case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                        default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                    }
                 }
             }
 
             if (keycode == KeyEvent.KEYCODE_DPAD_UP) {
+                // Code to support dismissing the controls on up arrow
                 if (!mArrowSkipJump && mPlaybackFragment.isControlsOverlayVisible()) {
                     if (mPlaybackFragment.onControlsUp())
                         return true;
                 }
-                else if (mPlaybackFragment.mJumpEnabled) {
+                else if (mPlaybackFragment.optUpDown != PlaybackFragment.CMD_CONTROLS) {
                     mArrowSkipJump = true;
-                    mPlaybackFragment.tickle(true, false);
-                    mPlaybackFragment.jumpBack();
-                    return true;
+                    mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
+                    overload = true;
+                    switch (mPlaybackFragment.optUpDown) {
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                    }
                 }
                 else
                     return true;
             }
 
-            if (mPlaybackFragment.mJumpEnabled && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (mPlaybackFragment.optUpDown != PlaybackFragment.CMD_CONTROLS
+                    && keycode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (!mPlaybackFragment.isControlsOverlayVisible()) {
                     mArrowSkipJump = true;
                 }
                 mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
                 if (mArrowSkipJump) {
-                    mPlaybackFragment.jumpForward();
-                    return true;
+                    overload = true;
+                    switch (mPlaybackFragment.optUpDown) {
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                    }
                 }
             }
-            mArrowSkipJump = false;
-            mPlaybackFragment.setActions(true);
+            if (newKeyCode == -1) {
+                mArrowSkipJump = false;
+                mPlaybackFragment.setActions(true);
+            }
         }
         else if (event.getAction() == KeyEvent.ACTION_UP) {
             if ((keycode == KeyEvent.KEYCODE_DPAD_CENTER
@@ -291,10 +269,97 @@ public class PlaybackActivity extends LeanbackActivity {
             }
             isLongKeyPress = false;
         }
+
+        if (newKeyCode != -1) {
+            return processKey(newKeyCode, overload);
+        }
         boolean ret = super.dispatchKeyEvent(event);
         mPlaybackFragment.actionSelected(null);
         return ret;
     }
+
+
+    private boolean processKey(int keyCode) {
+        return processKey(keyCode,false);
+    }
+
+    // Process a key command. The keyCode may be changed by the caller
+    // to a standard key code for an operation
+    // override true indicates an overloaded key, normally up/down/left/right,
+    // Must not tickle as that is already done
+    private boolean processKey(int keyCode, boolean overload) {
+        // Note: KeyEvent.KEYCODE_MEDIA_NEXT and KeyEvent.KEYCODE_MEDIA_PREVIOUS
+        // are sent to methods next() and previous() of VideoPlayerGlue by the
+        // framework.
+        switch(keyCode) {
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                mPlaybackFragment.skipToPrevious();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                mPlaybackFragment.skipToNext();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_L2:
+            case KeyEvent.KEYCODE_MEDIA_REWIND:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.rewind();
+                return true;
+            case KeyEvent.KEYCODE_BUTTON_R2:
+            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.fastForward();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_STOP:
+                finish();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
+                mPlaybackFragment.getPlaybackActionListener().onAudioTrack();
+                return true;
+            case KeyEvent.KEYCODE_CAPTIONS:
+                mPlaybackFragment.getPlaybackActionListener().onCaption();
+                return true;
+            // SKIP = commercial skip, STEP = jump, next = next video
+            case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.mPlaybackActionListener.skipComForward();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_STEP_FORWARD:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.jumpForward();
+                return true;
+            // SKIP = commercial skip, STEP = jump,
+            // previous = start or previous video start
+            case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.mPlaybackActionListener.skipComBack();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD:
+                if (!overload)
+                    mPlaybackFragment.tickle();
+                mPlaybackFragment.jumpBack();
+                return true;
+            case KeyEvent.KEYCODE_TV_ZOOM_MODE:
+                mPlaybackFragment.getPlaybackActionListener().onAspect();
+                return true;
+            case KeyEvent.KEYCODE_ZOOM_IN:
+                mPlaybackFragment.getPlaybackActionListener().zoom(1);
+                return true;
+            case KeyEvent.KEYCODE_ZOOM_OUT:
+                mPlaybackFragment.getPlaybackActionListener().zoom(-1);
+                return true;
+            case KeyEvent.KEYCODE_MENU:
+                return mPlaybackFragment.getPlaybackActionListener().onMenu();
+            case KeyEvent.KEYCODE_BOOKMARK:
+                mPlaybackFragment.getPlaybackActionListener().onBookmark();
+                return true;
+        }
+        return false;
+    }
+
 
     class GestureTap extends GestureDetector.SimpleOnGestureListener {
         @Override

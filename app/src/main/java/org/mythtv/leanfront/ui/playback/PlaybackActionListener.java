@@ -81,12 +81,22 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onPrevious() {
-        playbackFragment.skipToPrevious();
+        if (playbackFragment.commBreakTable == null
+                || playbackFragment.commBreakTable.entries.length == 0
+                || skipComBack() == 0) {
+            playbackFragment.tickle();
+            playbackFragment.skipToPrevious();
+        }
     }
 
     @Override
     public void onNext() {
-        playbackFragment.skipToNext();
+        if (playbackFragment.commBreakTable == null
+                || playbackFragment.commBreakTable.entries.length == 0
+                ||  skipComForward() == 0) {
+            playbackFragment.tickle();
+            playbackFragment.skipToNext();
+        }
     }
 
     public boolean onMenu() {
@@ -833,6 +843,79 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         }
     }
 
+    long skipComBack() {
+        if (!commSkipCheck())
+            return 0;
+        long position = playbackFragment.mPlayerGlue.getCurrentPosition();
+        long newPosition = 0;
+        int mark = 0;
+        // Get the last entry that satisfies offset < position
+        for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
+            long offsetMs = playbackFragment.commBreakTable.getOffsetMs(entry);
+            if (offsetMs < position - 20000) {
+                newPosition = offsetMs;
+                mark = entry.mark;
+            }
+            else
+                break;
+        }
+
+        if (newPosition > 0) {
+            playbackFragment.mPlayerGlue.setNextCommBreakMs(Long.MAX_VALUE);
+            // If this is a start point, prevent it from immediately skipping
+            if (mark == CommBreakTable.MARK_CUT_START)
+                playbackFragment.priorCommBreak = newPosition + Settings.getInt("pref_commskip_start") * 1000;
+            playbackFragment.mPlayerGlue.seekTo(newPosition);
+            comskipToast(mark);
+        }
+        return newPosition;
+    }
+
+    long skipComForward() {
+        if (!commSkipCheck())
+            return 0;
+        long position = playbackFragment.mPlayerGlue.getCurrentPosition();
+        long newPosition = 0;
+        int mark = 0;
+        // Get the first entry that satisfies offset > position
+        for (CommBreakTable.Entry entry : playbackFragment.commBreakTable.entries) {
+            long offsetMs = playbackFragment.commBreakTable.getOffsetMs(entry);
+            if (offsetMs > position + 5000) {
+                newPosition = offsetMs;
+                mark = entry.mark;
+                break;
+            }
+        }
+
+        if (newPosition > 0) {
+            playbackFragment.mPlayerGlue.setNextCommBreakMs(Long.MAX_VALUE);
+            // If this is a start point, prevent it from immediately skipping
+            if (mark == CommBreakTable.MARK_CUT_START)
+                playbackFragment.priorCommBreak = newPosition + Settings.getInt("pref_commskip_start") * 1000;
+            playbackFragment.mPlayerGlue.seekTo(newPosition);
+            comskipToast(mark);
+        }
+        return newPosition;
+    }
+
+    private void comskipToast(int mark) {
+        int msgnum;
+        switch (mark) {
+            case CommBreakTable.MARK_CUT_START: msgnum = R.string.msg_commskip_start; break;
+            case CommBreakTable.MARK_CUT_END:   msgnum = R.string.msg_commskip_end; break;
+            case -1:                            msgnum = R.string.msg_commskip_last; break;
+            case -2:                            msgnum = R.string.msg_commskip_skipped; break;
+            default: return;
+        }
+        if (playbackFragment.mToast != null)
+            playbackFragment.mToast.cancel();
+        Context ctx = playbackFragment.getContext();
+        playbackFragment.mToast = Toast.makeText(ctx,
+                ctx.getString(msgnum),
+                Toast.LENGTH_LONG);
+        playbackFragment.mToast.show();
+    }
+
     // pass in -1 to get current position, otherwise use position passed in
     public void setNextCommBreak(long position) {
         if (playbackFragment.commBreakOption != PlaybackFragment.COMMBREAK_OFF) {
@@ -860,6 +943,19 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         }
     }
 
+    private boolean commSkipCheck() {
+        if (playbackFragment.commBreakTable == null || playbackFragment.commBreakTable.entries.length == 0) {
+            if (playbackFragment.mToast != null)
+                playbackFragment.mToast.cancel();
+            Context ctx = playbackFragment.getContext();
+            playbackFragment.mToast = Toast.makeText(ctx,
+                    ctx.getString(R.string.msg_commskip_none),
+                    Toast.LENGTH_LONG);
+            playbackFragment.mToast.show();
+            return false;
+        }
+        return true;
+    }
 
     // Comm skip - present menu to choose which option you want
     // off, notify or skip.
@@ -875,16 +971,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             playbackFragment.mToast.show();
             return;
         }
-        if (playbackFragment.commBreakTable == null || playbackFragment.commBreakTable.entries.length == 0) {
-            if (playbackFragment.mToast != null)
-                playbackFragment.mToast.cancel();
-            Context ctx = playbackFragment.getContext();
-            playbackFragment.mToast = Toast.makeText(ctx,
-                    ctx.getString(R.string.msg_commskip_none),
-                    Toast.LENGTH_LONG);
-            playbackFragment.mToast.show();
+        if (!commSkipCheck())
             return;
-        }
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder
@@ -943,6 +1031,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                 case PlaybackFragment.COMMBREAK_SKIP:
                     playbackFragment.mPlayerGlue.setEnableControls(false);
                     playbackFragment.mPlayerGlue.seekTo(newPosition);
+                    comskipToast(-2);
                     break;
                 case PlaybackFragment.COMMBREAK_NOTIFY:
                     if (mDialog != null  && mDialog.isShowing()) {

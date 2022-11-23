@@ -65,7 +65,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_AUDIO_AUTO = 17;
     private static final int ID_AUDIO_MEDIACODEC = 18;
     private static final int ID_AUDIO_FFMPEG = 19;
-    private static final int ID_ARROW_JUMP = 20;
     private static final int ID_LIVETV_DURATION = 21;
     private static final int ID_FRAMERATE_MATCH = 22;
     private static final int ID_SUBTITLE_SIZE = 23;
@@ -94,6 +93,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_COMMSKIP_SKIP = 46;
     private static final int ID_COMMSKIP_START = 47;
     private static final int ID_COMMSKIP_END = 48;
+    private static final int ID_UPDOWN = 49;
+    private static final int ID_UPDOWN_CONTROLS = 50;
+    private static final int ID_UPDOWN_JUMP = 51;
+    private static final int ID_UPDOWN_SKIPCOM = 52;
+    private static final int ID_LEFTRIGHT = 53;
+    private static final int ID_LEFTRIGHT_REWFF = 54;
+    private static final int ID_LEFTRIGHT_SKIPCOM = 55;
+    private static final int ID_REWFF = 56;
+    private static final int ID_REWFF_REWFF = 57;
+    private static final int ID_REWFF_SKIPCOM = 58;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -182,12 +191,60 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .descriptionEditable(true)
                     .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                     .build());
-            str = Settings.getString("pref_arrow_jump", group);
+
+            str = Settings.getString("pref_updown", group);
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_ARROW_JUMP + addon)
-                    .title(R.string.pref_title_arrow_jump)
-                    .checked("true".equals(str))
-                    .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                    .id(ID_UPDOWN_CONTROLS)
+                    .title(R.string.pref_updown_controls)
+                    .checked("controls".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_UPDOWN)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_UPDOWN_JUMP)
+                    .title(R.string.pref_updown_jump)
+                    .checked("jump".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_UPDOWN)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_UPDOWN_SKIPCOM)
+                    .title(R.string.pref_updown_skipcom)
+                    .checked("skipcom".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_UPDOWN)
+                    .build());
+
+            str = Settings.getString("pref_leftright", group);
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_LEFTRIGHT_REWFF)
+                    .title(R.string.pref_leftright_rewff)
+                    .checked("rewff".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_LEFTRIGHT)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_LEFTRIGHT_SKIPCOM)
+                    .title(R.string.pref_leftright_skipcom)
+                    .checked("skipcom".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_LEFTRIGHT)
+                    .build());
+
+            str = Settings.getString("pref_rewff", group);
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_REWFF_REWFF)
+                    .title(R.string.pref_rewff_rewff)
+                    .checked("rewff".equals(str))
+                    .description(R.string.pref_rewff)
+                    .checkSetId(ID_REWFF)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_REWFF_SKIPCOM)
+                    .title(R.string.pref_rewff_skipcom)
+                    .checked("skipcom".equals(str))
+                    .description(R.string.pref_rewff)
+                    .checkSetId(ID_REWFF)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_JUMP + addon)
@@ -707,11 +764,33 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 else
                     Settings.putString(editor, "pref_framerate_match",group,"false");
                 break;
-            case ID_ARROW_JUMP:
+            case ID_UPDOWN_CONTROLS:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_arrow_jump",group,"true");
-                else
-                    Settings.putString(editor, "pref_arrow_jump",group,"false");
+                    Settings.putString(editor, "pref_updown", "controls");
+                break;
+            case ID_UPDOWN_JUMP:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_updown", "jump");
+                break;
+            case ID_UPDOWN_SKIPCOM:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_updown", "skipcom");
+                break;
+            case ID_LEFTRIGHT_REWFF:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_leftright", "rewff");
+                break;
+            case ID_LEFTRIGHT_SKIPCOM:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_leftright", "skipcom");
+                break;
+            case ID_REWFF_REWFF:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_rewff", "rewff");
+                break;
+            case ID_REWFF_SKIPCOM:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_rewff", "skipcom");
                 break;
             case ID_SORT_ORIG_AIRDATE:
                 if (action.isChecked())

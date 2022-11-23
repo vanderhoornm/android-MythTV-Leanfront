@@ -173,8 +173,18 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean mFrameMatch = "true".equals(Settings.getString("pref_framerate_match"));
     private int mSubtitleSize =  Settings.getInt("pref_subtitle_size");
     private int mBgColor = Settings.getInt("pref_letterbox_color");
-    public boolean mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump"));
     public boolean mAudioPause = "true".equals(Settings.getString("pref_audio_pause"));
+    // Selectable command for certain keys
+    static final int CMD_CONTROLS = 1;
+    static final int CMD_JUMP = 2;
+    static final int CMD_SKIPCOM = 3;
+    static final int CMD_REWFF = 4;
+    // Options selected for certain keys, from Settings
+    // Values here are the defaults
+    int optUpDown = CMD_CONTROLS;
+    int optLeftRight = CMD_JUMP;
+    int optRewFF = CMD_REWFF;
+
     int mCaptions = 0;
 
     private View mFocusView;
@@ -549,7 +559,6 @@ public class PlaybackFragment extends VideoSupportFragment
         mFrameMatch = "true".equals(Settings.getString("pref_framerate_match",video.playGroup));
         mSubtitleSize =  Settings.getInt("pref_subtitle_size",video.playGroup);
         mBgColor = Settings.getInt("pref_letterbox_color",video.playGroup);
-        mJumpEnabled = "true".equals(Settings.getString("pref_arrow_jump",video.playGroup));
         if ("true".equals(Settings.getString("pref_autoplay",video.playGroup))) {
             mPlayerGlue.setAutoPlay(true);
         }
@@ -560,6 +569,23 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         mCaptions = Settings.getInt("pref_captions",video.playGroup);
         commBreakOption = Settings.getInt("pref_commskip");
+        switch(Settings.getString("pref_updown",video.playGroup)) {
+            case "controls": optUpDown = CMD_CONTROLS; break;
+            case "jump":     optUpDown = CMD_JUMP;     break;
+            case "skipcom":  optUpDown = CMD_SKIPCOM;  break;
+            default:         optUpDown = CMD_CONTROLS; break;
+        }
+        switch(Settings.getString("pref_leftright",video.playGroup)) {
+            case "rewff":    optLeftRight = CMD_REWFF;   break;
+            case "skipcom":  optLeftRight = CMD_SKIPCOM; break;
+            default:         optLeftRight = CMD_REWFF;   break;
+        }
+        switch(Settings.getString("pref_rewff",video.playGroup)) {
+            case "rewff":    optRewFF = CMD_REWFF;   break;
+            case "skipcom":  optRewFF = CMD_SKIPCOM; break;
+            default:         optRewFF = CMD_REWFF;   break;
+        }
+
         View view = getView();
         view.setBackgroundColor(mBgColor);
 
@@ -856,10 +882,15 @@ public class PlaybackFragment extends VideoSupportFragment
         // We do not support this for LiveTV
         if (mRecordid >= 0)
             return;
+        // If more than 1 minute past beginning, seek to start
+        // otherwise got to previous video
+        if (mPlayerGlue.getCurrentPosition() > 60000) {
+            seekTo(0, false);
+            return;
+        }
         Video v = mPlaylist.previous();
         if (v != null) {
             setBookmark(Video.ACTION_SET_LASTPLAYPOS);
-            // TODO: Refactor so that we can resume from bookmark
             mBookmark = 0;
             mVideo = v;
         }

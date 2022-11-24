@@ -265,35 +265,35 @@ During playback, you can see a menu of actions by pressing the Menu button on th
 
 The Fire Stick and NVidia Shield have rather limited remote controls, however there are ways of connecting more advanced remotes, and a TV remote can be used to control the Android TV device using CEC. MythTV leanfront supports many media control keys that could be available.
 
-| Key                 | Context      | Usage                                                                                |
-|---------------------|--------------|--------------------------------------------------------------------------------------|
-| Back                | Playback     | If OSD is showing, close OSD. Otherwise Stop Playback and save bookmark              |
-| Captions            | Playback     | Show menu of available captions (same as CC icon)                                    |
-| DPad Left           | Playback     | Skip back number of seconds specified in settings (default is 20)                    |
-| DPad Right          | Playback     | Skip forward number of seconds specified in settings (default is 60)                 |
-| DPad Up             | Playback     | Dismiss OSD and navigate in OSD                                                      |
-| DPad Down           | Playback     | Show OSD and navigate in OSD                                                         |
-| DPad Center         | Playback     | Show OSD                                                                             |
-| Media Audio Track   | Playback     | Show menu of available audio tracks (same as Ear icon)                               |
-| Media Pause         | Playback     | Pause playback                                                                       |
-| Media Play          | Playback     | Resume playback if paused                                                            |
-| Media Play Pause    | Playback     | Toggle playback between playing and paused                                           |
-| Media Fast Forward  | Playback     | Skip forward number of seconds specified in settings (default is 60)                 |
-| Media Rewind        | Playback     | Skip back number of seconds specified in settings (default is 20)                    |
-| Media Skip Forward  | Playback     | Skip to next commercial break                                                        |
-| Media Skip Backward | Playback     | Skip to prior commercial break                                                       |
-| Media Step Forward  | Playback     | Jump forward number of minutes specified in settings (default is 5)                  |
-| Media Step Backward | Playback     | Jump back number of minutes specified in settings (default is 5)                     |
-| Media Stop          | Playback     | Stop Playback and save bookmark                                                      |
-| Media Next          | Playback     | Skip to beginning of the next Video (same as Next Track Icon)                        |
-| Media Previous      | Playback     | Skip to beginning of the previous Video (same as Previous Track Icon)                |
-| TV Zoom Mode        | Playback     | Squeeze or Stretch the picture (same as Stretch Horizontally Icon)                   |
-| Zoom In             | Playback     | Reduce the picture size (same as Picture Size Icon).                                 |
-| Zoom Out            | Playback     | Increase the picture size (same as Picture Size Icon)                                |
-| Media Play          | List         | Play selected video from bookmark or beginning without first displaying details page |
-| Media Play Pause    | List         | Play selected video from bookmark or beginning without first displaying details page |
-| Media Play          | Details Page | Play video from bookmark or beginning                                                |
-| Media Play Pause    | Details Page | Play video from bookmark or beginning                                                |
+| Key                 | Context      | Usage                                                                                 |
+|---------------------|--------------|---------------------------------------------------------------------------------------|
+| Back                | Playback     | If OSD is showing, close OSD. Otherwise Stop Playback and save bookmark               |
+| Captions            | Playback     | Show menu of available captions (same as CC icon)                                     |
+| DPad Left           | Playback     | Selectable in Settings: Skip back number of seconds set up or skip commercial         |
+| DPad Right          | Playback     | Selectable in Settings: Skip forward number of seconds set up or skip commercial      |
+| DPad Up             | Playback     | Selectable in Settings: Dismiss OSD and navigate in OSD, jump back or skip commercial |
+| DPad Down           | Playback     | Selectable in Settings: Show OSD and navigate in OSD, jump back or skip commercial    |
+| DPad Center         | Playback     | Show OSD                                                                              |
+| Media Audio Track   | Playback     | Show menu of available audio tracks (same as Ear icon)                                |
+| Media Pause         | Playback     | Pause playback                                                                        |
+| Media Play          | Playback     | Resume playback if paused                                                             |
+| Media Play Pause    | Playback     | Toggle playback between playing and paused                                            |
+| Media Rewind        | Playback     | Selectable in Settings: Skip back number of seconds set up or skip commercial         |
+| Media Fast Forward  | Playback     | Selectable in Settings: Skip forward number of seconds set up or skip commercial      |
+| Media Skip Forward  | Playback     | Skip to next commercial break                                                         |
+| Media Skip Backward | Playback     | Skip to prior commercial break                                                        |
+| Media Step Backward | Playback     | Jump back number of minutes specified in settings (default is 5)                      |
+| Media Step Forward  | Playback     | Jump forward number of minutes specified in settings (default is 5)                   |
+| Media Stop          | Playback     | Stop Playback and save bookmark                                                       |
+| Media Next          | Playback     | Skip to beginning of the next Video (same as Next Track Icon)                         |
+| Media Previous      | Playback     | Skip to beginning of the previous Video (same as Previous Track Icon)                 |
+| TV Zoom Mode        | Playback     | Squeeze or Stretch the picture (same as Stretch Horizontally Icon)                    |
+| Zoom In             | Playback     | Reduce the picture size (same as Picture Size Icon).                                  |
+| Zoom Out            | Playback     | Increase the picture size (same as Picture Size Icon)                                 |
+| Media Play          | List         | Play selected video from bookmark or beginning without first displaying details page  |
+| Media Play Pause    | List         | Play selected video from bookmark or beginning without first displaying details page  |
+| Media Play          | Details Page | Play video from bookmark or beginning                                                 |
+| Media Play Pause    | Details Page | Play video from bookmark or beginning                                                 |
 
 If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. However, this may make navigating the OSD more difficult.
 

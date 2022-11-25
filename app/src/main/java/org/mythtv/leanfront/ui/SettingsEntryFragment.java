@@ -194,57 +194,57 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
 
             str = Settings.getString("pref_updown", group);
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_UPDOWN_CONTROLS)
+                    .id(ID_UPDOWN_CONTROLS + addon)
                     .title(R.string.pref_updown_controls)
                     .checked("controls".equals(str))
                     .description(R.string.pref_arrows)
-                    .checkSetId(ID_UPDOWN)
+                    .checkSetId(ID_UPDOWN + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_UPDOWN_JUMP)
+                    .id(ID_UPDOWN_JUMP + addon)
                     .title(R.string.pref_updown_jump)
                     .checked("jump".equals(str))
                     .description(R.string.pref_arrows)
-                    .checkSetId(ID_UPDOWN)
+                    .checkSetId(ID_UPDOWN + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_UPDOWN_SKIPCOM)
+                    .id(ID_UPDOWN_SKIPCOM + addon)
                     .title(R.string.pref_updown_skipcom)
                     .checked("skipcom".equals(str))
                     .description(R.string.pref_arrows)
-                    .checkSetId(ID_UPDOWN)
+                    .checkSetId(ID_UPDOWN + addon)
                     .build());
 
             str = Settings.getString("pref_leftright", group);
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_LEFTRIGHT_REWFF)
+                    .id(ID_LEFTRIGHT_REWFF + addon)
                     .title(R.string.pref_leftright_rewff)
                     .checked("rewff".equals(str))
                     .description(R.string.pref_arrows)
-                    .checkSetId(ID_LEFTRIGHT)
+                    .checkSetId(ID_LEFTRIGHT + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_LEFTRIGHT_SKIPCOM)
+                    .id(ID_LEFTRIGHT_SKIPCOM + addon)
                     .title(R.string.pref_leftright_skipcom)
                     .checked("skipcom".equals(str))
                     .description(R.string.pref_arrows)
-                    .checkSetId(ID_LEFTRIGHT)
+                    .checkSetId(ID_LEFTRIGHT + addon)
                     .build());
 
             str = Settings.getString("pref_rewff", group);
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_REWFF_REWFF)
+                    .id(ID_REWFF_REWFF + addon)
                     .title(R.string.pref_rewff_rewff)
                     .checked("rewff".equals(str))
                     .description(R.string.pref_rewff)
-                    .checkSetId(ID_REWFF)
+                    .checkSetId(ID_REWFF + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_REWFF_SKIPCOM)
+                    .id(ID_REWFF_SKIPCOM + addon)
                     .title(R.string.pref_rewff_skipcom)
                     .checked("skipcom".equals(str))
                     .description(R.string.pref_rewff)
-                    .checkSetId(ID_REWFF)
+                    .checkSetId(ID_REWFF + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_JUMP + addon)
@@ -766,31 +766,31 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 break;
             case ID_UPDOWN_CONTROLS:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_updown", "controls");
+                    Settings.putString(editor, "pref_updown", group, "controls");
                 break;
             case ID_UPDOWN_JUMP:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_updown", "jump");
+                    Settings.putString(editor, "pref_updown", group, "jump");
                 break;
             case ID_UPDOWN_SKIPCOM:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_updown", "skipcom");
+                    Settings.putString(editor, "pref_updown", group, "skipcom");
                 break;
             case ID_LEFTRIGHT_REWFF:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_leftright", "rewff");
+                    Settings.putString(editor, "pref_leftright", group, "rewff");
                 break;
             case ID_LEFTRIGHT_SKIPCOM:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_leftright", "skipcom");
+                    Settings.putString(editor, "pref_leftright", group,"skipcom");
                 break;
             case ID_REWFF_REWFF:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_rewff", "rewff");
+                    Settings.putString(editor, "pref_rewff", group,"rewff");
                 break;
             case ID_REWFF_SKIPCOM:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_rewff", "skipcom");
+                    Settings.putString(editor, "pref_rewff", group,"skipcom");
                 break;
             case ID_SORT_ORIG_AIRDATE:
                 if (action.isChecked())

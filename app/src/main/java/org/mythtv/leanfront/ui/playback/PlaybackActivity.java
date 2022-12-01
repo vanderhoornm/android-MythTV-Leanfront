@@ -172,7 +172,7 @@ public class PlaybackActivity extends LeanbackActivity {
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                 switch (mPlaybackFragment.optRewFF) {
                     case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
-                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
                     default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
                 }
             }
@@ -187,7 +187,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     overload = true;
                     switch (mPlaybackFragment.optLeftRight) {
                         case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
-                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
                         default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
                     }
                 }
@@ -196,7 +196,7 @@ public class PlaybackActivity extends LeanbackActivity {
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
                 switch (mPlaybackFragment.optRewFF) {
                     case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
-                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                    case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
                     default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
                 }
             }
@@ -211,7 +211,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     overload = true;
                     switch (mPlaybackFragment.optLeftRight) {
                         case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
-                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
                         default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
                     }
                 }
@@ -228,8 +228,8 @@ public class PlaybackActivity extends LeanbackActivity {
                     mPlaybackFragment.tickle(mArrowSkipJump, !mArrowSkipJump);
                     overload = true;
                     switch (mPlaybackFragment.optUpDown) {
-                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
-                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
                     }
                 }
                 else
@@ -245,8 +245,8 @@ public class PlaybackActivity extends LeanbackActivity {
                 if (mArrowSkipJump) {
                     overload = true;
                     switch (mPlaybackFragment.optUpDown) {
-                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
-                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
+                        case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
                     }
                 }
             }
@@ -319,25 +319,25 @@ public class PlaybackActivity extends LeanbackActivity {
             case KeyEvent.KEYCODE_CAPTIONS:
                 mPlaybackFragment.getPlaybackActionListener().onCaption();
                 return true;
-            // SKIP = commercial skip, STEP = jump, next = next video
-            case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
+            // STEP = commercial skip, SKIP = jump, next = next video
+            case KeyEvent.KEYCODE_MEDIA_STEP_FORWARD:
                 if (!overload)
                     mPlaybackFragment.tickle();
                 mPlaybackFragment.mPlaybackActionListener.skipComForward();
                 return true;
-            case KeyEvent.KEYCODE_MEDIA_STEP_FORWARD:
+            case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
                 if (!overload)
                     mPlaybackFragment.tickle();
                 mPlaybackFragment.jumpForward();
                 return true;
-            // SKIP = commercial skip, STEP = jump,
+            // STEP = commercial skip, SKIP = jump,
             // previous = start or previous video start
-            case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
+            case KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD:
                 if (!overload)
                     mPlaybackFragment.tickle();
                 mPlaybackFragment.mPlaybackActionListener.skipComBack();
                 return true;
-            case KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD:
+            case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
                 if (!overload)
                     mPlaybackFragment.tickle();
                 mPlaybackFragment.jumpBack();

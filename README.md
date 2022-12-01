@@ -280,10 +280,10 @@ The Fire Stick and NVidia Shield have rather limited remote controls, however th
 | Media Play Pause    | Playback     | Toggle playback between playing and paused                                            |
 | Media Rewind        | Playback     | Selectable in Settings: Skip back number of seconds set up or skip commercial         |
 | Media Fast Forward  | Playback     | Selectable in Settings: Skip forward number of seconds set up or skip commercial      |
-| Media Skip Forward  | Playback     | Skip to next commercial break                                                         |
-| Media Skip Backward | Playback     | Skip to prior commercial break                                                        |
-| Media Step Backward | Playback     | Jump back number of minutes specified in settings (default is 5)                      |
-| Media Step Forward  | Playback     | Jump forward number of minutes specified in settings (default is 5)                   |
+| Media Step Forward  | Playback     | Skip to next commercial break                                                         |
+| Media Step Backward | Playback     | Skip to prior commercial break                                                        |
+| Media Skip Backward | Playback     | Jump back number of minutes specified in settings (default is 5)                      |
+| Media Skip Forward  | Playback     | Jump forward number of minutes specified in settings (default is 5)                   |
 | Media Stop          | Playback     | Stop Playback and save bookmark                                                       |
 | Media Next          | Playback     | Skip to beginning of the next Video (same as Next Track Icon)                         |
 | Media Previous      | Playback     | Skip to beginning of the previous Video (same as Previous Track Icon)                 |

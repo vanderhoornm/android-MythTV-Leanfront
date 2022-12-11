@@ -99,10 +99,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_UPDOWN_SKIPCOM = 52;
     private static final int ID_LEFTRIGHT = 53;
     private static final int ID_LEFTRIGHT_REWFF = 54;
-    private static final int ID_LEFTRIGHT_SKIPCOM = 55;
-    private static final int ID_REWFF = 56;
-    private static final int ID_REWFF_REWFF = 57;
-    private static final int ID_REWFF_SKIPCOM = 58;
+    private static final int ID_LEFTRIGHT_JUMP = 55;
+    private static final int ID_LEFTRIGHT_SKIPCOM = 56;
+    private static final int ID_REWFF = 57;
+    private static final int ID_REWFF_REWFF = 58;
+    private static final int ID_REWFF_JUMP = 59;
+    private static final int ID_REWFF_SKIPCOM = 60;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -191,6 +193,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .descriptionEditable(true)
                     .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                     .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_JUMP + addon)
+                    .title(R.string.pref_title_jump)
+                    .description(Settings.getString("pref_jump", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                    .build());
 
             str = Settings.getString("pref_updown", group);
             subActions.add(new GuidedAction.Builder(getActivity())
@@ -224,6 +233,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .checkSetId(ID_LEFTRIGHT + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_LEFTRIGHT_JUMP + addon)
+                    .title(R.string.pref_leftright_jump)
+                    .checked("jump".equals(str))
+                    .description(R.string.pref_arrows)
+                    .checkSetId(ID_LEFTRIGHT + addon)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_LEFTRIGHT_SKIPCOM + addon)
                     .title(R.string.pref_leftright_skipcom)
                     .checked("skipcom".equals(str))
@@ -240,18 +256,18 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .checkSetId(ID_REWFF + addon)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_REWFF_JUMP + addon)
+                    .title(R.string.pref_rewff_jump)
+                    .checked("jump".equals(str))
+                    .description(R.string.pref_rewff)
+                    .checkSetId(ID_REWFF + addon)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_REWFF_SKIPCOM + addon)
                     .title(R.string.pref_rewff_skipcom)
                     .checked("skipcom".equals(str))
                     .description(R.string.pref_rewff)
                     .checkSetId(ID_REWFF + addon)
-                    .build());
-            subActions.add(new GuidedAction.Builder(getActivity())
-                    .id(ID_JUMP + addon)
-                    .title(R.string.pref_title_jump)
-                    .description(Settings.getString("pref_jump", group))
-                    .descriptionEditable(true)
-                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                     .build());
             subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_SUBTITLE_SIZE + addon)
@@ -260,6 +276,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     .descriptionEditable(true)
                     .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                     .build());
+
             int i = Settings.getInt("pref_letterbox_color", group);
             subActions.add(new GuidedAction.Builder(getActivity())
                     .id(ID_LETTERBOX_BLACK + addon)
@@ -780,6 +797,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 if (action.isChecked())
                     Settings.putString(editor, "pref_leftright", group, "rewff");
                 break;
+            case ID_LEFTRIGHT_JUMP:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_leftright", group, "jump");
+                break;
             case ID_LEFTRIGHT_SKIPCOM:
                 if (action.isChecked())
                     Settings.putString(editor, "pref_leftright", group,"skipcom");
@@ -787,6 +808,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
             case ID_REWFF_REWFF:
                 if (action.isChecked())
                     Settings.putString(editor, "pref_rewff", group,"rewff");
+                break;
+            case ID_REWFF_JUMP:
+                if (action.isChecked())
+                    Settings.putString(editor, "pref_rewff", group,"jump");
                 break;
             case ID_REWFF_SKIPCOM:
                 if (action.isChecked())

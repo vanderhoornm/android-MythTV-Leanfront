@@ -77,7 +77,7 @@
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
     <string name="pref_title_playback">Playback: %1$s</string>
     <string name="pref_title_skip_back">Skip Back Seconds</string>
-    <string name="pref_title_jump">Jump Minutes</string>
+    <string name="pref_title_jump">Jump Back/Forward Minutes</string>
     <string name="pref_title_subtitle_size">Subtitle Size as Percentage of Default</string>
     <string name="pref_error_toast">Show playback error toast</string>
     <string name="pref_error_toast_desc">Message when there is a temporary playback error.</string>
@@ -147,9 +147,11 @@
     <string name="pref_updown_jump">Up/Down Keys: Jump Back / Forward</string>
     <string name="pref_updown_skipcom">Up/Down Keys: Skip Commercial</string>
     <string name="pref_leftright_rewff">Left/Right Keys: Skip Back / Forward</string>
+    <string name="pref_leftright_jump">Left/Right Keys: Jump Back / Forward</string>
     <string name="pref_leftright_skipcom">Left/Right Keys: Skip Commercial</string>
     <string name="pref_rewff">Customize Rewind and Fast Forward Keys</string>
     <string name="pref_rewff_rewff">Rew/FF Keys: Skip Back / Forward</string>
+    <string name="pref_rewff_jump">Rew/FF Keys: Jump Back / Forward</string>
     <string name="pref_rewff_skipcom">Rew/FF Keys: Skip Commercial</string>
 
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
@@ -435,7 +437,7 @@
     <!-- Customizable keys -->
     <!-- updown: values are controls, jump or skipcom    -->
     <string name="sdef_updown" translatable="false">controls</string>
-    <!-- The next two have values rewff or skipcom  -->
+    <!-- The next two have values rewff, jump or skipcom  -->
     <string name="sdef_leftright" translatable="false">rewff</string>
     <string name="sdef_rewff" translatable="false">rewff</string>
 </resources>

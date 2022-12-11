@@ -577,11 +577,13 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         switch(Settings.getString("pref_leftright",video.playGroup)) {
             case "rewff":    optLeftRight = CMD_REWFF;   break;
+            case "jump":     optLeftRight = CMD_JUMP;   break;
             case "skipcom":  optLeftRight = CMD_SKIPCOM; break;
             default:         optLeftRight = CMD_REWFF;   break;
         }
         switch(Settings.getString("pref_rewff",video.playGroup)) {
             case "rewff":    optRewFF = CMD_REWFF;   break;
+            case "jump":     optRewFF = CMD_JUMP;   break;
             case "skipcom":  optRewFF = CMD_SKIPCOM; break;
             default:         optRewFF = CMD_REWFF;   break;
         }

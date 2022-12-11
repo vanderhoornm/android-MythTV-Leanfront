@@ -172,6 +172,7 @@ public class PlaybackActivity extends LeanbackActivity {
             if (keycode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                 switch (mPlaybackFragment.optRewFF) {
                     case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                    case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
                     case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
                     default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
                 }
@@ -187,6 +188,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     overload = true;
                     switch (mPlaybackFragment.optLeftRight) {
                         case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD; break;
                         case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_FORWARD; break;
                         default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
                     }
@@ -196,6 +198,7 @@ public class PlaybackActivity extends LeanbackActivity {
             if (keycode == KeyEvent.KEYCODE_MEDIA_REWIND) {
                 switch (mPlaybackFragment.optRewFF) {
                     case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                    case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
                     case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
                     default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
                 }
@@ -211,6 +214,7 @@ public class PlaybackActivity extends LeanbackActivity {
                     overload = true;
                     switch (mPlaybackFragment.optLeftRight) {
                         case PlaybackFragment.CMD_REWFF:   newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
+                        case PlaybackFragment.CMD_JUMP:    newKeyCode = KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD; break;
                         case PlaybackFragment.CMD_SKIPCOM: newKeyCode = KeyEvent.KEYCODE_MEDIA_STEP_BACKWARD; break;
                         default:                           newKeyCode = KeyEvent.KEYCODE_MEDIA_REWIND;        break;
                     }

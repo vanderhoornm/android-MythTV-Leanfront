@@ -34,6 +34,7 @@ import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_SEASON;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_STARTTIME;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLE;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_TITLEMATCH;
+import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_VIDEO_URL;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.CONTENT_URI;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_CHANNEL;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_RECORDING;
@@ -564,6 +565,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
         boolean showDeleted = "true".equals(Settings.getString("pref_related_deleted"));
+        // Always show deleted videos if the one you are watching is deleted
         boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
         String seq = Settings.getString("pref_seq");
         String ascdesc = Settings.getString("pref_seq_ascdesc");
@@ -600,13 +602,16 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                              .append(COLUMN_PROGFLAGS)
                              .append(" & ").append(Video.FL_WATCHED)
                              .append(" == 0");
+                    where.append(" or ")
+                            .append(COLUMN_VIDEO_URL)
+                            .append(" = ? ");
 
                     return new CursorLoader(
                             getActivity(),
                             CONTENT_URI,
                             null,
                             where.toString(),
-                            new String[]{dirname, subdirname},
+                            new String[]{dirname, subdirname, args.getString(COLUMN_VIDEO_URL)},
                             orderby.toString());
                 } else {
                     // Recordings, LiveTV or videos that are part of a series
@@ -627,6 +632,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 .append(COLUMN_PROGFLAGS)
                                 .append(" & ").append(Video.FL_WATCHED)
                                 .append(" == 0 ");
+                    where.append(" or ")
+                            .append(COLUMN_VIDEO_URL)
+                            .append(" = ? ");
 
                     orderby = new StringBuilder();
                     if ("airdate".equals(seq)) {
@@ -647,7 +655,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                                 .append(ascdesc);
                     }
                     String [] selectionArgs;
-                    selectionArgs = new String[]{category};
+                    selectionArgs = new String[]{category, args.getString(COLUMN_VIDEO_URL)};
                     return new CursorLoader(
                             getActivity(),
                             CONTENT_URI,
@@ -824,6 +832,8 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         args.putString(COLUMN_TITLEMATCH, mSelectedVideo.titlematch);
         args.putString(COLUMN_RECGROUP, mSelectedVideo.recGroup);
         args.putString(COLUMN_FILENAME, mSelectedVideo.filename);
+        args.putString(COLUMN_VIDEO_URL, mSelectedVideo.videoUrl);
+
         LoaderManager manager = LoaderManager.getInstance(this);
         manager.initLoader(RELATED_VIDEO_LOADER, args, this);
 

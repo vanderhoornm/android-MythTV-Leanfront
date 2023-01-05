@@ -164,6 +164,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     @Override
     public void onPlayCompleted(VideoPlayerGlue.MyAction playlistPlayAction) {
         playbackFragment.setBookmark(Video.ACTION_SET_LASTPLAYPOS);
+        dismissDialog();
         if (playlistPlayAction.getIndex() == 1) // playlist selected
             onNext();
         else if (playbackFragment.mIsBounded) {
@@ -373,12 +374,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                         else
                             return true;
                         break;
-                    case KeyEvent.KEYCODE_BACK:
-                        return false;
                     default:
-                        dlg.dismiss();
-                        playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
-                        return true;
+                        return false;
                 }
                 seekBar.setProgress(value);
                 return true;
@@ -471,12 +468,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             value = Math.round(newfvalue * 100.0f);
                             break;
 
-                        case KeyEvent.KEYCODE_BACK:
-                            return false;
                         default:
-                            dlg.dismiss();
-                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
-                            return true;
+                            return false;
                     }
                     seekBar.setProgress(value);
                     return true;
@@ -563,12 +556,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             }
                             value = Math.round(newfvalue * 100.0f);
                             break;
-                        case KeyEvent.KEYCODE_BACK:
-                            return false;
                         default:
-                            dlg.dismiss();
-                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
-                            return true;
+                            return false;
                     }
                     seekBar.setProgress(value);
                     return true;
@@ -651,12 +640,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             else
                                 return true;
                             break;
-                        case KeyEvent.KEYCODE_BACK:
-                            return false;
                         default:
-                            dlg.dismiss();
-                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
-                            return true;
+                            return false;
                     }
                     mPivotX = (float) xvalue * 0.01f;
                     mPivotY = (float) yvalue * 0.01f;
@@ -755,12 +740,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             if (value <= 4990)
                                 value += 10;
                             break;
-                        case KeyEvent.KEYCODE_BACK:
-                            return false;
                         default:
-                            dlg.dismiss();
-                            playbackFragment.getActivity().onKeyDown(event.getKeyCode(), event);
-                            return true;
+                            return false;
                     }
                     seekBar.setProgress(value);
                     return true;
@@ -841,6 +822,12 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             long position = playbackFragment.mPlayerGlue.getCurrentPosition();
             setNextCommBreak(position);
         }
+    }
+
+    public void dismissDialog() {
+        if (mDialog != null && mDialog.isShowing())
+            mDialog.dismiss();
+        mDialog = null;
     }
 
     long skipComBack() {
@@ -1034,10 +1021,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     comskipToast(-2);
                     break;
                 case PlaybackFragment.COMMBREAK_NOTIFY:
-                    if (mDialog != null  && mDialog.isShowing()) {
-                        mDialog.dismiss();
-                        mDialog = null;
-                    }
+                    dismissDialog();
                     playbackFragment.hideControlsOverlay(false);
                     AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                             R.style.Theme_AppCompat_Dialog_Alert)
@@ -1101,8 +1085,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     @Override
     public void onEndCommBreak() {
-        if (mDialog != null && mDialog.isShowing())
-            mDialog.dismiss();
+        dismissDialog();
         playbackFragment.mPlayerGlue.setEnableControls(true);
         playbackFragment.hideControlsOverlay(true);
     }

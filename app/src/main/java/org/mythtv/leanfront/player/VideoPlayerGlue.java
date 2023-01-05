@@ -91,6 +91,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onCommBreak(long nextCommBreakMs, long position);
         void onEndCommBreak();
         void onPlayStateChanged();
+        void dismissDialog();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -321,8 +322,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     @Override
     protected void onPlayStateChanged() {
         mActionListener.onPlayStateChanged();
-        if (enableControls)
+        if (enableControls) {
+            mActionListener.dismissDialog();
             super.onPlayStateChanged();
+        }
         if (isPlaying())
             playCompleted = false;
     }

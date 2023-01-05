@@ -1215,7 +1215,9 @@ public class PlaybackFragment extends VideoSupportFragment
 
     public void resetSpeed() {
         mSpeed = SPEED_START_VALUE;
-        mPlaybackActionListener.onSpeed();
+        PlaybackParameters parms = new PlaybackParameters(mSpeed);
+        mPlayer.setPlaybackParameters(parms);
+        mPlaybackActionListener.dismissDialog();
     }
 
     public boolean isSpeededUp() {
@@ -1362,7 +1364,9 @@ public class PlaybackFragment extends VideoSupportFragment
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
             boolean showDeleted = "true".equals(Settings.getString("pref_related_deleted"));
-            boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
+            // Always show watched videos because the one you are watching could become watched
+            // Also when rewatching a series you want all episodes not just the unwatched.
+//            boolean showWatched = "true".equals(Settings.getString("pref_related_watched"));
             String seq = Settings.getString("pref_seq");
             String ascdesc = Settings.getString("pref_seq_ascdesc");
 
@@ -1390,11 +1394,11 @@ public class PlaybackFragment extends VideoSupportFragment
                         .append(" like ? and ")
                         .append(COLUMN_FILENAME)
                         .append(" not like ? ");
-                if (!showWatched)
-                    where.append(" and ")
-                            .append(COLUMN_PROGFLAGS)
-                            .append(" & ").append(Video.FL_WATCHED)
-                            .append(" == 0 ");
+//                if (!showWatched)
+//                    where.append(" and ")
+//                            .append(COLUMN_PROGFLAGS)
+//                            .append(" & ").append(Video.FL_WATCHED)
+//                            .append(" == 0 ");
                 where.append(" or ")
                         .append(COLUMN_VIDEO_URL)
                         .append(" = ? ");
@@ -1420,12 +1424,14 @@ public class PlaybackFragment extends VideoSupportFragment
                             .append(" != 'Deleted' ");
                 }
                 where.append(" ) ) ");
-                if (!showWatched)
-                    where.append(" and ")
-                            .append(COLUMN_PROGFLAGS)
-                            .append(" & ").append(Video.FL_WATCHED)
-                            .append(" == 0 ");
-
+//                if (!showWatched)
+//                    where.append(" and ")
+//                            .append(COLUMN_PROGFLAGS)
+//                            .append(" & ").append(Video.FL_WATCHED)
+//                            .append(" == 0 ");
+                where.append(" or ")
+                        .append(COLUMN_VIDEO_URL)
+                        .append(" = ? ");
                 orderby = new StringBuilder();
                 if ("airdate".equals(seq)) {
                     // +0 is used to convert the value to a number
@@ -1445,7 +1451,8 @@ public class PlaybackFragment extends VideoSupportFragment
                             .append(ascdesc);
                 }
                 String [] selectionArgs;
-                selectionArgs = new String[]{category};
+                selectionArgs = new String[]{category,
+                        args.getString(COLUMN_VIDEO_URL)};
                 return new CursorLoader(
                         getActivity(),
                         CONTENT_URI,
@@ -1463,6 +1470,10 @@ public class PlaybackFragment extends VideoSupportFragment
             }
             int id = loader.getId();
             if (id == QUEUE_VIDEOS_LOADER) {
+                // Do not update the list when a video is marked watched.
+                // So only load the play list once.
+                if (playlist.size() > 0)
+                    return;
                 playlist.clear();
                 do {
                     Video video = (Video) mVideoCursorMapper.convert(cursor);

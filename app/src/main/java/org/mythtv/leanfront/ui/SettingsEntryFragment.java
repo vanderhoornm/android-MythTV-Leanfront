@@ -105,6 +105,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
     private static final int ID_REWFF_REWFF = 58;
     private static final int ID_REWFF_JUMP = 59;
     private static final int ID_REWFF_SKIPCOM = 60;
+    private static final int ID_SPEED = 61;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -308,6 +309,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                     // Fire Stick ignores the SIGNED part and allows only positive numbers.
 //                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER
 //                            | InputType.TYPE_NUMBER_FLAG_SIGNED)
+                    .build());
+            subActions.add(new GuidedAction.Builder(getActivity())
+                    .id(ID_SPEED + addon)
+                    .title(R.string.pref_speed)
+                    .description(Settings.getString("pref_speed", group))
+                    .descriptionEditable(true)
+                    .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                     .build());
             str = getContext().getString(R.string.pref_title_playback,group);
             actions.add(new GuidedAction.Builder(getActivity())
@@ -663,7 +671,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                         validateNumber(action, 1, 4, 4));
                 break;
             case ID_AUDIO_SYNC:
-                Settings.putString(editor, "pref_audio_sync",
+                Settings.putString(editor, "pref_audio_sync",group,
                         validateNumber(action, -2500, 2500, 0));
                 break;
             case ID_COMMSKIP_START:
@@ -675,8 +683,12 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                         validateNumber(action, -10, 10, 0));
                 break;
             case ID_CAPTIONS:
-                Settings.putString(editor, "pref_captions",
+                Settings.putString(editor, "pref_captions",group,
                         validateNumber(action, 0, 10, 0));
+                break;
+            case ID_SPEED:
+                Settings.putString(editor, "pref_speed",group,
+                        validateNumber(action, 10, 800, 100));
                 break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
@@ -757,6 +769,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 break;
             case ID_CAPTIONS:
                 action.setDescription(Settings.getString("pref_captions"));
+                break;
+            case ID_SPEED:
+                action.setDescription(Settings.getString("pref_speed"));
                 break;
         }
     }
@@ -916,9 +931,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment
                 break;
             case ID_AUTOPLAY:
                 if (action.isChecked())
-                    Settings.putString(editor, "pref_autoplay", "true");
+                    Settings.putString(editor, "pref_autoplay", group, "true");
                 else
-                    Settings.putString(editor, "pref_autoplay", "false");
+                    Settings.putString(editor, "pref_autoplay", group, "false");
                 break;
             case ID_COMMSKIP_OFF:
                 if (action.isChecked())

@@ -27,7 +27,6 @@ package org.mythtv.leanfront.ui.playback;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_AIRDATE;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_EPISODE;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_FILENAME;
-import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_PROGFLAGS;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_RECGROUP;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_RECTYPE;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_SEASON;
@@ -207,6 +206,9 @@ public class PlaybackFragment extends VideoSupportFragment
     public static final int COMMBREAK_NOTIFY = 1;
     public static final int COMMBREAK_SKIP = 2;
     long priorCommBreak = -1;
+    // Initialized to invalid value so that the playgroup settings
+    // will always be initialized on the first playback.
+    private String currentPlayGroup = " ";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -216,6 +218,7 @@ public class PlaybackFragment extends VideoSupportFragment
         isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
         mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
+        setPlaySettings(mVideo.playGroup);
         mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
         posBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.POSBOOKMARK, -1);
         mRecordid = getActivity().getIntent().getLongExtra(VideoDetailsActivity.RECORDID, -1);
@@ -402,28 +405,28 @@ public class PlaybackFragment extends VideoSupportFragment
         rFactory.setEnableDecoderFallback(true);
         ExoPlayer.Builder builder = new ExoPlayer.Builder(getContext(),rFactory);
         builder.setTrackSelector(mTrackSelector);
-        // This api is no longer available. Hopefully we will be ok without it.
-//        if (possibleEmptyTrack)
-//            builder.experimentalSetThrowWhenStuckBuffering(false);
         mPlayer = builder.build();
 
         mSubtitles = getActivity().findViewById(R.id.leanback_subtitles);
-//        ExoPlayer.TextComponent textComponent = mPlayer.getTextComponent();
-//        if (textComponent != null && mSubtitles != null) {
         if (mSubtitles != null) {
             mSubtitles.setFractionalTextSize
                     (SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * mSubtitleSize / 100.0f);
-//            textComponent.addTextOutput(mSubtitles);
         }
 
         mPlayerEventListener = new PlayerEventListener();
         mPlayer.addListener(mPlayerEventListener);
 
         mPlayerAdapter = new LeanbackPlayerAdapter(getActivity(), mPlayer, UPDATE_DELAY);
-        if (mPlaybackActionListener == null)
+        if (mPlaybackActionListener == null) {
             mPlaybackActionListener = new PlaybackActionListener(this, mPlaylist);
+            int sampleOffsetUs = 1000 * Settings.getInt("pref_audio_sync", mVideo.playGroup);
+            mPlaybackActionListener.sampleOffsetUs = sampleOffsetUs;
+            if (sampleOffsetUs != 0)
+                mAudioPause = true;
+        }
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
                 mPlaybackActionListener, mRecordid < 0);
+        mPlayerGlue.setAutoPlay("true".equals(Settings.getString("pref_autoplay",mVideo.playGroup)));
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         hideControlsOverlay(false);
         play(mVideo);
@@ -552,41 +555,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private void play(Video video) {
 
         mVideo = video;
-        // Settings
-        mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd",video.playGroup);
-        mSkipBack = 1000 * Settings.getInt("pref_skip_back",video.playGroup);
-        mJump = 60000 * Settings.getInt("pref_jump",video.playGroup);
-        mFrameMatch = "true".equals(Settings.getString("pref_framerate_match",video.playGroup));
-        mSubtitleSize =  Settings.getInt("pref_subtitle_size",video.playGroup);
-        mBgColor = Settings.getInt("pref_letterbox_color",video.playGroup);
-        if ("true".equals(Settings.getString("pref_autoplay",video.playGroup))) {
-            mPlayerGlue.setAutoPlay(true);
-        }
-        int sampleOffsetUs = 1000 * Settings.getInt("pref_audio_sync",video.playGroup);
-        if (sampleOffsetUs != 0) {
-            mPlaybackActionListener.sampleOffsetUs = sampleOffsetUs;
-            mAudioPause = true;
-        }
-        mCaptions = Settings.getInt("pref_captions",video.playGroup);
-        commBreakOption = Settings.getInt("pref_commskip");
-        switch(Settings.getString("pref_updown",video.playGroup)) {
-            case "controls": optUpDown = CMD_CONTROLS; break;
-            case "jump":     optUpDown = CMD_JUMP;     break;
-            case "skipcom":  optUpDown = CMD_SKIPCOM;  break;
-            default:         optUpDown = CMD_CONTROLS; break;
-        }
-        switch(Settings.getString("pref_leftright",video.playGroup)) {
-            case "rewff":    optLeftRight = CMD_REWFF;   break;
-            case "jump":     optLeftRight = CMD_JUMP;   break;
-            case "skipcom":  optLeftRight = CMD_SKIPCOM; break;
-            default:         optLeftRight = CMD_REWFF;   break;
-        }
-        switch(Settings.getString("pref_rewff",video.playGroup)) {
-            case "rewff":    optRewFF = CMD_REWFF;   break;
-            case "jump":     optRewFF = CMD_JUMP;   break;
-            case "skipcom":  optRewFF = CMD_SKIPCOM; break;
-            default:         optRewFF = CMD_REWFF;   break;
-        }
+        setPlaySettings(mVideo.playGroup);
 
         View view = getView();
         view.setBackgroundColor(mBgColor);
@@ -624,6 +593,53 @@ public class PlaybackFragment extends VideoSupportFragment
         mPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         playWhenPrepared = false;
         audioFix(5000, true);
+    }
+
+    private void setPlaySettings(String group) {
+        // null and Default should be treated as equal
+        // This is to reset settings if the next video is a different playgroup.
+        // otherwise leave them as is. This way if any on-the-fly changes were made,
+        // they are kept as long as the playgroup does not change
+        if (group == null)
+            group = "Default";
+        if (currentPlayGroup.equals(group))
+            return;
+        mSkipFwd = 1000 * Settings.getInt("pref_skip_fwd",group);
+        mSkipBack = 1000 * Settings.getInt("pref_skip_back",group);
+        mJump = 60000 * Settings.getInt("pref_jump",group);
+        mFrameMatch = "true".equals(Settings.getString("pref_framerate_match",group));
+        mSubtitleSize =  Settings.getInt("pref_subtitle_size",group);
+        mBgColor = Settings.getInt("pref_letterbox_color",group);
+        if (mPlayerGlue != null)
+            mPlayerGlue.setAutoPlay("true".equals(Settings.getString("pref_autoplay",group)));
+        int sampleOffsetUs = 1000 * Settings.getInt("pref_audio_sync",group);
+        if (mPlaybackActionListener != null) {
+            mPlaybackActionListener.sampleOffsetUs = sampleOffsetUs;
+            if (sampleOffsetUs != 0)
+                mAudioPause = true;
+        }
+        mCaptions = Settings.getInt("pref_captions",group);
+        mSpeed = (float)Settings.getInt("pref_speed",group) / 100.0f;
+        commBreakOption = Settings.getInt("pref_commskip");
+        switch(Settings.getString("pref_updown",group)) {
+            case "controls": optUpDown = CMD_CONTROLS; break;
+            case "jump":     optUpDown = CMD_JUMP;     break;
+            case "skipcom":  optUpDown = CMD_SKIPCOM;  break;
+            default:         optUpDown = CMD_CONTROLS; break;
+        }
+        switch(Settings.getString("pref_leftright",group)) {
+            case "rewff":    optLeftRight = CMD_REWFF;   break;
+            case "jump":     optLeftRight = CMD_JUMP;   break;
+            case "skipcom":  optLeftRight = CMD_SKIPCOM; break;
+            default:         optLeftRight = CMD_REWFF;   break;
+        }
+        switch(Settings.getString("pref_rewff",group)) {
+            case "rewff":    optRewFF = CMD_REWFF;   break;
+            case "jump":     optRewFF = CMD_JUMP;   break;
+            case "skipcom":  optRewFF = CMD_SKIPCOM; break;
+            default:         optRewFF = CMD_REWFF;   break;
+        }
+        currentPlayGroup = group;
     }
 
     private void setupRefreshRate() {
@@ -1533,10 +1549,18 @@ public class PlaybackFragment extends VideoSupportFragment
                             long[] sortedTimes = Arrays.copyOf(timesUs, leng);
                             Arrays.sort(sortedTimes);
 
+                            // cater for short array
+                            if (sortedTimes.length < 2)
+                                continue;
+
+                            int start = 30;
+                            if (sortedTimes.length < 50)
+                                start = 0;
+
                             // Another way to get interval ? Maybe better ?
                             long tottimes = sortedTimes[sortedTimes.length - 1]
-                                    - sortedTimes[30];
-                            long avtime = tottimes / (sortedTimes.length - 31);
+                                    - sortedTimes[start];
+                            long avtime = tottimes / (sortedTimes.length - start - 1);
                             float calcFrameRate = 1000000.0f / (float) avtime;
 
                             int[] counters = new int[FPS_INTERVALS.length];

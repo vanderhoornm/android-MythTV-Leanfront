@@ -135,6 +135,7 @@
     <string name="pref_autoplay">Autoplay</string>
     <string name="pref_autoplay_desc">At the end of playback automatically start the next video or episode.</string>
     <string name="pref_captions">Caption number to enable</string>
+    <string name="pref_speed">Playback speed as percentage (10-800). Default 100.</string>
     <string name="pref_audio_sync">Audio Sync Adjustment in milliseconds</string>
     <string name="pref_commskip_adj_title">Adjustments to Start and End Position</string>
     <string name="pref_commskip_adj_desc">The numbers below can be set negative or positive to start or end skips early or late.</string>
@@ -440,4 +441,5 @@
     <!-- The next two have values rewff, jump or skipcom  -->
     <string name="sdef_leftright" translatable="false">rewff</string>
     <string name="sdef_rewff" translatable="false">rewff</string>
+    <string name="sdef_speed" translatable="false">100</string>
 </resources>

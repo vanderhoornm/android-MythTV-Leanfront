@@ -358,6 +358,20 @@
     <string name="sched_template_applied">Template %1s was applied.</string>
     <string name="sched_failed">ERROR: Failed to Update Schedule.</string>
     <string name="sched_updated">Record Schedule Successfully Updated</string>
+    <string name="sched_addnew">Schedule New Recording</string>
+    <string name="sched_power_srch">Power Search</string>
+    <string name="sched_title_srch">Title Search</string>
+    <string name="sched_keyword_srch">Keyword Search</string>
+    <string name="sched_people_srch">People Search</string>
+    <string name="sched_manual_srch">Manual Recording</string>
+    <string name="sched_title">Title</string>
+    <string name="sched_subtitle">Subtitle</string>
+    <string name="sched_channel">Channel</string>
+    <string name="sched_date">Date:</string>
+    <string name="sched_time">Time:</string>
+    <string name="sched_duration">Duration</string>
+    <string name="sched_next">Next</string>
+    <string name="sched_next_desc">Continue to next step</string>
 
     <string name="menu_changes">Unsaved Changes</string>
     <string name="menu_save_changes">Save Changes Before Exiting</string>

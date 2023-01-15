@@ -45,6 +45,7 @@ import org.mythtv.leanfront.model.Video;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,6 +67,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private String mNewValueText;
     private boolean mIsDirty;
     private int mRecordId;
+    private int searchType;
 
     private ActionGroup mGpType;
     private ActionGroup mGpRecGroup;
@@ -99,6 +101,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private static DateFormat dateFormatter;
     private static DateFormat dayFormatter;
 
+    private Object priorStep;
+
     private static final int ACTIONTYPE_RADIOBNS = 1;
     private static final int ACTIONTYPE_CHECKBOXES = 2;
     private static final int ACTIONTYPE_NUMERIC = 3;
@@ -113,7 +117,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private static final String CLASS = "EditScheduleFragment";
 
 
-    public EditScheduleFragment(ArrayList<XmlNode> detailsList, int recordId) {
+    public EditScheduleFragment(ArrayList<XmlNode> detailsList, int recordId, int searchType, Object priorStep) {
         /*
             Details are in this order
                 Video.ACTION_GETPROGRAMDETAILS,
@@ -126,11 +130,18 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
          */
         mDetailsList = detailsList;
         mRecordId= recordId;
+        this.searchType = searchType;
+        this.priorStep = priorStep;
     }
 
     private void setupData() {
         mIsDirty = false;
         RecordRule defaultTemplate = null;
+        if (searchType == EditScheduleActivity.SEARCH_MANUAL) {
+            mProgDetails = new RecordRule();
+            ((CreateManualSchedule)priorStep).setManualParms(mProgDetails);
+            mProgDetails.searchType = "Manual Search";
+        }
         if (mRecordId == 0) {
             XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
             if (progDetailsNode != null) {
@@ -138,7 +149,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                 mRecordId = mProgDetails.recordId;
             }
         }
-
         XmlNode recRulesNode = mDetailsList.get(1) // ACTION_GETRECORDSCHEDULELIST
                 .getNode("RecRules");
         if (recRulesNode != null) {
@@ -169,6 +179,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             mRecordRule.mergeProgram(mProgDetails);
         if (mRecordRule.type == null)
             mRecordRule.type = "Not Recording";
+        if (mRecordRule.startTime == null)
+            mRecordRule.startTime = new Date();
+        if (searchType == EditScheduleActivity.SEARCH_MANUAL)
+            mRecordRule.searchType = "Manual Search";
 
         // Lists
         mPlayGroupList = XmlNode.getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST
@@ -210,6 +224,12 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        ((EditScheduleActivity)getActivity()).mEditFragment = this;
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
 
         if (timeFormatter == null) {
@@ -225,7 +245,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
         if (mRecordRule.station != null)
-        dateTime.append(mRecordRule.station).append(' ');
+            dateTime.append(mRecordRule.station).append(' ');
         dateTime.append(dayFormatter.format(mRecordRule.startTime))
                 .append(dateFormatter.format(mRecordRule.startTime)).append(' ')
                 .append(timeFormatter.format(mRecordRule.startTime));
@@ -581,7 +601,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             if (mRecordRule.recordId > 0)
                 call.execute(Video.ACTION_DELETERECRULE);
             else
-                getActivity().finish();
+                finishGuidedStepSupportFragments();
         }
         else
             call.execute(Video.ACTION_ADD_OR_UPDATERECRULE);
@@ -604,7 +624,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                 } else {
                     Toast.makeText(getContext(),R.string.sched_updated, Toast.LENGTH_LONG).show();
                     Log.i(TAG, CLASS + " Recording scheduled, Response:" + result);
-                    getActivity().finish();
+                    finishGuidedStepSupportFragments();
                 }
                 break;
         }
@@ -761,7 +781,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         if (acGrp == mGpSaveButton)
             updateRecordRule();
         else if (acGrp == mGpCancelButton)
-            getActivity().finish();
+            finishGuidedStepSupportFragments();
     }
 
     private void promptForNewValue(GuidedAction action, String initValue) {
@@ -791,8 +811,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
 
     boolean canEnd() {
         // No save needed if deleting a non-existing rule
-        if (mRecordRule.recordId == 0 && "Not Recording".equals(mGpType.mStringResult))
+        if (mRecordRule.recordId == 0 && "Not Recording".equals(mGpType.mStringResult)) {
+            finishGuidedStepSupportFragments();
             return true;
+        }
         if (mIsDirty) {
             // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
@@ -810,7 +832,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                                             updateRecordRule();
                                             break;
                                         case 2:
-                                            getActivity().finish();
+                                            finishGuidedStepSupportFragments();
                                             break;
                                     }
                                 }
@@ -818,6 +840,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             builder.show();
             return false;
         }
+        finishGuidedStepSupportFragments();
         return true;
     }
 

@@ -39,29 +39,37 @@ import java.util.Date;
 
 public class EditScheduleActivity extends FragmentActivity implements AsyncBackendCall.OnBackendCallListener {
 
-    private EditScheduleFragment mEditFragment;
+    EditScheduleFragment mEditFragment;
+    private CreateManualSchedule manualFragment;
     private int mRecordId;
+    private int searchType;
 
     public static final String CHANID = "CHANID";
     public static final String STARTTIME = "STARTTIME";
     public static final String RECORDID = "RECORDID";
+    public static final String SEARCHTYPE = "SEARCHTYPE";
+    public static final int SEARCH_MANUAL = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         int chanId = getIntent().getIntExtra(CHANID, 0);
         Date startTime = (Date) getIntent().getSerializableExtra(STARTTIME);
         mRecordId = getIntent().getIntExtra(RECORDID,0);
+        searchType = getIntent().getIntExtra(SEARCHTYPE,0);
         AsyncBackendCall call = new AsyncBackendCall(this);
         int firstCall;
         if (chanId != 0 && startTime != null) {
-            firstCall = 0;
+            // Creating from program schedule
             call.setId(chanId);
             call.setStartTime(startTime);
             firstCall = Video.ACTION_GETPROGRAMDETAILS;
         } else if (mRecordId != 0) {
+            // Updating existing recording
             firstCall = Video.ACTION_DUMMY;
-        } else
-            return;
+        } else {
+            // New Recording - searchType currently only manual.
+            firstCall = Video.ACTION_DUMMY;
+        }
         call.execute(
                 firstCall,
                 Video.ACTION_GETRECORDSCHEDULELIST,
@@ -79,18 +87,25 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
             case Video.ACTION_GETPROGRAMDETAILS:
             case Video.ACTION_DUMMY:
                 ArrayList<XmlNode> resultsList = taskRunner.getXmlResults();
-                GuidedStepSupportFragment.addAsRoot(this,
-                     mEditFragment = new EditScheduleFragment(resultsList,mRecordId),
-                         android.R.id.content);
+                switch (searchType) {
+                    case SEARCH_MANUAL:
+                        GuidedStepSupportFragment.addAsRoot(this,
+                                manualFragment = new CreateManualSchedule(resultsList, mRecordId, searchType),
+                                android.R.id.content);
+                        break;
+                    default:
+                        GuidedStepSupportFragment.addAsRoot(this,
+                                mEditFragment = new EditScheduleFragment(resultsList, mRecordId, searchType, null),
+                                android.R.id.content);
+                        break;
+                }
                 break;
-
         }
-
     }
 
     @Override
     public void onBackPressed() {
-        if (mEditFragment.canEnd())
+        if (mEditFragment == null || mEditFragment.canEnd())
             super.onBackPressed();
     }
 

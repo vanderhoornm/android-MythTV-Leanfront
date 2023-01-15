@@ -61,6 +61,10 @@ public class RecRuleCardView extends BaseCardView {
             cardText.setText(null);
             statusText.setText(null);
         }
+        else if (card.type == "Dummy_AddNew") {
+            cardText.setText(getContext().getString(R.string.sched_addnew));
+            bgColor = COLOR_CHANNEL;
+        }
         else {
             cardText.setText(card.getCardText(getContext()));
             statusText.setText(card.recordingStatus);

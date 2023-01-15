@@ -22,6 +22,7 @@ package org.mythtv.leanfront.ui;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.OnItemViewClickedListener;
@@ -50,7 +51,11 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupAdapter();
-        getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
+        BrowseSupportFragment.FragmentHost host = getMainFragmentAdapter().getFragmentHost();
+        // TODO: host can be null if prior fragments have been destroyed. In that case
+        // I am left with a never ending progress bar
+        if (host != null)
+            host.notifyDataReady(getMainFragmentAdapter());
     }
 
     private void setupAdapter() {
@@ -84,6 +89,10 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
             return;
         Intent intent = new Intent(getContext(), EditScheduleActivity.class);
         intent.putExtra(EditScheduleActivity.RECORDID, card.recordId);
+        if ("Dummy_AddNew".equals(card.type)) {
+            // Set up for new manual recording schedule
+            intent.putExtra(EditScheduleActivity.SEARCHTYPE,EditScheduleActivity.SEARCH_MANUAL);
+        }
         mDoingUpdate = true;
         startActivity(intent);
     }
@@ -119,6 +128,10 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         if (!isStarted)
             return;
         mGridAdapter.clear();
+        // Add a grid entry for "New Recording Rule"
+        RecordRule ruleNew = new RecordRule();
+        ruleNew.type = "Dummy_AddNew";
+        mGridAdapter.add(ruleNew);
         XmlNode recRuleNode = null;
         for (; ; ) {
             if (recRuleNode == null)

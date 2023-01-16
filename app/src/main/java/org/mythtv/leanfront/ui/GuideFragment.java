@@ -90,7 +90,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         startTime = startTime * TIMESLOT_SIZE * 60000;
         mGridStartTime = new Date(startTime);
         setupAdapter();
-        getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
     }
 
     private void setupAdapter() {
@@ -137,8 +136,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
     @Override
     public void onResume() {
-        super.onResume();
         setupGridData();
+        super.onResume();
     }
 
     private void programClicked(GuideSlot card) {

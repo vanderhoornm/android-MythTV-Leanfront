@@ -190,6 +190,14 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
     }
 
     @Override
+    public void onResume() {
+        BrowseSupportFragment.FragmentHost host = getMainFragmentAdapter().getFragmentHost();
+        if (host != null)
+            host.notifyDataReady(getMainFragmentAdapter());
+        super.onResume();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         mGridViewHolder = null;

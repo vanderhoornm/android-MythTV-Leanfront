@@ -51,13 +51,12 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupAdapter();
-        getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
     }
 
     @Override
     public void onResume() {
-        super.onResume();
         setupGridData();
+        super.onResume();
     }
 
     private void setupAdapter() {

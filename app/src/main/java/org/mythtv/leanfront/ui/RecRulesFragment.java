@@ -51,11 +51,6 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupAdapter();
-        BrowseSupportFragment.FragmentHost host = getMainFragmentAdapter().getFragmentHost();
-        // TODO: host can be null if prior fragments have been destroyed. In that case
-        // I am left with a never ending progress bar
-        if (host != null)
-            host.notifyDataReady(getMainFragmentAdapter());
     }
 
     private void setupAdapter() {
@@ -80,8 +75,8 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
 
     @Override
     public void onResume() {
-        super.onResume();
         setupGridData();
+        super.onResume();
     }
 
     private void recRuleClicked(RecordRule card) {

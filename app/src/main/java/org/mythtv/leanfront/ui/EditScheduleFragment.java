@@ -67,7 +67,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private String mNewValueText;
     private boolean mIsDirty;
     private int mRecordId;
-    private int searchType;
+    private int searchTypeCode;
 
     private ActionGroup mGpType;
     private ActionGroup mGpRecGroup;
@@ -117,7 +117,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private static final String CLASS = "EditScheduleFragment";
 
 
-    public EditScheduleFragment(ArrayList<XmlNode> detailsList, int recordId, int searchType, Object priorStep) {
+    public EditScheduleFragment(ArrayList<XmlNode> detailsList, int recordId, int searchTypeCode, Object priorStep) {
         /*
             Details are in this order
                 Video.ACTION_GETPROGRAMDETAILS,
@@ -130,19 +130,25 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
          */
         mDetailsList = detailsList;
         mRecordId= recordId;
-        this.searchType = searchType;
+        this.searchTypeCode = searchTypeCode;
         this.priorStep = priorStep;
     }
 
     private void setupData() {
+        // There are these cases
+        // - New manual recording (searchTypeCode == EditScheduleActivity.SEARCH_MANUAL)
+        //     from Recording Rules list
+        // - New recording from program guide (mRecordId == 0)
+        // - Update existing recording (mRecordId found in list of rec rules)
         mIsDirty = false;
         RecordRule defaultTemplate = null;
-        if (searchType == EditScheduleActivity.SEARCH_MANUAL) {
+        // New manual recording
+        if (searchTypeCode == EditScheduleActivity.SEARCH_MANUAL) {
             mProgDetails = new RecordRule();
             ((CreateManualSchedule)priorStep).setManualParms(mProgDetails);
-            mProgDetails.searchType = "Manual Search";
         }
-        if (mRecordId == 0) {
+        // New recording from program guide
+        else if (mRecordId == 0) {
             XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
             if (progDetailsNode != null) {
                 mProgDetails = new RecordRule().fromProgram(progDetailsNode);
@@ -168,11 +174,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             }
         }
         if (mRecordRule == null) {
-            if (mRecordId != 0) {
-                // Record no longer exists
+            if (mRecordId != 0)
                 Toast.makeText(getContext(),R.string.msg_rec_rule_gone, Toast.LENGTH_LONG)
-                        .show();
-            }
+                    .show();
             mRecordRule = new RecordRule().mergeTemplate(defaultTemplate);
         }
         if (mProgDetails != null)
@@ -181,8 +185,16 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             mRecordRule.type = "Not Recording";
         if (mRecordRule.startTime == null)
             mRecordRule.startTime = new Date();
-        if (searchType == EditScheduleActivity.SEARCH_MANUAL)
-            mRecordRule.searchType = "Manual Search";
+        if (mRecordRule.searchType == null) {
+            switch(searchTypeCode) {
+                case EditScheduleActivity.SEARCH_MANUAL:
+                    mRecordRule.searchType = "Manual Search";
+                    break;
+                default:
+                    mRecordRule.searchType = "None";
+                    break;
+            }
+        }
 
         // Lists
         mPlayGroupList = XmlNode.getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST

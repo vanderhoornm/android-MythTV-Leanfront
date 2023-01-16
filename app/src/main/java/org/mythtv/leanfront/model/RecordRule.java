@@ -201,7 +201,6 @@ public class RecordRule {
     public RecordRule mergeTemplate(RecordRule template) {
         if (template != null) {
             inactive = template.inactive;
-            searchType = template.searchType;
             recPriority = template.recPriority;
             preferredInput = template.preferredInput;
             startOffset = template.startOffset;

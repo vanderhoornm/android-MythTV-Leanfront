@@ -319,7 +319,9 @@ In the program guide
 
 ### Recording Rules Page
 
-All recording rules are listed. Press enter on any rule to modify it.
+All recording rules are listed. Press enter on any rule to modify it. Note that templates can be viewed but if modified, cannot be saved. The save will fail. Modify templates using mythfrontend.
+
+Create a manual recording by pressing enter on the first cell, labeled "Schedule New Recording".
 
 ### Upcoming Recordings Page
 

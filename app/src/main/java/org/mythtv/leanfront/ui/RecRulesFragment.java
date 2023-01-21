@@ -96,7 +96,7 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         if (mLoadInProgress)
             return;
         mLoadInProgress = true;
-        AsyncBackendCall call = new AsyncBackendCall(this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
         if (mDoingUpdate)
             call.execute(Video.ACTION_PAUSE, Video.ACTION_GETRECORDSCHEDULELIST);
         else

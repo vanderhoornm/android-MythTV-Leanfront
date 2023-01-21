@@ -267,7 +267,7 @@ public class MainFragment extends BrowseSupportFragment
     // Must be called on UI Thread
     public void startAsyncLoader() {
         if (!isLoaderRunning) {
-            new AsyncMainLoader().execute(this);
+            new AsyncMainLoader(getActivity()).execute(this);
             isLoaderRunning = true;
         }
     }
@@ -601,7 +601,7 @@ public class MainFragment extends BrowseSupportFragment
 
         int [] selection = getSelection();
         // Fill in disk usage
-        new AsyncBackendCall(null, this).execute(Video.ACTION_BACKEND_INFO);
+        new AsyncBackendCall(getActivity(), this).execute(Video.ACTION_BACKEND_INFO);
         // Every time we have to re-get the category loader, we must re-create the sidebar.
         mCategoryRowAdapter.clear();
         ListRow row;
@@ -761,7 +761,7 @@ public class MainFragment extends BrowseSupportFragment
                     startFetch(recType, null, recGroup);
                     break;
                 case TYPE_INFO:
-                    new AsyncBackendCall(null,
+                    new AsyncBackendCall(getActivity(),
                             MainFragment.this).execute(Video.ACTION_BACKEND_INFO_HTML);
                     break;
                 case TYPE_MANAGE:
@@ -932,7 +932,7 @@ public class MainFragment extends BrowseSupportFragment
     public void onMenuClicked(Action action, Row row) {
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
-        AsyncBackendCall call = new AsyncBackendCall(
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(),
                 new AsyncBackendCall.OnBackendCallListener() {
                     @Override
                     public void onPostExecute(AsyncBackendCall taskRunner) {

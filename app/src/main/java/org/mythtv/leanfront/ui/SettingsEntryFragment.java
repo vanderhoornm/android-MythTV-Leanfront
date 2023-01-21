@@ -44,8 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SettingsEntryFragment extends GuidedStepSupportFragment
-        implements AsyncBackendCall.OnBackendCallListener {
+public class SettingsEntryFragment extends GuidedStepSupportFragment {
+//        implements AsyncBackendCall.OnBackendCallListener {
 
     // For multiple occurrence items (e.g. playback groups),
     // add 100, 200, 300 etc to the number

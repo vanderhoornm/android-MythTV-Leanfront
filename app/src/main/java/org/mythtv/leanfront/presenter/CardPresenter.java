@@ -227,6 +227,8 @@ public class CardPresenter extends Presenter {
         public MyViewHolder(View viewIn) {
             super(viewIn);
             view.setOnKeyListener((v, keyCode, event) -> {
+                if (event.getAction() != KeyEvent.ACTION_DOWN)
+                    return false;
                 int liType = -1;
                 switch (keyCode) {
                     // Support play from the card unless already playing
@@ -239,8 +241,10 @@ public class CardPresenter extends Presenter {
                             case TYPE_EPISODE:
                             case TYPE_VIDEO:
                             case TYPE_SERIES:
-                                new AsyncBackendCall(mVideo,
-                                        this).execute(Video.ACTION_REFRESH);
+                                AsyncBackendCall call = new AsyncBackendCall(null, this);
+                                call.setView(viewIn);
+                                call.setVideo(mVideo);
+                                call.execute(Video.ACTION_REFRESH);
                                 return true;
                         }
                         break;

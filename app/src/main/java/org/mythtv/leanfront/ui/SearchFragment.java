@@ -143,7 +143,7 @@ public class SearchFragment extends SearchSupportFragment
     private void searchGuide() {
         // Search Program Guide
         if (!mGuideInProgress) {
-            AsyncBackendCall call = new AsyncBackendCall(this);
+            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
             call.setStringParameter(mQuery);
             call.execute(Video.ACTION_SEARCHGUIDE);
             mGuideInProgress = true;

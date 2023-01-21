@@ -19,13 +19,15 @@
 
 package org.mythtv.leanfront.data;
 
+import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import org.mythtv.leanfront.MyApplication;
 
@@ -39,33 +41,58 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class AsyncRemoteCall extends AsyncTask<Integer, Void, Void> {
+public class AsyncRemoteCall implements Runnable {
 
     public String stringParameter;
     public ArrayList<Parser> results = new ArrayList<>();
+    public Integer inTasks[];
     public int [] tasks;
-    private Listener listener;
+    private final Listener listener;
     public static final int ACTION_LOOKUP_TVMAZE = 1;
     public static final int ACTION_LOOKUP_TV = 2;
     public static final int ACTION_LOOKUP_MOVIE = 3;
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncBackendCall";
-
+    private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Activity activity;
 
     public interface Listener {
         default void onPostExecute(AsyncRemoteCall taskRunner) {}
     }
 
-    public AsyncRemoteCall(Listener listener) {
+    public AsyncRemoteCall(@Nullable Activity activity, @Nullable Listener listener) {
+        this.activity = activity;
         this.listener = listener;
     }
 
+    public void execute(Integer ... tasks) {
+        inTasks = tasks;
+        executor.submit(this);
+    }
+
     @Override
-    protected Void doInBackground(Integer... tasks) {
-        this.tasks = new int[tasks.length];
+    public void run() {
+        try {
+            runTasks();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (listener != null)
+                if (activity == null)
+                    listener.onPostExecute(this);
+                else
+                    activity.runOnUiThread(() -> listener.onPostExecute(this));
+        }
+    }
+
+    protected Void runTasks() {
+        this.tasks = new int[inTasks.length];
         for (int count = 0; count < tasks.length; count++) {
-            int task = tasks[count];
+            int task = inTasks[count];
             this.tasks[count] = task;
             Parser parser;
             switch (task) {

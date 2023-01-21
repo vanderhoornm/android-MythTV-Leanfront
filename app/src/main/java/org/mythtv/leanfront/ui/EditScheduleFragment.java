@@ -607,7 +607,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mRecordRule.autoUserJob4 = (mGpPostProc.mIntResult & (1 << 6)) != 0;
         mRecordRule.inetref = mGpInetRefNum.mStringResult;
 
-        AsyncBackendCall call = new AsyncBackendCall(this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(),this);
         call.setRecordRule(mRecordRule);
         if ("Not Recording". equals(mRecordRule.type)) {
             if (mRecordRule.recordId > 0)
@@ -694,7 +694,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         else if (acGrp == mGpLookupTVButton
                 || acGrp == mGpLookupTVMazeButton
                 || acGrp == mGpLookupMovieButton) {
-            AsyncRemoteCall call = new AsyncRemoteCall(this);
+            AsyncRemoteCall call = new AsyncRemoteCall(getActivity(), this);
             call.stringParameter = mGpInetLookupName.mStringResult;
             int task;
             if (acGrp == mGpLookupTVMazeButton)

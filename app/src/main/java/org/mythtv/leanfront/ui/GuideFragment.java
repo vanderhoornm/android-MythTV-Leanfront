@@ -313,7 +313,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mLoadInProgress = true;
         Date gridEndTime = new Date(mGridStartTime.getTime() + TIMESLOT_SIZE * TIMESLOTS * 60000);
         loadCells();
-        AsyncBackendCall call = new AsyncBackendCall(this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(),this);
         call.setStartTime(mGridStartTime);
         call.setEndTime(gridEndTime);
         if (mDoingUpdate)

@@ -299,7 +299,8 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         if (mRecordid >= 0) {
             // Terminate Live TV
-            AsyncBackendCall call = new AsyncBackendCall(mVideo, null);
+            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+            call.setVideo(mVideo);
             call.setmValue(mRecordid);
             call.execute(
                     Video.ACTION_STOP_RECORDING,
@@ -331,7 +332,8 @@ public class PlaybackFragment extends VideoSupportFragment
             mBookmark = 0;
         int action2 = Video.ACTION_DUMMY;
         posBookmark = mBookmark * (long)(frameRate * 100.0f) / 100000;
-        AsyncBackendCall call =  new AsyncBackendCall(mVideo, this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+        call.setVideo(mVideo);
         switch (action) {
             case Video.ACTION_SET_LASTPLAYPOS:
                 if (leng > 1000 && pos > leng - 10000) {
@@ -1119,7 +1121,8 @@ public class PlaybackFragment extends VideoSupportFragment
 
     public void markWatched(boolean watched) {
         mWatched = watched;
-        AsyncBackendCall call = new AsyncBackendCall(mVideo, null);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+        call.setVideo(mVideo);
         call.setWatched(mWatched);
         call.execute(Video.ACTION_SET_WATCHED);
     }
@@ -1132,15 +1135,15 @@ public class PlaybackFragment extends VideoSupportFragment
         long priorFileLeng = -1;
         if (multiCheck)
             priorFileLeng = mFileLength;
-        AsyncBackendCall call = new AsyncBackendCall(mVideo,
-                this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+        call.setVideo(mVideo);
         call.setmValue(priorFileLeng);
         call.execute(Video.ACTION_FILELENGTH);
     }
 
     private void fillTables() {
-        AsyncBackendCall call = new AsyncBackendCall(mVideo,
-                this);
+        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+        call.setVideo(mVideo);
         call.setSeekTable(seekTable);
         call.setCommBreakTable(commBreakTable);
         if (seekTable != null

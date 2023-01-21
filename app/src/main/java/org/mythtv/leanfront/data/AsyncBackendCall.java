@@ -19,12 +19,15 @@
 
 package org.mythtv.leanfront.data;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
+
+import androidx.annotation.Nullable;
 import androidx.leanback.widget.ObjectAdapter;
 
 import org.mythtv.leanfront.MyApplication;
@@ -49,12 +52,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-
-public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
+public class AsyncBackendCall implements Runnable {
 
     public interface OnBackendCallListener {
-        default void onPostExecute(AsyncBackendCall taskRunner) {}
+        void onPostExecute(AsyncBackendCall taskRunner);
     }
 
     private Video mVideo;
@@ -64,9 +68,12 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private long mPosBookmark = -1;
     private long mLastPlay = -1;
     private long mPosLastPlay = -1;
-    private OnBackendCallListener mBackendCallListener;
+    private OnBackendCallListener listener;
+    private Activity activity;
+    private View view;
     private boolean mWatched;
     private int [] mTasks;
+    private Integer [] inTasks;
     private long mFileLength = -1;
     private long mRecordId = -1;
     private long mRecordedId = -1;
@@ -81,6 +88,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private ObjectAdapter rowAdapter;
     private SeekTable seekTable;
     private CommBreakTable commBreakTable;
+    private final static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -97,14 +105,9 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
     private static long mTimeAdjustment = 0;
     private static int mythTvVersion;
 
-    public AsyncBackendCall(Video videoA,
-            OnBackendCallListener backendCallListener) {
-        mVideo = videoA;
-        mBackendCallListener = backendCallListener;
-    }
-
-    public AsyncBackendCall(OnBackendCallListener backendCallListener) {
-        mBackendCallListener = backendCallListener;
+    public AsyncBackendCall(@Nullable Activity activity, @Nullable OnBackendCallListener listener) {
+        this.activity = activity;
+        this.listener = listener;
     }
 
     public long getBookmark() {
@@ -227,8 +230,40 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
         this.commBreakTable = commBreakTable;
     }
 
-    protected Void doInBackground(Integer ... tasks) {
-        mTasks = new int[tasks.length];
+    public void setVideo(Video mVideo) {
+        this.mVideo = mVideo;
+    }
+
+    public void setView(View view) {
+        this.view = view;
+    }
+
+    public void execute(Integer ... tasks) {
+        inTasks = tasks;
+        executor.submit(this);
+    }
+
+    @Override
+    public void run() {
+        try {
+            runTasks();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (listener != null) {
+                if (activity != null)
+                    activity.runOnUiThread(() -> listener.onPostExecute(this));
+                else if (view != null)
+                    view.post(() -> listener.onPostExecute(this));
+                else
+                    listener.onPostExecute(this);
+            }
+        }
+    }
+
+    private void runTasks() {
+        mTasks = new int[inTasks.length];
         Context context = MyApplication.getAppContext();
         HttpURLConnection urlConnection = null;
         int videoIndex = 0;
@@ -237,7 +272,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             // If there is a rowAdapter, take each video in the adapter and run
             // all tasks on it.
             taskIndex++;
-            if (taskIndex >= tasks.length) {
+            if (taskIndex >= inTasks.length) {
                 if (rowAdapter == null)
                     break;
                 taskIndex = 0;
@@ -253,7 +288,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         || mVideo.type == MainFragment.TYPE_EPISODE))
                     continue;
             }
-            int task = tasks[taskIndex];
+            int task = inTasks[taskIndex];
             mTasks[taskIndex] = task;
             boolean found;
             boolean isRecording = false;
@@ -272,7 +307,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                     mPosLastPlay = -1;
                     try {
                         if (context == null)
-                            return null;
+                            return;
                         // If there is a local bookmark always use it before checking
                         // for a MythTV bookmark.
 
@@ -659,7 +694,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
                         }
                         if (!found || ixFound < 0) {
                             Log.e(TAG, CLASS + " Failed to find matching recording.");
-                            return null;
+                            return;
                         }
                         VideoDbBuilder builder = new VideoDbBuilder(context);
                         List<ContentValues> contentValuesList = new ArrayList<>();
@@ -1137,7 +1172,7 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             }
             mXmlResults.add(xmlResult);
         }
-        return null;
+        return;
     }
 
     // method: GetSavedBookmark or GetLastPlayPos
@@ -1224,11 +1259,4 @@ public class AsyncBackendCall extends AsyncTask<Integer, Void, Void> {
             return "";
         return value;
     }
-
-    protected void onPostExecute(Void result) {
-
-        if (mBackendCallListener != null)
-            mBackendCallListener.onPostExecute(this);
-    }
-
 }

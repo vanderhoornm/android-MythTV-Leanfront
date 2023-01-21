@@ -53,16 +53,17 @@ import static org.mythtv.leanfront.ui.MainFragment.TYPE_VIDEODIR;
 import static org.mythtv.leanfront.ui.MainFragment.TYPE_VIDEODIR_ALL;
 import static org.mythtv.leanfront.ui.MainFragment.makeTitleSort;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.SparseArray;
 
+import androidx.annotation.NonNull;
+
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.model.ListItem;
 import org.mythtv.leanfront.model.MyHeaderItem;
@@ -75,39 +76,58 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-// ArrayList return as follows
-// Each entry is an ArrayList describing one row
-// Each row arraylist has
-//   [0] is a MyHeaderItem
-//   [1] onwards are each a Video
+public class AsyncMainLoader implements Runnable {
 
-public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<ArrayList<ListItem>>> {
     MainFragment mainFragment;
     int mType;
     String mBaseName;
+    private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Activity activity;
+
+    // ArrayList return as follows
+    // Each entry is an ArrayList describing one row
+    // Each row arraylist has
+    //   [0] is a MyHeaderItem
+    //   [1] onwards are each a Video
+    ArrayList<ArrayList<ListItem>> categoryList;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncMainLoader";
 
+    public AsyncMainLoader(@NonNull Activity activity) {
+        this.activity = activity;
+    }
+
+    public void execute(MainFragment mainFragment) {
+        this.mainFragment = mainFragment;
+        executor.submit(this);
+    }
+
     @Override
-    protected ArrayList<ArrayList<ListItem>> doInBackground(MainFragment... mainFragments) {
-        if (mainFragments.length != 1) {
-            Log.e(TAG, CLASS + " doInBackground called with wrong number "
-                    + mainFragments.length + " of parameters.");
-            return null;
-        }
+    public void run() {
         try {
-            mainFragment = mainFragments[0];
+            runTasks();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        finally {
+            activity.runOnUiThread(() -> mainFragment.onAsyncLoadFinished(this, categoryList));
+        }
+    }
+
+    protected void runTasks() {
+        try {
             mType = mainFragment.mType;
             mBaseName = mainFragment.mBaseName;
             Cursor csr = queryDb();
-            ArrayList<ArrayList<ListItem>> list = buildRows(csr);
+            // This fills categoryList
+            buildRows(csr);
             csr.close();
-            return list;
         } catch (Exception ex) {
             Log.e(TAG, CLASS + " doInBackground exception",ex);
-            return null;
         }
     }
 
@@ -257,10 +277,10 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
 
     // This replaces onLoadFinished(Loader<Cursor> loader, Cursor data)
     // Organize videos into rows for display.
-    private ArrayList<ArrayList<ListItem>> buildRows(Cursor data) {
+    private void buildRows(Cursor data) {
         Context context = MyApplication.getAppContext();
         VideoCursorMapper mapper = new VideoCursorMapper();
-        ArrayList<ArrayList<ListItem>> categoryList = new ArrayList<>();
+        categoryList = new ArrayList<>();
         String seq = Settings.getString("pref_seq");
         String ascdesc = Settings.getString("pref_seq_ascdesc");
         boolean showRecents = "true".equals(Settings.getString("pref_show_recents"));
@@ -653,12 +673,5 @@ public class AsyncMainLoader extends AsyncTask<MainFragment, Void, ArrayList<Arr
                 allList.add(allSparse.get(allSparse.keyAt(ix)));
             }
         }
-        return categoryList;
-    }
-
-    // This runs in the UI thread
-    @Override
-    protected void onPostExecute(ArrayList<ArrayList<ListItem>> list) {
-        mainFragment.onAsyncLoadFinished(this,list);
     }
 }

@@ -65,15 +65,15 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
     public long open(DataSpec dataSpec)
             throws IOException {
         mOffsetBytes = mPlaybackFragment.getOffsetBytes();
-        this.mDataSpec = new DataSpec(dataSpec.uri,
-                dataSpec.httpMethod,
-                dataSpec.httpBody,
-                dataSpec.absoluteStreamPosition + mOffsetBytes,
-                dataSpec.position + mOffsetBytes,
-                dataSpec.length,
-                dataSpec.key,
-                dataSpec.flags);
-
+        this.mDataSpec = new DataSpec.Builder()
+                .setUri(dataSpec.uri)
+                .setHttpMethod(dataSpec.httpMethod)
+                .setHttpBody(dataSpec.httpBody)
+                .setPosition(dataSpec.position + mOffsetBytes)
+                .setLength(dataSpec.length)
+                .setKey(dataSpec.key)
+                .setFlags(dataSpec.flags)
+                .build();
         long leng = 0;
         try {
             leng = mHttpDataSource.open(mDataSpec);
@@ -89,8 +89,8 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                 throw e;
             }
         }
-        mTotalLength = mDataSpec.absoluteStreamPosition + leng;
-        mCurrentPos = mDataSpec.absoluteStreamPosition;
+        mTotalLength = mDataSpec.position + leng;
+        mCurrentPos = mDataSpec.position;
         if (!mPlaybackFragment.isBounded())
             leng = -1;
         return leng;
@@ -105,14 +105,16 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
             leng = 0;
         }
         if (!mPlaybackFragment.isBounded() && leng == 0) {
-            DataSpec dataSpec2 = new DataSpec(mDataSpec.uri,
-                    mDataSpec.httpMethod,
-                    mDataSpec.httpBody,
-                    mCurrentPos + leng,
-                    mCurrentPos + leng,
-                    mDataSpec.length,
-                    mDataSpec.key,
-                    mDataSpec.flags);
+
+            DataSpec dataSpec2 = new DataSpec.Builder()
+                    .setUri(mDataSpec.uri)
+                    .setHttpMethod(mDataSpec.httpMethod)
+                    .setHttpBody(mDataSpec.httpBody)
+                    .setPosition(mCurrentPos + leng)
+                    .setLength(mDataSpec.length)
+                    .setKey(mDataSpec.key)
+                    .setFlags(mDataSpec.flags)
+                    .build();
             mHttpDataSource.close();
 
             if (mPlaybackFragment.isSpeededUp()) {
@@ -144,12 +146,12 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
                     throw e;
                 }
             }
-            long totalLength2 = dataSpec2.absoluteStreamPosition + leng2;
+            long totalLength2 = dataSpec2.position + leng2;
             Log.d(TAG, CLASS + " Incremental data length:" + leng2);
             if (totalLength2 > mTotalLength) {
                 mTotalLength = totalLength2;
                 leng = mHttpDataSource.read(buffer, offset, readLength);
-                mCurrentPos = dataSpec2.absoluteStreamPosition;
+                mCurrentPos = dataSpec2.position;
                 mDataSpec = dataSpec2;
             }
         }

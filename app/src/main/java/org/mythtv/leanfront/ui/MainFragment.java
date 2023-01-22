@@ -24,6 +24,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -35,9 +36,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
@@ -78,7 +81,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import org.mythtv.leanfront.MyApplication;
@@ -117,7 +120,7 @@ public class MainFragment extends BrowseSupportFragment
     private static final String CLASS = "MainFragment";
 
     private static final int BACKGROUND_UPDATE_DELAY = 300;
-    private final Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
     private ArrayObjectAdapter mCategoryRowAdapter;
     private Drawable mDefaultBackground;
     private Uri mDefaultBackgroundURI;
@@ -486,6 +489,10 @@ public class MainFragment extends BrowseSupportFragment
         mBackgroundTask = new UpdateBackgroundTask();
         mMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            getActivity().getDisplay().getMetrics(mMetrics);
+        else
+            getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
     }
 
     private void setupUIElements() {
@@ -543,12 +550,17 @@ public class MainFragment extends BrowseSupportFragment
                 .asBitmap()
                 .load(uri)
                 .apply(options)
-                .into(new SimpleTarget<Bitmap>(width, height) {
+                .into(new CustomTarget<Bitmap>(width, height) {
                     @Override
                     public void onResourceReady(
                             Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mBackgroundManager.setBitmap(resource);
+                    }
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                        if (mBackgroundManager != null && mBackgroundManager.getDrawable() != null)
+                            mBackgroundManager.clearDrawable();
                     }
                 });
     }

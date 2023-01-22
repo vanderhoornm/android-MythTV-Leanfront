@@ -96,7 +96,6 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import org.mythtv.leanfront.R;
@@ -221,6 +220,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     @Override
+    public void onDestroy() {
+        mBackgroundManager = null;
+        super.onDestroy();
+    }
+
+    @Override
     public void onStop() {
         mBackgroundManager.release();
         super.onStop();
@@ -281,12 +286,17 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 .asBitmap()
                 .load(uri)
                 .apply(options)
-                .into(new SimpleTarget<Bitmap>(mMetrics.widthPixels, mMetrics.heightPixels) {
+                .into(new CustomTarget<Bitmap>(mMetrics.widthPixels, mMetrics.heightPixels) {
                     @Override
                     public void onResourceReady(
                             Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mBackgroundManager.setBitmap(resource);
+                    }
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                        if (mBackgroundManager != null && mBackgroundManager.getDrawable() != null)
+                            mBackgroundManager.clearDrawable();;
                     }
                 });
     }

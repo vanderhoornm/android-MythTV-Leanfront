@@ -582,8 +582,13 @@ public class AsyncBackendCall implements Runnable {
                             urlConnection.setRequestMethod("HEAD");
                             Log.d(TAG, CLASS + " URL: " + urlString);
                             urlConnection.connect();
-                            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
-                                    + " " + urlConnection.getResponseMessage());
+                            try {
+                                Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                        + " " + urlConnection.getResponseMessage());
+                            } catch(Exception ignored) {
+                                // Sometimes there is a ProtocolException in the urlConnection.getResponseCode
+                                // Ignore the error so that we can continue
+                            }
                             String strContentLeng = urlConnection.getHeaderField("Content-Length");
                             if (strContentLeng != null)
                                 mFileLength = Long.parseLong(strContentLeng);

@@ -278,6 +278,7 @@ public class VideoDbBuilder {
             String videoUrlPath = null;
             String hostName = null;
             String fanArtUrl = null;
+            String screenShotUrl = null;
             String prodYear = null;
             String baseHostUrl = null;
             if (phase == 0 || phase == 1) {
@@ -320,6 +321,8 @@ public class VideoDbBuilder {
                         coverArtUrl = artUrl;
                     else if ("fanart".equals(artType))
                         fanArtUrl = artUrl;
+                    else if ("screenshot".equals(artType))
+                        screenShotUrl = artUrl;
                 }
 
                 if (airdate != null)
@@ -334,7 +337,10 @@ public class VideoDbBuilder {
                 cardImageURL = baseHostUrl + "/Content/GetPreviewImage?Format=png&RecordedId=" + recordedid;
             }
             if (phase == 1) { // Videos
-                cardImageURL = coverArtUrl;
+                if (screenShotUrl != null)
+                    cardImageURL = screenShotUrl;
+                else
+                    cardImageURL = coverArtUrl;
             }
             String season = programNode.getString(XMLTAG_SEASON);
             String episode = programNode.getString(XMLTAG_EPISODE);

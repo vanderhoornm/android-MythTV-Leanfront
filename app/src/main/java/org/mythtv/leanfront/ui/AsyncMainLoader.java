@@ -604,7 +604,6 @@ public class AsyncMainLoader implements Runnable {
                 // watched or deleted
 
                 boolean isDeleted = "Deleted".equals(dbVideo.recGroup);
-                boolean isWatched = dbVideo.isWatched();
                 if (recentsTrim) {
 
                     // If all recently viewed episodes of a series are watched/deleted, show the most
@@ -617,41 +616,21 @@ public class AsyncMainLoader implements Runnable {
                         for (int fx = 0; fx < recentsSparse.size(); fx++) {
                             Video fvid = (Video) recentsSparse.get(recentsSparse.keyAt(fx));
                             boolean fisDeleted = "Deleted".equals(fvid.recGroup);
-                            if (series.equals(fvid.titlematch)
-                                    && (isDeleted || fisDeleted || Objects.equals(dbVideo.recGroup, fvid.recGroup))) {
+                            if (series.equals(fvid.titlematch)) {
                                 int fkey = Integer.MAX_VALUE - ((int) (fvid.lastUsed / 60000L) + 36817200);
-                                boolean fisWatched = fvid.isWatched();
-                                if ((isDeleted || isWatched) && (fisDeleted || fisWatched)) {
-                                    // If the episode we are processing is watched/deleted and the matched
-                                    // episode in the list is also, keep the most recent
-                                    if (key < fkey) {
-                                        // position is closer to front, delete the other one
-                                        recentsSparse.delete(fkey);
-                                        break;
-                                    } else {
-                                        // position is later in list - drop this one
-                                        key = -1;
-                                        break;
-                                    }
-                                } else if (isDeleted || isWatched) {
-                                    // If the episode we are processing is watched/deleted and the matched
-                                    // episode in the list is not, keep the non-watched
-                                    key = -1;
-                                    break;
-                                } else if (fisDeleted || fisWatched) {
-                                    // If the episode we are processing is not watched/deleted and the matched
-                                    // episode in the list is, keep the non-watched
+                                if (key < fkey)
+                                    // position is closer to front, delete the other one
                                     recentsSparse.delete(fkey);
-                                    break;
-                                }
+                                else
+                                    // position is later in list - drop this one
+                                    key = -1;
+                                break;
                             }
                         }
                     }
                 }
 
-                // dbVideo.showRecent - if this is false the one we have selected has been
-                // Removed from recent list, so do not show it.
-                if (key != -1 && dbVideo.showRecent)
+                if (key != -1)
                     recentsSparse.put(key, dbVideo);
             }
             data.moveToNext();
@@ -660,7 +639,11 @@ public class AsyncMainLoader implements Runnable {
         if (recentsSparse != null) {
             // Add sparse entries to arraylist
             for (int ix = 0; ix < recentsSparse.size(); ix++) {
-                recentsList.add(recentsSparse.get(recentsSparse.keyAt(ix)));
+                Video video = (Video) recentsSparse.get(recentsSparse.keyAt(ix));
+                // video.showRecent - if this is false the one we have selected has been
+                // Removed from recent list, so do not show it.
+                if (video.showRecent)
+                    recentsList.add(video);
             }
             // Remove recents if empty
             if (recentsSparse.size() <= 0) {

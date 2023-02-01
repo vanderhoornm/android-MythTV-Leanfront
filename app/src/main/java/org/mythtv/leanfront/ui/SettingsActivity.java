@@ -41,24 +41,29 @@ public class SettingsActivity extends FragmentActivity
 
     private ArrayList<String> mPlayGroupList;
 
+    public ArrayList<String> getPlayGroupList() {
+        return mPlayGroupList;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (XmlNode.isIsConnected()) {
-            AsyncBackendCall call = new AsyncBackendCall(this, this);
-            call.execute(Video.ACTION_GETPLAYGROUPLIST);
-        }
-        else {
-            mPlayGroupList = new ArrayList<>();
-            mPlayGroupList.add("Default");
-            GuidedStepSupportFragment.addAsRoot(this,
-                    new SettingsEntryFragment(mPlayGroupList), android.R.id.content);
+        if (savedInstanceState == null) {
+            if (XmlNode.isIsConnected()) {
+                AsyncBackendCall call = new AsyncBackendCall(this, this);
+                call.execute(Video.ACTION_GETPLAYGROUPLIST);
+            } else {
+                mPlayGroupList = new ArrayList<>();
+                mPlayGroupList.add("Default");
+                GuidedStepSupportFragment.addAsRoot(this,
+                        new SettingsEntryFragment(), android.R.id.content);
+            }
         }
     }
     @Override
     public void onPostExecute(AsyncBackendCall taskRunner) {
         mPlayGroupList = XmlNode.getStringList(taskRunner.getXmlResult()); // ACTION_GETPLAYGROUPLIST
         GuidedStepSupportFragment.addAsRoot(this,
-                new SettingsEntryFragment(mPlayGroupList), android.R.id.content);
+                new SettingsEntryFragment(), android.R.id.content);
     }
 }

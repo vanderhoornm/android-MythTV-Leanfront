@@ -119,10 +119,6 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private String mPriorParental;
     private ArrayList<String> mPlayGroupList;
 
-    public SettingsEntryFragment(ArrayList<String> playGroupList) {
-        mPlayGroupList = playGroupList; // ACTION_GETPLAYGROUPLIST
-    }
-
     @NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
@@ -132,6 +128,21 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         String description = getString(R.string.pref_title_settings);
         Drawable icon = activity.getDrawable(R.drawable.ic_settings);
         return new GuidanceStylist.Guidance(title, description, breadcrumb, icon);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putStringArrayList("playgroups",mPlayGroupList);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+            mPlayGroupList = savedInstanceState.getStringArrayList("playgroups");
+        else
+            mPlayGroupList = ( (SettingsActivity)getActivity() ).getPlayGroupList();  // ACTION_GETPLAYGROUPLIST
+        super.onCreate(savedInstanceState);
     }
 
     @Override

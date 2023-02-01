@@ -90,7 +90,7 @@
         <activity
             android:name="org.mythtv.leanfront.ui.playback.PlaybackActivity"
             android:screenOrientation="landscape"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|layoutDirection|keyboard|keyboardHidden"
             android:launchMode="singleTask"
             android:resizeableActivity="false" />
         <activity android:name="org.mythtv.leanfront.ui.SearchActivity"
@@ -103,6 +103,7 @@
             android:windowSoftInputMode="adjustPan" />
         <activity android:name="org.mythtv.leanfront.ui.EditScheduleActivity"
             android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden"
             android:theme="@style/Theme.Leanback.GuidedStep"
             android:windowSoftInputMode="adjustPan" />
 

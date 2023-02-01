@@ -134,6 +134,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         this.priorStep = priorStep;
     }
 
+    public EditScheduleFragment() {
+    }
+
     private void setupData() {
         // There are these cases
         // - New manual recording (searchTypeCode == EditScheduleActivity.SEARCH_MANUAL)
@@ -243,6 +246,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
 
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+            return super.onCreateGuidance(savedInstanceState);
 
         if (timeFormatter == null) {
             timeFormatter = android.text.format.DateFormat.getTimeFormat(getContext());
@@ -252,7 +257,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         if (mRecordRule == null)
             setupData();
         if (mRecordRule == null)
-            return new GuidanceStylist.Guidance(null,null,null,null);
+            return super.onCreateGuidance(savedInstanceState);
         Activity activity = getActivity();
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
@@ -309,6 +314,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> mainActions, Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+            return;
+
         if (mRecordRule == null)
             setupData();
         if (mRecordRule == null)

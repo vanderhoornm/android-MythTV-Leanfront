@@ -1,8 +1,273 @@
 # MythTV leanfront: Android TV frontend for MythTV
 
-This is based on a clone of the sample Videos By Google app, designed to run on an Android TV device (such as the Shield or Amazon Fire Stick). It uses the Leanback Support library which enables you to easily develop beautiful Android TV apps with a user-friendly UI that complies with the UX guidelines of Android TV.
+Leanfront is a frontend for MythTV that runs on Android TV and Amazon Fire TV devices.
+Leanfront supports playback of recordings and videos from MythTV. It can also schedule recordings using voice search or a program guide, and search for recordings or videos using voice.
 
-## Features
+<details><summary>Table of Contents</summary>
+
+- [Main Screen](#main-screen)
+- [Recording Group Screen](#recording-group-screen)
+- [Detail Screen](#detail-screen)
+- [Related Videos](#related-videos)
+- [Videos Screen](#videos-screen)
+- [Playback Screen](#playback-screen)
+- [Search](#search)
+- [Tools](#tools)
+- [Settings](#settings)
+  - [Playback groups](#playback-groups)
+  - [Advanced](#advanced)
+- [Backend Status](#backend-status)
+- [Manage Recordings](#manage-recordings)
+- [Program Guide](#program-guide)
+- [Recording Rules](#recording-rules)
+- [Upcoming Recordings](#upcoming-recordings)
+- [Schedule Recording](#schedule-recording)
+- [Installing leanfront](#installing-leanfront)
+- [History](#history)
+- [Leanfront Features](#leanfront-features)
+- [Release Notes](#release-notes)
+- [Playback](#playback)
+  - [Frame Rate Synchronization.](#frame-rate-synchronization.)
+  - [Bookmarks and Last Play Position.](#bookmarks-and-last-play-position.)
+  - [Commercial Break and Cut List](#commercial-break-and-cut-list)
+- [Live TV](#live-tv)
+- [Playback controls](#playback-controls)
+  - [Top Row of Controls](#top-row-of-controls)
+  - [Progress Bar](#progress-bar)
+  - [Bottom Row of controls](#bottom-row-of-controls)
+- [Playback Menu](#playback-menu)
+- [Remote Control](#remote-control)
+- [General Operation](#general-operation)
+  - [Status Port](#status-port)
+  - [Screen saver and idle shutdown](#screen-saver-and-idle-shutdown)
+  - [Videos and Recordings](#videos-and-recordings)
+  - [Parental Level](#parental-level)
+  - [Refresh Lists](#refresh-lists)
+  - [Copy from one Android device to another](#copy-from-one-android-device-to-another)
+    - [Important Notes](#important-notes)
+- [Problems](#problems)
+  - [Error handling](#error-handling)
+  - [Debugging](#debugging)
+- [Android Phones / Tablets with touch screen](#android-phones--tablets-with-touch-screen)
+  - [Program List](#program-list)
+  - [Details page](#details-page)
+  - [Playback](#playback)
+- [Leanfront Restrictions / Limitations](#leanfront-restrictions--limitations)
+- [Install on Laptop or Desktop](#install-on-laptop-or-desktop)
+- [Building](#building)
+- [Internationalization](#internationalization)
+- [License](#license)
+
+</details>
+
+
+## Main Screen
+
+![](ScreenShots/Main.png)
+
+- The main screen shows a horizontally scrolling list for each recording group. One icon is shown per series.
+- Select a group name or All on the left and press enter to see the [Recording Group Screen](#recording-group-screen).
+- Selecting an episode icon opens a [Detail Screen](#detail-screen).
+
+<details><summary>Recently Viewed List</summary>
+
+The top line of the main screen shows "Recently Viewed" items if that option is selected in Settings. This helps you keep track of what you are watching. Recommended Settings::
+- Enable recently viewed list in settings.
+- Enable deleted and watched items in the recent list.
+- Enable "Trim recently viewed list" to only see the latest episode of each series you are watching.
+- Disable deleted and watched items in the "related" list.
+- In mythfrontend, set the deletion delay for deleted shows to 7 days.
+
+Now, for example, if you watched and deleted an episode yesterday, the deleted episode shows at the front of the recent list. Select that episode from the recent list. Go down in the details screen to the related list. You will see unwatched, undeleted episodes of the series and you can select one to play.
+
+</details>
+
+<details><summary>More details</summary>
+
+- A list of recording groups is displayed on the left with titles in the group in a scrolling row on the right. Next to each icon on the left is a number that represents the number of entries on the right in that row. This is not necessarily the same as the number of recordings because on the main screen there is one entry per series. Select a group and press enter to open the screen with that group's contents. Once a group is open there is one entry per episode.
+- You can customize what is shown and the order in which it is shown, using the [Settings](#settings) icon in the [Tools](#tools) row at the bottom of the page.
+- The LiveTV group shows recordings already made from Live TV as well as channels available to watch live.
+- On the top-level screen only, there is a list of recently viewed items. This can be customized in settings to select how far back it goes or to disable it entirely.
+- There is a row for "All" at the top.
+- If you have Videos in the Video storage group on the MythTV backend, There is a row at the bottom showing videos organized by directory. Selecting that row and pressing enter opens the [Videos Screen](#videos-screen)
+- There is a row labeled "Tools" at the bottom. There are various options available there.
+- Indicators next to recordings show 🗑 for deleted, 👁 for Watched, 💥 for damaged.
+
+</details>
+
+## Recording Group Screen
+
+![](ScreenShots/RecGroup.png)
+
+- This screen shows one row for each series with episodes listed across.
+- Selecting an episode icon opens a [Detail Screen](#detail-screen).
+
+<details><summary>Working with a series</summary>
+
+ Select the header for a series and do a "long press" or press the menu button if your remote has one. You will get a menu that lets you mark the entire series as watched or unwatched, delete or undelete it, remove bookmarks, allow rerecord or remove from recently watched list.
+
+</details>
+
+## Detail Screen
+![](ScreenShots/Detail.png)
+
+- Here you can play the episode or video or take other actions, including delete, mark as watched, etc.
+- Pressing down arrow on the remote displays the list of [Related Videos](#related-videos). These are other episodes of the series. 
+- There are buttons for Playback and for "Other Actions". "Other Actions" presents a menu for deleting the program, marking watched, etc. If you have a menu button on your remote, pressing that will also bring up the "Other Actions".
+
+## Related Videos
+![](ScreenShots/RelatedVideos.png)
+
+A horizontal list of other episodes of the series is shown, If you have selected a recording from the main page and you actually want to see a different episode of the series, you can find it here.
+
+## Videos Screen
+![](ScreenShots/Videos.png)
+
+Videos from the Videos part of MythTV are shown here, organized by directory. You can drill down to subdirectories or play videos from this screen. 
+
+<details><summary>Operating on a directory</summary>
+
+Select the header for a video directory and do a "long press" or press the menu button if your remote has one. You will get a menu that lets you mark the entire directory as watched or unwatched,remove bookmarks or remove from recently watched list.
+
+This operation is not recursive. If there are subdirectories in a video directory, any operation on the directory will be performed on videos in that directory only.
+
+</details>
+
+## Playback Screen
+![](ScreenShots/Playback.png)
+
+- During playback you can use the Menu button or a long press on enter to show a menu of actions. A normal press of Enter shows [playback controls](#playback-controls) with icons for actions.
+- Commercial skip is supported if the recording or video has been flagged in MythTV. Skipping with arrow keys and fast forward/rewind keys is supported. These can be customized in [settings](#settings).
+- For more information see [Playback](#playback).
+
+## Search
+Select the magnifying glass at the top left hand side of most screens, and press enter. You will see the following:
+
+![](ScreenShots/SearchEntry.png)
+
+- On a non-FireTV Android device, you can speak when the microphone is selected. You can skip the keyboard step below.
+- On Fire Stick or Fire TV, Select the text box in the screen above. Press Enter. You will see the keyboard below:
+
+![](ScreenShots/Keyboard.png)
+
+- On a Fire Stick, press the microphone button on the remote and speak your search. Select Next.
+- If you get to the keyboard on a generic Android device, select the microphone icon, press enter and speak.
+- Search results are as shown below:
+
+![](ScreenShots/SearchResult.png)
+
+- Select any video that was found and play it or play a [Related Video](#related-videos).
+- Select any program guide result to schedule a recording, or edit a recording rule.
+
+## Tools
+![](ScreenShots/Tools.png)
+
+At the bottom of each list screen is a row named "Tools", that provides application-wide tools.
+
+- [Settings](#settings) provides for customization of many features of leanfront.
+- [Refresh Lists](#refresh-lists) refreshes the recording and video lists from the backend. This is rarely needed, as leanfront automatically keeps up to date with the backend.
+- [Backend Status](#backend-status) shows general information about the backend.
+- [Manage Recordings](#manage-recordings) Shows the program schedule and provides the ability to schedule recordings.
+
+## Settings
+![](ScreenShots/Settings.png)
+
+Set up the backend and many customizable options by drilling down into each of the sections shown.
+
+<details><summary>Notes</summary>
+
+### Playback groups
+
+If you have playback groups defined in mythfrontend, the Playback section is repeated for each playback group. The settings can be varied for each playback group. When adding a playback group in mythfrontend, the new playback group will have default settings in leanfront. If you have a setting that you want to change for all playback groups, you have to set it here in each playback group.
+
+### Advanced
+
+The advanced section of settings includes a value that may need to be changed to suit unusual circumstances. Be careful when changing it as you may cause bad things to happen if you use inappropriate values.
+
+- **TS Search Packets.** Increase this if when playing a recording or other TS file, the recording length does not show in the OSD, and you cannot use skips or bookmarks. The default value supplied with exoplayer is 600. I have set a default value of 2600 in leanfront. The value is limited to a range of 600 - 100,000. Increasing the value will cause the start of playback to take longer and use more memory. Also skips forwards and back will take longer. Thus it is best to make this the smallest value that works for you.
+
+</details>
+
+## Backend Status
+![](ScreenShots/Status.png)
+
+Backend status can be scrolled down using arrow keys.
+
+## Manage Recordings
+![](ScreenShots/Manage.png)
+
+There are three rows available.
+- [Program Guide](#program-guide)
+- [Recording Rules](#recording-rules)
+- [Upcoming Recordings](#upcoming-recordings). 
+
+## Program Guide
+![](ScreenShots/Guide.png)
+
+- Jump to a desired channel by selecting and pressing enter on one of the channel cells, and entering a channel number with the onscreen keyboard.
+- Jump to a desired date and time by pressing enter on any of the date or time cells and selecting a date and time.
+- [Schedule](#schedule-recording) a recording by pressing enter on a program cell.
+- Move to the next or prior time slot of guide data by pressing enter on any of the arrow cells.
+
+## Recording Rules
+![](ScreenShots/Rules.png)
+
+- [Edit](#schedule-recording) an existing rule by selecting it and pressing Enter.
+- Create a new manual recording by selecting *Schedule New Recording* and pressing Enter.
+
+## Upcoming Recordings
+![](ScreenShots/Upcoming.png)
+
+[Edit](#schedule-recording) a recording rule by selecting an upcoming recording and pressing Enter. 
+
+## Schedule Recording
+![](ScreenShots/Schedule.png)
+
+The page that updates recording rules is similar to the corresponding page in mythfrontend.
+
+<details><summary>New Episodes Only</summary>
+
+The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions of mythbackend that prevents this from working.
+
+</details>
+
+<details><summary>TV or Movie Metadata</summary>
+
+When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id.
+
+There are two options for TV shows, The Movie Database and tvmaze. For movies there is only one option, The Movie Database.
+
+If the show that has been selected has a different name from what is shown in the schedule, you can search on this different name, by changing the search phrase. For example, PBS shows are often called "xxxx on Masterpiece", for example "Poldark on Masterpiece". In this case, searching tvmaze or tmdb for "Poldark on Masterpiece" finds nothing, but by changing the search phrase to "Poldark", you can find the series details.
+
+You can use tvmaze or The Movie Database, as long as you have a recent backend that supports the option. If your show is not found on one service, you can try the other. This does not depend on the default lookup method selected in mythfrontend. In mythfrontend you can select the movie database or tvmaze as the default. Even if you have selected one as the default, you can still use the other for specific record rules.
+
+</details>
+
+
+## Installing leanfront
+You need an Android TV device, which can be a [Nvidia Shield](https://www.nvidia.com/shield), [Amazon Fire TV stick](https://www.amazon.com/dp/B08XVYZ1Y5/), [Amazon Fire TV](https://www.amazon.com/dp/B08SVZ775L), or other name brand or generic Android TV device.
+
+- Download the latest apk from https://dl.orangedox.com/pCBmBm.
+- Enable developer mode on your android device. For Fire TV, go to Settings, My Fire TV , Developer Options. For other Android TV devices, go to My Device, find the build version number, click on that several times until a message notifies you that you have developer mode.
+- install adb on your computer
+- Run these
+
+```
+    adb connect <android-ip-address>
+    adb install -r <apk-name>
+```
+Alternatively, if you have a browser on your android device you can avoid using developer mode.
+
+- Enable installation of apps from unknown source in Android settings.
+- Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
+
+The first time you run the app it will prompt you for the MythTV Backend settings. Supply the IP address or DNS name of the master backend. If you have MythTV V32 or later, change the [status port](#status-port) from 6544 to 6744. (Note that 6544 still works but does not support the latest features).
+
+## History
+
+Leanfront is based on the sample [Videos By Google](https://github.com/android/tv-samples/tree/main/Leanback) app, designed to run on an Android TV device. It uses the Leanback Support library which, according to the author, "enables you to easily develop beautiful Android TV apps with a user-friendly UI that complies with the UX guidelines of Android TV".
+
+## Leanfront Features
 
 - 4K video plays at 60fps with full 4K resolution. This is currently not achievable with the android port of mythfrontend.
 - The application uses exoplayer, which is the player code used by youtube, Amazon Prime and others. As such it will be able to handle new capabilities that are released on Android TV.
@@ -40,111 +305,9 @@ This is based on a clone of the sample Videos By Google app, designed to run on 
 - Supports playback groups, allowing different values per playback group.
 - Now supports MythTV commercial breaks and cut list.
 
-## V32 Port Number
-
-In mythbackend V32 and current master, the web server has been rewritten and there is a new status port. The old status port still works but does not support the latest features, like "Last Play Position". To use the latest features, change your port number in settings to 6744. If you have any problems with this please open a ticket.
-
-This is a temporary change, in a later version (probably V33) the port will change back to 6544, with the new features, and port 6744 will no longer be used. You will then have to change your settings back to port 6544.
-
-## Tips
-
-### To easily get back to a series you were watching recently:
-
-- Enable recently viewed list in settings.
-- Enable deleted and watched items in the recent list.
-- Enable "Trim recently viewed list" to only see the latest episode of each series you are watching.
-- Disable deleted and watched items in the "related" list.
-- In mythfrontend, set the deletion delay for deleted shows to 7 days.
-
-Now, if you watched and deleted an episode yesterday, the deleted episode shows at the front of the recent list. Select that episode from the recent list. Go down in the details screen to the related list. You will see unwatched, undeleted episodes of the series and you can select the next one to play.
-
-In the case of Videos, the related list will show unwatched videos from the same directory. If you have all episodes of a series in one directory, this will make it easy to select the next episode to watch.
-
-### Copy recently viewed list to another device
-
-If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. There is a script to copy from one to another.
-See the section below titled "Copy from one Android device to another".
-
-### Easily Schedule Recordings
-
-Using the search orb at the top of the page, you can search for a title using voice or keyboard. This will respond with a list of recordings that match as well as a list of matches in the program guide. If you press enter on an item from the program guide, you can create a recording rule to record all episodes, one episode, etc.
-
-### Screen saver and idle shutdown
-
-If you have a mythbackend earlier than v30 you need to disable the mythbackend idle shutdown, as leanfront cannot prevent shutdown, even while playing. On v30 and later, leanfront prevents backend shutdown while leanfront is in the foreground on the TV.
-
-If you have screen saver enabled on the android tv stick, when it starts leanfront will go into the background. While leanfront is in the background mythbackend can shut down. When you press a remote key, the tv shows leanfront again but the backend may be shut down. Leanfront does not recover gracefully from this. Attempts to play will display a generic error message.
-
-If you have auto shutdown enabled on the backend, then I recommend you disable the tv stick screen saver or else set it to a long period and be aware that when waking again, the backend must be restarted if it has shut down.
-
-### Videos and Recordings
-
-Videos are items from the MythTV Video storage group. They are shown at the bottom of the main summary page. You can click on them to open subdirectories, through multiple levels.
-
-There is a new option, Program List Options, Merge Videos with Recordings. That is for when you have a series that is partly in recordings and partly in Videos. In the row of the screen for the recording group, any videos that match a series will also be shown. This way, if you have some episodes that were recorded outside of MythTV, you can add them to Videos and see them with the recordings you made on MythTV. You need to have the correct series title, season and episode with the video metadata. In most cases the metadata lookup will fill that in for you. You also need to select sort option of "original air date" to get the episodes in correct order. 
-
 ## Release Notes
 
 You can see a list of changes in each version by looking at the commit list in github. See https://github.com/bennettpeter/android-MythTV-Leanfront/commits/master .
-
-## Main Screen
-
-- A list of recording groups is displayed on the left with titles in the group in a scrolling row on the right. Next to each icon on the left is a number that represents the number of entries on the right in that row. This is not necessarily the same as the number of recordings because on the main screen there is one entry per series. Select a group and press enter to open the screen with that group's contents. Once a group is open there is one entry per episode.
-- The LiveTV group shows recordings already made from Live TV as well as channels available to watch live.
-- On the top-level screen only, there is a list of recently viewed items. This can be customized in settings to select how far back it goes or to disable it entirely.
-- There is a row for "All" at the top.
-- After the recording groups there is a row for "Videos", which shows the MythTV Videos by directory.
-- There is a row labeled "Tools" at the bottom. There are various options available there.
-- Indicators next to recordings show 🗑 for deleted, 👁 for Watched, 💥 for damaged.
-
-### Multiple Updates
-
-In a recording group screen or a video directory screen, you can now perform operations on an entire series or an entire videos directory. Select the header for a series or a video directory and do a "long press" or press the menu button if your remote has one. You will get a menu that lets you mark the entire series as watched or unwatched, delete or undelete it, remove bookmarks, allow rerecord or remove from recently watched list.
-
-This operation is not recursive. If there are subdirectories in a video directory, any operation on the directory will be performed on videos in that directory only.
-
-### Parental Level
-
-There is support for the MythTV parental level on videos. It does not support the PIN, so hope your children do not know how to get into settings. There is a setting at the bottom of program list options to specify the level - 1 2 3 or 4. Only those videos below or equal to the level set will be visible. You will have to use mythfrontend to set the level on the videos, there is nothing to do that in leanfront.
-
-### Settings
-
-The settings icon on the tools row allows setup of the backend ip address and a number of options for this installation of leanfront.
-
-#### Playback
-
-If you have playback groups defined in mythfrontend, the Playback section is repeated for each playback group. The settings can be varied for each playback group. When adding a playback group in mythfrontend, the new playback group will have default settings in leanfront. If you have a setting that you want to change for all playback groups, you have to set it here in each playback group.
-
-#### Advanced
-
-The advanced section of settings includes a value that may need to be changed to suit unusual circumstances. Be careful when changing it as you may cause bad things to happen if you use inappropriate values.
-
-- **TS Search Packets.** Increase this if when playing a recording or other TS file, the recording length does not show in the OSD, and you cannot use skips or bookmarks. The default value supplied with exoplayer is 600. I have set a default value of 2600 in leanfront. The value is limited to a range of 600 - 100,000. Increasing the value will cause the start of playback to take longer and use more memory. Also skips forwards and back will take longer. Thus it is best to make this the smallest value that works for you.
-
-### Refresh
-
-There is a "Refresh" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
-
-If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
-
-To create the index, run the following from a command line:
-
-```
-mysql -u <UserName> -p <DatabaseName>
-CREATE INDEX recordedartwork_ix1 ON recordedartwork (inetref);
-quit
-```
-UserName and DatabaseName can be found in the file .mythtv/config.xml. You will be prompted for the database password, which can also be found in .mythtv/config.xml.
-
-Creating this index changed the refresh time on my system from 38 seconds to 4 seconds, so it can make a big difference.
-
-### Backend Status
-
-The backend status icon of the tools row shows a page with current backend info.
-
-## Video Details
-
-If you select a video or recording in the list and press enter, it opens the Detalls page. This shows the program name, description and artwork. There are buttons for Playback and for "Other Actions". "Other Actions" presents a menu for deleting the program, marking watched, etc. If you have a menu button on your remote, pressing that will also bring up the "Other Actions".
 
 ## Playback
 
@@ -216,23 +379,23 @@ Notes:
 - If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
 
-## Playback controls (OSD)
+## Playback controls
 
-![](PlaybackExample.png)
+![](ScreenShots/Playback.png)
 
 The following controls are available when pressing enter during playback. Select an icon and press enter to apply it. The name of the currently selected icon is displayed below the progress bar.
 
 ### Top Row of Controls
 
-| Icon                  | Usage                                                                                                                                            |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| Play/Pause            | Switches between pause icon and play icon depending on the current state.                                                                        |
-| Skip Previous         | Skip back to the previous commercial break, or to the prior episode if at the beginning of the recording (see related videos, below).            |
-| Rewind                | This skips back by the time set in the settings.                                                                                                 |
-| Jump Forward          | This skips forward by the time set in the settings.                                                                                              |
-| Skip Next             | Skip forward to the next commercial break, or to the next episode if there are no more commercials (see related videos, below).                  |
-| Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10% |
-| Playback Menu         | Shows a menu of playback actions that can be taken.                                                                                              |
+| Icon                  | Usage                                                                                                                                             |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Play/Pause            | Switches between pause icon and play icon depending on the current state.                                                                         |
+| Skip Previous         | Skip back to the previous commercial break, or to the prior episode if at the beginning of the recording (see [Related Videos](#related-videos)). |
+| Rewind                | This skips back by the time set in the settings.                                                                                                  |
+| Jump Forward          | This skips forward by the time set in the settings.                                                                                               |
+| Skip Next             | Skip forward to the next commercial break, or to the next episode if there are no more commercials (see [Related Videos](#related-videos)).       |
+| Change Playback Speed | Speeds up or slow down playback by increments to a maximum of 800%. Shows a seekbar where any desired speed can be selected in increments of 10%  |
+| Playback Menu         | Shows a menu of playback actions that can be taken.                                                                                               |
 
 **Note:** When using *Change Playback Speed* the program will disable digital audio pass-through if it is in use, by temporarily selecting *FFmpeg* audio decode. This will disable surround sound until you exit playback.
 
@@ -251,11 +414,9 @@ Below the progress bar is displayed the description of the currently selected ic
 | Move Picture         | If the picture has been resized, moves the picture up or down, left or right. Use up, down, left, right arrows to move it. For use when you want to cut off part of the picture, after zooming to a bigger size.                                                                                                   |
 | Change Audio Track   | Shows a menu of available audio tracks plus audio disabled. You can select one to change or disable audio track.                                                                                                                                                                                                   |
 | Adjust Audio Sync    | Shows a seekbar where you can change audio sync. Use this if lip sync is wrong. The value selected applies only to this playback, it is not saved after playback is ended.                                                                                                                                         |
-| Autoplay             | Toggle automatic playback of all videos in the related videos list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the related videos list. |
+| Autoplay             | Toggle automatic playback of all videos in the [Related Videos](#related-videos) list. When activated this displays in green color. At the end of each video or recording it will automatically start the next one. It will play watched or deleted items if you selected them in settings to be included in the [Related Videos](#related-videos) list. |
 
-### Related videos
-
-To see Related videos press down arrow. This shows other videos / recordings in the current group. You can select one of these to play from the beginning instead of the current playing video.
+To see [Related Videos](#related-videos) while watching press down arrow. This shows other videos / recordings in the current group. You can select one of these to play instead of the current playing video.
 
 ## Playback Menu
 
@@ -302,54 +463,55 @@ If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. H
 | DPad Up   | Playback | Jump forward number of minutes specified in settings (default is 5) |
 | DPad Down | Playback | Jump back number of minutes specified in settings (default is 5)    |
 
-## Manage recordings
 
-An icon in the Tools row brings up a section where you can view the program guide, and setup and modify recording rules.
+## General Operation
 
-Also, you can use the search icon from any page to search on show titles. You can create a record rule on any title that is found in the Program Guide.
+### Status Port
 
-### Program Guide Page
+In mythbackend V32 and later, the web server has been rewritten and there is a new status port. The old status port still works but does not support the latest features, like "Last Play Position". To use the latest features, change your port number in settings to 6744. If you have any problems with this please open a ticket.
 
-In the program guide
- 
-- Select a new date and time for the guide: Press enter on any of the cells that show the time.
-- Move to a new channel number more quickly than using down arrow: Press Enter on any of the cells that show the channel number. Type the desired channel number on the onscreen keyboard. Press Enter.
-- Move to the next or prior time slot of guide data: Press enter on any of the arrow cells.
-- Schedule a recording or modify the recording: Press enter on any cell that lists a program.
+This is a temporary change, in a later version the port will change back to 6544, with the new features, and port 6744 will no longer be used. You will then have to change your settings back to port 6544.
 
-### Recording Rules Page
+### Screen saver and idle shutdown
 
-All recording rules are listed. Press enter on any rule to modify it. Note that templates can be viewed but if modified, cannot be saved. The save will fail. Modify templates using mythfrontend.
+If you have a mythbackend earlier than v30 you need to disable the mythbackend idle shutdown, as leanfront cannot prevent shutdown, even while playing. On v30 and later, leanfront prevents backend shutdown while leanfront is in the foreground on the TV.
 
-Create a manual recording by pressing enter on the first cell, labeled "Schedule New Recording".
+If you have screen saver enabled on the android tv stick, if nothing is playing it can start the screen saver. When it starts leanfront will go into the background. While leanfront is in the background mythbackend can shut down. When you press a remote key, the tv shows leanfront again but the backend may be shut down. Leanfront does not recover gracefully from this. Attempts to play will display a generic error message.
 
-### Upcoming Recordings Page
+If you have auto shutdown enabled on the backend, then I recommend you disable the tv stick screen saver or else set it to a long period and be aware that when waking again, the backend must be restarted if it has shut down.
 
-All upcoming recordings are listed. Press enter on any cell to modify it.
+### Videos and Recordings
 
-### Rule adding or updating
+Videos are items from the MythTV Video storage group. They are shown at the bottom of the main summary page. You can click on them to open subdirectories, through multiple levels.
 
-The page that updates recording rules is similar to the corresponding pages in mythfrontend. The feature "New Episodes Only" is disabled unless you have a recent build of mythbackend. There is a bug in older versions of mythbackend that prevents this from working.
+There is a setting, Program List Options, Merge Videos with Recordings. That is for when you have a series that is partly in recordings and partly in Videos. In the row of the screen for the recording group, any videos that match a series will also be shown. This way, if you have some episodes that were recorded outside of MythTV, you can add them to Videos and see them with the recordings you made on MythTV. You need to have the correct series title, season and episode with the video metadata. In most cases the metadata lookup will fill that in for you. You also need to select sort option of "original air date" to get the episodes in correct order.
 
-### TV or Movie Metadata
+### Parental Level
 
-When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id.
+There is support for the MythTV parental level on videos. It does not support the PIN, so hope your children do not know how to get into settings. There is a setting at the bottom of program list options to specify the level - 1 2 3 or 4. Only those videos below or equal to the level set will be visible. You will have to use mythfrontend to set the level on the videos, there is nothing to do that in leanfront.
 
-There are two options for TV shows, The Movie Database and tvmaze. For movies there is only one option, The Movie Database.
+### Refresh Lists
 
-If the show that has been selected has a different name from what is shown in the schedule, you can search on this different name, by changing the search phrase. For example, PBS shows are often called "xxxx on Masterpiece", for example "Poldark on Masterpiece". In this case, searching tvmaze or tmdb for "Poldark on Masterpiece" finds nothing, but by changing the search phrase to "Poldark", you can find the series details.
+There is a "Refresh Lists" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
 
- You can use tvmaze or The Movie Database, as long as you have a recent backend that supports the option. If your show is not found on one service, you can try the other. This does not depend on the default lookup method selected in mythfrontend. In mythfrontend you can select the movie database or tvmaze as the default. Even if you have selected one as the default, you can still use the other for specific record rules.
+If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
 
-## Search
+To create the index, run the following from a command line:
 
-The Search orb at the top of each page allows searching the recordings, videos and program guide. You can do voice search or type using the onscreen keyboard. In the video search results you can play the found recording or video. In the guide search results you can press enter to schedule or modify recordings. Note that to use voice search on Amazon Fire Stick you have to right arrow into the text entry field, then press the microphone button. Otherwise pressing the microphone button searches Amazon instead.
+```
+mysql -u <UserName> -p <DatabaseName>
+CREATE INDEX recordedartwork_ix1 ON recordedartwork (inetref);
+quit
+```
+UserName and DatabaseName can be found in the file .mythtv/config.xml. You will be prompted for the database password, which can also be found in .mythtv/config.xml.
 
-## Extras
+Creating this index changed the refresh time on my system from 38 seconds to 4 seconds, so it can make a big difference.
 
 ### Copy from one Android device to another
 
-There is a script acopy.sh in the extras directory of the git repository. This has be be copied to a Linux system. It needs adb installed on the Linux system. acopy.sh can be used to copy settings and databases from one android device (e.g. fire stick) to another. Since the "Recently watched" list is stored locally it is different on each android device. Also local bookmarks are different per device. You can copy these from one device to another. The prior values on the receiving device are lost. There is no merging of databases this way.
+If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. There is a script to copy from one to another.
+
+There is a script acopy.sh in the extras directory of the git repository. This has be be copied to a Linux system. It needs adb installed on the Linux system. acopy.sh can be used to copy settings and databases from one android device (e.g. fire stick) to another. Since the "Recently watched" list is stored locally it is different on each android device. Also local bookmarks are different per device. You can copy these from one device to another. The prior values on the receiving device are lost. There is no merging of databases.
 
 Run acopy.sh to see a list of options. 
 
@@ -427,7 +589,7 @@ On a phone the Play and other action buttons may be too big and may not all disp
 - Hide the playback controls by double tapping in the playback.
 - Skip forward and skip back are difficult to use with the playback controls on a touch screen, as the playback controls disappear soon after a skip. There is an alternative for touch screens. Tap the top right corner or top left corner to skip forward or back. Press and hold for repeat-action to skip repeatedly until you reach the required position.
 - In playback, leanfront operates full screen. To exit, you need the back button. Swipe from the top or bottom of the screen to see the system buttons. Press back before it disappears again. Note that to stop playback while the playback controls are showing, you have to press back twice, once to close the playback controls, and again to close playback, or else double tap to close playback controls and back to close playback.
-- You cannot get to the "Related Videos" during playback. However you can see them on the details page before starting or after ending playback.
+- You cannot get to the [Related Videos](#related-videos) during playback. However you can see them on the details page before starting or after ending playback.
 
 ## Leanfront Restrictions / Limitations
 
@@ -436,24 +598,6 @@ These may be addressed in a future release.
 - Moving recordings to new recording groups is not supported.
 - Metadata input and update are not supported.
 - Request of video file scan is not supported.
-
-## Download and install
-
-Note: Bintray is being taken down in May 2021, so I am switching to another site for package downloads.
-
-- Download the latest apk from [downloads].
-- Enable developer mode on your android device.
-- install adb on your computer
-- Run these
-
-```
-    adb connect <android-ip-address>
-    adb install -r <apk-name>
-```
-Alternatively, if you have a browser on your android device you can avoid using developer mode.
-
-- Enable installation of apps from unknown source in Android settings.
-- Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
 
 ## Install on Laptop or Desktop
 
@@ -476,13 +620,8 @@ After installing [Android Studio][studio], use SDK Manager to install the emulat
 - Open the project in [Android Studio][studio].
 - Compile and deploy to your Android TV device (such as a Shield or Amazon fire stick). 
 - It can also be run with an android emulator, but the emulator that comes with android studio does not support MPEG2 playback, so you need to play an h264 or h265 recording.
-- If you do not want to build this yourself, there is a package at [downloads].
-
-## Running
-
-Start up the app. There is an entry on the main screen at the end called "settings". There you need to enter the backend ip address. There are other options available here.
-
-If using backend earlier than fixes/30 of Nov 12 2019 or Master of October 31 2019, make sure the backend is not set up for automatic shutdown when inactive. Otherwise it may shut down during playback.
+- If you do not want to build this yourself, see [Installing Leanfront](#installing-leanfront).
+- Set up the backend in Settings on the first run. 
 
 ## Internationalization
 

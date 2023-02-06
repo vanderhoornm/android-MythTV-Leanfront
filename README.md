@@ -14,8 +14,6 @@ Leanfront supports playback of recordings and videos from MythTV. It can also sc
 - [Search](#search)
 - [Tools](#tools)
 - [Settings](#settings)
-  - [Playback groups](#playback-groups)
-  - [Advanced](#advanced)
 - [Backend Status](#backend-status)
 - [Manage Recordings](#manage-recordings)
 - [Program Guide](#program-guide)
@@ -27,8 +25,8 @@ Leanfront supports playback of recordings and videos from MythTV. It can also sc
 - [Leanfront Features](#leanfront-features)
 - [Release Notes](#release-notes)
 - [Playback](#playback)
-  - [Frame Rate Synchronization.](#frame-rate-synchronization.)
-  - [Bookmarks and Last Play Position.](#bookmarks-and-last-play-position.)
+  - [Frame Rate Synchronization](#frame-rate-synchronization)
+  - [Bookmarks and Last Play Position](#bookmarks-and-last-play-position)
   - [Commercial Break and Cut List](#commercial-break-and-cut-list)
 - [Live TV](#live-tv)
 - [Playback controls](#playback-controls)
@@ -319,11 +317,11 @@ You can see a list of changes in each version by looking at the commit list in g
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 
-### Frame Rate Synchronization.
+### Frame Rate Synchronization
 
  If you are playing a video or recording that was recorded at a different frame rate from the default for your android device, motion may appear jerky. Frame Rate Synchronization fixes this by changing the refresh rate of your TV to match the frame rate of the video. Select "Match original frame rate" in the playback settings. With Amazon Fire TV Stick you also need to enable the "Match original frame rate" setting in the Fire TV settings.
 
-### Bookmarks and Last Play Position.
+### Bookmarks and Last Play Position
 
 Bookmarks in a recording or video can be stored in the android device or in the MythTV backend. In Settings, Playback you can select an option to store them locally. On versions of mythbackend before v32-Pre-658-g48557d32c2 or v31.0-73-g7bf1284867, video bookmarks are always stored locally.
 

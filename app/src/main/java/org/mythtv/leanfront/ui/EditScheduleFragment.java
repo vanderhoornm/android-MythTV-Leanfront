@@ -92,6 +92,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private ActionGroup mGpInetLookupName;
     private ActionGroup mGpLookupTVButton;
     private ActionGroup mGpLookupTVMazeButton;
+    private ActionGroup mGpLookupTVDbButton;
     private ActionGroup mGpLookupMovieButton;
     private ActionGroup mGpUseTemplate;
     private ActionGroup mGpSaveButton;
@@ -530,11 +531,20 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         subActions.add(mGpInetLookupName.mGuidedAction);
         mGroupList.add(mGpInetLookupName);
 
+        // Lookup TV Button for The TV DB
+        mGpLookupTVDbButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tvdb_bn);
+        subActions.add(mGpLookupTVDbButton.mGuidedAction);
+        mGpLookupTVDbButton.mGuidedAction.setIcon
+                (getContext().getResources().getDrawable(R.drawable.tvdb_logo,null));
+        mGpLookupTVDbButton.mGuidedAction.setDescription(getString(R.string.sched_metadata_search_tvdb_desc));
+        mGroupList.add(mGpLookupTVDbButton);
+
         // Lookup TV Button for TV Maze
-        mGpLookupTVMazeButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tv_bn);
+        mGpLookupTVMazeButton = new ActionGroup(ACTIONTYPE_BUTTON, R.string.sched_metadata_search_tvmaze_bn);
         subActions.add(mGpLookupTVMazeButton.mGuidedAction);
         mGpLookupTVMazeButton.mGuidedAction.setIcon
                 (getContext().getResources().getDrawable(R.drawable.tvmaze_logo,null));
+        mGpLookupTVMazeButton.mGuidedAction.setDescription(getString(R.string.sched_metadata_search_tvmaze_desc));
         mGroupList.add(mGpLookupTVMazeButton);
 
         // Lookup TV Button for TMDB
@@ -542,6 +552,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         subActions.add(mGpLookupTVButton.mGuidedAction);
         mGpLookupTVButton.mGuidedAction.setIcon
                 (getContext().getResources().getDrawable(R.drawable.tmdb_logo,null));
+        mGpLookupTVButton.mGuidedAction.setDescription(getString(R.string.sched_metadata_search_tmdb_desc));
         mGroupList.add(mGpLookupTVButton);
 
         // Lookup Movie Button
@@ -549,6 +560,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         subActions.add(mGpLookupMovieButton.mGuidedAction);
         mGpLookupMovieButton.mGuidedAction.setIcon
                 (getContext().getResources().getDrawable(R.drawable.tmdb_logo,null));
+        mGpLookupMovieButton.mGuidedAction.setDescription(getString(R.string.sched_metadata_search_tmdb_desc));
         mGroupList.add(mGpLookupMovieButton);
 
         mGpMetadata.mGuidedAction.setSubActions(subActions);
@@ -700,6 +712,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             notifyActionChanged(findActionPositionById(acGrp.mId));
         }
         else if (acGrp == mGpLookupTVButton
+                || acGrp == mGpLookupTVDbButton
                 || acGrp == mGpLookupTVMazeButton
                 || acGrp == mGpLookupMovieButton) {
             AsyncRemoteCall call = new AsyncRemoteCall(getActivity(), this);
@@ -707,6 +720,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             int task;
             if (acGrp == mGpLookupTVMazeButton)
                 task = AsyncRemoteCall.ACTION_LOOKUP_TVMAZE;
+            else if (acGrp == mGpLookupTVDbButton)
+                task = AsyncRemoteCall.ACTION_LOOKUP_TVDB;
             else if (acGrp == mGpLookupTVButton)
                 task = AsyncRemoteCall.ACTION_LOOKUP_TV;
             else if (acGrp == mGpLookupMovieButton)
@@ -727,6 +742,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         switch (task) {
             case AsyncRemoteCall.ACTION_LOOKUP_TVMAZE:
             case AsyncRemoteCall.ACTION_LOOKUP_TV:
+            case AsyncRemoteCall.ACTION_LOOKUP_TVDB:
             case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
                 parser = taskRunner.results.get(0);
                 break;
@@ -738,12 +754,25 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             if (entry.name == null || entry.id == 0)
                 break; // should not happen
             StringBuilder stringBuilder = new StringBuilder(entry.name);
+            boolean paren=false;
             if (entry.firstAirDate != null
-                    && entry.firstAirDate.length() >= 4)
+                    && entry.firstAirDate.length() >= 4) {
+                paren = true;
                 stringBuilder
                         .append(" [")
-                        .append(entry.firstAirDate.substring(0, 4))
-                        .append("]");
+                        .append(entry.firstAirDate.substring(0, 4));
+            }
+            if (entry.type != null) {
+                if (!paren) {
+                    stringBuilder.append(" [");
+                    paren = true;
+                }
+                else
+                    stringBuilder.append(" ");
+                stringBuilder.append(entry.type);
+            }
+            if (paren)
+                stringBuilder.append("]");
             if (entry.overview != null && entry.overview.length() > 0) {
                 String desc = entry.overview.trim();
                 if (desc.length() > 300)
@@ -774,6 +803,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                                         break;
                                     case AsyncRemoteCall.ACTION_LOOKUP_MOVIE:
                                         inetRef.append("tmdb3.py_");
+                                        break;
+                                    case AsyncRemoteCall.ACTION_LOOKUP_TVDB:
+                                        inetRef.append("ttvdb4.py_");
                                         break;
                                 }
                                 inetRef.append(parser.entries.get(which).id);

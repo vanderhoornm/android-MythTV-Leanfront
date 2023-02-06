@@ -233,13 +233,15 @@ The feature "New Episodes Only" is disabled unless you have a recent build of my
 
 <details><summary>TV or Movie Metadata</summary>
 
+![](ScreenShots/Metadata.png)
+
 When adding or updating recording rules, the metadata section includes a search to find the correct movie or series id.
 
-There are two options for TV shows, The Movie Database and tvmaze. For movies there is only one option, The Movie Database.
+There are three options for TV shows, TheTVDB, TVmaze and TMDB. For movies there are two options, TheTVDB and TMDB.
 
-If the show that has been selected has a different name from what is shown in the schedule, you can search on this different name, by changing the search phrase. For example, PBS shows are often called "xxxx on Masterpiece", for example "Poldark on Masterpiece". In this case, searching tvmaze or tmdb for "Poldark on Masterpiece" finds nothing, but by changing the search phrase to "Poldark", you can find the series details.
+If the show that has been selected has a different name from what is shown in the schedule, you can search on this different name, by changing the search phrase. For example, PBS shows are often called "xxxx on Masterpiece", for example "Poldark on Masterpiece". In this case, searching for "Poldark on Masterpiece" finds nothing, but by changing the search phrase to "Poldark", you can find the series details.
 
-You can use tvmaze or The Movie Database, as long as you have a recent backend that supports the option. If your show is not found on one service, you can try the other. This does not depend on the default lookup method selected in mythfrontend. In mythfrontend you can select the movie database or tvmaze as the default. Even if you have selected one as the default, you can still use the other for specific record rules.
+You can use TheTVDB, TVmaze or TMDB, as long as you have a recent backend that supports the option. If your show is not found on one service, you can try the others. This does not depend on the default lookup method selected in mythfrontend. In mythfrontend you can select TheTVDB, TVmaze or TMDB as the default. Even if you have selected one as the default, you can still use another for specific record rules.
 
 </details>
 

@@ -349,8 +349,13 @@
     <string name="sched_metadata">Metadata Settings</string>
     <string name="sched_metadata_id">Series or Movie Id</string>
     <string name="sched_metadata_search_name">Phrase to use in Search</string>
-    <string name="sched_metadata_search_tv_bn">Search TV Series</string>
-    <string name="sched_metadata_search_movie_bn">Search Movies</string>
+    <string name="sched_metadata_search_movie_bn">Search Movies on TMDB</string>
+    <string name="sched_metadata_search_tv_bn">Search TV Series on TMDB</string>
+    <string name="sched_metadata_search_tmdb_desc">Metadata provided by themoviedb.org</string>
+    <string name="sched_metadata_search_tvdb_bn">Search TheTVDB</string>
+    <string name="sched_metadata_search_tvdb_desc">Metadata provided TheTVDB.com. Please consider adding missing information or subscribing.</string>
+    <string name="sched_metadata_search_tvmaze_bn">Search TVmaze</string>
+    <string name="sched_metadata_search_tvmaze_desc">Metadata provided by tvmaze.com.</string>
     <string name="sched_metadata_select_prompt">Select Appropriate Entry</string>
     <string name="sched_metadata_select_none">No Match Found</string>
     <string name="sched_use_template">Use Template</string>

@@ -1739,10 +1739,10 @@ public class PlaybackFragment extends VideoSupportFragment
                 boolean failAtStart = duration <= 0 || currPos <= 0;
                 boolean failAtEnd = !failAtStart && Math.abs(duration - currPos) < 10000;
                 if (mDialogStatus == DIALOG_NONE) {
-                    // If there has been over 10 seconds since last error report
+                    // If there has been over 30 seconds since last error report
                     // try to recover from error by playing on.
                     if (failAtEnd
-                        || mTimeLastError < now - 10000 ) {
+                        || mTimeLastError < now - 30000 ) {
                         if ("true".equals(Settings.getString("pref_error_toast"))) {
                             if (mToast != null)
                                 mToast.cancel();
@@ -1769,7 +1769,7 @@ public class PlaybackFragment extends VideoSupportFragment
                         mTimeLastError = now;
                     }
                     else {
-                        // More than 1 error per 10 seconds.
+                        // More than 1 error per 30 seconds.
                         // Alert message for user to decide on continuing.
                         AlertDialogListener listener = new AlertDialogListener();
                         AlertDialog.Builder builder = new AlertDialog.Builder(context,

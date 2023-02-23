@@ -258,6 +258,9 @@ public class MainFragment extends BrowseSupportFragment
     static public void startFetch(int rectype, String recordedId, String recGroup) {
         if (rectype == -1)
             mFetchTime = System.currentTimeMillis();
+        // Clear ip address cache on a full refresh
+        if (recordedId == null)
+            XmlNode.clearCache();
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(MyApplication.getAppContext(), FetchVideoService.class);
         serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);

@@ -76,7 +76,7 @@ public class XmlNode {
             String hostIp = response.getString();
             // This is needed to support mythbackend v0.28, where there is
             // no setting for BackendServerAddr
-            if (hostIp == null)
+            if (hostIp == null || hostIp.startsWith("127.") || hostIp.equalsIgnoreCase("localhost"))
                 hostIp = backendIP;
             // These are removed now. I don't know why this was here
 //            if (hostIp == null || hostIp.length() == 0)
@@ -173,19 +173,19 @@ public class XmlNode {
             urlConnection.setReadTimeout(300000);
             if (requestMethod != null)
                 urlConnection.setRequestMethod(requestMethod);
-            Log.d(TAG, CLASS + " URL: " + urlString);
+            Log.i(TAG, CLASS + " URL: " + urlString);
             is = urlConnection.getInputStream();
-            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+            Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             ret = XmlNode.parseStream(is);
             isConnected = true;
         } catch(FileNotFoundException e) {
-            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+            Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             throw e;
         } catch(IOException e) {
             isConnected = false;
-            Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+            Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             if (!urlString.endsWith("/Myth/DelayShutdown"))
                 MainFragment.restartMythTask();

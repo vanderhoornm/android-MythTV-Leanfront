@@ -577,10 +577,10 @@ public class AsyncBackendCall implements Runnable {
                             urlConnection = (HttpURLConnection) url.openConnection();
                             urlConnection.addRequestProperty("Cache-Control", "no-cache");
                             urlConnection.addRequestProperty("Accept-Encoding", "identity");
-                            urlConnection.setConnectTimeout(5000);
-                            urlConnection.setReadTimeout(30000);
+                            urlConnection.setConnectTimeout(1000);
+                            urlConnection.setReadTimeout(1000);
                             urlConnection.setRequestMethod("HEAD");
-                            Log.d(TAG, CLASS + " URL: " + urlString);
+                            Log.i(TAG, CLASS + " URL: " + urlString);
                             urlConnection.connect();
                             try {
                                 Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
@@ -596,7 +596,7 @@ public class AsyncBackendCall implements Runnable {
                                 break;
                         } catch (Exception e) {
                             try {
-                                Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                                Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                                         + " " + urlConnection.getResponseMessage());
                             } catch (IOException ioException) {
                                 ioException.printStackTrace();
@@ -840,9 +840,9 @@ public class AsyncBackendCall implements Runnable {
                         urlConnection.addRequestProperty("Cache-Control", "no-cache");
                         urlConnection.setConnectTimeout(5000);
                         urlConnection.setReadTimeout(30000);
-                        Log.d(TAG, CLASS + " URL: " + urlString);
+                        Log.i(TAG, CLASS + " URL: " + urlString);
                         is = urlConnection.getInputStream();
-                        Log.d(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
+                        Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                                 + " " + urlConnection.getResponseMessage());
                         InputStreamReader reader = new InputStreamReader(is);
                         char[] buffer = new char[1024];

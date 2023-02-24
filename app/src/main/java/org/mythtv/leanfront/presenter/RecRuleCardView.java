@@ -40,15 +40,24 @@ public class RecRuleCardView extends BaseCardView {
     private int mType;
     public static final int TYPE_SMALL = 1;
     public static final int TYPE_LARGE = 2;
+    public static final int TYPE_WIDE = 3;
 
     public RecRuleCardView(Context context, int type) {
         super(context);
         mType = type;
         int layout;
-        if (mType == TYPE_LARGE)
-            layout = R.layout.text_card_large;
-        else
-            layout = R.layout.text_card;
+        switch (mType) {
+            case TYPE_LARGE:
+                layout = R.layout.text_card_large;
+                break;
+            case TYPE_WIDE:
+                layout = R.layout.text_card_wide;
+                break;
+            case TYPE_SMALL:
+            default:
+                layout = R.layout.text_card;
+                break;
+        }
         LayoutInflater.from(getContext()).inflate(layout, this);
         setFocusable(true);
     }

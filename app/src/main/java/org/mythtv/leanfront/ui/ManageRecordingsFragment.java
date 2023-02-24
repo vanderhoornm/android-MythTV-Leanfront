@@ -63,15 +63,15 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
     }
 
     private void createRows() {
-        HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, getString(R.string.title_program_guide));
-        PageRow pageRow1 = new PageRow(headerItem1);
-        mRowsAdapter.add(pageRow1);
-        HeaderItem headerItem2 = new HeaderItem(HEADER_ID_RECRULES, getString(R.string.title_rec_rules));
-        PageRow pageRow2 = new PageRow(headerItem2);
-        mRowsAdapter.add(pageRow2);
         HeaderItem headerItem3 = new HeaderItem(HEADER_ID_UPCOMING, getString(R.string.title_upcoming));
         PageRow pageRow3 = new PageRow(headerItem3);
         mRowsAdapter.add(pageRow3);
+        HeaderItem headerItem2 = new HeaderItem(HEADER_ID_RECRULES, getString(R.string.title_rec_rules));
+        PageRow pageRow2 = new PageRow(headerItem2);
+        mRowsAdapter.add(pageRow2);
+        HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, getString(R.string.title_program_guide));
+        PageRow pageRow1 = new PageRow(headerItem1);
+        mRowsAdapter.add(pageRow1);
     }
 
     private static class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactory {

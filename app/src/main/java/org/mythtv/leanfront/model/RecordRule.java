@@ -62,6 +62,7 @@ public class RecordRule {
     public int     transcoder;
     public Date    lastRecorded;
     public String  recordingStatus;
+    public String  encoderName;
 
     public boolean isFromProgram;
     public boolean isFromSchedule;
@@ -116,6 +117,7 @@ public class RecordRule {
         recordingStatus = programNode.getNode("Recording").getString("Status");
         if ("Unknown".equals(recordingStatus))
             recordingStatus = null; // save storage
+        encoderName = programNode.getNode("Recording").getString("EncoderName");
         return this;
     }
 
@@ -248,14 +250,15 @@ public class RecordRule {
                 shortDateFormatter = android.text.format.DateFormat.getDateFormat(context);
                 dayFormatter = new SimpleDateFormat("EEE ");
             }
+            build.append(dayFormatter.format(startTime))
+                    .append(dateFormatter.format(startTime)).append(' ')
+                    .append(timeFormatter.format(startTime)).append(" - ")
+                    .append(timeFormatter.format(endTime)).append(" : ")
+                    .append(encoderName).append(" : ");
 
             String chanDetails = chanNum + " " + channelName + " " + station;
             build.append(chanDetails).append("\n");
-
-            build.append(dayFormatter.format(startTime))
-                    .append(dateFormatter.format(startTime)).append(' ')
-                    .append(timeFormatter.format(startTime)).append('\n')
-                    .append(title).append("\n");
+            build.append(title).append("  ");
             if (season > 0 && episode > 0)
                 build.append("S").append(season).append("E").append(episode).append(" ");
             if (subtitle != null)

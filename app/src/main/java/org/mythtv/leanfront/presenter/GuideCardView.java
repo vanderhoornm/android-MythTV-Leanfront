@@ -76,9 +76,11 @@ public class GuideCardView extends BaseCardView {
             else if (card.program != null
                 && (card.cellType == GuideSlot.CELL_PROGRAM
                     || card.cellType == GuideSlot.CELL_SEARCHRESULT)) {
-                if ("WillRecord".equals(card.program.recordingStatus)
+                if ( ("WillRecord".equals(card.program.recordingStatus)
+                        || "Recording".equals(card.program.recordingStatus))
                     || card.program2 != null
-                        && "WillRecord".equals(card.program2.recordingStatus))
+                        && ("WillRecord".equals(card.program2.recordingStatus)
+                            || "Recording".equals(card.program2.recordingStatus)))
                     bgColor = COLOR_WILLRECORD;
                 else if (card.program.recordingStatus == null
                         && (card.program2 == null

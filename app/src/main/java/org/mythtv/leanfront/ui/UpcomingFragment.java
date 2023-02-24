@@ -41,7 +41,7 @@ import org.mythtv.leanfront.presenter.RecRuleCardView;
 public class UpcomingFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
 
     private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
-    private final int NUMBER_COLUMNS = 3;
+    private final int NUMBER_COLUMNS = 1;
 
     private ArrayObjectAdapter mGridAdapter;
     private boolean mLoadInProgress;
@@ -64,7 +64,7 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
         presenter.setNumberOfColumns(NUMBER_COLUMNS);
         setGridPresenter(presenter);
 
-        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_LARGE));
+        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_WIDE));
         setAdapter(mGridAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
@@ -130,7 +130,6 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
             RecordRule rule = new RecordRule().fromProgram(programNode);
             mGridAdapter.add(rule);
         }
-//        int size = mGridAdapter.size();
         while (mGridAdapter.size() % NUMBER_COLUMNS != 0)
             mGridAdapter.add(null);
     }

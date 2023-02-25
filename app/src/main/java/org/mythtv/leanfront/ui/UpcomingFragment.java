@@ -40,7 +40,7 @@ import org.mythtv.leanfront.presenter.RecRuleCardView;
 
 public class UpcomingFragment extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
 
-    private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
+    private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_NONE;
     private final int NUMBER_COLUMNS = 1;
 
     private ArrayObjectAdapter mGridAdapter;

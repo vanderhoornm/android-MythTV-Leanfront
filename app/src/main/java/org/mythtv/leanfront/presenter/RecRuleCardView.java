@@ -65,12 +65,14 @@ public class RecRuleCardView extends BaseCardView {
     public void updateUi(RecordRule card) {
         TextView cardText = findViewById(R.id.card_text);
         TextView statusText = findViewById(R.id.card_text_status);
+        if (cardText == null || statusText == null)
+            return;
         int bgColor = Color.DKGRAY;
         if (card == null) {
             cardText.setText(null);
             statusText.setText(null);
         }
-        else if (card.type == "Dummy_AddNew") {
+        else if ("Dummy_AddNew".equals(card.type)) {
             cardText.setText(getContext().getString(R.string.sched_addnew));
             bgColor = COLOR_CHANNEL;
         }

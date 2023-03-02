@@ -24,7 +24,6 @@
 
 package org.mythtv.leanfront.ui;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -831,7 +830,7 @@ public class MainFragment extends BrowseSupportFragment
                         if (rownum == getSelectedPosition())
                             startHeadersTransition(false);
                         else
-                            setSelectedPosition(rownum);
+                            setSelectedPosition(rownum, false);
                         return;
                     }
                     intent = new Intent(context, MainActivity.class);
@@ -850,7 +849,7 @@ public class MainFragment extends BrowseSupportFragment
                     if (rownum == getSelectedPosition())
                         startHeadersTransition(false);
                     else
-                        setSelectedPosition(rownum);
+                        setSelectedPosition(rownum, false);
                     return;
             }
             Bundle bundle =

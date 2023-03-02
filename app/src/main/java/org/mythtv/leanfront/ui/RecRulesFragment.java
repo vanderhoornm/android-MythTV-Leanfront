@@ -20,9 +20,9 @@
 package org.mythtv.leanfront.ui;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.OnItemViewClickedListener;
@@ -41,7 +41,7 @@ import org.mythtv.leanfront.presenter.RecRuleCardView;
 public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.OnBackendCallListener {
 
     private final int ZOOM_FACTOR = FocusHighlight.ZOOM_FACTOR_XSMALL;
-    private final int NUMBER_COLUMNS = 3;
+    private int numberColumns;
 
     private ArrayObjectAdapter mGridAdapter;
     private boolean mLoadInProgress;
@@ -50,15 +50,25 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        boolean isTelevision = getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+        if (isTelevision)
+            numberColumns = 3;
+        else
+            numberColumns = 1;
         setupAdapter();
     }
 
     private void setupAdapter() {
         VerticalGridPresenter presenter = new VerticalGridPresenter(ZOOM_FACTOR);
-        presenter.setNumberOfColumns(NUMBER_COLUMNS);
+        presenter.setNumberOfColumns(numberColumns);
         setGridPresenter(presenter);
 
-        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_SMALL));
+        int type;
+        if (numberColumns == 1)
+            type = RecRuleCardView.TYPE_WIDE;
+        else
+            type = RecRuleCardView.TYPE_SMALL;
+        mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(type));
         setAdapter(mGridAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
@@ -138,7 +148,7 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
             RecordRule rule = new RecordRule().fromSchedule(recRuleNode);
             mGridAdapter.add(rule);
         }
-        while (mGridAdapter.size() % NUMBER_COLUMNS != 0)
+        while (mGridAdapter.size() % numberColumns != 0)
             mGridAdapter.add(null);
     }
 

@@ -84,6 +84,10 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
             return;
         Intent intent = new Intent(getContext(), EditScheduleActivity.class);
         intent.putExtra(EditScheduleActivity.RECORDID, card.recordId);
+        intent.putExtra(EditScheduleActivity.STARTTIME, card.startTime);
+        intent.putExtra(EditScheduleActivity.STATION, card.station);
+        intent.putExtra(EditScheduleActivity.SUBTITLE, card.subtitle);
+        intent.putExtra(EditScheduleActivity.DESCRIPTION, card.description);
         mDoingUpdate = true;
         startActivity(intent);
     }

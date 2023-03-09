@@ -262,16 +262,26 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         Activity activity = getActivity();
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
-        if (mRecordRule.station != null)
-            dateTime.append(mRecordRule.station).append(' ');
-        dateTime.append(dayFormatter.format(mRecordRule.startTime))
-                .append(dateFormatter.format(mRecordRule.startTime)).append(' ')
-                .append(timeFormatter.format(mRecordRule.startTime));
+        String station = getActivity().getIntent().getStringExtra(EditScheduleActivity.STATION);
+        if (station == null)
+            station = mRecordRule.station;
+        if (station != null)
+            dateTime.append(station).append(' ');
+        Date startTime = (Date) getActivity().getIntent().getSerializableExtra(EditScheduleActivity.STARTTIME);
+        if (startTime == null)
+            startTime = mRecordRule.startTime;
+        dateTime.append(dayFormatter.format(startTime))
+                .append(dateFormatter.format(startTime)).append(' ')
+                .append(timeFormatter.format(startTime));
         StringBuilder details = new StringBuilder();
-        String subTitle = mRecordRule.subtitle;
+        String subTitle = getActivity().getIntent().getStringExtra(EditScheduleActivity.SUBTITLE);
+        if (subTitle == null)
+            subTitle = mRecordRule.subtitle;
         if (subTitle != null)
             details.append(subTitle).append("\n");
-        String desc = mRecordRule.description;
+        String desc = getActivity().getIntent().getStringExtra(EditScheduleActivity.DESCRIPTION);
+        if (desc == null)
+            desc = mRecordRule.description;
         if (desc != null)
             details.append(desc);
         Drawable icon = activity.getDrawable(R.drawable.ic_voicemail);

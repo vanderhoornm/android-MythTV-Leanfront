@@ -39,6 +39,7 @@ while (( "$#" >= 1 )) ; do
             ;;
         --db)
             filenames="$filenames databases/leanback.db databases/leanback.db-journal"
+            filenames="$filenames databases/leanback.db-wal databases/leanback.db-shm"
             ;;
         --settings)
             filenames="$filenames shared_prefs/org.mythtv.leanfront_preferences.xml"
@@ -94,6 +95,9 @@ EOF
         echo "File $fromdev:$filename pulled to $stage/$filename"
     fi
     if [[ $todev != "" ]] ; then
+        if [[ ! -f $stage/$filename ]] ; then
+            continue
+        fi
         adb -s $todev shell <<EOF
 mkdir -p $androidtemp
 EOF

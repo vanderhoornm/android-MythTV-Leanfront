@@ -6,6 +6,8 @@ todev=
 filename=
 app=org.mythtv.leanfront
 stage=/var/tmp/acopy
+vacuum=0
+db=0
 
 while (( "$#" >= 1 )) ; do
     case $1 in
@@ -40,6 +42,10 @@ while (( "$#" >= 1 )) ; do
         --db)
             filenames="$filenames databases/leanback.db databases/leanback.db-journal"
             filenames="$filenames databases/leanback.db-wal databases/leanback.db-shm"
+            db=1
+            ;;
+        --vacuum)
+            vacuum=1
             ;;
         --settings)
             filenames="$filenames shared_prefs/org.mythtv.leanfront_preferences.xml"
@@ -55,7 +61,8 @@ while (( "$#" >= 1 )) ; do
     shift||rc=$?
 done
 
-if [[ $fromdev == "" && $todev == "" || $filenames == "" || $error == y ]] ; then
+if [[ ( $fromdev == "" && $todev == "" || $filenames == "" )
+        && $vacuum == 0  || $error == y ]] ; then
     echo "Copy android files from one device to another or to PC"
     echo "$0 <options> files ..."
     echo "List of Options:"
@@ -65,6 +72,7 @@ if [[ $fromdev == "" && $todev == "" || $filenames == "" || $error == y ]] ; the
     echo "             the PC staging directory."
     echo "-a      xxx  application (default org.mythtv.leanfront)"
     echo "--db         Add leanfront database to list of files"
+    echo "--vacuum     Vacuum leanfront database. Requires sqlite3."
     echo "--settings   Add leanfront settings to list of files"
     echo "--stage /xxx Staging directory on this PC, default /var/tmp/acopy" 
     echo "Filenames are relative paths below the android app's directory."
@@ -72,7 +80,9 @@ if [[ $fromdev == "" && $todev == "" || $filenames == "" || $error == y ]] ; the
     echo "Required:"
     echo "    -f -t or both"
     echo "    --db, --settings, or at least one file name"
+    echo "    --vacuum can be supplied on its own or with the others"
     echo "Do not duplicate options. That may cause unexpected results."
+    echo "Option --vacuum is recommended if uploading a database."
     exit 2
 fi
 androidtemp=/data/local/tmp
@@ -84,17 +94,56 @@ fi
 if [[ $todev != "" ]] ; then
     adb connect $todev
 fi
-for filename in $filenames ; do
-    bname=$(basename "$filename")
-    dname=$(dirname "$filename")
-    if [[ $fromdev != "" ]] ; then
+
+if [[ $fromdev != "" ]] ; then
+    echo "Downloading data from $fromdev to $stage"
+    for filename in $filenames ; do
+        bname=$(basename "$filename")
+        dname=$(dirname "$filename")
         mkdir -p $stage/$dname
         adb -s $fromdev shell run-as $app<<EOF > $stage/$dname/$bname
 if [ -f $filename ] ; then cat $filename ; fi
 EOF
         echo "File $fromdev:$filename pulled to $stage/$filename"
+    done
+fi
+
+if [[ $todev != "" &&  $db == 1 && $vacuum == 0 ]] ; then
+    sizes=$(echo $(stat -c %s $stage/databases/leanback.db-*))
+    while [[ "$sizes" != "0 0 0" ]] ; do
+        ls -l $stage/databases/
+        echo "Database extra files may cause database failure"
+        echo "Would you like to fix this by running vacuum (Y|N)?"
+        read -e resp
+        if  [[ "$resp" == Y ]] ; then
+            vacuum=1
+            break;
+        elif  [[ "$resp" == N ]] ; then
+            break;
+        fi
+    done
+fi
+
+if (( vacuum )) ; then
+    echo "Vacuuming leanback.db"
+    sqlite3 $stage/databases/leanback.db 'VACUUM;'
+    rc=$?
+    if [[ "$rc" != 0 ]] ; then
+        echo "Vacuum failed rc=$rc"
+        exit $rc
     fi
-    if [[ $todev != "" ]] ; then
+    # recreate these files so that they are emptied in the destination
+    touch $stage/databases/leanback.db-journal
+    touch $stage/databases/leanback.db-wal
+    touch $stage/databases/leanback.db-shm
+    ls -l $stage/databases/
+fi
+
+if [[ $todev != "" ]] ; then
+    echo "Uploading data from $stage to $todev"
+    for filename in $filenames ; do
+        bname=$(basename "$filename")
+        dname=$(dirname "$filename")
         if [[ ! -f $stage/$filename ]] ; then
             continue
         fi
@@ -110,6 +159,6 @@ EOF
 rm -f $androidtemp/$bname
 EOF
         echo "File $stage/$filename pushed to $todev:$filename"
-    fi
-done
+    done
+fi
 adb disconnect

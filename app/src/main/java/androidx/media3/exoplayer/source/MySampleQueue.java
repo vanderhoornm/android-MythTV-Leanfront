@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.source;
+package androidx.media3.exoplayer.source;
 
-import static com.google.android.exoplayer2.source.SampleStream.FLAG_OMIT_SAMPLE_DATA;
-import static com.google.android.exoplayer2.source.SampleStream.FLAG_PEEK;
-import static com.google.android.exoplayer2.source.SampleStream.FLAG_REQUIRE_FORMAT;
-import static com.google.android.exoplayer2.util.Assertions.checkArgument;
-import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
+import static androidx.media3.common.util.Assertions.checkArgument;
+import static androidx.media3.common.util.Assertions.checkNotNull;
+import static androidx.media3.exoplayer.source.SampleStream.FLAG_OMIT_SAMPLE_DATA;
+import static androidx.media3.exoplayer.source.SampleStream.FLAG_PEEK;
+import static androidx.media3.exoplayer.source.SampleStream.FLAG_REQUIRE_FORMAT;
 import static java.lang.Math.max;
 
 import android.os.Looper;
@@ -27,31 +27,33 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.GuardedBy;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.FormatHolder;
-import com.google.android.exoplayer2.analytics.PlayerId;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer.InsufficientCapacityException;
-import com.google.android.exoplayer2.drm.DrmInitData;
-import com.google.android.exoplayer2.drm.DrmSession;
-import com.google.android.exoplayer2.drm.DrmSessionEventListener;
-import com.google.android.exoplayer2.drm.DrmSessionEventListener.EventDispatcher;
-import com.google.android.exoplayer2.drm.DrmSessionManager;
-import com.google.android.exoplayer2.drm.DrmSessionManager.DrmSessionReference;
-import com.google.android.exoplayer2.extractor.TrackOutput;
-import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
-import com.google.android.exoplayer2.upstream.Allocator;
-import com.google.android.exoplayer2.upstream.DataReader;
-import com.google.android.exoplayer2.util.Assertions;
-import com.google.android.exoplayer2.util.Log;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.ParsableByteArray;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.C;
+import androidx.media3.common.DataReader;
+import androidx.media3.common.DrmInitData;
+import androidx.media3.common.Format;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.Assertions;
+import androidx.media3.common.util.Log;
+import androidx.media3.common.util.ParsableByteArray;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.Util;
+import androidx.media3.decoder.DecoderInputBuffer;
+import androidx.media3.decoder.DecoderInputBuffer.InsufficientCapacityException;
+import androidx.media3.exoplayer.FormatHolder;
+import androidx.media3.exoplayer.analytics.PlayerId;
+import androidx.media3.exoplayer.drm.DrmSession;
+import androidx.media3.exoplayer.drm.DrmSessionEventListener;
+import androidx.media3.exoplayer.drm.DrmSessionEventListener.EventDispatcher;
+import androidx.media3.exoplayer.drm.DrmSessionManager;
+import androidx.media3.exoplayer.drm.DrmSessionManager.DrmSessionReference;
+import androidx.media3.exoplayer.source.SampleStream.ReadFlags;
+import androidx.media3.exoplayer.upstream.Allocator;
+import androidx.media3.extractor.TrackOutput;
 import java.io.IOException;
 //import org.checkerframework.checker.nullness.compatqual.NullableType;
 
 /** A queue of media samples. */
+@UnstableApi
 public class MySampleQueue implements TrackOutput {
 
   /** A listener for changes to the upstream format. */
@@ -573,10 +575,10 @@ public class MySampleQueue implements TrackOutput {
   // TrackOutput implementation. Called by the loading thread.
 
   @Override
-  public final void format(Format unadjustedUpstreamFormat) {
-    Format adjustedUpstreamFormat = getAdjustedUpstreamFormat(unadjustedUpstreamFormat);
+  public final void format(Format format) {
+    Format adjustedUpstreamFormat = getAdjustedUpstreamFormat(format);
     upstreamFormatAdjustmentRequired = false;
-    this.unadjustedUpstreamFormat = unadjustedUpstreamFormat;
+    unadjustedUpstreamFormat = format;
     boolean upstreamFormatChanged = setUpstreamFormat(adjustedUpstreamFormat);
     if (upstreamFormatChangeListener != null && upstreamFormatChanged) {
       upstreamFormatChangeListener.onUpstreamFormatChanged(adjustedUpstreamFormat);

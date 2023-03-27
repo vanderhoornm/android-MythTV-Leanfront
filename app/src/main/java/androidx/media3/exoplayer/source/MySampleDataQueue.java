@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.source;
+package androidx.media3.exoplayer.source;
 
 import static java.lang.Math.min;
 
 import androidx.annotation.Nullable;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.decoder.CryptoInfo;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer.InsufficientCapacityException;
-import com.google.android.exoplayer2.extractor.TrackOutput.CryptoData;
-import com.google.android.exoplayer2.source.MySampleQueue.SampleExtrasHolder;
-import com.google.android.exoplayer2.upstream.Allocation;
-import com.google.android.exoplayer2.upstream.Allocator;
-import com.google.android.exoplayer2.upstream.DataReader;
-import com.google.android.exoplayer2.util.Assertions;
-import com.google.android.exoplayer2.util.ParsableByteArray;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.C;
+import androidx.media3.common.DataReader;
+import androidx.media3.common.util.Assertions;
+import androidx.media3.common.util.ParsableByteArray;
+import androidx.media3.common.util.Util;
+import androidx.media3.decoder.CryptoInfo;
+import androidx.media3.decoder.DecoderInputBuffer;
+import androidx.media3.decoder.DecoderInputBuffer.InsufficientCapacityException;
+import androidx.media3.exoplayer.source.MySampleQueue.SampleExtrasHolder;
+import androidx.media3.exoplayer.upstream.Allocation;
+import androidx.media3.exoplayer.upstream.Allocator;
+import androidx.media3.extractor.TrackOutput.CryptoData;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;

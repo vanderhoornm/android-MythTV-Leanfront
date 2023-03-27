@@ -80,7 +80,6 @@ import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.CommBreakTable;
 import org.mythtv.leanfront.data.MythHttpDataSource;
-import org.mythtv.leanfront.data.SeekTable;
 import org.mythtv.leanfront.model.Playlist;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
@@ -89,32 +88,33 @@ import org.mythtv.leanfront.player.MyExtractorsFactory;
 import org.mythtv.leanfront.player.VideoPlayerGlue;
 import org.mythtv.leanfront.presenter.CardPresenter;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SeekParameters;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
-import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.TrackGroup;
+import androidx.media3.common.text.Cue;
+import androidx.media3.common.util.Util;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.ExoPlaybackException;
+import androidx.media3.exoplayer.SeekParameters;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer;
+import androidx.media3.ui.SubtitleView;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.mythtv.leanfront.ui.VideoDetailsActivity;
 
-import com.google.android.exoplayer2.source.MyProgressiveMediaSource;
-import com.google.android.exoplayer2.source.MySampleQueue;
-import com.google.android.exoplayer2.source.TrackGroup;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.text.Cue;
-import com.google.android.exoplayer2.text.SubtitleDecoderFactory;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
-import com.google.android.exoplayer2.ui.SubtitleView;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.exoplayer.source.TrackGroupArray;
+import androidx.media3.exoplayer.text.SubtitleDecoderFactory;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector;
+import androidx.media3.ui.leanback.LeanbackPlayerAdapter;
+
+import androidx.media3.exoplayer.source.MyProgressiveMediaSource;
+import androidx.media3.exoplayer.source.MySampleQueue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -199,7 +199,6 @@ public class PlaybackFragment extends VideoSupportFragment
     private ScheduledFuture<?> audioFixTask;
     private boolean isTV;
     private boolean isIncreasing;
-    private SeekTable seekTable;
     CommBreakTable commBreakTable = new CommBreakTable();
     int commBreakOption =  Settings.getInt("pref_commskip");
     public static final int COMMBREAK_OFF = 0;
@@ -814,10 +813,8 @@ public class PlaybackFragment extends VideoSupportFragment
         getFileLength(false);
         String userAgent = Util.getUserAgent(getActivity(), "VideoPlayerGlue");
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
-        seekTable = new SeekTable();
         commBreakTable = new CommBreakTable();
         MyExtractorsFactory extFactory = new MyExtractorsFactory();
-        extFactory.setSeekTable(seekTable);
         MyProgressiveMediaSource.Factory pmf = new MyProgressiveMediaSource.Factory
                 (mDsFactory,
                         extFactory);
@@ -1144,14 +1141,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private void fillTables() {
         AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
         call.setVideo(mVideo);
-        call.setSeekTable(seekTable);
         call.setCommBreakTable(commBreakTable);
-        if (seekTable != null
-                && "true".equals(Settings.getString("pref_use_seektablex")))
-            call.execute(Video.ACTION_CUTLIST_LOAD, Video.ACTION_COMMBREAK_LOAD,
-                    Video.ACTION_SEEK_DURATION, Video.ACTION_SEEK_BYTES, Video.ACTION_SEEK_LOAD);
-        else
-            call.execute(Video.ACTION_CUTLIST_LOAD, Video.ACTION_COMMBREAK_LOAD);
+        call.execute(Video.ACTION_CUTLIST_LOAD, Video.ACTION_COMMBREAK_LOAD);
     }
 
     @Override

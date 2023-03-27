@@ -13,51 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.source;
+package androidx.media3.exoplayer.source;
 
+import static androidx.media3.common.util.Assertions.checkNotNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import android.net.Uri;
 import android.os.Handler;
 import androidx.annotation.Nullable;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.C.DataType;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.FormatHolder;
-import com.google.android.exoplayer2.ParserException;
-import com.google.android.exoplayer2.SeekParameters;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
-import com.google.android.exoplayer2.drm.DrmSessionEventListener;
-import com.google.android.exoplayer2.drm.DrmSessionManager;
-import com.google.android.exoplayer2.extractor.Extractor;
-import com.google.android.exoplayer2.extractor.ExtractorOutput;
-import com.google.android.exoplayer2.extractor.PositionHolder;
-import com.google.android.exoplayer2.extractor.SeekMap;
-import com.google.android.exoplayer2.extractor.SeekMap.SeekPoints;
-import com.google.android.exoplayer2.extractor.SeekMap.Unseekable;
-import com.google.android.exoplayer2.extractor.TrackOutput;
-import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.icy.IcyHeaders;
-import com.google.android.exoplayer2.source.MySampleQueue.UpstreamFormatChangedListener;
-import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
-import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
-import com.google.android.exoplayer2.upstream.Allocator;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DataSourceUtil;
-import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
-import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy.LoadErrorInfo;
-import com.google.android.exoplayer2.upstream.Loader;
-import com.google.android.exoplayer2.upstream.Loader.LoadErrorAction;
-import com.google.android.exoplayer2.upstream.Loader.Loadable;
-import com.google.android.exoplayer2.upstream.StatsDataSource;
-import com.google.android.exoplayer2.util.Assertions;
-import com.google.android.exoplayer2.util.ConditionVariable;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.ParsableByteArray;
-import com.google.android.exoplayer2.util.Util;
-
+import androidx.media3.common.C;
+import androidx.media3.common.C.DataType;
+import androidx.media3.common.Format;
+import androidx.media3.common.Metadata;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.ParserException;
+import androidx.media3.common.TrackGroup;
+import androidx.media3.common.util.Assertions;
+import androidx.media3.common.util.ConditionVariable;
+import androidx.media3.common.util.ParsableByteArray;
+import androidx.media3.common.util.Util;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DataSourceUtil;
+import androidx.media3.datasource.DataSpec;
+import androidx.media3.datasource.StatsDataSource;
+import androidx.media3.decoder.DecoderInputBuffer;
+import androidx.media3.exoplayer.FormatHolder;
+import androidx.media3.exoplayer.SeekParameters;
+import androidx.media3.exoplayer.drm.DrmSessionEventListener;
+import androidx.media3.exoplayer.drm.DrmSessionManager;
+import androidx.media3.exoplayer.source.MySampleQueue.UpstreamFormatChangedListener;
+import androidx.media3.exoplayer.source.SampleStream.ReadFlags;
+import androidx.media3.exoplayer.trackselection.ExoTrackSelection;
+import androidx.media3.exoplayer.upstream.Allocator;
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy;
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy.LoadErrorInfo;
+import androidx.media3.exoplayer.upstream.Loader;
+import androidx.media3.exoplayer.upstream.Loader.LoadErrorAction;
+import androidx.media3.exoplayer.upstream.Loader.Loadable;
+import androidx.media3.extractor.Extractor;
+import androidx.media3.extractor.ExtractorOutput;
+import androidx.media3.extractor.PositionHolder;
+import androidx.media3.extractor.SeekMap;
+import androidx.media3.extractor.SeekMap.SeekPoints;
+import androidx.media3.extractor.SeekMap.Unseekable;
+import androidx.media3.extractor.TrackOutput;
+import androidx.media3.extractor.metadata.icy.IcyHeaders;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ import java.util.Map;
   private boolean seenFirstTrackSelection;
   private boolean notifyDiscontinuity;
   private int enabledTrackCount;
-  private long length;
+  private boolean isLengthKnown;
 
   private long lastSeekPositionUs;
   private long pendingResetPositionUs;
@@ -197,15 +198,13 @@ import java.util.Map;
     onContinueLoadingRequestedRunnable =
         () -> {
           if (!released) {
-            Assertions.checkNotNull(callback)
-                .onContinueLoadingRequested(MyProgressiveMediaPeriod.this);
+            checkNotNull(callback).onContinueLoadingRequested(MyProgressiveMediaPeriod.this);
           }
         };
     handler = Util.createHandlerForCurrentLooper();
     sampleQueueTrackIds = new TrackId[0];
     sampleQueues = new MySampleQueue[0];
     pendingResetPositionUs = C.TIME_UNSET;
-    length = C.LENGTH_UNSET;
     durationUs = C.TIME_UNSET;
     dataType = C.DATA_TYPE_MEDIA;
   }
@@ -371,7 +370,7 @@ import java.util.Map;
 
   @Override
   public long getNextLoadPositionUs() {
-    return enabledTrackCount == 0 ? C.TIME_END_OF_SOURCE : getBufferedPositionUs();
+    return getBufferedPositionUs();
   }
 
   @Override
@@ -387,8 +386,7 @@ import java.util.Map;
   @Override
   public long getBufferedPositionUs() {
     assertPrepared();
-    boolean[] trackIsAudioVideoFlags = trackState.trackIsAudioVideoFlags;
-    if (loadingFinished) {
+    if (loadingFinished || enabledTrackCount == 0) {
       return C.TIME_END_OF_SOURCE;
     } else if (isPendingReset()) {
       return pendingResetPositionUs;
@@ -398,14 +396,16 @@ import java.util.Map;
       // Ignore non-AV tracks, which may be sparse or poorly interleaved.
       int trackCount = sampleQueues.length;
       for (int i = 0; i < trackCount; i++) {
-        if (trackIsAudioVideoFlags[i] && !sampleQueues[i].isLastSampleQueued()) {
+        if (trackState.trackIsAudioVideoFlags[i]
+            && trackState.trackEnabledStates[i]
+            && !sampleQueues[i].isLastSampleQueued()) {
           largestQueuedTimestampUs =
               min(largestQueuedTimestampUs, sampleQueues[i].getLargestQueuedTimestampUs());
         }
       }
     }
     if (largestQueuedTimestampUs == Long.MAX_VALUE) {
-      largestQueuedTimestampUs = getLargestQueuedTimestampUs();
+      largestQueuedTimestampUs = getLargestQueuedTimestampUs(/* includeDisabledTracks= */ false);
     }
     return largestQueuedTimestampUs == Long.MIN_VALUE
         ? lastSeekPositionUs
@@ -541,7 +541,7 @@ import java.util.Map;
     for (MySampleQueue sampleQueue : sampleQueues) {
       sampleQueue.reset();
     }
-    Assertions.checkNotNull(callback).onContinueLoadingRequested(this);
+    checkNotNull(callback).onContinueLoadingRequested(this);
   }
 
   private boolean suppressRead() {
@@ -555,7 +555,8 @@ import java.util.Map;
       ExtractingLoadable loadable, long elapsedRealtimeMs, long loadDurationMs) {
     if (durationUs == C.TIME_UNSET && seekMap != null) {
       boolean isSeekable = seekMap.isSeekable();
-      long largestQueuedTimestampUs = getLargestQueuedTimestampUs();
+      long largestQueuedTimestampUs =
+          getLargestQueuedTimestampUs(/* includeDisabledTracks= */ true);
       durationUs =
           largestQueuedTimestampUs == Long.MIN_VALUE
               ? 0
@@ -582,9 +583,8 @@ import java.util.Map;
         /* trackSelectionData= */ null,
         /* mediaStartTimeUs= */ loadable.seekTimeUs,
         durationUs);
-    copyLengthFromLoader(loadable);
     loadingFinished = true;
-    Assertions.checkNotNull(callback).onContinueLoadingRequested(this);
+    checkNotNull(callback).onContinueLoadingRequested(this);
   }
 
   @Override
@@ -611,12 +611,11 @@ import java.util.Map;
         /* mediaStartTimeUs= */ loadable.seekTimeUs,
         durationUs);
     if (!released) {
-      copyLengthFromLoader(loadable);
       for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.reset();
       }
       if (enabledTrackCount > 0) {
-        Assertions.checkNotNull(callback).onContinueLoadingRequested(this);
+        checkNotNull(callback).onContinueLoadingRequested(this);
       }
     }
   }
@@ -628,7 +627,6 @@ import java.util.Map;
       long loadDurationMs,
       IOException error,
       int errorCount) {
-    copyLengthFromLoader(loadable);
     StatsDataSource dataSource = loadable.dataSource;
     LoadEventInfo loadEventInfo =
         new LoadEventInfo(
@@ -714,6 +712,10 @@ import java.util.Map;
 
   // Internal methods.
 
+  private void onLengthKnown() {
+    handler.post(() -> isLengthKnown = true);
+  }
+
   private TrackOutput prepareTrackOutput(TrackId id) {
     int trackCount = sampleQueues.length;
     for (int i = 0; i < trackCount; i++) {
@@ -737,7 +739,7 @@ import java.util.Map;
   private void setSeekMap(SeekMap seekMap) {
     this.seekMap = icyHeaders == null ? seekMap : new Unseekable(/* durationUs= */ C.TIME_UNSET);
     durationUs = seekMap.getDurationUs();
-    isLive = length == C.LENGTH_UNSET && seekMap.getDurationUs() == C.TIME_UNSET;
+    isLive = !isLengthKnown && seekMap.getDurationUs() == C.TIME_UNSET;
     dataType = isLive ? C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE : C.DATA_TYPE_MEDIA;
     listener.onSourceInfoRefreshed(durationUs, seekMap.isSeekable(), isLive);
     if (!prepared) {
@@ -794,7 +796,7 @@ import java.util.Map;
     TrackGroup[] trackArray = new TrackGroup[trackCount];
     boolean[] trackIsAudioVideoFlags = new boolean[trackCount];
     for (int i = 0; i < trackCount; i++) {
-      Format trackFormat = Assertions.checkNotNull(sampleQueues[i].getUpstreamFormat());
+      Format trackFormat = checkNotNull(sampleQueues[i].getUpstreamFormat());
       @Nullable String mimeType = trackFormat.sampleMimeType;
       boolean isAudio = MimeTypes.isAudio(mimeType);
       boolean isAudioVideo = isAudio || MimeTypes.isVideo(mimeType);
@@ -825,13 +827,7 @@ import java.util.Map;
     }
     trackState = new TrackState(new TrackGroupArray(trackArray), trackIsAudioVideoFlags);
     prepared = true;
-    Assertions.checkNotNull(callback).onPrepared(this);
-  }
-
-  private void copyLengthFromLoader(ExtractingLoadable loadable) {
-    if (length == C.LENGTH_UNSET) {
-      length = loadable.length;
-    }
+    checkNotNull(callback).onPrepared(this);
   }
 
   private void startLoading() {
@@ -846,7 +842,7 @@ import java.util.Map;
         return;
       }
       loadable.setLoadPosition(
-          Assertions.checkNotNull(seekMap).getSeekPoints(pendingResetPositionUs).first.position,
+          checkNotNull(seekMap).getSeekPoints(pendingResetPositionUs).first.position,
           pendingResetPositionUs);
       for (MySampleQueue sampleQueue : sampleQueues) {
         sampleQueue.setStartTimeUs(pendingResetPositionUs);
@@ -879,7 +875,7 @@ import java.util.Map;
    *     retry.
    */
   private boolean configureRetry(ExtractingLoadable loadable, int currentExtractedSampleCount) {
-    if (length != C.LENGTH_UNSET || (seekMap != null && seekMap.getDurationUs() != C.TIME_UNSET)) {
+    if (isLengthKnown || (seekMap != null && seekMap.getDurationUs() != C.TIME_UNSET)) {
       // We're playing an on-demand stream. Resume the current loadable, which will
       // request data starting from the point it left off.
       extractedSamplesCountAtStartOfLoad = currentExtractedSampleCount;
@@ -943,11 +939,13 @@ import java.util.Map;
     return extractedSamplesCount;
   }
 
-  private long getLargestQueuedTimestampUs() {
+  private long getLargestQueuedTimestampUs(boolean includeDisabledTracks) {
     long largestQueuedTimestampUs = Long.MIN_VALUE;
-    for (MySampleQueue sampleQueue : sampleQueues) {
-      largestQueuedTimestampUs =
-          max(largestQueuedTimestampUs, sampleQueue.getLargestQueuedTimestampUs());
+    for (int i = 0; i < sampleQueues.length; i++) {
+      if (includeDisabledTracks || checkNotNull(trackState).trackEnabledStates[i]) {
+        largestQueuedTimestampUs =
+            max(largestQueuedTimestampUs, sampleQueues[i].getLargestQueuedTimestampUs());
+      }
     }
     return largestQueuedTimestampUs;
   }
@@ -959,8 +957,8 @@ import java.util.Map;
   /*@EnsuresNonNull({"trackState", "seekMap"})*/
   private void assertPrepared() {
     Assertions.checkState(prepared);
-    Assertions.checkNotNull(trackState);
-    Assertions.checkNotNull(seekMap);
+    checkNotNull(trackState);
+    checkNotNull(seekMap);
   }
 
   // Peter
@@ -1019,7 +1017,6 @@ import java.util.Map;
     private boolean pendingExtractorSeek;
     private long seekTimeUs;
     private DataSpec dataSpec;
-    private long length;
     @Nullable private TrackOutput icyTrackOutput;
     private boolean seenIcyMetadata;
 
@@ -1037,7 +1034,6 @@ import java.util.Map;
       this.loadCondition = loadCondition;
       this.positionHolder = new PositionHolder();
       this.pendingExtractorSeek = true;
-      this.length = C.LENGTH_UNSET;
       loadTaskId = LoadEventInfo.getNewId();
       dataSpec = buildDataSpec(/* position= */ 0);
     }
@@ -1056,9 +1052,10 @@ import java.util.Map;
         try {
           long position = positionHolder.position;
           dataSpec = buildDataSpec(position);
-          length = dataSource.open(dataSpec);
+          long length = dataSource.open(dataSpec);
           if (length != C.LENGTH_UNSET) {
             length += position;
+            onLengthKnown();
           }
           icyHeaders = IcyHeaders.parse(dataSource.getResponseHeaders());
           DataSource extractorDataSource = dataSource;
@@ -1114,9 +1111,12 @@ import java.util.Map;
     public void onIcyMetadata(ParsableByteArray metadata) {
       // Always output the first ICY metadata at the start time. This helps minimize any delay
       // between the start of playback and the first ICY metadata event.
-      long timeUs = !seenIcyMetadata ? seekTimeUs : max(getLargestQueuedTimestampUs(), seekTimeUs);
+      long timeUs =
+          !seenIcyMetadata
+              ? seekTimeUs
+              : max(getLargestQueuedTimestampUs(/* includeDisabledTracks= */ true), seekTimeUs);
       int length = metadata.bytesLeft();
-      TrackOutput icyTrackOutput = Assertions.checkNotNull(this.icyTrackOutput);
+      TrackOutput icyTrackOutput = checkNotNull(this.icyTrackOutput);
       icyTrackOutput.sampleData(metadata, length);
       icyTrackOutput.sampleMetadata(
           timeUs, C.BUFFER_FLAG_KEY_FRAME, length, /* offset= */ 0, /* cryptoData= */ null);

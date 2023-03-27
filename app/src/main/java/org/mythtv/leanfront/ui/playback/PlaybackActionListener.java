@@ -39,11 +39,11 @@ import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.OnActionClickedListener;
 import androidx.leanback.widget.PlaybackControlsRow;
+import androidx.media3.common.C;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackParameters;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.source.MySampleQueue;
-import com.google.android.exoplayer2.util.MimeTypes;
+import androidx.media3.exoplayer.source.MySampleQueue;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.CommBreakTable;
@@ -216,7 +216,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     private void showCaptionSelector () {
         playbackFragment.hideControlsOverlay(false);
         PlaybackFragment.TrackInfo tracks
-                = new PlaybackFragment.TrackInfo(playbackFragment,C.TRACK_TYPE_TEXT);
+                = new PlaybackFragment.TrackInfo(playbackFragment, C.TRACK_TYPE_TEXT);
 
         ArrayList<String> prompts = new ArrayList<>();
         ArrayList<Integer> actions = new ArrayList<>();

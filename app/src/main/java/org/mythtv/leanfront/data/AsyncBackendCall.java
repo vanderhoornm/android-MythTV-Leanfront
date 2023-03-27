@@ -86,7 +86,6 @@ public class AsyncBackendCall implements Runnable {
     private RecordRule mRecordRule;
     private String mStringParameter;
     private ObjectAdapter rowAdapter;
-    private SeekTable seekTable;
     private CommBreakTable commBreakTable;
     private final static ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -220,10 +219,6 @@ public class AsyncBackendCall implements Runnable {
 
     public void setmValue(long mValue) {
         this.mValue = mValue;
-    }
-
-    public void setSeekTable(SeekTable seekTable) {
-        this.seekTable = seekTable;
     }
 
     public void setCommBreakTable(CommBreakTable commBreakTable) {
@@ -1051,13 +1046,6 @@ public class AsyncBackendCall implements Runnable {
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
-                    break;
-
-                case Video.ACTION_SEEK_LOAD:
-                    if (isRecording && seekTable != null)
-                        // This assumes that two calls have just been done,
-                        // for seek bytes and seek duration
-                        seekTable.load(this, mXmlResults.size()-2);
                     break;
 
                 case Video.ACTION_COMMBREAK_LOAD:

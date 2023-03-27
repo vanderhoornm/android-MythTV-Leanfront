@@ -40,8 +40,7 @@ import androidx.leanback.widget.PlaybackRowPresenter;
 import androidx.leanback.widget.PlaybackTransportRowPresenter;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.WidgetAccess;
-
-import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter;
+import androidx.media3.ui.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.Video;

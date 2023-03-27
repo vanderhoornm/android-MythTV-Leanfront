@@ -21,17 +21,16 @@ package org.mythtv.leanfront.player;
 
 import android.net.Uri;
 
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.extractor.Extractor;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
-import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-import com.google.android.exoplayer2.extractor.ts.MyTsExtractor;
-import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.TimestampAdjuster;
+import androidx.media3.common.Format;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.TimestampAdjuster;
+import androidx.media3.extractor.DefaultExtractorsFactory;
+import androidx.media3.extractor.Extractor;
+import androidx.media3.extractor.ExtractorsFactory;
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
+import androidx.media3.extractor.ts.TsExtractor;
+import androidx.media3.extractor.ts.TsPayloadReader;
 
-import org.mythtv.leanfront.data.SeekTable;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
@@ -41,14 +40,9 @@ import java.util.Map;
 public class MyExtractorsFactory implements ExtractorsFactory {
 
     private DefaultExtractorsFactory defaultFactory;
-    private SeekTable seekTable;
 
     public MyExtractorsFactory() {
         this.defaultFactory = new DefaultExtractorsFactory();
-    }
-
-    public void setSeekTable(SeekTable seekTable) {
-        this.seekTable = seekTable;
     }
 
     @Override
@@ -60,7 +54,7 @@ public class MyExtractorsFactory implements ExtractorsFactory {
 
     private void updateExtractors(Extractor[] exts) {
         for (int ix = 0; ix < exts.length; ix++) {
-            if (exts[ix] instanceof com.google.android.exoplayer2.extractor.ts.TsExtractor) {
+            if (exts[ix] instanceof TsExtractor) {
                 List<Format> closedCaptionFormats = new ArrayList<>();
                 closedCaptionFormats.add(
                         new Format.Builder()
@@ -76,12 +70,11 @@ public class MyExtractorsFactory implements ExtractorsFactory {
                         =  new DefaultTsPayloadReaderFactory(
                         0,
                         closedCaptionFormats);
-                MyTsExtractor ts = new MyTsExtractor(
-                        MyTsExtractor.MODE_SINGLE_PMT,
+                TsExtractor ts = new TsExtractor(
+                        TsExtractor.MODE_SINGLE_PMT,
                         new TimestampAdjuster(0),
                         payloadReaderFactory,
-                        Settings.getInt("pref_tweak_ts_search_pkts") * MyTsExtractor.TS_PACKET_SIZE);
-                ts.setSeekTable(seekTable);
+                        Settings.getInt("pref_tweak_ts_search_pkts") * TsExtractor.TS_PACKET_SIZE);
                 exts[ix] = ts;
             }
         }

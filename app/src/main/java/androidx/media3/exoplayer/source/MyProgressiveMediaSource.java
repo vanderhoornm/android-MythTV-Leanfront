@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.source;
+package androidx.media3.exoplayer.source;
 
-import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
+import static androidx.media3.common.util.Assertions.checkNotNull;
 
 import android.net.Uri;
 import android.os.Looper;
 import androidx.annotation.Nullable;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider;
-import com.google.android.exoplayer2.drm.DrmSessionManager;
-import com.google.android.exoplayer2.drm.DrmSessionManagerProvider;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.extractor.Extractor;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
-import com.google.android.exoplayer2.upstream.Allocator;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy;
-import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
-import com.google.android.exoplayer2.upstream.TransferListener;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Timeline;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.TransferListener;
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider;
+import androidx.media3.exoplayer.drm.DrmSessionManager;
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider;
+import androidx.media3.exoplayer.upstream.Allocator;
+import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy;
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy;
+import androidx.media3.extractor.DefaultExtractorsFactory;
+import androidx.media3.extractor.Extractor;
+import androidx.media3.extractor.ExtractorsFactory;
+//import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 /**
  * Provides one period that loads data from a {@link Uri} and extracted using an {@link Extractor}.
@@ -46,6 +48,7 @@ import com.google.android.exoplayer2.upstream.TransferListener;
  *
  * <p>Note that the built-in extractor for FLV streams does not support seeking.
  */
+@UnstableApi
 public final class MyProgressiveMediaSource extends BaseMediaSource
     implements MyProgressiveMediaPeriod.Listener {
 
@@ -153,6 +156,7 @@ public final class MyProgressiveMediaSource extends BaseMediaSource
       this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
     }
 
+//    @CanIgnoreReturnValue
     @Override
     public Factory setLoadErrorHandlingPolicy(LoadErrorHandlingPolicy loadErrorHandlingPolicy) {
       this.loadErrorHandlingPolicy =
@@ -174,11 +178,13 @@ public final class MyProgressiveMediaSource extends BaseMediaSource
      *     MediaPeriod.Callback#onContinueLoadingRequested(SequenceableLoader)}.
      * @return This factory, for convenience.
      */
+//    @CanIgnoreReturnValue
     public Factory setContinueLoadingCheckIntervalBytes(int continueLoadingCheckIntervalBytes) {
       this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
       return this;
     }
 
+//    @CanIgnoreReturnValue
     @Override
     public Factory setDrmSessionManagerProvider(
         DrmSessionManagerProvider drmSessionManagerProvider) {
@@ -221,7 +227,7 @@ public final class MyProgressiveMediaSource extends BaseMediaSource
     }
 
     @Override
-    public int[] getSupportedTypes() {
+    public @C.ContentType int[] getSupportedTypes() {
       return new int[] {C.CONTENT_TYPE_OTHER};
     }
   }

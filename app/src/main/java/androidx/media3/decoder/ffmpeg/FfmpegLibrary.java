@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.ext.ffmpeg;
+package androidx.media3.decoder.ffmpeg;
 
 import androidx.annotation.Nullable;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
-import com.google.android.exoplayer2.util.LibraryLoader;
-import com.google.android.exoplayer2.util.Log;
-import com.google.android.exoplayer2.util.MimeTypes;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaLibraryInfo;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.LibraryLoader;
+import androidx.media3.common.util.Log;
+import androidx.media3.common.util.UnstableApi;
 //import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /** Configures and queries the underlying native library. */
+@UnstableApi
 public final class FfmpegLibrary {
 
   static {
-    ExoPlayerLibraryInfo.registerModule("goog.exo.ffmpeg");
+    MediaLibraryInfo.registerModule("media3.decoder.ffmpeg");
   }
 
   private static final String TAG = "FfmpegLibrary";
@@ -40,7 +42,7 @@ public final class FfmpegLibrary {
         }
       };
 
-  private static /*@MonotonicNonNull*/ String version;
+  private static /* @MonotonicNonNull */String version;
   private static int inputBufferPaddingSize = C.LENGTH_UNSET;
 
   private FfmpegLibrary() {}

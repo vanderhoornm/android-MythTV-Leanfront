@@ -127,11 +127,6 @@
         Enable if playback sometimes starts with audio out of sync.
         This will cause a brief audio pause.
     </string>
-    <string name="pref_use_seektable">Use MythTV Seek Table</string>
-    <string name="pref_use_seektable_desc">
-        Use MythTV seek table to speed up forward and backward skips.
-        Disable this if you have problems skipping.
-    </string>
     <string name="pref_autoplay">Autoplay</string>
     <string name="pref_autoplay_desc">At the end of playback automatically start the next video or episode.</string>
     <string name="pref_captions">Caption number to enable</string>
@@ -448,7 +443,6 @@
     <string name="sdef_audio_sync" translatable="false">0</string>
     <string name="sdef_captions" translatable="false">0</string>
     <string name="sdef_notes_version" translatable="false">0</string>
-    <string name="sdef_use_seektablex" translatable="false">false</string>
     <!-- 0=off, 1=notify, 2=skip   -->
     <string name="sdef_commskip" translatable="false">0</string>
     <!--  Number of seconds to add to start or end times  -->

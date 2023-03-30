@@ -151,7 +151,9 @@ public class GuideSlot {
                 subTitle = programNode.getString("SubTitle");
                 season = programNode.getInt("Season",0);
                 episode = programNode.getInt("Episode",0);
-                recordingStatus = programNode.getNode("Recording").getString("Status");
+                recordingStatus = programNode.getNode("Recording").getString("StatusName");
+                if (recordingStatus == null)
+                    recordingStatus = programNode.getNode("Recording").getString("Status");
                 if ("Unknown".equals(recordingStatus))
                     recordingStatus = null; // save storage
             } catch (Exception e) {

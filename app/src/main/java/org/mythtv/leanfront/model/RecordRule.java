@@ -114,7 +114,9 @@ public class RecordRule {
         episode = programNode.getInt("Episode",0);
         inetref = programNode.getString("Inetref");
         recordId = programNode.getNode("Recording").getInt("RecordId",0);
-        recordingStatus = programNode.getNode("Recording").getString("Status");
+        recordingStatus = programNode.getNode("Recording").getString("StatusName");
+        if (recordingStatus == null)
+            recordingStatus = programNode.getNode("Recording").getString("Status");
         if ("Unknown".equals(recordingStatus))
             recordingStatus = null; // save storage
         encoderName = programNode.getNode("Recording").getString("EncoderName");

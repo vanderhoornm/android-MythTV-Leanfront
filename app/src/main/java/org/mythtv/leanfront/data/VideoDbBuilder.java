@@ -353,6 +353,15 @@ public class VideoDbBuilder {
                 description = " ";
 
             String titlematch = title.toUpperCase(Locale.ROOT);
+
+            // Videos without subtitle - use directory name as the title
+            // for matching and grouping.
+            if (rectype == VideoContract.VideoEntry.RECTYPE_VIDEO && (subtitle.equals(" "))) {
+                int pos = dbFileName.lastIndexOf('/');
+                if (pos >= 0)
+                    titlematch = dbFileName.substring(0, pos + 1).toUpperCase();
+            }
+
             for (String article : articles) {
                 if (article != null && article.length() > 0) {
                     titlematch = titlematch.replaceFirst("^" + article + " ", "");

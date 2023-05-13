@@ -111,7 +111,7 @@ public class AsyncMainLoader implements Runnable {
         try {
             runTasks();
         } catch (Throwable e) {
-            e.printStackTrace();
+            Log.e(TAG, CLASS + " AsyncMainLoader.run exception",e);
         }
         finally {
             activity.runOnUiThread(() -> mainFragment.onAsyncLoadFinished(this, categoryList));
@@ -127,7 +127,7 @@ public class AsyncMainLoader implements Runnable {
             buildRows(csr);
             csr.close();
         } catch (Exception ex) {
-            Log.e(TAG, CLASS + " doInBackground exception",ex);
+            Log.e(TAG, CLASS + " AsyncMainLoader.runTasks exception",ex);
         }
     }
 
@@ -462,7 +462,8 @@ public class AsyncMainLoader implements Runnable {
                     itemType = TYPE_VIDEO;
                 else
                     itemType = TYPE_VIDEODIR;
-                if (itemType == TYPE_VIDEODIR && Objects.equals(itemname, currentItem)) {
+                if (itemType == TYPE_VIDEODIR && Objects.equals(itemname, currentItem)
+                        && (Objects.equals(dirname,currentCategoryMatch) || mType == TYPE_TOPLEVEL)) {
                     itemType = TYPE_VIDEO;
                     addToRow = false;
                 } else

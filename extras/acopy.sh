@@ -88,10 +88,10 @@ fi
 androidtemp=/data/local/tmp
 set -e
 mkdir -p $stage
-if [[ $fromdev != "" ]] ; then
+if [[ $fromdev != "" && $fromdev != emulator* ]] ; then
     adb connect $fromdev
 fi
-if [[ $todev != "" ]] ; then
+if [[ $todev != "" && $todev != emulator* ]] ; then
     adb connect $todev
 fi
 

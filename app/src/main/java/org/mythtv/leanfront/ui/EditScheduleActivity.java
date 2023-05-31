@@ -49,9 +49,6 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
     public static final String RECORDID = "RECORDID";
     public static final String SEARCHTYPE = "SEARCHTYPE";
     public static final int SEARCH_MANUAL = 1;
-    public static final String STATION = "STATION";
-    public static final String SUBTITLE = "SUBTITLE";
-    public static final String DESCRIPTION = "DESCRIPTION";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,18 +58,11 @@ public class EditScheduleActivity extends FragmentActivity implements AsyncBacke
         searchType = getIntent().getIntExtra(SEARCHTYPE,0);
         AsyncBackendCall call = new AsyncBackendCall(this,this);
         int firstCall;
-        if (mRecordId != 0) {
-            // Updating existing recording
-            firstCall = Video.ACTION_DUMMY;
-        }
-        else if (chanId != 0 && startTime != null) {
+        if (chanId != 0 && startTime != null) {
             // Creating from program schedule
             call.setId(chanId);
             call.setStartTime(startTime);
             firstCall = Video.ACTION_GETPROGRAMDETAILS;
-//        } else if (mRecordId != 0) {
-//            // Updating existing recording
-//            firstCall = Video.ACTION_DUMMY;
         } else {
             // New Recording - searchType currently only manual.
             firstCall = Video.ACTION_DUMMY;

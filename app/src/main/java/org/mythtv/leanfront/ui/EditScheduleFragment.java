@@ -151,8 +151,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             mProgDetails = new RecordRule();
             ((CreateManualSchedule)priorStep).setManualParms(mProgDetails);
         }
-        // New recording from program guide
-        else if (mRecordId == 0) {
+        // Recording from program guide
+        else {
             XmlNode progDetailsNode = mDetailsList.get(0); // ACTION_GETPROGRAMDETAILS
             if (progDetailsNode != null) {
                 mProgDetails = new RecordRule().fromProgram(progDetailsNode);
@@ -183,8 +183,6 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                     .show();
             mRecordRule = new RecordRule().mergeTemplate(defaultTemplate);
         }
-        if (mProgDetails != null)
-            mRecordRule.mergeProgram(mProgDetails);
         if (mRecordRule.type == null)
             mRecordRule.type = "Not Recording";
         if (mRecordRule.startTime == null)
@@ -199,6 +197,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                     break;
             }
         }
+        if (mProgDetails != null && mRecordRule.searchType.equals("None"))
+            mRecordRule.mergeProgram(mProgDetails);
 
         // Lists
         mPlayGroupList = XmlNode.getStringList(mDetailsList.get(2)); // ACTION_GETPLAYGROUPLIST
@@ -262,26 +262,17 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         Activity activity = getActivity();
         String title = mRecordRule.title;
         StringBuilder dateTime = new StringBuilder();
-        String station = getActivity().getIntent().getStringExtra(EditScheduleActivity.STATION);
-        if (station == null)
-            station = mRecordRule.station;
-        if (station != null)
-            dateTime.append(station).append(' ');
-        Date startTime = (Date) getActivity().getIntent().getSerializableExtra(EditScheduleActivity.STARTTIME);
-        if (startTime == null)
-            startTime = mRecordRule.startTime;
-        dateTime.append(dayFormatter.format(startTime))
-                .append(dateFormatter.format(startTime)).append(' ')
-                .append(timeFormatter.format(startTime));
+
+        if (mRecordRule.station != null)
+            dateTime.append(mRecordRule.station).append(' ');
+        dateTime.append(dayFormatter.format(mRecordRule.startTime))
+                .append(dateFormatter.format(mRecordRule.startTime)).append(' ')
+                .append(timeFormatter.format(mRecordRule.startTime));
         StringBuilder details = new StringBuilder();
-        String subTitle = getActivity().getIntent().getStringExtra(EditScheduleActivity.SUBTITLE);
-        if (subTitle == null)
-            subTitle = mRecordRule.subtitle;
+        String subTitle = mRecordRule.subtitle;
         if (subTitle != null)
             details.append(subTitle).append("\n");
-        String desc = getActivity().getIntent().getStringExtra(EditScheduleActivity.DESCRIPTION);
-        if (desc == null)
-            desc = mRecordRule.description;
+        String desc = mRecordRule.description;
         if (desc != null)
             details.append(desc);
         Drawable icon = activity.getDrawable(R.drawable.ic_voicemail);
@@ -358,10 +349,11 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         }
         else {
             boolean hasChannel = (mRecordRule.station != null);
-            boolean isManual = "Manual Search".equalsIgnoreCase(mRecordRule.searchType);
+            final boolean isManual = "Manual Search".equalsIgnoreCase(mRecordRule.searchType);
+            final boolean isSearch = ! "None".equalsIgnoreCase(mRecordRule.searchType);
             typePrompts.add(R.string.sched_type_not);
             typeOptions.add("Not Recording");
-            if (hasChannel) {
+            if (hasChannel && !isSearch) {
                 typePrompts.add(R.string.sched_type_this);
                 typeOptions.add("Single Record");
             }
@@ -369,7 +361,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                 typePrompts.add(R.string.sched_type_one);
                 typeOptions.add("Record One");
             }
-            if (!hasChannel || isManual) {
+            if (!hasChannel || isManual  || isSearch) {
                 typePrompts.add(R.string.sched_type_weekly);
                 typeOptions.add("Record Weekly");
                 typePrompts.add(R.string.sched_type_daily);

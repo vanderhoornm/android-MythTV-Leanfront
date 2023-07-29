@@ -46,7 +46,7 @@ public class RecommendationReceiver extends BroadcastReceiver {
     private void scheduleRecommendationUpdate(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent recommendationIntent = new Intent(context, UpdateRecommendationsService.class);
-        PendingIntent alarmIntent = PendingIntent.getService(context, 0, recommendationIntent, 0);
+        PendingIntent alarmIntent = PendingIntent.getService(context, 0, recommendationIntent,  PendingIntent.FLAG_IMMUTABLE);
 
         alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, INITIAL_DELAY,
                 AlarmManager.INTERVAL_HALF_HOUR, alarmIntent);

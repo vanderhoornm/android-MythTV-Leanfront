@@ -1016,7 +1016,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             final long finalNewPosition = newPosition;
             switch (playbackFragment.commBreakOption) {
                 case PlaybackFragment.COMMBREAK_SKIP:
-                    playbackFragment.mPlayerGlue.setEnableControls(false);
+                    // Uncomment this To Hide controls while skipping commercials
+//                    playbackFragment.mPlayerGlue.setEnableControls(false);
+                    // Comment this To Hide controls while skipping commercials
+                    playbackFragment.tickle(false,false);
                     playbackFragment.mPlayerGlue.seekTo(newPosition);
                     comskipToast(-2);
                     break;
@@ -1037,7 +1040,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                                                     if (playbackFragment.mPlayerGlue.getCurrentPosition()
                                                             < finalNewPosition) {
                                                         // controls will be re-enabled by onEndCommBreak
-                                                        playbackFragment.mPlayerGlue.setEnableControls(false);
+                                                        // Uncomment this To Hide controls while skipping commercials
+//                                                        playbackFragment.mPlayerGlue.setEnableControls(false);
+                                                        // Comment this To Hide controls while skipping commercials
+                                                        playbackFragment.tickle(false,false);
                                                         dialogDismiss.enableControls = false;
                                                         playbackFragment.mPlayerGlue.seekTo(finalNewPosition);
                                                     }
@@ -1087,7 +1093,10 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     public void onEndCommBreak() {
         dismissDialog();
         playbackFragment.mPlayerGlue.setEnableControls(true);
-        playbackFragment.hideControlsOverlay(true);
+        // Uncomment this To Hide controls while skipping commercials
+//        playbackFragment.hideControlsOverlay(true);
+        // Comment this To Hide controls while skipping commercials
+        playbackFragment.setControlsOverlayAutoHideEnabled(true);
     }
 
     // Gestures

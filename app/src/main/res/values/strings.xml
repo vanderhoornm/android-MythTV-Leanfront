@@ -73,7 +73,6 @@
 <!--    for backward compatibility-->
     <string name="pref_bookmark_mythtv">If Unchecked, Store in MythTV</string>
     <string name="pref_bookmark_local">Store Last Play Position in Android</string>
-    <string name="all_plus_tab">All&#9;</string>
     <string name="pref_title_skip_fwd">Skip Forward Seconds</string>
     <string name="pref_title_playback">Playback: %1$s</string>
     <string name="pref_title_skip_back">Skip Back Seconds</string>

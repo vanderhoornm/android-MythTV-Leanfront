@@ -67,6 +67,7 @@ import androidx.leanback.widget.DetailsOverviewLogoPresenter;
 import androidx.leanback.widget.DetailsOverviewRow;
 import androidx.leanback.widget.FullWidthDetailsOverviewRowPresenter;
 import androidx.leanback.widget.FullWidthDetailsOverviewSharedElementHelper;
+import androidx.leanback.widget.GuidedAction;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
@@ -84,11 +85,13 @@ import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -100,6 +103,7 @@ import com.bumptech.glide.request.transition.Transition;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.BackendCache;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Settings;
@@ -163,6 +167,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private ScrollSupport scrollSupport;
     private boolean isTV;
     private boolean actionInitialSelect;
+    private ArrayList<String> mRecGroupList;
+    private String mNewValueText;
+//    private boolean canUpdateRecGroup = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -202,6 +209,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             // When a Related Video item is clicked.
             setOnItemViewClickedListener(itemViewClickedListener);
             setOnItemViewSelectedListener(itemViewSelectedListener);
+
+//            canUpdateRecGroup = BackendCache.getInstance().canUpdateRecGroup;
+//            canUpdateRecGroup = false;
+//            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+//            call.execute(Video.ACTION_DVR_WSDL);
         }
     }
 
@@ -427,7 +439,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 prompts.add(getString(R.string.menu_stop_recording));
                 actions.add(new Action(Video.ACTION_STOP_RECORDING));
                 break;
-
             case Video.ACTION_STOP_RECORDING:
                 if (mSelectedVideo.recordedid != null) {
                     // Terminate a recording that may be a scheduled event
@@ -437,6 +448,45 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     call.execute(Video.ACTION_STOP_RECORDING,
                                     Video.ACTION_PAUSE,
                                     Video.ACTION_REFRESH);
+                }
+                break;
+            case Video.ACTION_GETRECGROUPLIST:
+                call = new AsyncBackendCall(getActivity(), this);
+                call.execute(Video.ACTION_GETRECGROUPLIST);
+                break;
+            case Video.ACTION_QUERY_UPDATE_RECGROUP:
+                alertTitle = getString(R.string.menu_update_recgrp);
+                prompts = (ArrayList<String>) mRecGroupList.clone();
+                prompts.add(getString(R.string.sched_new_entry));
+                final ArrayList<String> groups = prompts;
+                AlertDialog.Builder listBbuilder = new AlertDialog.Builder(getActivity(),
+                        R.style.Theme_AppCompat_Dialog_Alert);
+                listBbuilder
+                        .setTitle(alertTitle)
+                        .setItems(groups.toArray(new String[0]),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
+                                        // Last item in the list is "Create
+                                        if (which == groups.size() - 1) {
+                                            mNewValueText="";
+                                            promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP);
+                                        } else {
+                                            mNewValueText = groups.get(which);
+                                            onActionClicked(new Action(Video.ACTION_UPDATE_RECGROUP));
+                                        }
+                                    }
+                                });
+                listBbuilder.show();
+
+                break;
+            case Video.ACTION_UPDATE_RECGROUP:
+                if (mSelectedVideo.recordedid != null && mNewValueText.length() > 0) {
+                    call = new AsyncBackendCall(getActivity(), this);
+                    call.setVideo((mSelectedVideo));
+                    call.setStringParameter(mNewValueText);
+                    call.execute(Video.ACTION_UPDATE_RECGROUP);
                 }
                 break;
             case Video.ACTION_CANCEL:
@@ -505,6 +555,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     }
                     prompts.add(getString(R.string.menu_rerecord));
                     actions.add(new Action(Video.ACTION_ALLOW_RERECORD));
+                    if (BackendCache.getInstance().canUpdateRecGroup) {
+                        prompts.add(getString(R.string.menu_update_recgrp));
+                        actions.add(new Action(Video.ACTION_GETRECGROUPLIST));
+                    }
                 }
                 if (mWatched) {
                     prompts.add(getString(R.string.menu_mark_unwatched));
@@ -563,6 +617,31 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                             });
             builder.show();
         }
+    }
+
+    private void promptForNewValue(int msgid, int nextId) {
+        mNewValueText = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(msgid);
+        EditText input = new EditText(getContext());
+        input.setText(mNewValueText);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mNewValueText = input.getText().toString();
+                onActionClicked(new Action(nextId));
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
     }
 
 
@@ -914,6 +993,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         if (taskRunner == null)
             return;
         int [] tasks = taskRunner.getTasks();
+        XmlNode xml = taskRunner.getXmlResult();
         switch (tasks[0]) {
             case Video.ACTION_LIVETV:
                 setProgressBar(false);
@@ -954,7 +1034,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 startActivity(intent);
                 break;
             case Video.ACTION_ALLOW_RERECORD:
-                XmlNode xml = taskRunner.getXmlResult();
                 if (xml != null && "true".equals(xml.getString())) {
                     Toast.makeText(getContext(),R.string.msg_allowed_rerecord, Toast.LENGTH_LONG)
                             .show();
@@ -967,7 +1046,21 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     builder.show();
                 }
                 break;
-
+            case Video.ACTION_GETRECGROUPLIST:
+                mRecGroupList = XmlNode.getStringList(xml); // ACTION_GETRECGROUPLIST
+                onActionClicked(new Action(Video.ACTION_QUERY_UPDATE_RECGROUP));
+                break;
+//            case Video.ACTION_DVR_WSDL:
+//                // Check if the UpdateRecordedMetadata method takes the RecGroup parameter
+//                XmlNode  recGroupNode = xml.getNode(new String[]{"types", "schema"}, 1);
+//                if (recGroupNode != null)
+//                    recGroupNode = recGroupNode.getNode
+//                            (new String[]{"UpdateRecordedMetadata", "complexType", "sequence", "RecGroup"},0);
+//                if (recGroupNode !=null)
+//                    canUpdateRecGroup = true;
+//                else
+//                    canUpdateRecGroup = false;
+//                break;
             default:
                 // Assume ACTION_REFRESH was in the list
                 if (context == null)

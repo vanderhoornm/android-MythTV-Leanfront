@@ -43,6 +43,7 @@ import androidx.leanback.widget.WidgetAccess;
 import androidx.media3.ui.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.BackendCache;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainFragment;
 
@@ -176,7 +177,7 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             adapter.add(mSkipNextAction);
         adapter.add(mSpeedAction);
         adapter.add(mMenuAction);
-        if (MainFragment.supportLastPlayPos)
+        if (BackendCache.getInstance().supportLastPlayPos)
             adapter.add(mBookmarkAction);
         adapter.add(mCommSkipAction);
     }

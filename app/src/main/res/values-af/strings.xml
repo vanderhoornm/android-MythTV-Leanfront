@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Stop Regstreekse TV</string>
   <string name="menu_dont_stop_livetv">Moenie ophou regstreekse TV nie</string>
   <string name="menu_remove_from_recent">Verwyder van lys wat onlangs bekyk is</string>
+  <string name="menu_update_recgrp">Dateer opnamegroep op</string>
   <string name="msg_wake_backend">Geen backend-verbinding nie, het wekboodskap gestuur.</string>
   <string name="msg_subtitle_on">Onderskrif %1$s geaktiveer.</string>
   <string name="msg_subtitle_notsupp">Fout: Onderskriftipe %1$s word nie ondersteun nie.</string>

@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Zastavit živé televizní vysílání</string>
   <string name="menu_dont_stop_livetv">Nepřestávejte živé televizní vysílání</string>
   <string name="menu_remove_from_recent">Odebrat ze seznamu naposledy zobrazených</string>
+  <string name="menu_update_recgrp">Aktualizovat záznamovou skupinu</string>
   <string name="msg_wake_backend">Žádné backendové připojení, odeslána zpráva pro probuzení.</string>
   <string name="msg_subtitle_on">Titulky %1$s povoleny.</string>
   <string name="msg_subtitle_notsupp">Chyba: Typ titulků %1$s není podporován.</string>

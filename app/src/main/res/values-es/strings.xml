@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Detener la televisión en vivo</string>
   <string name="menu_dont_stop_livetv">No pares la televisión en vivo</string>
   <string name="menu_remove_from_recent">Eliminar de la lista de vistos recientemente</string>
+  <string name="menu_update_recgrp">Actualizar grupo de grabación</string>
   <string name="msg_wake_backend">No hay conexión de backend, se envió un mensaje de activación.</string>
   <string name="msg_subtitle_on">Subtítulo %1$s habilitado.</string>
   <string name="msg_subtitle_notsupp">Error: el tipo de subtítulo %1$s no es compatible.</string>

@@ -101,8 +101,6 @@ public class AsyncBackendCall implements Runnable {
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncBackendCall";
 
-    private static long mTimeAdjustment = 0;
-    private static int mythTvVersion;
 
     public AsyncBackendCall(@Nullable Activity activity, @Nullable OnBackendCallListener listener) {
         this.activity = activity;
@@ -140,7 +138,6 @@ public class AsyncBackendCall implements Runnable {
     public void setPosLastPlay(long posLastPlay) {
         this.mPosLastPlay = posLastPlay;
     }
-
     public long getFileLength() {
         return mFileLength;
     }
@@ -214,7 +211,8 @@ public class AsyncBackendCall implements Runnable {
     }
 
     public static int getMythTvVersion() {
-        return mythTvVersion;
+        BackendCache bCache = BackendCache.getInstance();
+        return bCache.mythTvVersion;
     }
 
     public void setmValue(long mValue) {
@@ -258,6 +256,7 @@ public class AsyncBackendCall implements Runnable {
     }
 
     private void runTasks() {
+        BackendCache bCache = BackendCache.getInstance();
         mTasks = new int[inTasks.length];
         Context context = MyApplication.getAppContext();
         HttpURLConnection urlConnection = null;
@@ -348,7 +347,7 @@ public class AsyncBackendCall implements Runnable {
                         String pref = Settings.getString("pref_bookmark");
                         // If no local bookmark was found look for one on MythTV
                         if (mLastPlay <= 0 && ("mythtv".equals(pref) || "auto".equals(pref))
-                                && MainFragment.supportLastPlayPos) {
+                                && bCache.supportLastPlayPos) {
                             long[] playNPos = fetchBookmark("GetLastPlayPos");
                             mLastPlay = playNPos[0];
                             mPosLastPlay = playNPos[1];
@@ -450,7 +449,7 @@ public class AsyncBackendCall implements Runnable {
                     try {
                         found = false;
                         String method;
-                        if (MainFragment.supportLastPlayPos)
+                        if (bCache.supportLastPlayPos)
                             method = "SetLastPlayPos";
                         else
                             method = "SetSavedBookmark";
@@ -527,6 +526,22 @@ public class AsyncBackendCall implements Runnable {
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         if (context != null)
                             MainFragment.startFetch(type, mVideo.recordedid, null);
+                    } catch (IOException | XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case Video.ACTION_UPDATE_RECGROUP:
+                    try {
+                        int type;
+                        if (isRecording) {
+                            urlString = XmlNode.mythApiUrl(mVideo.hostname,
+                                    "/Dvr/UpdateRecordedMetadata?RecordedId="
+                                            + mVideo.recordedid + "&RecGroup=" + mStringParameter);
+                            type = VideoContract.VideoEntry.RECTYPE_RECORDING;
+                            xmlResult = XmlNode.fetch(urlString, "POST");
+                            if (context != null)
+                                MainFragment.startFetch(type, mVideo.recordedid, null);
+                        }
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -613,7 +628,7 @@ public class AsyncBackendCall implements Runnable {
                     mVideo = null;
                     try {
                         // Get values needed to set up recording
-                        Date startTime = new Date(System.currentTimeMillis() + mTimeAdjustment);
+                        Date startTime = new Date(System.currentTimeMillis() + bCache.mTimeAdjustment);
                         // 3 hours
                         String pref = Settings.getString("pref_livetv_duration");
                         int duration = 60;
@@ -781,10 +796,10 @@ public class AsyncBackendCall implements Runnable {
                         if (version != null) {
                             int period = version.indexOf('.');
                             if (period > 0) {
-                                mythTvVersion = Integer.parseInt(version.substring(0, period));
-                                if (mythTvVersion == 0 && period == 1)
+                                bCache.mythTvVersion = Integer.parseInt(version.substring(0, period));
+                                if (bCache.mythTvVersion == 0 && period == 1)
                                     // For versions like 0.24
-                                    mythTvVersion = Integer.parseInt(version.substring(2,4));
+                                    bCache.mythTvVersion = Integer.parseInt(version.substring(2,4));
                             }
                         }
                         String dateStr = xmlResult.getAttribute("ISODate");
@@ -792,8 +807,8 @@ public class AsyncBackendCall implements Runnable {
                             SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
                             try {
                                 Date backendTime = dbFormat.parse(dateStr + "+0000");
-                                mTimeAdjustment = backendTime.getTime() - System.currentTimeMillis();
-                                Log.i(TAG, CLASS + " Time difference " + mTimeAdjustment + " milliseconds");
+                                bCache.mTimeAdjustment = backendTime.getTime() - System.currentTimeMillis();
+                                Log.i(TAG, CLASS + " Time difference " + bCache.mTimeAdjustment + " milliseconds");
                             } catch (ParseException e) {
                                 Log.e(TAG, CLASS + " Exception getting backend time " + urlString, e);
                             }
@@ -818,10 +833,10 @@ public class AsyncBackendCall implements Runnable {
                         }
                     }
                     if (tResult == -1)
-                        MainFragment.supportLastPlayPos = true;
+                        bCache.supportLastPlayPos = true;
                     else
-                        MainFragment.supportLastPlayPos = false;
-                    Log.i(TAG, CLASS + " Last Play Position Support:" + MainFragment.supportLastPlayPos);
+                        bCache.supportLastPlayPos = false;
+                    Log.i(TAG, CLASS + " Last Play Position Support:" + bCache.supportLastPlayPos);
                     break;
                 case Video.ACTION_BACKEND_INFO_HTML:
                     InputStream is = null;
@@ -1003,6 +1018,16 @@ public class AsyncBackendCall implements Runnable {
                         }
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception removing Record Schedule.", e);
+                    }
+                    break;
+
+                case Video.ACTION_DVR_WSDL:
+                    try {
+                        String url = XmlNode.mythApiUrl(null,
+                                "/Dvr/wsdl");
+                        xmlResult = XmlNode.fetch(url, "POST");
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception getting Dvr wsdl.", e);
                     }
                     break;
 

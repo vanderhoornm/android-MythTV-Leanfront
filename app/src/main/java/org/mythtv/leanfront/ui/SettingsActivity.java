@@ -30,6 +30,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.BackendCache;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 
@@ -49,7 +50,8 @@ public class SettingsActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) {
-            if (XmlNode.isIsConnected()) {
+            BackendCache bCache = BackendCache.getInstance();
+            if (bCache.isConnected) {
                 AsyncBackendCall call = new AsyncBackendCall(this, this);
                 call.execute(Video.ACTION_GETPLAYGROUPLIST);
             } else {

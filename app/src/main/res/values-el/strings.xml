@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Σταματήστε τη ζωντανή τηλεόραση</string>
   <string name="menu_dont_stop_livetv">Μην σταματάτε τη ζωντανή τηλεόραση</string>
   <string name="menu_remove_from_recent">Αφαίρεση από τη Λίστα που προβλήθηκαν πρόσφατα</string>
+  <string name="menu_update_recgrp">Ενημέρωση ομάδας εγγραφής</string>
   <string name="msg_wake_backend">Δεν υπάρχει σύνδεση υποστήριξης, εστάλη μήνυμα αφύπνισης.</string>
   <string name="msg_subtitle_on">Ο υπότιτλος %1$s ενεργοποιήθηκε.</string>
   <string name="msg_subtitle_notsupp">Σφάλμα: Ο τύπος υποτίτλων %1$s δεν υποστηρίζεται.</string>

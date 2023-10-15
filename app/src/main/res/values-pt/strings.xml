@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Pare a TV ao vivo</string>
   <string name="menu_dont_stop_livetv">Não pare de TV ao vivo</string>
   <string name="menu_remove_from_recent">Remover da lista de visualizados recentemente</string>
+  <string name="menu_update_recgrp">Atualizar grupo de gravação</string>
   <string name="msg_wake_backend">Sem conexão de back-end, mensagem de ativação enviada.</string>
   <string name="msg_subtitle_on">Legenda %1$s ativada.</string>
   <string name="msg_subtitle_notsupp">Erro: o tipo de legenda %1$s não é suportado.</string>

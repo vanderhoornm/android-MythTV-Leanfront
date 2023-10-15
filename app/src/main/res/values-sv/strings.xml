@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Stoppa live-tv</string>
   <string name="menu_dont_stop_livetv">Stoppa inte live-tv</string>
   <string name="menu_remove_from_recent">Ta bort från listan över nyligen visade</string>
+  <string name="menu_update_recgrp">Uppdatera inspelningsgrupp</string>
   <string name="msg_wake_backend">Ingen backend-anslutning, skickade väckningsmeddelande.</string>
   <string name="msg_subtitle_on">Undertext %1$s aktiverad.</string>
   <string name="msg_subtitle_notsupp">Fel: Undertexttyp %1$s stöds inte.</string>

@@ -48,10 +48,6 @@ public class XmlNode {
     private HashMap<String, String> attributeMap = new HashMap<>();
     private String text = null;
     private XmlNode nextSibling;
-    private static HashMap<String, String> sHostMap;
-    private static String sBackendIP;
-    private static String sMainPort;
-    private static boolean isConnected = false;
 
     private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
@@ -60,14 +56,13 @@ public class XmlNode {
             Log.e(TAG, CLASS + " Backend port or IP address not specified");
             return null;
         }
-        if (!backendIP.equals(sBackendIP) || !mainPort.equals(sMainPort)) {
-            sBackendIP = backendIP;
-            sMainPort = mainPort;
-            sHostMap = new HashMap<>();
+        BackendCache bCache = BackendCache.getInstance();
+        if (!backendIP.equals(bCache.sBackendIP) || !mainPort.equals(bCache.sMainPort)) {
+            bCache = bCache.flush();
         }
         if (hostname == null)
-            return sBackendIP + ":" + mainPort;
-        String hostIpAndPort = sHostMap.get(hostname);
+            return bCache.sBackendIP + ":" + mainPort;
+        String hostIpAndPort = bCache.sHostMap.get(hostname);
         if (hostIpAndPort == null) {
             String urlString = XmlNode.mythApiUrl(null,
                     "/Myth/GetSetting?Key=BackendServerAddr&HostName="
@@ -92,20 +87,15 @@ public class XmlNode {
 //            if (port == null)
 //                port = mainPort;
 //            hostIpAndPort = hostIp + ":" + port;
-            hostIpAndPort = hostIp + ":" + sMainPort;
-            sHostMap.put(hostname, hostIpAndPort);
+            hostIpAndPort = hostIp + ":" + bCache.sMainPort;
+            bCache.sHostMap.put(hostname, hostIpAndPort);
         }
         return hostIpAndPort;
     }
 
-    public static void clearCache() {
-        sBackendIP = null;
-        sHostMap = new HashMap<>();
-    }
-
     public static XmlNode parseStream(InputStream in) throws XmlPullParserException, IOException {
         XmlPullParser parser = Xml.newPullParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
         parser.setInput(in, "utf-8");
         int eventType = parser.getEventType();
         XmlNode ret = null;
@@ -127,6 +117,10 @@ public class XmlNode {
             ret.attributeMap.put(parser.getAttributeName(ix),
                     parser.getAttributeValue(ix));
         }
+        // For wsdls fake out tag name as nme attribute
+        String attName = ret.attributeMap.get("name");
+        if (attName != null)
+            ret.name = attName;
         int eventType = XmlPullParser.START_TAG;
         while (eventType != XmlPullParser.END_TAG) {
             eventType = parser.next();
@@ -147,10 +141,6 @@ public class XmlNode {
         return ret;
     }
 
-    public static boolean isIsConnected() {
-        return isConnected;
-    }
-
     /**
      * Fetch XML object from a given URL.
      *
@@ -160,6 +150,7 @@ public class XmlNode {
      */
     public static XmlNode fetch(String urlString, String requestMethod)
             throws XmlPullParserException, IOException {
+        BackendCache bCache = BackendCache.getInstance();
         XmlNode ret = null;
         URL url = null;
         HttpURLConnection urlConnection = null;
@@ -178,13 +169,13 @@ public class XmlNode {
             Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             ret = XmlNode.parseStream(is);
-            isConnected = true;
+            bCache.isConnected = true;
         } catch(FileNotFoundException e) {
             Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             throw e;
         } catch(IOException e) {
-            isConnected = false;
+            bCache.isConnected = false;
             Log.i(TAG, CLASS + " Response: " + urlConnection.getResponseCode()
                     + " " + urlConnection.getResponseMessage());
             if (!urlString.endsWith("/Myth/DelayShutdown"))

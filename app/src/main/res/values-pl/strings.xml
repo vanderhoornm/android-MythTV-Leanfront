@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Zatrzymaj telewizję na żywo</string>
   <string name="menu_dont_stop_livetv">Nie zatrzymuj telewizji na żywo</string>
   <string name="menu_remove_from_recent">Usuń z listy ostatnio oglądanych</string>
+  <string name="menu_update_recgrp">Zaktualizuj grupę nagrań</string>
   <string name="msg_wake_backend">Brak połączenia z backendem, wysłano wiadomość ostrzegawczą.</string>
   <string name="msg_subtitle_on">Napisy %1$s włączone.</string>
   <string name="msg_subtitle_notsupp">Błąd: typ napisów %1$s nie jest obsługiwany.</string>

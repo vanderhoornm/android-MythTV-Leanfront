@@ -137,6 +137,10 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_MENU                   = 53;
     public static final int ACTION_COMMSKIP               = 54;
     public static final int ACTION_CUTLIST_LOAD           = 55;
+    public static final int ACTION_QUERY_UPDATE_RECGROUP  = 56;
+    public static final int ACTION_UPDATE_RECGROUP        = 57;
+    public static final int ACTION_DVR_WSDL               = 58;
+
 
 
     private Video(

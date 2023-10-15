@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Pysäytä suora TV</string>
   <string name="menu_dont_stop_livetv">Älä lopeta suoraa TV:tä</string>
   <string name="menu_remove_from_recent">Poista äskettäin katsottujen luettelosta</string>
+  <string name="menu_update_recgrp">Päivitä tallennusryhmä</string>
   <string name="msg_wake_backend">Ei taustayhteyttä, lähetetty herätysviesti.</string>
   <string name="msg_subtitle_on">Tekstitys %1$s käytössä.</string>
   <string name="msg_subtitle_notsupp">Virhe: Tekstitystyyppiä %1$s ei tueta.</string>

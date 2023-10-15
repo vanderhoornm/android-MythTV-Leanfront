@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Stop live-tv</string>
   <string name="menu_dont_stop_livetv">Stop live-tv niet</string>
   <string name="menu_remove_from_recent">Verwijderen uit onlangs bekeken lijst</string>
+  <string name="menu_update_recgrp">Opnamegroep bijwerken</string>
   <string name="msg_wake_backend">Geen backend-verbinding, wake-upbericht verzonden.</string>
   <string name="msg_subtitle_on">Ondertiteling %1$s ingeschakeld.</string>
   <string name="msg_subtitle_notsupp">Fout: Ondertitelingstype %1$s wordt niet ondersteund.</string>

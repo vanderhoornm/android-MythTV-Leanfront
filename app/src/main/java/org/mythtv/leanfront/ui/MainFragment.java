@@ -67,12 +67,14 @@ import androidx.core.content.ContextCompat;
 
 import android.os.Looper;
 import android.text.Html;
+import android.text.InputType;
 import android.text.Spanned;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextClock;
 import android.widget.TextView;
@@ -86,6 +88,7 @@ import com.bumptech.glide.request.transition.Transition;
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.BackendCache;
 import org.mythtv.leanfront.data.FetchVideoService;
 import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.VideoDbHelper;
@@ -177,9 +180,8 @@ public class MainFragment extends BrowseSupportFragment
     private ItemViewClickedListener mItemViewClickedListener;
     private ScrollSupport scrollSupport;
     volatile boolean isLoaderRunning;
-    // This flag will be set true during refresh if it is found that we are on a
-    // backend that supports the LastPlayPos APIs (V32 or later).
-    public static boolean supportLastPlayPos;
+    private ArrayList<String> mRecGroupList;
+    private String mNewValueText;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -193,7 +195,7 @@ public class MainFragment extends BrowseSupportFragment
         mType = intent.getIntExtra(KEY_TYPE, TYPE_TOPLEVEL);
         if (mType == TYPE_TOPLEVEL) {
             // Clear ip address cache
-            XmlNode.clearCache();
+            BackendCache.flush();
             VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
             // delete stale entries from bookmark table
@@ -259,7 +261,7 @@ public class MainFragment extends BrowseSupportFragment
             mFetchTime = System.currentTimeMillis();
         // Clear ip address cache on a full refresh
         if (recordedId == null)
-            XmlNode.clearCache();
+            BackendCache.flush();
         // Start an Intent to fetch the videos.
         Intent serviceIntent = new Intent(MyApplication.getAppContext(), FetchVideoService.class);
         serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);
@@ -894,6 +896,10 @@ public class MainFragment extends BrowseSupportFragment
                     }
                     prompts.add(getString(R.string.menu_rerecord));
                     actions.add(new Action(Video.ACTION_ALLOW_RERECORD));
+                    if (BackendCache.getInstance().canUpdateRecGroup) {
+                        prompts.add(getString(R.string.menu_update_recgrp));
+                        actions.add(new Action(Video.ACTION_GETRECGROUPLIST));
+                    }
                 }
                 else {
                     String baseName = headerItem.getBaseName();
@@ -906,7 +912,7 @@ public class MainFragment extends BrowseSupportFragment
                 actions.add(new Action(Video.ACTION_SET_UNWATCHED));
                 prompts.add(getString(R.string.menu_mark_watched));
                 actions.add(new Action(Video.ACTION_SET_WATCHED));
-                if (supportLastPlayPos) {
+                if (BackendCache.getInstance().supportLastPlayPos) {
                     prompts.add(getString(R.string.menu_remove_lastplaypos));
                     actions.add(new Action(Video.ACTION_REMOVE_LASTPLAYPOS));
                 }
@@ -944,46 +950,93 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     public void onMenuClicked(Action action, Row row) {
+        int task = (int)action.getId();
+        AsyncBackendCall call;
+        // Prompting for rec group
+        switch (task) {
+            case Video.ACTION_GETRECGROUPLIST:
+                call = new AsyncBackendCall(getActivity(),
+                        taskRunner -> {
+                            if (getContext() == null)
+                                return;
+                            int[] tasks = taskRunner.getTasks();
+                            ArrayList<XmlNode> results = taskRunner.getXmlResults();
+                            switch (tasks[0]) {
+                                case Video.ACTION_GETRECGROUPLIST:
+                                    mRecGroupList = XmlNode.getStringList(results.get(0)); // ACTION_GETRECGROUPLIST
+                                    onMenuClicked(new Action(Video.ACTION_QUERY_UPDATE_RECGROUP), row);
+                                    break;
+                            }
+                        });
+                call.execute(task);
+                return;
+
+            case Video.ACTION_QUERY_UPDATE_RECGROUP:
+                String alertTitle = getString(R.string.menu_update_recgrp);
+                ArrayList<String> prompts = (ArrayList<String>) mRecGroupList.clone();
+                prompts.add(getString(R.string.sched_new_entry));
+                final ArrayList<String> groups = prompts;
+                AlertDialog.Builder listBbuilder = new AlertDialog.Builder(getActivity(),
+                        R.style.Theme_AppCompat_Dialog_Alert);
+                listBbuilder
+                        .setTitle(alertTitle)
+                        .setItems(groups.toArray(new String[0]),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
+                                        // Last item in the list is "Create New Entry"
+                                        if (which == groups.size() - 1) {
+                                            mNewValueText = "";
+                                            promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP, row);
+                                        } else {
+                                            mNewValueText = groups.get(which);
+                                            onMenuClicked(new Action(Video.ACTION_UPDATE_RECGROUP), row);
+                                        }
+                                    }
+                                });
+                listBbuilder.show();
+                return;
+        }
+
         ListRow listRow = (ListRow) row;
         ObjectAdapter rowAdapter = listRow.getAdapter();
-        AsyncBackendCall call = new AsyncBackendCall(getActivity(),
-                new AsyncBackendCall.OnBackendCallListener() {
-                    @Override
-                    public void onPostExecute(AsyncBackendCall taskRunner) {
-                        if (getContext() == null)
-                            return;
-                        ArrayList<XmlNode> results = taskRunner.getXmlResults();
-                        int nSuccess = 0;
-                        int nFail = 0;
-                        XmlNode xmlResult;
-                        // only look at every alternate result, others are
-                        // refresh or dummy
-                        for (int ix = 1; ix < results.size(); ix+=2) {
-                            xmlResult = results.get(ix);
-                            String result = null;
-                            if (xmlResult != null)
-                                result = xmlResult.getString();
-                            if ("true".equals(result))
-                                nSuccess++;
-                            else
-                                nFail++;
-                        }
-                        if (nFail > 0) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
-                                    R.style.Theme_AppCompat_Dialog_Alert);
-                            builder.setTitle(R.string.title_alert_rowresults);
-                            String msg = getContext().getString(R.string.alert_rowresults, nSuccess, nFail);
-                            builder.setMessage(msg);
-                            builder.show();
-                        }
-                        setProgressBar(false);
+        call = new AsyncBackendCall(getActivity(),
+                taskRunner -> {
+                    if (getContext() == null)
+                        return;
+                    int [] tasks = taskRunner.getTasks();
+                    ArrayList<XmlNode> results = taskRunner.getXmlResults();
+                    int nSuccess = 0;
+                    int nFail = 0;
+                    XmlNode xmlResult;
+                    // only look at every alternate result, others are
+                    // refresh or dummy
+                    for (int ix = 1; ix < results.size(); ix+=2) {
+                        xmlResult = results.get(ix);
+                        String result = null;
+                        if (xmlResult != null)
+                            result = xmlResult.getString();
+                        if ("true".equals(result))
+                            nSuccess++;
+                        else
+                            nFail++;
                     }
-        });
+                    if (nFail > 0) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.title_alert_rowresults);
+                        String msg = getContext().getString(R.string.alert_rowresults, nSuccess, nFail);
+                        builder.setMessage(msg);
+                        builder.show();
+                    }
+                    setProgressBar(false);
+                });
         call.setBookmark(0);
         call.setPosBookmark(0);
         call.setRowAdapter(rowAdapter);
+        call.setStringParameter(mNewValueText);
         Integer [] tasks;
-        int task = (int)action.getId();
 
         switch (task) {
             case Video.ACTION_DELETE:
@@ -1004,6 +1057,32 @@ public class MainFragment extends BrowseSupportFragment
         call.execute(tasks);
         setProgressBar(true);
     }
+
+    private void promptForNewValue(int msgid, int nextId, Row row) {
+        mNewValueText = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        builder.setTitle(msgid);
+        EditText input = new EditText(getContext());
+        input.setText(mNewValueText);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mNewValueText = input.getText().toString();
+                onMenuClicked(new Action(nextId), row);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
 
     private static class MythTask implements Runnable {
         boolean mVersionMessageShown = false;

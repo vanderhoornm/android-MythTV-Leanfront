@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Arrêter la télévision en direct</string>
   <string name="menu_dont_stop_livetv">N\'arrêtez pas la télévision en direct</string>
   <string name="menu_remove_from_recent">Supprimer de la liste récemment consultée</string>
+  <string name="menu_update_recgrp">Mettre à jour le groupe d\'enregistrement</string>
   <string name="msg_wake_backend">Aucune connexion backend, message de réveil envoyé.</string>
   <string name="msg_subtitle_on">Sous-titre %1$s activé.</string>
   <string name="msg_subtitle_notsupp">Erreur : le type de sous-titre %1$s n\'est pas pris en charge.</string>

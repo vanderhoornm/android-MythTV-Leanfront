@@ -173,6 +173,7 @@
     <string name="menu_stop_livetv">Stop Live TV</string>
     <string name="menu_dont_stop_livetv">Don\'t Stop Live TV</string>
     <string name="menu_remove_from_recent">Remove from Recently Viewed List</string>
+    <string name="menu_update_recgrp">Update Recording Group</string>
     <string name="dummy_empty_string" translatable="false"></string>
     <string name="msg_wake_backend">No backend connection, sent wake-up message.</string>
 

@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Stopp Live TV</string>
   <string name="menu_dont_stop_livetv">Ikke stopp direkte-TV</string>
   <string name="menu_remove_from_recent">Fjern fra listen over nylig sett</string>
+  <string name="menu_update_recgrp">Oppdater opptaksgruppe</string>
   <string name="msg_wake_backend">Ingen backend-tilkobling, sendt vekkemelding.</string>
   <string name="msg_subtitle_on">Undertekst %1$s aktivert.</string>
   <string name="msg_subtitle_notsupp">Feil: Underteksttype %1$s støttes ikke.</string>

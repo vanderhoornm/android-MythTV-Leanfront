@@ -136,6 +136,7 @@
   <string name="menu_stop_livetv">Stoppen Sie Live-TV</string>
   <string name="menu_dont_stop_livetv">Stoppen Sie nicht Live-TV</string>
   <string name="menu_remove_from_recent">Aus der Liste „Zuletzt angezeigt“ entfernen</string>
+  <string name="menu_update_recgrp">Aufzeichnungsgruppe aktualisieren</string>
   <string name="msg_wake_backend">Keine Backend-Verbindung, Wecknachricht gesendet.</string>
   <string name="msg_subtitle_on">Untertitel %1$s aktiviert.</string>
   <string name="msg_subtitle_notsupp">Fehler: Untertiteltyp %1$s wird nicht unterstützt.</string>

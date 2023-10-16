@@ -457,6 +457,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             case Video.ACTION_QUERY_UPDATE_RECGROUP:
                 alertTitle = getString(R.string.menu_update_recgrp);
                 prompts = (ArrayList<String>) mRecGroupList.clone();
+                prompts.remove("LiveTV");
                 prompts.add(getString(R.string.sched_new_entry));
                 final ArrayList<String> groups = prompts;
                 AlertDialog.Builder listBbuilder = new AlertDialog.Builder(getActivity(),

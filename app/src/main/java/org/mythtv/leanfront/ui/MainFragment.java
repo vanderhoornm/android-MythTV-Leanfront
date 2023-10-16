@@ -974,6 +974,7 @@ public class MainFragment extends BrowseSupportFragment
             case Video.ACTION_QUERY_UPDATE_RECGROUP:
                 String alertTitle = getString(R.string.menu_update_recgrp);
                 ArrayList<String> prompts = (ArrayList<String>) mRecGroupList.clone();
+                prompts.remove("LiveTV");
                 prompts.add(getString(R.string.sched_new_entry));
                 final ArrayList<String> groups = prompts;
                 AlertDialog.Builder listBbuilder = new AlertDialog.Builder(getActivity(),

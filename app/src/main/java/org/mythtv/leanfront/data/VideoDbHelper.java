@@ -43,7 +43,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     private static VideoDbHelper mInstance = null;
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 17;
+    private static final int DATABASE_VERSION = 18;
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
 
@@ -82,6 +82,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_VIDEO_URL + " TEXT, " +
                     VideoEntry.COLUMN_VIDEO_URL_PATH + " TEXT," +
                     VideoEntry.COLUMN_FILENAME + " TEXT, " +
+                    VideoEntry.COLUMN_FILESIZE + " INTEGER, " +
                     VideoEntry.COLUMN_HOSTNAME + " TEXT, " +
                     VideoEntry.COLUMN_DESC + " TEXT, " +
                     VideoEntry.COLUMN_BG_IMAGE_URL + " TEXT, " +
@@ -185,6 +186,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                         VideoEntry.COLUMN_VIDEO_URL + " , " +
                         VideoEntry.COLUMN_VIDEO_URL_PATH + " , " +
                         VideoEntry.COLUMN_FILENAME + " , " +
+                        VideoEntry.COLUMN_FILESIZE + " , " +
                         VideoEntry.COLUMN_HOSTNAME + " , " +
                         VideoEntry.COLUMN_DESC + " , " +
                         VideoEntry.COLUMN_BG_IMAGE_URL + " , " +
@@ -219,6 +221,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.TABLE_NAME+"."+VideoEntry.COLUMN_VIDEO_URL + " , " +
                     VideoEntry.COLUMN_VIDEO_URL_PATH + " , " +
                     VideoEntry.COLUMN_FILENAME + " , " +
+                    VideoEntry.COLUMN_FILESIZE + " , " +
                     VideoEntry.COLUMN_HOSTNAME + " , " +
                     VideoEntry.COLUMN_DESC + " , " +
                     VideoEntry.COLUMN_BG_IMAGE_URL + " , " +

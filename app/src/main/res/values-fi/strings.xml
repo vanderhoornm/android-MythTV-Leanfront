@@ -120,6 +120,9 @@
   <string name="playback_zoom_size">Koko</string>
   <string name="playback_aspect_stretch">Venyttää</string>
   <string name="video_minutes">pöytäkirja</string>
+  <string name="video_filename">Tiedoston nimi</string>
+  <string name="video_filesize">Tiedoston koko</string>
+  <string name="video_url">Videon URL-osoite</string>
   <string name="button_other_1">Muut</string>
   <string name="button_other_2">Toiminnot</string>
   <string name="menu_undelete">Peruuta</string>

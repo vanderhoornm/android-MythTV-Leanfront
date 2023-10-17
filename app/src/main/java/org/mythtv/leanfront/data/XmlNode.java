@@ -269,6 +269,19 @@ public class XmlNode {
         return result;
     }
 
+    public long getLong(String tag, long defaultValue) {
+        long result = defaultValue;
+        String strValue = getString(tag);
+        if (strValue != null) {
+            try {
+                result = Long.parseLong(strValue);
+            } catch (NumberFormatException e) {
+                result = defaultValue;
+            }
+        }
+        return result;
+    }
+
     public boolean getBoolean() {
         boolean result = false;
         if (text != null)

@@ -157,6 +157,9 @@
     <string name="playback_zoom_size">Size</string>
     <string name="playback_aspect_stretch">Stretch</string>
     <string name="video_minutes">minutes</string>
+    <string name="video_filename">File Name</string>
+    <string name="video_filesize">File Size</string>
+    <string name="video_url">Video URL</string>
     <string name="button_other_1">Other</string>
     <string name="button_other_2">Actions</string>
     <string name="menu_undelete">Undelete</string>

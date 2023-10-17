@@ -62,6 +62,7 @@ public final class Video implements Parcelable, ListItem {
     public final String duration;
     public final String prodyear;
     public final String filename;
+    public final long filesize;
     public final String hostname;
     public String progflags;
     // From MythTV libmyth/programtypes.h
@@ -166,6 +167,7 @@ public final class Video implements Parcelable, ListItem {
             final String duration,
             final String prodyear,
             final String filename,
+            final long   filesize,
             final String hostname,
             final String progflags,
             final String videoProps,
@@ -197,6 +199,7 @@ public final class Video implements Parcelable, ListItem {
         this.duration = duration;
         this.prodyear = prodyear;
         this.filename = filename;
+        this.filesize = filesize;
         this.hostname = hostname;
         this.progflags = progflags;
         this.videoProps = videoProps;
@@ -231,6 +234,7 @@ public final class Video implements Parcelable, ListItem {
         duration = in.readString();
         prodyear = in.readString();
         filename = in.readString();
+        filesize = in.readLong();
         hostname = in.readString();
         progflags = in.readString();
         videoProps = in.readString();
@@ -287,6 +291,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(duration);
         dest.writeString(prodyear);
         dest.writeString(filename);
+        dest.writeLong  (filesize);
         dest.writeString(hostname);
         dest.writeString(progflags);
         dest.writeString(videoProps);
@@ -393,6 +398,7 @@ public final class Video implements Parcelable, ListItem {
         private String duration;
         private String prodyear;
         private String filename;
+        private long   filesize;
         private String hostname;
         private String progflags;
         private String videoProps;
@@ -513,6 +519,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder filesize(long filesize) {
+            this.filesize = filesize;
+            return this;
+        }
+
         public VideoBuilder hostname(String hostname) {
             this.hostname = hostname;
             return this;
@@ -603,6 +614,7 @@ public final class Video implements Parcelable, ListItem {
                      duration,
                      prodyear,
                      filename,
+                     filesize,
                      hostname,
                      progflags,
                     videoProps,

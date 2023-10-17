@@ -120,6 +120,9 @@
   <string name="playback_zoom_size">Größe</string>
   <string name="playback_aspect_stretch">Strecken</string>
   <string name="video_minutes">Protokoll</string>
+  <string name="video_filename">Dateiname</string>
+  <string name="video_filesize">Dateigröße</string>
+  <string name="video_url">Video-URL</string>
   <string name="button_other_1">Andere</string>
   <string name="button_other_2">Aktionen</string>
   <string name="menu_undelete">Wiederherstellen</string>

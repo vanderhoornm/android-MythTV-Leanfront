@@ -32,7 +32,9 @@ import org.mythtv.leanfront.model.Video;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -76,7 +78,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
         Context context = mViewHolder.getBody().getContext();
         if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                 || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
-            StringBuilder description = new StringBuilder();
+            StringBuilder description = new StringBuilder("\n");
 
             // 2018-05-23T00:00:00Z
             try {
@@ -116,7 +118,30 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            description.append(mVideo.description);
+            NumberFormat fmt = NumberFormat.getInstance();
+            fmt.setMaximumFractionDigits(1);
+            description
+                    .append(mVideo.description)
+                    .append("\n\n")
+                    .append(context.getString(R.string.video_filename)).append(": ")
+                    .append(mVideo.filename);
+            if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                description.append("\n")
+                        .append(context.getString(R.string.video_filesize)).append(": ")
+                        .append(fmt.format(((double)mVideo.filesize)/1000000.0))
+                        .append(" MB")
+                        .append("\n")
+                        .append(context.getString(R.string.sched_storage_grp)).append(": ")
+                        .append(mVideo.storageGroup)
+                        .append("\n")
+                        .append(context.getString(R.string.sched_rec_group)).append(": ")
+                        .append(mVideo.recGroup)
+                        .append("\n")
+                        .append(context.getString(R.string.sched_play_group)).append(": ")
+                        .append(mVideo.playGroup);
+            description.append("\n")
+                        .append(context.getString(R.string.video_url)).append(": ")
+                        .append(mVideo.videoUrl);
             return description.toString();
         }
         return null;

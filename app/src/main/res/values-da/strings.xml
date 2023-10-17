@@ -120,6 +120,9 @@
   <string name="playback_zoom_size">Størrelse</string>
   <string name="playback_aspect_stretch">Strække</string>
   <string name="video_minutes">minutter</string>
+  <string name="video_filename">Filnavn</string>
+  <string name="video_filesize">Filstørrelse</string>
+  <string name="video_url">Video URL</string>
   <string name="button_other_1">Andet</string>
   <string name="button_other_2">Handlinger</string>
   <string name="menu_undelete">Fortryd sletning</string>

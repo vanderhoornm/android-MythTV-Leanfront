@@ -120,6 +120,9 @@
   <string name="playback_zoom_size">Velikost</string>
   <string name="playback_aspect_stretch">Protáhnout se</string>
   <string name="video_minutes">minut</string>
+  <string name="video_filename">Název souboru</string>
+  <string name="video_filesize">Velikost souboru</string>
+  <string name="video_url">URL videa</string>
   <string name="button_other_1">jiný</string>
   <string name="button_other_2">Akce</string>
   <string name="menu_undelete">Obnovit</string>

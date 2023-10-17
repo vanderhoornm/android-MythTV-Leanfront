@@ -120,6 +120,9 @@
   <string name="playback_zoom_size">Rozmiar</string>
   <string name="playback_aspect_stretch">Rozciągać się</string>
   <string name="video_minutes">minuty</string>
+  <string name="video_filename">Nazwa pliku</string>
+  <string name="video_filesize">Rozmiar pliku</string>
+  <string name="video_url">URL wideo</string>
   <string name="button_other_1">Inny</string>
   <string name="button_other_2">działania</string>
   <string name="menu_undelete">Przywróć usunięcie</string>

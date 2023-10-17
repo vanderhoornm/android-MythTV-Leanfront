@@ -66,6 +66,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_SEASON = "Season";
     public static final String XMLTAG_EPISODE = "Episode";
     public static final String XMLTAG_FILENAME = "FileName";
+    public static final String XMLTAG_FILESIZE = "FileSize";
     public static final String XMLTAG_ARTTYPE = "Type";
     public static final String XMLTAG_ARTURL = "URL";
     public static final String XMLTAG_SUBTITLE = "SubTitle";
@@ -76,7 +77,6 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ENDTS = "EndTs";
     public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
     public static final String XMLTAG_VIDEOPROPS = "VideoProps";
-    public static final String XMLTAG_FILESIZE = "FileSize";
     public static final String XMLTAG_HOSTNAME = "HostName";
 
     // Specific to video list
@@ -206,13 +206,14 @@ public class VideoDbBuilder {
             long duration = 0;
             String progflags = "0";
             String videoProps = "0";
+            long fileSize = 0;
             if (phase == 0) { // Recordings
                 rectype = VideoContract.VideoEntry.RECTYPE_RECORDING;
-                String fileSize = programNode.getString(XMLTAG_FILESIZE);
+                 fileSize = programNode.getLong(XMLTAG_FILESIZE,0);
                 recordingNode = programNode.getNode(XMLTAG_RECORDING);
                 String recordId = recordingNode.getString(XMLTAG_RECORDID);
                 // Skip dummy LiveTV entry
-                if ("0".equals(fileSize) && "0".equals(recordId))
+                if (fileSize == 0 && "0".equals(recordId))
                     continue;
                 recGroup = recordingNode.getString(XMLTAG_RECGROUP);
                 if (recGroup == null || recGroup.length() == 0)
@@ -381,6 +382,7 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL, videoUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEO_URL_PATH, videoUrlPath);
             videoValues.put(VideoContract.VideoEntry.COLUMN_FILENAME, dbFileName);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_FILESIZE, fileSize);
             videoValues.put(VideoContract.VideoEntry.COLUMN_HOSTNAME, hostName);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);

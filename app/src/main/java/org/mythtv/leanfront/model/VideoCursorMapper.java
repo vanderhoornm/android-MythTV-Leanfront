@@ -58,6 +58,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int durationIndex;
     private static int prodyearIndex;
     private static int filenameIndex;
+    private static int filesizeIndex;
     private static int hostnameIndex;
     private static int progflagsIndex;
     private static int videoPropsIndex;
@@ -92,6 +93,7 @@ public final class VideoCursorMapper extends CursorMapper {
         durationIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_DURATION);
         prodyearIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PRODUCTION_YEAR);
         filenameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILENAME);
+        filesizeIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_FILESIZE);
         hostnameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_HOSTNAME);
         progflagsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PROGFLAGS);
         videoPropsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEOPROPS);
@@ -134,6 +136,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String duration = cursor.getString(durationIndex);
         String prodyear = cursor.getString(prodyearIndex);
         String filename = cursor.getString(filenameIndex);
+        long filesize = cursor.getLong(filesizeIndex);
         String hostname = cursor.getString(hostnameIndex);
         String progflags = cursor.getString(progflagsIndex);
         String videoProps = cursor.getString(videoPropsIndex);
@@ -171,6 +174,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .duration(duration)
                 .prodyear(prodyear)
                 .filename(filename)
+                .filesize(filesize)
                 .hostname(hostname)
                 .progflags(progflags)
                 .videoProps(videoProps)

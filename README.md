@@ -261,7 +261,7 @@ Alternatively, if you have a browser on your android device you can avoid using 
 - Enable installation of apps from unknown source in Android settings.
 - Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
 
-The first time you run the app it will prompt you for the MythTV Backend settings. Supply the IP address or DNS name of the master backend. If you have MythTV V32 or later, change the [status port](#status-port) from 6544 to 6744. (Note that 6544 still works but does not support the latest features).
+The first time you run the app it will prompt you for the MythTV Backend settings. Supply the IP address or DNS name of the master backend. If you have MythTV V32 or V33, change the [status port](#status-port) from 6544 to 6744. (Note that 6544 still works but does not support the latest features). In V34, port 6544 now has full support. In future port 6744 may be removed.
 
 ## History
 
@@ -470,7 +470,7 @@ If "Use Up/Down Arrows for Jump" is selected in settings, the following apply. H
 
 In mythbackend V32 and later, the web server has been rewritten and there is a new status port. The old status port still works but does not support the latest features, like "Last Play Position". To use the latest features, change your port number in settings to 6744. If you have any problems with this please open a ticket.
 
-This is a temporary change, in a later version the port will change back to 6544, with the new features, and port 6744 will no longer be used. You will then have to change your settings back to port 6544.
+This is a temporary change, in V34 the port changes back to 6544, with the new features. Port 6744 is still supported in V34 and is an alternative port for the same code as port 6544. At some point, 6744 may be disabled. You will then have to change your settings back to port 6544.
 
 ### Screen saver and idle shutdown
 

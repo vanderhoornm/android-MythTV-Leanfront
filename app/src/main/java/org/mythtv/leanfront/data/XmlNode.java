@@ -58,7 +58,7 @@ public class XmlNode {
         }
         BackendCache bCache = BackendCache.getInstance();
         if (!backendIP.equals(bCache.sBackendIP) || !mainPort.equals(bCache.sMainPort)) {
-            bCache = bCache.flush();
+            BackendCache.flush();
         }
         if (hostname == null)
             return bCache.sBackendIP + ":" + mainPort;

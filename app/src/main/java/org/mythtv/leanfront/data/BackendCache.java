@@ -8,13 +8,12 @@ import java.util.HashMap;
 // Singleton class to cache frequently used backend data
 public class BackendCache implements AsyncBackendCall.OnBackendCallListener {
     private static BackendCache singleton;
-
     // Values from settings
-    public String sBackendIP = "";
-    public String sMainPort = "";
+    public String sBackendIP;
+    public String sMainPort;
 
     // Values from wsdl
-    public boolean canUpdateRecGroup = false;
+    public boolean canUpdateRecGroup;
 
     // Value from AsyncBackendCall
     public long mTimeAdjustment = 0;
@@ -24,15 +23,18 @@ public class BackendCache implements AsyncBackendCall.OnBackendCallListener {
     public boolean supportLastPlayPos;
 
     // Values from XmlNode
-    public HashMap<String, String> sHostMap = new HashMap<>();
-    public boolean isConnected = false;
+    public HashMap<String, String> sHostMap;
+    public boolean isConnected;
 
 
     private BackendCache() {
+        init();
+    }
+
+    private void init() {
         sBackendIP = Settings.getString("pref_backend");
         sMainPort = Settings.getString("pref_http_port");
-
-        canUpdateRecGroup = false;
+        sHostMap = new HashMap<>();
         AsyncBackendCall call = new AsyncBackendCall(null, this);
         call.execute(Video.ACTION_DVR_WSDL, Video.ACTION_BACKEND_INFO);
     }
@@ -43,9 +45,9 @@ public class BackendCache implements AsyncBackendCall.OnBackendCallListener {
         return singleton;
     }
 
-    public static BackendCache flush() {
-        singleton = new BackendCache();
-        return singleton;
+    public static void flush() {
+        if (singleton != null)
+            singleton.init();
     }
 
     @Override

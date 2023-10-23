@@ -60,7 +60,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             mViewHolder.getTitle().setText(mVideo.title);
             String subtitle = getSubtitle();
             mViewHolder.getSubtitle().setText(subtitle);
-            String description = getDescription();
+            String description = getDescription(false);
             mViewHolder.getBody().setText(description);
         }
         else if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_CHANNEL) {
@@ -72,7 +72,7 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
 
         }
     }
-    public String getDescription() {
+    public String getDescription(boolean withDetail) {
         if (mVideo == null)
             return null;
         Context context = mViewHolder.getBody().getContext();
@@ -118,30 +118,33 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            NumberFormat fmt = NumberFormat.getInstance();
-            fmt.setMaximumFractionDigits(1);
             description
-                    .append(mVideo.description)
-                    .append("\n\n")
-                    .append(context.getString(R.string.video_filename)).append(": ")
-                    .append(mVideo.filename);
-            if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                    .append(mVideo.description);
+            if (withDetail) {
+                NumberFormat fmt = NumberFormat.getInstance();
+                fmt.setMaximumFractionDigits(1);
+                description
+                        .append("\n\n")
+                        .append(context.getString(R.string.video_filename)).append(": ")
+                        .append(mVideo.filename);
+                if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING)
+                    description.append("\n")
+                            .append(context.getString(R.string.video_filesize)).append(": ")
+                            .append(fmt.format(((double) mVideo.filesize) / 1000000.0))
+                            .append(" MB")
+                            .append("\n")
+                            .append(context.getString(R.string.sched_storage_grp)).append(": ")
+                            .append(mVideo.storageGroup)
+                            .append("\n")
+                            .append(context.getString(R.string.sched_rec_group)).append(": ")
+                            .append(mVideo.recGroup)
+                            .append("\n")
+                            .append(context.getString(R.string.sched_play_group)).append(": ")
+                            .append(mVideo.playGroup);
                 description.append("\n")
-                        .append(context.getString(R.string.video_filesize)).append(": ")
-                        .append(fmt.format(((double)mVideo.filesize)/1000000.0))
-                        .append(" MB")
-                        .append("\n")
-                        .append(context.getString(R.string.sched_storage_grp)).append(": ")
-                        .append(mVideo.storageGroup)
-                        .append("\n")
-                        .append(context.getString(R.string.sched_rec_group)).append(": ")
-                        .append(mVideo.recGroup)
-                        .append("\n")
-                        .append(context.getString(R.string.sched_play_group)).append(": ")
-                        .append(mVideo.playGroup);
-            description.append("\n")
                         .append(context.getString(R.string.video_url)).append(": ")
                         .append(mVideo.videoUrl);
+            }
             return description.toString();
         }
         return null;

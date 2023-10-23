@@ -497,7 +497,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                         R.style.Theme_AppCompat);
                 String msg = mSelectedVideo.title + "\n"
                     + mDetailsDescriptionPresenter.getSubtitle() + "\n"
-                        + mDetailsDescriptionPresenter.getDescription();
+                        + mDetailsDescriptionPresenter.getDescription(true);
                 builder.setMessage(msg);
                 builder.show();
                 break;

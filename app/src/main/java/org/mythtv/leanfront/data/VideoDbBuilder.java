@@ -293,6 +293,8 @@ public class VideoDbBuilder {
                 subtitle = programNode.getString(XMLTAG_SUBTITLE);
                 description = programNode.getString(XMLTAG_DESCRIPTION);
                 videoFileName = recordingNode.getString(XMLTAG_FILENAME);
+                if (videoFileName == null)
+                    continue;
                 baseUrl = XmlNode.mythApiUrl(hostName, null);
                 baseHostUrl = XmlNode.mythApiUrl(recordingNode.getString(XMLTAG_HOSTNAME), null);
                 videoUrlPath = "/Content/GetFile?StorageGroup="

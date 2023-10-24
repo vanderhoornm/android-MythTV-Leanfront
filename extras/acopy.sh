@@ -147,17 +147,11 @@ if [[ $todev != "" ]] ; then
         if [[ ! -f $stage/$filename ]] ; then
             continue
         fi
-        adb -s $todev shell <<EOF
-mkdir -p $androidtemp
-EOF
+        adb -s $todev shell mkdir -p $androidtemp
         adb -s $todev push $stage/$filename $androidtemp/
-        adb -s $todev shell run-as $app<<EOF
-mkdir -p $dname
-cp -f $androidtemp/$bname $filename
-EOF
-        adb -s $todev shell<<EOF
-rm -f $androidtemp/$bname
-EOF
+        adb -s $todev shell run-as $app mkdir -p $dname
+        adb -s $todev shell run-as $app cp -f $androidtemp/$bname $filename
+        adb -s $todev shell rm -f $androidtemp/$bname
         echo "File $stage/$filename pushed to $todev:$filename"
     done
 fi

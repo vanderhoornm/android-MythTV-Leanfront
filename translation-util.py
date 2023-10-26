@@ -174,11 +174,9 @@ if __name__ == '__main__':
     parser = OptionParser()
 
     parser.add_option('-t', "--check", action="store_true", default=False,
-                      dest="check", help="Check all language files for missing or empty strings and use Google translate on them. Write out the file with strings ordered as in the default file. Any new strings found in the language files are discarded. Any strings deleted from the default file are deleted from the language files.")
-
-    parser.add_option('-c', "--amend", default="",
-                      dest="amend", help="Requires list of strings in one parameter. Flag the listed strings as changed so they are re-translated with the check option. This parameter also runs the check process even if it was not requested.")
-
+                      dest="check", help="Check all language files for missing or empty strings and use Google translate on them. Write out the file with strings ordered as in the default file. Any new strings found in the non-default language files are discarded. Any strings deleted from the default file are deleted from the language files.")
+    parser.add_option('-F', "--flag", default="",
+                      dest="flag", help="Requires list of strings in one parameter. Flag the listed strings as changed so they are re-translated with the check option. This parameter also runs the check process even if it was not requested.")
     parser.add_option('-l', "--listkeys", action="store_true", default=False,
                       dest="listkeys", help="List all keys and strings from a language file. " \
                         "Show default language if language option is omitted.")
@@ -189,6 +187,7 @@ if __name__ == '__main__':
     parser.add_option('-d','--datadir', metavar="DIR", default=None,
                       dest="datadir", help=("The location of the language directories. [default: '" + translation_dir + "']"))
 
+    # If no option is supplied go to help
     if len(sys.argv) == 1:
         sys.argv.append("-h")
 
@@ -201,8 +200,8 @@ if __name__ == '__main__':
     if opts.listlangs:
         listLanguages()
         sys.exit(0)
-    elif opts.check or opts.amend:
-        keylist = opts.amend.split()
+    elif opts.check or opts.flag:
+        keylist = opts.flag.split()
         checkTranslations(keylist)
         sys.exit(0)
     elif opts.listkeys:

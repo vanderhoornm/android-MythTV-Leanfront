@@ -118,21 +118,9 @@
                 android:readPermission="android.permission.GLOBAL_SEARCH" />
         </provider>
 
-        <receiver
-            android:name="org.mythtv.leanfront.recommendation.RecommendationReceiver"
-            android:enabled="false"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name="org.mythtv.leanfront.data.FetchVideoService"
             android:exported="false" />
-        <service
-            android:name="org.mythtv.leanfront.recommendation.UpdateRecommendationsService"
-            android:enabled="false" />
     </application>
 
 </manifest>

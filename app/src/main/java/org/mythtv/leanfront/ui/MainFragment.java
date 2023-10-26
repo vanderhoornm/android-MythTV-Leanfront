@@ -99,7 +99,6 @@ import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
-import org.mythtv.leanfront.recommendation.UpdateRecommendationsService;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -295,8 +294,6 @@ public class MainFragment extends BrowseSupportFragment
         // This Adapter is used to render the MainFragment sidebar labels.
         mCategoryRowAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         setAdapter(mCategoryRowAdapter);
-
-        updateRecommendations();
     }
 
     @Override
@@ -572,11 +569,6 @@ public class MainFragment extends BrowseSupportFragment
     private void startBackgroundTimer() {
         mHandler.removeCallbacks(mBackgroundTask);
         mHandler.postDelayed(mBackgroundTask, BACKGROUND_UPDATE_DELAY);
-    }
-
-    private void updateRecommendations() {
-        Intent recommendationIntent = new Intent(getActivity(), UpdateRecommendationsService.class);
-        getActivity().startService(recommendationIntent);
     }
 
     static final String[] articles = MyApplication.getAppContext().getResources().getStringArray(R.array.title_sort_articles);

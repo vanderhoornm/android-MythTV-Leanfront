@@ -500,7 +500,7 @@ public final class Video implements Parcelable, ListItem {
         }
 
         public VideoBuilder endtime(String endtime) {
-            this.starttime = endtime;
+            this.endtime = endtime;
             return this;
         }
 

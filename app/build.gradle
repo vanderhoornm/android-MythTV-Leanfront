@@ -18,7 +18,7 @@ android {
     lintOptions{
         disable 'MissingTranslation'
     }
-    compileSdkVersion 33
+    compileSdk 33
     defaultConfig {
         applicationId "org.mythtv.leanfront"
         minSdkVersion 21

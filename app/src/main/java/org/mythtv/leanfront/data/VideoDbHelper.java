@@ -170,6 +170,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     }
                 }
             }
+            cursor.close();
         }
         // View for keeping track of recently watched
         if (oldVersion < DATABASE_VERSION) {

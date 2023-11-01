@@ -26,6 +26,8 @@ package org.mythtv.leanfront.ui.playback;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.SeekBar;
 
@@ -367,10 +369,10 @@ public class PlaybackActivity extends LeanbackActivity {
 
     class GestureTap extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
             return tapEvent();
         }
-        public boolean 	onDoubleTapEvent(MotionEvent e) {
+        public boolean 	onDoubleTapEvent(@NonNull MotionEvent e) {
             return doubleTap();
         }
 

@@ -21,6 +21,7 @@ package org.mythtv.leanfront.player;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.media3.common.Format;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.util.TimestampAdjuster;
@@ -45,6 +46,7 @@ public class MyExtractorsFactory implements ExtractorsFactory {
         this.defaultFactory = new DefaultExtractorsFactory();
     }
 
+    @NonNull
     @Override
     public Extractor[] createExtractors() {
         Extractor[] exts = defaultFactory.createExtractors();
@@ -79,8 +81,9 @@ public class MyExtractorsFactory implements ExtractorsFactory {
             }
         }
     }
+    @NonNull
     @Override
-    public Extractor[] createExtractors(Uri uri, Map<String, List<String>> responseHeaders) {
+    public Extractor[] createExtractors(@NonNull Uri uri, @NonNull Map<String, List<String>> responseHeaders) {
         Extractor[] exts = defaultFactory.createExtractors(uri, responseHeaders);
         updateExtractors(exts);
         return exts;

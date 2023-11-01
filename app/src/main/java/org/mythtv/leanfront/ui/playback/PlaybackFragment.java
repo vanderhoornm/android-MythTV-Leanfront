@@ -56,6 +56,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -368,14 +369,12 @@ public class PlaybackFragment extends VideoSupportFragment
                 builder
                         .setTitle(R.string.title_are_you_sure)
                         .setItems(R.array.prompt_stop_livetv,
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // The 'which' argument contains the index position
-                                        // of the selected item
-                                        // 0 = don't stop, 1 = stop
-                                        if (which == 1) {
-                                            getActivity().finish();
-                                        }
+                                (dialog, which) -> {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    // 0 = don't stop, 1 = stop
+                                    if (which == 1) {
+                                        getActivity().finish();
                                     }
                                 });
                 builder.show();
@@ -444,52 +443,45 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         ScheduledExecutorService executor = MainFragment.getExecutor();
         if (executor != null && audioFixTask == null) {
-            audioFixTask = executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    getActivity().runOnUiThread(new Runnable() {
-                        public void run() {
-                            audioFixTask = null;
-                            if (mPlaybackActionListener == null)
-                                return;
-                            // Enable subtitle if necessary
-                            int msgOn = 0;
-                            int msgOff = 0;
-                            if (setTracks && mCaptions > 0) {
-                                TrackInfo tracks
-                                        = new TrackInfo(PlaybackFragment.this, C.TRACK_TYPE_TEXT);
-                                if (mCaptions <= tracks.trackList.size()) {
-                                    mTextSelection = mCaptions - 1;
-                                    msgOn = R.string.msg_subtitle_on;
-                                    msgOff = R.string.msg_subtitle_off;
-                                }
-                                mCaptions = 0;  // Reset - this should only be used once pre playback
-                            }
-                            if (setTracks && mTextSelection != -2)
-                                mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
-                                        msgOn, msgOff, true, false);
-                            // change audio track if necessary
-                            if (setTracks && mAudioSelection != -2)
-                                mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
-                                        0, 0, true, false);
-                            // This may not be needed with new Exoplayer release
-                            else if (mAudioPause) {
-                                // disable and enable to fix audio sync
-                                enableTrack(C.TRACK_TYPE_AUDIO, false);
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException e) {
-                                }
-                                if (mPlaybackActionListener == null)
-                                    return;
-                                enableTrack(C.TRACK_TYPE_AUDIO, true);
-                                if (mPlaybackActionListener.sampleOffsetUs != 0)
-                                    mPlaybackActionListener.setAudioSync();
-                            }
-                        }
-                    });
+            audioFixTask = executor.schedule(() -> getActivity().runOnUiThread(() -> {
+                audioFixTask = null;
+                if (mPlaybackActionListener == null)
+                    return;
+                // Enable subtitle if necessary
+                int msgOn = 0;
+                int msgOff = 0;
+                if (setTracks && mCaptions > 0) {
+                    TrackInfo tracks
+                            = new TrackInfo(PlaybackFragment.this, C.TRACK_TYPE_TEXT);
+                    if (mCaptions <= tracks.trackList.size()) {
+                        mTextSelection = mCaptions - 1;
+                        msgOn = R.string.msg_subtitle_on;
+                        msgOff = R.string.msg_subtitle_off;
+                    }
+                    mCaptions = 0;  // Reset - this should only be used once pre playback
                 }
-            }, millis, TimeUnit.MILLISECONDS);
+                if (setTracks && mTextSelection != -2)
+                    mTextSelection = trackSelector(C.TRACK_TYPE_TEXT, mTextSelection,
+                            msgOn, msgOff, true, false);
+                // change audio track if necessary
+                if (setTracks && mAudioSelection != -2)
+                    mAudioSelection = trackSelector(C.TRACK_TYPE_AUDIO, mAudioSelection,
+                            0, 0, true, false);
+                // This may not be needed with new Exoplayer release
+                else if (mAudioPause) {
+                    // disable and enable to fix audio sync
+                    enableTrack(C.TRACK_TYPE_AUDIO, false);
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {
+                    }
+                    if (mPlaybackActionListener == null)
+                        return;
+                    enableTrack(C.TRACK_TYPE_AUDIO, true);
+                    if (mPlaybackActionListener.sampleOffsetUs != 0)
+                        mPlaybackActionListener.setAudioSync();
+                }
+            }), millis, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -497,29 +489,22 @@ public class PlaybackFragment extends VideoSupportFragment
         ScheduledExecutorService executor = MainFragment.getExecutor();
         if (executor != null) {
             ScheduledFuture<?> sched;
-            sched = executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    getActivity().runOnUiThread(new Runnable() {
-                        public void run() {
-                            if (msg != null) {
-                                if (mToast != null)
-                                    mToast.cancel();
-                                mToast = Toast.makeText(getActivity(),
-                                        msg,
-                                        Toast.LENGTH_LONG);
-                                mToast.show();
-                            }
-                            if (!playWhenPrepared) {
-                                mPlayerGlue.playWhenPrepared();
-                                playWhenPrepared = true;
-                                // disable and enable audio to fix sync errors
-                                audioFix(5000, true);
-                            }
-                        }
-                    });
+            sched = executor.schedule(() -> getActivity().runOnUiThread(() -> {
+                if (msg != null) {
+                    if (mToast != null)
+                        mToast.cancel();
+                    mToast = Toast.makeText(getActivity(),
+                            msg,
+                            Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-            }, delay, TimeUnit.MILLISECONDS);
+                if (!playWhenPrepared) {
+                    mPlayerGlue.playWhenPrepared();
+                    playWhenPrepared = true;
+                    // disable and enable audio to fix sync errors
+                    audioFix(5000, true);
+                }
+            }), delay, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -1036,7 +1021,7 @@ public class PlaybackFragment extends VideoSupportFragment
                 mTrackSelector.setParameters(parms);
                 String language = entry.format.language;
                 if (language == null) {
-                    if (entry.format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
+                    if (MimeTypes.APPLICATION_CEA608.equals(entry.format.sampleMimeType))
                         language = trackSelection + 1 + " " + getContext().getString(R.string.msg_subtitle_cc);
                     else
                         language = String.valueOf(trackSelection + 1);
@@ -1288,7 +1273,7 @@ public class PlaybackFragment extends VideoSupportFragment
                                     Format format = tg.getFormat(ixTrack);
                                     String description = format.language;
                                     if (description == null) {
-                                        if (format.sampleMimeType == MimeTypes.APPLICATION_CEA608)
+                                        if (MimeTypes.APPLICATION_CEA608.equals(format.sampleMimeType))
                                             description = ++ccNum + " "
                                                     + pb.getContext().getString(R.string.msg_subtitle_cc);
                                         else
@@ -1370,6 +1355,7 @@ public class PlaybackFragment extends VideoSupportFragment
             this.playlist = playlist;
         }
 
+        @NonNull
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
@@ -1474,7 +1460,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
             if (cursor == null || !cursor.moveToFirst()) {
                 return;
             }
@@ -1502,7 +1488,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
+        public void onLoaderReset(@NonNull Loader<Cursor> loader) {
             mVideoCursorAdapter.changeCursor(null);
         }
     }
@@ -1639,7 +1625,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onPlayerError(PlaybackException ex) {
+        public void onPlayerError(@NonNull PlaybackException ex) {
             handlePlayerError(ex, -1);
         }
 
@@ -1660,7 +1646,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
 
         @Override
-        public void onCues(List<Cue> cues) {
+        public void onCues(@NonNull List<Cue> cues) {
             if (mSubtitles != null)
                 mSubtitles.setCues(cues);
         }
@@ -1774,12 +1760,10 @@ public class PlaybackFragment extends VideoSupportFragment
                         builder.setPositiveButton(R.string.pberror_button_continue, listener);
                         builder.setNegativeButton(R.string.pberror_button_exit, listener);
                         builder.setOnDismissListener(
-                                new DialogInterface.OnDismissListener() {
-                                    public void onDismiss(DialogInterface dialog) {
-                                        if (mDialogStatus != DIALOG_RETRY)
-                                            getActivity().finish();
-                                        mDialogStatus = DIALOG_NONE;
-                                    }
+                                dialog -> {
+                                    if (mDialogStatus != DIALOG_RETRY)
+                                        getActivity().finish();
+                                    mDialogStatus = DIALOG_NONE;
                                 });
                         builder.show();
                         mDialogStatus = DIALOG_ACTIVE;

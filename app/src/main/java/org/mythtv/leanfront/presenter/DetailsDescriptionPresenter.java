@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 
+@SuppressLint("SimpleDateFormat")
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
     private ViewHolder mViewHolder;
     private Video mVideo;
@@ -153,7 +154,6 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
     public String getSubtitle() {
         if (mVideo == null)
             return null;
-        Context context = mViewHolder.getBody().getContext();
         if (mVideo.rectype == VideoContract.VideoEntry.RECTYPE_RECORDING
                 || mVideo.rectype == VideoContract.VideoEntry.RECTYPE_VIDEO) {
 

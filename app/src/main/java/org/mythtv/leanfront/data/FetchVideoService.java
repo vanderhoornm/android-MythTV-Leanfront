@@ -104,7 +104,7 @@ public class FetchVideoService extends IntentService {
                 }
             }
             ContentValues[] downloadedVideoContentValues =
-                    contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                    contentValuesList.toArray(new ContentValues[0]);
             VideoDbHelper dbh = VideoDbHelper.getInstance(this);
             SQLiteDatabase db = dbh.getWritableDatabase();
             if (recType == -1)
@@ -130,12 +130,7 @@ public class FetchVideoService extends IntentService {
                     downloadedVideoContentValues);
             MainFragment main = MainFragment.getActiveFragment();
             if (main != null)
-                main.getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        main.startAsyncLoader();
-                    }
-                });
+                main.getActivity().runOnUiThread(main::startAsyncLoader);
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);

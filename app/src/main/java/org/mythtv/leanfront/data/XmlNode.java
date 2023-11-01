@@ -19,6 +19,7 @@
 
 package org.mythtv.leanfront.data;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.util.Xml;
 
@@ -52,7 +53,7 @@ public class XmlNode {
     private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
         String mainPort = Settings.getString("pref_http_port");
-        if (backendIP == null || mainPort == null) {
+        if (backendIP.length() == 0 || mainPort.length() == 0) {
             Log.e(TAG, CLASS + " Backend port or IP address not specified");
             return null;
         }
@@ -290,6 +291,7 @@ public class XmlNode {
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
 
     public Date getDate() {

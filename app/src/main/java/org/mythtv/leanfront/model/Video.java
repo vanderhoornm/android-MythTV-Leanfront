@@ -211,7 +211,7 @@ public final class Video implements Parcelable, ListItem {
         this.showRecent = showRecent;
     }
 
-    protected Video(Parcel in) {
+    private Video(Parcel in) {
         id = in.readLong();
         rectype = in.readInt();
         title = in.readString();
@@ -569,7 +569,7 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
-        // This is removed because t is only used in case you are playing videos from
+        // This is removed because it is only used in case you are playing videos from
         // sources outside of this application. That is not a supported function of
         // this application.
 //        public Video buildFromMediaDesc(MediaDescription desc) {

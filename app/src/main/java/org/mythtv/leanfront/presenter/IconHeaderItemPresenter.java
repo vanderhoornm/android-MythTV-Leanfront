@@ -24,7 +24,9 @@
 
 package org.mythtv.leanfront.presenter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 
 import androidx.leanback.widget.ListRow;
@@ -60,7 +62,7 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
         LayoutInflater inflater = (LayoutInflater) viewGroup.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View view = inflater.inflate(R.layout.icon_header_item, null);
+        @SuppressLint("InflateParams") View view = inflater.inflate(R.layout.icon_header_item, null);
         view.setAlpha(mUnselectedAlpha); // Initialize icons to be at half-opacity.
         view.setOnLongClickListener( (v) -> mainFragment.onHeaderMenu(headerItem));
         view.setOnKeyListener( (v, keyCode, event) -> {
@@ -84,40 +86,41 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
         ObjectAdapter adapter = ((ListRow)item).getAdapter();
         int count = adapter.size();
+        Resources resources = rootView.getResources();
         switch (headerItem.getItemType()) {
             case MainFragment.TYPE_TOOLS:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_tools, null);
+                icon = resources.getDrawable(R.drawable.ic_tools, null);
                 count = 0;
                 break;
             case MainFragment.TYPE_VIDEODIR:
             case MainFragment.TYPE_VIDEODIR_ALL:
-                icon = rootView.getResources().getDrawable(R.drawable.im_folder, null);
+                icon = resources.getDrawable(R.drawable.im_folder, null);
                 break;
             case MainFragment.TYPE_RECGROUP:
             case MainFragment.TYPE_RECGROUP_ALL:
             case MainFragment.TYPE_TOP_ALL:
             case MainFragment.TYPE_SERIES:
                 if ("LiveTV".equals(name)) {
-                    icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);
+                    icon = resources.getDrawable(R.drawable.im_live_tv, null);
                 }
                 else
-                    icon = rootView.getResources().getDrawable(R.drawable.ic_voicemail, null);
+                    icon = resources.getDrawable(R.drawable.ic_voicemail, null);
                 break;
             case MainFragment.TYPE_RECENTS:
-                icon = rootView.getResources().getDrawable(R.drawable.im_movie, null);
+                icon = resources.getDrawable(R.drawable.im_movie, null);
                 break;
             case MainFragment.TYPE_CHANNEL:
             case MainFragment.TYPE_CHANNEL_ALL:
-                icon = rootView.getResources().getDrawable(R.drawable.im_live_tv, null);
+                icon = resources.getDrawable(R.drawable.im_live_tv, null);
                 break;
             default:
-                icon = rootView.getResources().getDrawable(R.drawable.ic_launcher_lean, null);
+                icon = resources.getDrawable(R.drawable.ic_launcher_lean, null);
         }
         iconView.setImageDrawable(icon);
 
         TextView label = rootView.findViewById(R.id.header_label);
         label.setText(headerItem.getName());
-        label.setTextColor(rootView.getResources().getColor(R.color.header_text));
+        label.setTextColor(resources.getColor(R.color.header_text));
 
         TextView countView = rootView.findViewById(R.id.header_count);
         if (countView != null && count > 0)

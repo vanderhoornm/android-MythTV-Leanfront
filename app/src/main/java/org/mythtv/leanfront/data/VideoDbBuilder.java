@@ -24,10 +24,9 @@
 
 package org.mythtv.leanfront.data;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-
-import androidx.annotation.NonNull;
 
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
@@ -50,6 +49,7 @@ import java.util.TimeZone;
  * The VideoDbBuilder is used to grab a XML file from a server and parse the data
  * to be placed into a local database
  */
+@SuppressLint("SimpleDateFormat")
 public class VideoDbBuilder {
     public static final String[] XMLTAGS_PROGRAM = {"Programs", "Program"};
     public static final String[] XMLTAGS_ARTINFO = {"Artwork", "ArtworkInfos", "ArtworkInfo"};
@@ -84,7 +84,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_RELEASEDATE = "ReleaseDate";
     public static final String XMLTAG_ID = "Id";
     public static final String XMLTAG_WATCHED = "Watched";
-    public static final String VALUE_WATCHED = (new Integer(Video.FL_WATCHED)).toString();
+    public static final String VALUE_WATCHED = (Integer.valueOf(Video.FL_WATCHED)).toString();
 
     // Channels
     private static final String[] XMLTAGS_CHANNEL = {"ChannelInfos", "ChannelInfo"};
@@ -104,14 +104,6 @@ public class VideoDbBuilder {
     // 2018-05-23T00:00:00Z
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'Z");
     private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-
-    /**
-     * Default constructor that can be used for tests
-     */
-    public VideoDbBuilder() {
-
-    }
 
     public VideoDbBuilder(Context context) {
         this.mContext = context;
@@ -142,8 +134,7 @@ public class VideoDbBuilder {
      *
      * @param url The location of the video list
      */
-    public @NonNull
-    void fetch(String url, int phase, List<ContentValues> videosToInsert)
+    public void fetch(String url, int phase, List<ContentValues> videosToInsert)
             throws IOException, XmlPullParserException {
         XmlNode videoData = XmlNode.fetch(url, null);
         buildMedia(videoData, phase, -1, videosToInsert);
@@ -414,7 +405,6 @@ public class VideoDbBuilder {
             if (ixSingle >= 0)
                 break;
         }
-        return;
     }
 
     private void loadChannels(XmlNode xmlFull, List<ContentValues> channelsToInsert) {
@@ -476,6 +466,5 @@ public class VideoDbBuilder {
             channelValues.put(VideoContract.VideoEntry.COLUMN_RECGROUP, "LiveTV");
             channelsToInsert.add(channelValues);
         }
-        return;
     }
 }

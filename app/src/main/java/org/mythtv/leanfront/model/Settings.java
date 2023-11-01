@@ -19,6 +19,7 @@
 
 package org.mythtv.leanfront.model;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -58,6 +59,7 @@ public class Settings {
                 actualKey = "sdef" + "_" + key;
                 Context context = MyApplication.getAppContext();
                 Resources res = context.getResources();
+                @SuppressLint("DiscouragedApi")
                 int resId = res.getIdentifier(actualKey, "string", context.getPackageName());
                 if (resId != 0)
                     result = res.getString(resId);

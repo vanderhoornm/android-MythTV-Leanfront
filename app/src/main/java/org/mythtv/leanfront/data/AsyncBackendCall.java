@@ -19,6 +19,7 @@
 
 package org.mythtv.leanfront.data;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -96,7 +97,7 @@ public class AsyncBackendCall implements Runnable {
     private static final String[] XMLTAGS_RECORDEDID = {"Recording", "RecordedId"};
     private static final String[] XMLTAGS_ENDTIME = {"Recording", "EndTs"};
     private static final String XMLTAG_WATCHED = "Watched";
-    private static final String VALUE_WATCHED = (new Integer(Video.FL_WATCHED)).toString();
+    private static final String VALUE_WATCHED = (Integer.valueOf(Video.FL_WATCHED)).toString();
 
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncBackendCall";
@@ -255,6 +256,7 @@ public class AsyncBackendCall implements Runnable {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private void runTasks() {
         BackendCache bCache = BackendCache.getInstance();
         mTasks = new int[inTasks.length];
@@ -580,7 +582,7 @@ public class AsyncBackendCall implements Runnable {
                         try {
                             // pause 1 second between attempts
                             Thread.sleep(1000);
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException ignored) {
                         }
                         try {
                             URL url = new URL(urlString);
@@ -715,7 +717,7 @@ public class AsyncBackendCall implements Runnable {
                         List<ContentValues> contentValuesList = new ArrayList<>();
                         builder.buildMedia(xmlResult, 0, ixFound, contentValuesList);
                         ContentValues[] downloadedVideoContentValues =
-                                contentValuesList.toArray(new ContentValues[contentValuesList.size()]);
+                                contentValuesList.toArray(new ContentValues[0]);
                         context.getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                                 downloadedVideoContentValues);
 
@@ -938,7 +940,6 @@ public class AsyncBackendCall implements Runnable {
                     try {
                         SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-                        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
                         String baseURL;
                         if (mRecordRule.recordId == 0)
                             baseURL = "/Dvr/AddRecordSchedule?";
@@ -1190,7 +1191,6 @@ public class AsyncBackendCall implements Runnable {
             }
             mXmlResults.add(xmlResult);
         }
-        return;
     }
 
     // method: GetSavedBookmark or GetLastPlayPos

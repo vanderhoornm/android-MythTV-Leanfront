@@ -1,5 +1,6 @@
 package org.mythtv.leanfront.model;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import org.mythtv.leanfront.R;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+@SuppressLint("SimpleDateFormat")
 public class RecordRule {
 
     public int     recordId;

@@ -8,6 +8,7 @@ import static org.mythtv.leanfront.data.VideoContract.VideoEntry.COLUMN_SUBTITLE
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_CHANNEL;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.VIEW_NAME;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,6 +41,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+@SuppressLint("SimpleDateFormat")
 public class CreateManualSchedule  extends GuidedStepSupportFragment {
     private static final String TAG = "lfe";
     private static final String CLASS = "CreateManualSchedule";
@@ -85,6 +87,7 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
         this.searchType = searchType;
     }
 
+    @NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
         Activity activity = getActivity();
@@ -116,7 +119,7 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
         mainActions.add(actionDate = new GuidedDatePickerAction.Builder(getActivity())
                 .id(ID_DATE)
                 .date(System.currentTimeMillis())
-                .maxDate(System.currentTimeMillis()+1000l*60l*60l*24l*30l)
+                .maxDate(System.currentTimeMillis()+ 1000L * 60L * 60L * 24L * 30L)
                 .minDate(System.currentTimeMillis())
                 .title(R.string.sched_date)
                 .build());
@@ -192,24 +195,22 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
 //        OnActionClickedListener parent = playbackFragment.mPlayerGlue;
+        //                            ArrayList<Action> mActions = finalActions;
+//                            OnActionClickedListener mParent = parent;
         AlertDialog dlg = builder
                 .setTitle(R.string.sched_channel)
                 .setItems(names.toArray(new String[0]),
-                        new DialogInterface.OnClickListener() {
-//                            ArrayList<Action> mActions = finalActions;
-//                            OnActionClickedListener mParent = parent;
-                            public void onClick(DialogInterface dialog, int which) {
-                                // The 'which' argument contains the index position
-                                // of the selected item
-                                selection = which;
-                                chanName = names.get(which);
-                                actionChannel.setDescription(chanName);
-                                notifyActionChanged(findActionPositionById(ID_CHANNEL));
-                                chanid = chanids.get(which);
-                                station = callSigns.get(which);
-                                actionNext.setEnabled(true);
-                                notifyActionChanged(findActionPositionById(ID_NEXT));
-                            }
+                        (dialog, which) -> {
+                            // The 'which' argument contains the index position
+                            // of the selected item
+                            selection = which;
+                            chanName = names.get(which);
+                            actionChannel.setDescription(chanName);
+                            notifyActionChanged(findActionPositionById(ID_CHANNEL));
+                            chanid = chanids.get(which);
+                            station = callSigns.get(which);
+                            actionNext.setEnabled(true);
+                            notifyActionChanged(findActionPositionById(ID_NEXT));
                         })
                 .create();
                 dlg.show();

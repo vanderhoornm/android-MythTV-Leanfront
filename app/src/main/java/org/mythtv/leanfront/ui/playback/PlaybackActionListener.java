@@ -19,6 +19,7 @@
 
 package org.mythtv.leanfront.ui.playback;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -55,6 +56,7 @@ import org.mythtv.leanfront.player.VideoPlayerGlue;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressLint({"RtlHardcoded", "PrivateResource", "SetTextI18n", "DefaultLocale"})
 class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener {
 
     private final PlaybackFragment playbackFragment;
@@ -103,8 +105,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         playbackFragment.hideControlsOverlay(false);
         PlaybackControlsRow row =  playbackFragment.mPlayerGlue.getControlsRow();
         ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
-        List<Object> fullList = new ArrayList<>();
-        fullList.addAll(adapter.unmodifiableList());
+        List<Object> fullList = new ArrayList<>(adapter.unmodifiableList());
         adapter = (ArrayObjectAdapter) row.getSecondaryActionsAdapter();
         fullList.addAll(adapter.unmodifiableList());
         ArrayList<String> prompts = new ArrayList<>();
@@ -583,8 +584,6 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     private void showPivotSelector() {
         playbackFragment.hideControlsOverlay(true);
-        int x = Math.round(mPivotX * 100.0f);
-        int y = Math.round(mPivotY * 100.0f);
         AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert)
                 .setOnDismissListener(dialogDismiss);
@@ -851,7 +850,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             playbackFragment.mPlayerGlue.setNextCommBreakMs(Long.MAX_VALUE);
             // If this is a start point, prevent it from immediately skipping
             if (mark == CommBreakTable.MARK_CUT_START)
-                playbackFragment.priorCommBreak = newPosition + Settings.getInt("pref_commskip_start") * 1000;
+                playbackFragment.priorCommBreak = newPosition + (long)Settings.getInt("pref_commskip_start") * 1000;
             playbackFragment.mPlayerGlue.seekTo(newPosition);
             comskipToast(mark);
         }
@@ -878,7 +877,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
             playbackFragment.mPlayerGlue.setNextCommBreakMs(Long.MAX_VALUE);
             // If this is a start point, prevent it from immediately skipping
             if (mark == CommBreakTable.MARK_CUT_START)
-                playbackFragment.priorCommBreak = newPosition + Settings.getInt("pref_commskip_start") * 1000;
+                playbackFragment.priorCommBreak = newPosition + (long)Settings.getInt("pref_commskip_start") * 1000;
             playbackFragment.mPlayerGlue.seekTo(newPosition);
             comskipToast(mark);
         }
@@ -1001,7 +1000,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     // We should now be at the MARK_CUT_END of the selected comm break
                     // If not or if we are past it, do nothing.
                     if (position <= offsetMs && entry.mark == CommBreakTable.MARK_CUT_END) {
-                        newPosition = offsetMs + Settings.getInt("pref_commskip_end") * 1000;
+                        newPosition = offsetMs + (long)Settings.getInt("pref_commskip_end") * 1000;
                     }
                     else
                         Log.e(TAG, CLASS + " No end commbreak entry for: " + nextCommBreakMs);
@@ -1030,26 +1029,24 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                             R.style.Theme_AppCompat_Dialog_Alert)
                             .setTitle(R.string.title_comm_playing)
                             .setItems(R.array.menu_commplaying,
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            // The 'which' argument contains the index position
-                                            // of the selected item
-                                            switch (which) {
-                                                // 0 = skip commercial
-                                                case 0:
-                                                    if (playbackFragment.mPlayerGlue.getCurrentPosition()
-                                                            < finalNewPosition) {
-                                                        // controls will be re-enabled by onEndCommBreak
-                                                        // Uncomment this To Hide controls while skipping commercials
+                                    (dialog, which) -> {
+                                        // The 'which' argument contains the index position
+                                        // of the selected item
+                                        switch (which) {
+                                            // 0 = skip commercial
+                                            case 0:
+                                                if (playbackFragment.mPlayerGlue.getCurrentPosition()
+                                                        < finalNewPosition) {
+                                                    // controls will be re-enabled by onEndCommBreak
+                                                    // Uncomment this To Hide controls while skipping commercials
 //                                                        playbackFragment.mPlayerGlue.setEnableControls(false);
-                                                        // Comment this To Hide controls while skipping commercials
-                                                        playbackFragment.tickle(false,false);
-                                                        dialogDismiss.enableControls = false;
-                                                        playbackFragment.mPlayerGlue.seekTo(finalNewPosition);
-                                                    }
-                                                    break;
-                                                // 1 = do not skip commercial. Defaults to doing nothing
-                                            }
+                                                    // Comment this To Hide controls while skipping commercials
+                                                    playbackFragment.tickle(false,false);
+                                                    dialogDismiss.enableControls = false;
+                                                    playbackFragment.mPlayerGlue.seekTo(finalNewPosition);
+                                                }
+                                                break;
+                                            // 1 = do not skip commercial. Defaults to doing nothing
                                         }
                                     })
                             .setOnDismissListener(dialogDismiss)

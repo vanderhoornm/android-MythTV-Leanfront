@@ -40,6 +40,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +50,7 @@ public class AsyncRemoteCall implements Runnable {
 
     public String stringParameter;
     public ArrayList<Parser> results = new ArrayList<>();
-    public Integer inTasks[];
+    public Integer[] inTasks;
     public int [] tasks;
     private final Listener listener;
     public static final int ACTION_LOOKUP_TVMAZE = 1;
@@ -249,7 +250,7 @@ public class AsyncRemoteCall implements Runnable {
             // }
             JsonReader reader = null;
             try {
-                reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+                reader = new JsonReader(new InputStreamReader(in, StandardCharsets.UTF_8));
                 reader.beginObject();
                 doc:
                 for (;;) {
@@ -372,7 +373,7 @@ public class AsyncRemoteCall implements Runnable {
                 Log.d(TAG, CLASS + " URL: " + urlString);
                 os = urlConnection.getOutputStream();
                 final String jsonInputString = "{ \"apikey\": \"" + APIKEY + "\" }";
-                byte[] input = jsonInputString.getBytes("utf-8");
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
                 os.close();
                 is = urlConnection.getInputStream();
@@ -430,7 +431,7 @@ public class AsyncRemoteCall implements Runnable {
 
             JsonReader reader = null;
             try {
-                reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+                reader = new JsonReader(new InputStreamReader(in, StandardCharsets.UTF_8));
                 reader.beginObject();
                 results:
                 for (;;) {
@@ -517,7 +518,7 @@ public class AsyncRemoteCall implements Runnable {
 
             JsonReader reader = null;
             try {
-                reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+                reader = new JsonReader(new InputStreamReader(in, StandardCharsets.UTF_8));
                 reader.beginObject();
                 results:
                 for (;;) {
@@ -647,7 +648,7 @@ public class AsyncRemoteCall implements Runnable {
             // ]
             JsonReader reader = null;
             try {
-                reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+                reader = new JsonReader(new InputStreamReader(in, StandardCharsets.UTF_8));
                 reader.beginArray();
                 results:
                 for (;;) {

@@ -28,6 +28,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.annotation.NonNull;
 import androidx.leanback.app.SearchSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.CursorObjectAdapter;
@@ -69,8 +71,6 @@ public class SearchFragment extends SearchSupportFragment
     private static final String TAG = "lfe";
     private static final String CLASS = "SearchFragment";
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final boolean FINISH_ON_RECOGNIZER_CANCELED = true;
-    private static final int REQUEST_SPEECH = 0x00000010;
 
     private final Handler mHandler = new Handler();
     private ArrayObjectAdapter mRowsAdapter;
@@ -80,7 +80,6 @@ public class SearchFragment extends SearchSupportFragment
 
     private int mSearchLoaderId = 1;
     private boolean mResultsFound = false;
-    private ArrayObjectAdapter mGuideAdapter;
     private boolean mGuideInProgress = false;
 
     @Override
@@ -154,6 +153,7 @@ public class SearchFragment extends SearchSupportFragment
         getView().findViewById(R.id.lb_search_bar).requestFocus();
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String query = mQuery;
@@ -169,7 +169,7 @@ public class SearchFragment extends SearchSupportFragment
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         // Do not refresh on a reload
         if (mRowsAdapter.size() > 0)
             return;
@@ -189,7 +189,7 @@ public class SearchFragment extends SearchSupportFragment
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         mVideoCursorAdapter.changeCursor(null);
     }
 

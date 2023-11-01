@@ -19,8 +19,8 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,10 +34,6 @@ import android.widget.Spinner;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
-import androidx.leanback.widget.OnItemViewClickedListener;
-import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.Row;
-import androidx.leanback.widget.RowPresenter;
 import androidx.leanback.widget.VerticalGridPresenter;
 
 import org.mythtv.leanfront.R;
@@ -101,35 +97,31 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mGridAdapter = new ArrayObjectAdapter(new GuidePresenterSelector(getContext()));
         setAdapter(mGridAdapter);
 
-        setOnItemViewClickedListener(new OnItemViewClickedListener() {
-            @Override
-            public void onItemClicked(Presenter.ViewHolder itemViewHolder,
-                    Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-                if (mLoadInProgress)
-                    return;
-                GuideSlot card = (GuideSlot)item;
-                if (card == null)
-                    return;
-                switch (card.cellType) {
-                    case GuideSlot.CELL_TIMESELECTOR:
-                    case GuideSlot.CELL_TIMESLOT:
-                        showTimeSelector();
-                        break;
-                    case GuideSlot.CELL_CHANNEL:
-                        showChannelSelector();
-                        break;
-                    case GuideSlot.CELL_LEFTARROW:
-                        mGridStartTime = new Date(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        setupGridData();
-                        break;
-                    case GuideSlot.CELL_RIGHTARROW:
-                        mGridStartTime = new Date(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
-                        setupGridData();
-                        break;
-                    case GuideSlot.CELL_PROGRAM:
-                        programClicked(card);
-                        break;
-                }
+        setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
+            if (mLoadInProgress)
+                return;
+            GuideSlot card = (GuideSlot)item;
+            if (card == null)
+                return;
+            switch (card.cellType) {
+                case GuideSlot.CELL_TIMESELECTOR:
+                case GuideSlot.CELL_TIMESLOT:
+                    showTimeSelector();
+                    break;
+                case GuideSlot.CELL_CHANNEL:
+                    showChannelSelector();
+                    break;
+                case GuideSlot.CELL_LEFTARROW:
+                    mGridStartTime = new Date(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
+                    setupGridData();
+                    break;
+                case GuideSlot.CELL_RIGHTARROW:
+                    mGridStartTime = new Date(mGridStartTime.getTime() + TIMESLOTS * TIMESLOT_SIZE * 60000);
+                    setupGridData();
+                    break;
+                case GuideSlot.CELL_PROGRAM:
+                    programClicked(card);
+                    break;
             }
         });
     }
@@ -200,6 +192,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private void showTimeSelector() {
         Context context = getContext();
         if (mTimeFormatter == null) {
@@ -217,8 +210,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 Spinner dateSpin = mDialog.findViewById(R.id.date_select);
                 Spinner timeSpin = mDialog.findViewById(R.id.time_select);
                 long newStartTime = mTimeSelectCalendar.getTimeInMillis()
-                        + dateSpin.getSelectedItemPosition() * 24*60*60*1000
-                        + timeSpin.getSelectedItemPosition() * TIMESLOT_SIZE * 60 * 1000;
+                        + (long) dateSpin.getSelectedItemPosition() * 24*60*60*1000
+                        + (long) timeSpin.getSelectedItemPosition() * TIMESLOT_SIZE * 60 * 1000;
                 mGridStartTime = new Date(newStartTime);
                 setupGridData();
             } );
@@ -226,7 +219,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         mDialog = builder.create();
         mDialog.show();
         Spinner dateSpin=mDialog.findViewById(R.id.date_select);
-        ArrayAdapter<String> adapter = new ArrayAdapter(context,android.R.layout.simple_spinner_item );
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context,android.R.layout.simple_spinner_item );
         mTimeSelectCalendar = new GregorianCalendar();
         mTimeSelectCalendar.set(GregorianCalendar.HOUR_OF_DAY,0);
         mTimeSelectCalendar.set(GregorianCalendar.MINUTE,0);
@@ -246,7 +239,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         }
         dateSpin.setAdapter(adapter);
         Spinner timeSpin=mDialog.findViewById(R.id.time_select);
-        adapter = new ArrayAdapter(context,android.R.layout.simple_spinner_item );
+        adapter = new ArrayAdapter<>(context,android.R.layout.simple_spinner_item );
         millis = mTimeSelectCalendar.getTimeInMillis(); // midnight last night real time
         GregorianCalendar cal2 = new GregorianCalendar();
         cal2.setTime(mGridStartTime);
@@ -279,9 +272,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         builder.setView(input);
 
-        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
-            goToChannel(input);
-        });
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> goToChannel(input));
         builder.show();
     }
 
@@ -449,8 +440,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     }
 
     private void addTimeRow() {
-        for (int i = 0; i < mTimeRow.length; i++)
-            mGridAdapter.add(mTimeRow[i]);
+        for (GuideSlot guideSlot : mTimeRow) mGridAdapter.add(guideSlot);
     }
 
 

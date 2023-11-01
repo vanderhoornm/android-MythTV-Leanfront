@@ -1,6 +1,5 @@
 package org.mythtv.leanfront.ui;
 
-import android.app.Activity;
 import android.os.Bundle;
 
 import org.mythtv.leanfront.R;

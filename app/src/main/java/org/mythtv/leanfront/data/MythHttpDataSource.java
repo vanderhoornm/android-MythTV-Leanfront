@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import androidx.media3.datasource.BaseDataSource;
@@ -52,7 +53,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
     public MythHttpDataSource(String userAgent, PlaybackFragment playbackFragment){
         super(true);
         mPlaybackFragment = playbackFragment;
-        Map defaultRequestProperties = new HashMap<String, String>();
+        Map<String, String> defaultRequestProperties = new HashMap<>();
         defaultRequestProperties.put("accept-encoding","identity");
         mHttpDataSource = new DefaultHttpDataSource.Factory()
                 .setUserAgent(userAgent)
@@ -97,7 +98,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int readLength) throws IOException {
+    public int read(@NonNull byte[] buffer, int offset, int readLength) throws IOException {
         if (readLength <= 0)
             return 0;
         int leng = mHttpDataSource.read(buffer,offset,readLength);
@@ -120,11 +121,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
             if (mPlaybackFragment.isSpeededUp()) {
                 Activity activity = mPlaybackFragment.getActivity();
                 if (activity != null)
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                        mPlaybackFragment.resetSpeed();
-                    }
-                    });
+                    activity.runOnUiThread(() -> mPlaybackFragment.resetSpeed());
             }
             long leng2 = 0;
             try {
@@ -186,6 +183,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
             mPlaybackFragment = playbackFragment;
         }
 
+        @NonNull
         @Override
         public DataSource createDataSource() {
             return new MythHttpDataSource(mUserAgent, mPlaybackFragment);

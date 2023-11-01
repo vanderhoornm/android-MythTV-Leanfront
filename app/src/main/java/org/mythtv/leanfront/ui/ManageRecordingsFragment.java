@@ -19,9 +19,9 @@ import org.mythtv.leanfront.R;
 
 public class ManageRecordingsFragment extends BrowseSupportFragment {
 
-    private static int HEADER_ID_GUIDE = 1;
-    private static int HEADER_ID_RECRULES = 2;
-    private static int HEADER_ID_UPCOMING = 3;
+    private static final int HEADER_ID_GUIDE = 1;
+    private static final int HEADER_ID_RECRULES = 2;
+    private static final int HEADER_ID_UPCOMING = 3;
 
     private ArrayObjectAdapter mRowsAdapter;
     private BackgroundManager mBackgroundManager;
@@ -44,12 +44,9 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         // Set search icon color.
         setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
         setTitle(getString(R.string.title_manage_recordings));
-        setOnSearchClickedListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                startActivity(intent);
-            }
+        setOnSearchClickedListener(view -> {
+            Intent intent = new Intent(getActivity(), SearchActivity.class);
+            startActivity(intent);
         });
 
         prepareEntranceTransition();

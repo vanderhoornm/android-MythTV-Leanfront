@@ -24,6 +24,7 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -39,6 +40,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.BackgroundManager;
@@ -222,6 +224,7 @@ public class MainFragment extends BrowseSupportFragment
             manager.hide();
     }
 
+    @SuppressLint("RtlHardcoded")
     private void setUsage(int used) {
         if (getContext() == null)
             return;
@@ -335,21 +338,13 @@ public class MainFragment extends BrowseSupportFragment
             msg.append(getContext().getString(sNotes[ix]));
         }
         builder.setMessage(msg);
-        builder.setPositiveButton(R.string.notes_seen, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                SharedPreferences.Editor editor = Settings.getEditor();
-                Settings.putString(editor,"pref_notes_version",String.valueOf(sNotes.length));
-                editor.commit();
-                dialog.cancel();
-            }
+        builder.setPositiveButton(R.string.notes_seen, (dialog, which) -> {
+            SharedPreferences.Editor editor = Settings.getEditor();
+            Settings.putString(editor,"pref_notes_version",String.valueOf(sNotes.length));
+            editor.commit();
+            dialog.cancel();
         });
-        builder.setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.ok, (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
@@ -520,13 +515,9 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     private void setupEventListeners() {
-        setOnSearchClickedListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                startActivity(intent);
-            }
+        setOnSearchClickedListener(view -> {
+            Intent intent = new Intent(getActivity(), SearchActivity.class);
+            startActivity(intent);
         });
 
         setOnItemViewClickedListener(mItemViewClickedListener = new ItemViewClickedListener());
@@ -554,7 +545,7 @@ public class MainFragment extends BrowseSupportFragment
                 .into(new CustomTarget<Bitmap>(width, height) {
                     @Override
                     public void onResourceReady(
-                            Bitmap resource,
+                            @NonNull Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mBackgroundManager.setBitmap(resource);
                     }
@@ -797,7 +788,7 @@ public class MainFragment extends BrowseSupportFragment
     private final class HeaderClickedListener implements HeadersSupportFragment.OnHeaderClickedListener {
         @Override
         public void onHeaderClicked(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
-            Context context = getActivity();
+            Activity context = getActivity();
             MyHeaderItem headerItem = (MyHeaderItem) row.getHeaderItem();
 
             Intent intent;
@@ -847,7 +838,7 @@ public class MainFragment extends BrowseSupportFragment
                     return;
             }
             Bundle bundle =
-                    ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context)
+                    ActivityOptionsCompat.makeSceneTransitionAnimation(context)
                             .toBundle();
             context.startActivity(intent, bundle);
 
@@ -974,18 +965,16 @@ public class MainFragment extends BrowseSupportFragment
                 listBbuilder
                         .setTitle(alertTitle)
                         .setItems(groups.toArray(new String[0]),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // The 'which' argument contains the index position
-                                        // of the selected item
-                                        // Last item in the list is "Create New Entry"
-                                        if (which == groups.size() - 1) {
-                                            mNewValueText = "";
-                                            promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP, row);
-                                        } else {
-                                            mNewValueText = groups.get(which);
-                                            onMenuClicked(new Action(Video.ACTION_UPDATE_RECGROUP), row);
-                                        }
+                                (dialog, which) -> {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    // Last item in the list is "Create New Entry"
+                                    if (which == groups.size() - 1) {
+                                        mNewValueText = "";
+                                        promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP, row);
+                                    } else {
+                                        mNewValueText = groups.get(which);
+                                        onMenuClicked(new Action(Video.ACTION_UPDATE_RECGROUP), row);
                                     }
                                 });
                 listBbuilder.show();
@@ -1060,19 +1049,11 @@ public class MainFragment extends BrowseSupportFragment
         input.setText(mNewValueText);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mNewValueText = input.getText().toString();
-                onMenuClicked(new Action(nextId), row);
-            }
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+            mNewValueText = input.getText().toString();
+            onMenuClicked(new Action(nextId), row);
         });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
         builder.show();
     }
 
@@ -1096,7 +1077,7 @@ public class MainFragment extends BrowseSupportFragment
                     return;
                 }
                 String backendIP = Settings.getString("pref_backend");
-                if (backendIP == null || backendIP.length() == 0)
+                if (backendIP.length() == 0)
                     return;
                 while (!connection) {
                     if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()

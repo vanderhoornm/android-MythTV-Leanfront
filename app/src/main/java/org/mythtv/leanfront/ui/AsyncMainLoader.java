@@ -53,6 +53,7 @@ import static org.mythtv.leanfront.ui.MainFragment.TYPE_VIDEODIR;
 import static org.mythtv.leanfront.ui.MainFragment.TYPE_VIDEODIR_ALL;
 import static org.mythtv.leanfront.ui.MainFragment.makeTitleSort;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
@@ -79,6 +80,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@SuppressLint("SimpleDateFormat")
 public class AsyncMainLoader implements Runnable {
 
     MainFragment mainFragment;
@@ -359,9 +361,7 @@ public class AsyncMainLoader implements Runnable {
             header = new MyHeaderItem(allTitle,
                     allType, mBaseName);
             allSparse = new SparseArray<>();
-            ;
             allList = new ArrayList<>();
-            ;
             allList.add(header);
             categoryList.add(allList);
             allRowNum = categoryList.size() - 1;
@@ -577,7 +577,7 @@ public class AsyncMainLoader implements Runnable {
                 try {
                     while (allSparse.get(position) != null)
                         position++;
-                } catch (ArrayIndexOutOfBoundsException e) {
+                } catch (ArrayIndexOutOfBoundsException ignored) {
                 }
                 allSparse.put(position, video);
             }
@@ -597,7 +597,7 @@ public class AsyncMainLoader implements Runnable {
                 try {
                     while (recentsSparse.get(key) != null)
                         key++;
-                } catch (ArrayIndexOutOfBoundsException e) {
+                } catch (ArrayIndexOutOfBoundsException ignored) {
                 }
 
                 // Check if there is already an entry for that series / directory

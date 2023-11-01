@@ -30,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ObjectAdapter;
@@ -106,12 +107,9 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
             };
 
     final private OnChildLaidOutListener mChildLaidOutListener =
-            new OnChildLaidOutListener() {
-                @Override
-                public void onChildLaidOut(ViewGroup parent, View view, int position, long id) {
-                    if (position == 0) {
-                        showOrHideTitle();
-                    }
+            (parent, view, position, id) -> {
+                if (position == 0) {
+                    showOrHideTitle();
                 }
             };
 
@@ -177,7 +175,7 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ViewGroup gridDock = view.findViewById(R.id.browse_grid_dock);
         mGridViewHolder = mGridPresenter.onCreateViewHolder(gridDock);

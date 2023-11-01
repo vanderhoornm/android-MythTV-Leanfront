@@ -37,7 +37,6 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.model.Settings;
 
 import java.util.ArrayList;
@@ -502,7 +501,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .subActions(subActions)
                 .build());
 
-        subActions = new ArrayList<GuidedAction>();
+        subActions = new ArrayList<>();
         String audio = Settings.getString("pref_audio");
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_AUDIO_AUTO)
@@ -532,7 +531,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .subActions(subActions)
                 .build());
 
-        subActions = new ArrayList<GuidedAction>();
+        subActions = new ArrayList<>();
 
         subActions.add(new GuidedAction.Builder(getActivity())
                 .id(ID_TWEAK_SEARCH_PKTS)

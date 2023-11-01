@@ -1,5 +1,6 @@
 package org.mythtv.leanfront.model;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
@@ -12,6 +13,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@SuppressLint("SimpleDateFormat")
 public class GuideSlot {
     public int chanId = -1;
     public int chanNum = -1;

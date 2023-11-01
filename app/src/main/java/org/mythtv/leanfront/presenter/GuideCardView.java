@@ -20,6 +20,7 @@
 
 package org.mythtv.leanfront.presenter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -30,6 +31,7 @@ import androidx.leanback.widget.BaseCardView;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.model.GuideSlot;
 
+@SuppressLint("ViewConstructor")
 public class GuideCardView extends BaseCardView {
     public static final int COLOR_TIMESLOT = 0xff265990;
     public static final int COLOR_CHANNEL = 0xff202a49;

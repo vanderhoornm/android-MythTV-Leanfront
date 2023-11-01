@@ -90,7 +90,7 @@ public class CommBreakTable {
             entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_END);
         // Fill in any unused entries with the last entry
         while (ix < nodeCount)
-            entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_START);;
+            entries[ix++] = new Entry(Integer.MAX_VALUE - 10000000, MARK_CUT_START);
     }
 
     public long getOffsetMs(Entry entry) {

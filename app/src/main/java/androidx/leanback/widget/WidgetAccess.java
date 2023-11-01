@@ -41,7 +41,7 @@ public class WidgetAccess {
     MySelectedListener mPlayerListener;
 
     public interface MySelectedListener {
-        public void onControlSelected(Presenter.ViewHolder controlViewHolder, Object item);
+        void onControlSelected(Presenter.ViewHolder controlViewHolder, Object item);
     }
 
     public void setMySelectedListener(

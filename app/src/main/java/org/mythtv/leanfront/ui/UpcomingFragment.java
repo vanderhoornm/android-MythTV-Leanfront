@@ -25,10 +25,6 @@ import android.os.Bundle;
 
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
-import androidx.leanback.widget.OnItemViewClickedListener;
-import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.Row;
-import androidx.leanback.widget.RowPresenter;
 import androidx.leanback.widget.VerticalGridPresenter;
 
 import org.mythtv.leanfront.data.AsyncBackendCall;
@@ -67,15 +63,11 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
         mGridAdapter = new ArrayObjectAdapter(new RecRuleCardPresenter(RecRuleCardView.TYPE_WIDE));
         setAdapter(mGridAdapter);
 
-        setOnItemViewClickedListener(new OnItemViewClickedListener() {
-            @Override
-            public void onItemClicked(Presenter.ViewHolder itemViewHolder,
-                                      Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-                if (mLoadInProgress)
-                    return;
-                RecordRule card = (RecordRule)item;
-                recRuleClicked(card);
-            }
+        setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
+            if (mLoadInProgress)
+                return;
+            RecordRule card = (RecordRule)item;
+            recRuleClicked(card);
         });
     }
 

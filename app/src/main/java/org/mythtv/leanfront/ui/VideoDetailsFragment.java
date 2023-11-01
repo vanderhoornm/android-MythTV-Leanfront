@@ -40,6 +40,7 @@ import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_CHANNEL
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_RECORDING;
 import static org.mythtv.leanfront.data.VideoContract.VideoEntry.RECTYPE_VIDEO;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.UiModeManager;
@@ -54,9 +55,22 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.content.ContextCompat;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
@@ -67,7 +81,6 @@ import androidx.leanback.widget.DetailsOverviewLogoPresenter;
 import androidx.leanback.widget.DetailsOverviewRow;
 import androidx.leanback.widget.FullWidthDetailsOverviewRowPresenter;
 import androidx.leanback.widget.FullWidthDetailsOverviewSharedElementHelper;
-import androidx.leanback.widget.GuidedAction;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.ListRow;
@@ -79,22 +92,9 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
 import androidx.leanback.widget.SparseArrayObjectAdapter;
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.loader.app.LoaderManager;
-import androidx.core.content.ContextCompat;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
-
-import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -124,6 +124,7 @@ import java.util.Date;
  * VideoDetailsFragment extends DetailsFragment, a Wrapper fragment for leanback details screens.
  * It shows a detailed view of video and its metadata plus related videos.
  */
+@SuppressLint("SimpleDateFormat")
 public class VideoDetailsFragment extends DetailsSupportFragment
         implements LoaderManager.LoaderCallbacks<Cursor>,
         AsyncBackendCall.OnBackendCallListener, OnActionClickedListener {
@@ -141,7 +142,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     private static final String[] XMLTAGS_PROGRAMFLAGS = {"ProgramFlags"};
 
     // ID for loader that loads the video from global search.
-    private int mGlobalSearchVideoId = 2;
 
     private Video mSelectedVideo;
     private ArrayObjectAdapter mAdapter;
@@ -250,27 +250,6 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         actionInitialSelect = true;
     }
 
-    /**
-     * Check if there is a global search intent. If there is, load that video.
-     */
-    private boolean hasGlobalSearchIntent() {
-        Intent intent = getActivity().getIntent();
-        String intentAction = intent.getAction();
-        String globalSearch = getString(R.string.global_search);
-
-        if (globalSearch.equalsIgnoreCase(intentAction)) {
-            Uri intentData = intent.getData();
-            String videoId = intentData.getLastPathSegment();
-
-            Bundle args = new Bundle();
-            args.putString(VideoContract.VideoEntry._ID, videoId);
-            LoaderManager manager = LoaderManager.getInstance(this);
-            manager.initLoader(mGlobalSearchVideoId++, args, this);
-            return true;
-        }
-        return false;
-    }
-
     private void prepareBackgroundManager() {
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
         mBackgroundManager.attach(getActivity().getWindow());
@@ -301,14 +280,14 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 .into(new CustomTarget<Bitmap>(mMetrics.widthPixels, mMetrics.heightPixels) {
                     @Override
                     public void onResourceReady(
-                            Bitmap resource,
+                            @NonNull Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mBackgroundManager.setBitmap(resource);
                     }
                     @Override
                     public void onLoadCleared(@Nullable Drawable placeholder) {
                         if (mBackgroundManager != null && mBackgroundManager.getDrawable() != null)
-                            mBackgroundManager.clearDrawable();;
+                            mBackgroundManager.clearDrawable();
                     }
                 });
     }
@@ -465,18 +444,16 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 listBbuilder
                         .setTitle(alertTitle)
                         .setItems(groups.toArray(new String[0]),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // The 'which' argument contains the index position
-                                        // of the selected item
-                                        // Last item in the list is "Create
-                                        if (which == groups.size() - 1) {
-                                            mNewValueText="";
-                                            promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP);
-                                        } else {
-                                            mNewValueText = groups.get(which);
-                                            onActionClicked(new Action(Video.ACTION_UPDATE_RECGROUP));
-                                        }
+                                (dialog, which) -> {
+                                    // The 'which' argument contains the index position
+                                    // of the selected item
+                                    // Last item in the list is "Create
+                                    if (which == groups.size() - 1) {
+                                        mNewValueText="";
+                                        promptForNewValue(R.string.sched_rec_group, Video.ACTION_UPDATE_RECGROUP);
+                                    } else {
+                                        mNewValueText = groups.get(which);
+                                        onActionClicked(new Action(Video.ACTION_UPDATE_RECGROUP));
                                     }
                                 });
                 listBbuilder.show();
@@ -629,19 +606,11 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         input.setText(mNewValueText);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mNewValueText = input.getText().toString();
-                onActionClicked(new Action(nextId));
-            }
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+            mNewValueText = input.getText().toString();
+            onActionClicked(new Action(nextId));
         });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
         builder.show();
     }
 
@@ -657,6 +626,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         }
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
@@ -777,7 +747,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         if (cursor != null && cursor.moveToNext()) {
             switch (loader.getId()) {
                 case RELATED_VIDEO_LOADER: {
@@ -804,7 +774,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         mVideoCursorAdapter.changeCursor(null);
     }
 
@@ -874,7 +844,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(
-                            Bitmap resource,
+                            @NonNull Bitmap resource,
                             Transition<? super Bitmap> transition) {
                         mDetailsOverviewRow.setImageBitmap(getActivity(), resource);
                         startEntranceTransition();

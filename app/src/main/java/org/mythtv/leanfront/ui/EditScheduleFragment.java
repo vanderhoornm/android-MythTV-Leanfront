@@ -19,8 +19,8 @@
 
 package org.mythtv.leanfront.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Objects;
 
 
+@SuppressLint("SimpleDateFormat")
 public class EditScheduleFragment extends GuidedStepSupportFragment
         implements AsyncBackendCall.OnBackendCallListener, AsyncRemoteCall.Listener {
 
@@ -245,6 +246,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         super.onCreate(savedInstanceState);
     }
 
+    @NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
         if (savedInstanceState != null)
@@ -377,7 +379,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             intTypePrompts[ix] = typePrompts.get(ix);
         // Type
         mGpType = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_type,
-                intTypePrompts, typeOptions.toArray(new String[typeOptions.size()]),
+                intTypePrompts, typeOptions.toArray(new String[0]),
                 mRecordRule.type, false);
         mainActions.add(mGpType.mGuidedAction);
         mGroupList.add(mGpType);
@@ -397,7 +399,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
 
         // Playback Group
         mGpPlayGroup = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_play_group,
-                null, mPlayGroupList.toArray(new String[mPlayGroupList.size()]),
+                null, mPlayGroupList.toArray(new String[0]),
                 mRecordRule.playGroup, false);
         mainActions.add(mGpPlayGroup.mGuidedAction);
         mGroupList.add(mGpPlayGroup);
@@ -472,7 +474,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
 
         // Storage Group
         mGpStorageGroup = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_storage_grp,
-                null, mRecStorageGroupList.toArray(new String[mRecStorageGroupList.size()]),
+                null, mRecStorageGroupList.toArray(new String[0]),
                 mRecordRule.storageGroup, false);
         mainActions.add(mGpStorageGroup.mGuidedAction);
         mGroupList.add(mGpStorageGroup);
@@ -847,19 +849,11 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         input.setText(initValue);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mNewValueText = input.getText().toString();
-                onSubGuidedActionClicked(action);
-            }
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+            mNewValueText = input.getText().toString();
+            onSubGuidedActionClicked(action);
         });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
         builder.show();
     }
 
@@ -876,19 +870,17 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             builder
                     .setTitle(R.string.menu_changes)
                     .setItems(R.array.prompt_save_changes,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // The 'which' argument contains the index position
-                                    // of the selected item
-                                    // 0 = save, 1 = continue, 2 = exit
-                                    switch (which) {
-                                        case 0:
-                                            updateRecordRule();
-                                            break;
-                                        case 2:
-                                            finishGuidedStepSupportFragments();
-                                            break;
-                                    }
+                            (dialog, which) -> {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                // 0 = save, 1 = continue, 2 = exit
+                                switch (which) {
+                                    case 0:
+                                        updateRecordRule();
+                                        break;
+                                    case 2:
+                                        finishGuidedStepSupportFragments();
+                                        break;
                                 }
                             });
             builder.show();

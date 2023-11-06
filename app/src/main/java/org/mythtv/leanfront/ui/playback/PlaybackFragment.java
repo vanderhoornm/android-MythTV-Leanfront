@@ -1737,7 +1737,7 @@ public class PlaybackFragment extends VideoSupportFragment
                                 mBookmark = currPos;
                             if (setPossibleEmptyTrack && !possibleEmptyTrack) {
                                 possibleEmptyTrack = true;
-                                mPlayer.stop(true);
+                                mPlayer.stop();
                                 initializePlayer();
                             }
                             else

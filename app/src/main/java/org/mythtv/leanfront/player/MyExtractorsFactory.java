@@ -22,9 +22,11 @@ package org.mythtv.leanfront.player;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.media3.common.Format;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.util.TimestampAdjuster;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.extractor.DefaultExtractorsFactory;
 import androidx.media3.extractor.Extractor;
 import androidx.media3.extractor.ExtractorsFactory;
@@ -38,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MyExtractorsFactory implements ExtractorsFactory {
+@UnstableApi public class MyExtractorsFactory implements ExtractorsFactory {
 
     private DefaultExtractorsFactory defaultFactory;
 
@@ -54,7 +56,7 @@ public class MyExtractorsFactory implements ExtractorsFactory {
         return exts;
     }
 
-    private void updateExtractors(Extractor[] exts) {
+    @OptIn(markerClass = UnstableApi.class) private void updateExtractors(Extractor[] exts) {
         for (int ix = 0; ix < exts.length; ix++) {
             if (exts[ix] instanceof TsExtractor) {
                 List<Format> closedCaptionFormats = new ArrayList<>();

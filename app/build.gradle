@@ -18,11 +18,11 @@ android {
     lintOptions{
         disable 'MissingTranslation'
     }
-    compileSdk 33
+    compileSdk 34
     defaultConfig {
         applicationId "org.mythtv.leanfront"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode gitinfo.ext.version
         versionName gitinfo.ext.describe
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -53,6 +53,11 @@ android {
     }
     ndkVersion '21.3.6528147'
     namespace 'org.mythtv.leanfront'
+
+    dexOptions {
+        javaMaxHeapSize = "4G"
+    }
+
 }
 
 dependencies {
@@ -70,9 +75,13 @@ dependencies {
 
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    implementation "androidx.media3:media3-exoplayer:1.0.0"
-    implementation "androidx.media3:media3-ui-leanback:1.0.0"
-    implementation "androidx.media3:media3-ui:1.0.0"
+//    implementation "androidx.media3:media3-exoplayer:1.0.0"
+//    implementation "androidx.media3:media3-ui-leanback:1.0.0"
+//    implementation "androidx.media3:media3-ui:1.0.0"
+
+    implementation project(':media-lib-exoplayer')
+    implementation project(':media-lib-ui-leanback')
+    implementation project(':media-lib-ui')
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.robolectric:robolectric:3.8'

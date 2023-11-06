@@ -32,6 +32,7 @@ import androidx.media3.common.TrackGroup;
 import androidx.media3.common.util.Assertions;
 import androidx.media3.common.util.ConditionVariable;
 import androidx.media3.common.util.ParsableByteArray;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.common.util.Util;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DataSourceUtil;
@@ -71,7 +72,7 @@ import java.util.Map;
 //import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /** A {@link MediaPeriod} that extracts data using an {@link Extractor}. */
-/* package */ final class MyProgressiveMediaPeriod
+/* package */ @UnstableApi final class MyProgressiveMediaPeriod
     implements MediaPeriod,
         ExtractorOutput,
         Loader.Callback<MyProgressiveMediaPeriod.ExtractingLoadable>,
@@ -348,7 +349,7 @@ import java.util.Map;
   }
 
   @Override
-  public boolean continueLoading(long playbackPositionUs) {
+  public boolean continueLoading(/*LoadingInfo*/ long loadingInfo) {
     if (loadingFinished
         || loader.hasFatalError()
         || pendingDeferredRetry

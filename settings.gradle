@@ -1,4 +1,4 @@
 include ':app'
 
 gradle.ext.androidxMediaModulePrefix = 'media-'
-apply from: file("../media/core_settings.gradle")
+apply from: file("../media/lf_settings.gradle")

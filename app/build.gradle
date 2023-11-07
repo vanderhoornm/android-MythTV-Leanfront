@@ -10,8 +10,11 @@ task gitinfo {
         ext.describe = os.toString().trim()
         def split = ext.describe.split("-")
         ext.version = Integer.parseInt(split[0].substring(1)) * 1000 + Integer.parseInt(split[1])
+        ext.mediaver = 'git -C ../media describe --dirty'.execute().text.trim()
         println "Version Name: " + ext.describe + ", Version Code: " + ext.version
     }
+    println 'This version of leanfront should use media branch 1.0.0-lf'
+    println 'Media Version: ' + ext.mediaver
 }
 
 android {

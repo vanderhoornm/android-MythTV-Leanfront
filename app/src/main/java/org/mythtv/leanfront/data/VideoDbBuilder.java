@@ -106,6 +106,8 @@ public class VideoDbBuilder {
     private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public VideoDbBuilder(Context context) {
+        if (!XmlNode.isSetupDone())
+            return;
         this.mContext = context;
         try {
             String url = XmlNode.mythApiUrl(null, "/Myth/GetSetting?key=MasterBackendOverride&Default=0&HostName=_GLOBAL_");
@@ -136,6 +138,8 @@ public class VideoDbBuilder {
      */
     public void fetch(String url, int phase, List<ContentValues> videosToInsert)
             throws IOException, XmlPullParserException {
+        if (!XmlNode.isSetupDone())
+            return;
         XmlNode videoData = XmlNode.fetch(url, null);
         buildMedia(videoData, phase, -1, videosToInsert);
     }

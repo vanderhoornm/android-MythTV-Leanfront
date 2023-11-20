@@ -50,7 +50,7 @@ public class XmlNode {
     private String text = null;
     private XmlNode nextSibling;
 
-    private static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
+    public static String getIpAndPort(String hostname) throws IOException, XmlPullParserException {
         String backendIP = Settings.getString("pref_backend");
         String mainPort = Settings.getString("pref_http_port");
         if (backendIP.length() == 0 || mainPort.length() == 0) {
@@ -92,6 +92,16 @@ public class XmlNode {
             bCache.sHostMap.put(hostname, hostIpAndPort);
         }
         return hostIpAndPort;
+    }
+
+    public static boolean isSetupDone() {
+        try {
+            if (XmlNode.getIpAndPort(null) == null)
+                return false;
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     public static XmlNode parseStream(InputStream in) throws XmlPullParserException, IOException {

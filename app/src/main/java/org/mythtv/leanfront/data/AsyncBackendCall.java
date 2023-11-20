@@ -26,6 +26,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.util.Xml;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -239,6 +240,18 @@ public class AsyncBackendCall implements Runnable {
 
     @Override
     public void run() {
+        if (!XmlNode.isSetupDone())
+            return;
+        try {
+            if (XmlNode.getIpAndPort(null) == null)
+                return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+            return;
+        }
         try {
             runTasks();
         } catch (Throwable e) {

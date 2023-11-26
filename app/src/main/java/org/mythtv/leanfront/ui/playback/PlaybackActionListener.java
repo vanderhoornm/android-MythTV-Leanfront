@@ -44,7 +44,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackParameters;
 
-import androidx.media3.exoplayer.source.MySampleQueue;
+import androidx.media3.exoplayer.source.SampleQueue;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.CommBreakTable;
@@ -766,8 +766,8 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 
     public void setAudioSync() {
         boolean found = false;
-        MySampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
-        for (MySampleQueue sampleQueue : sampleQueues) {
+        SampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
+        for (SampleQueue sampleQueue : sampleQueues) {
             if (MimeTypes.isAudio(sampleQueue.getUpstreamFormat().sampleMimeType)) {
                 sampleQueue.setSampleOffsetUs(sampleOffsetUs);
                 found = true;

@@ -114,8 +114,8 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector;
 import androidx.media3.ui.leanback.LeanbackPlayerAdapter;
 
-import androidx.media3.exoplayer.source.MyProgressiveMediaSource;
-import androidx.media3.exoplayer.source.MySampleQueue;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.source.SampleQueue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -158,7 +158,7 @@ public class PlaybackFragment extends VideoSupportFragment
     int mAudioSelection = -2;
     private long mFileLength = -1;
     private MythHttpDataSource.Factory mDsFactory;
-    MyProgressiveMediaSource mMediaSource;
+    ProgressiveMediaSource mMediaSource;
     private MythHttpDataSource mDataSource;
     // Bounded indicates we have a fixed file length
     boolean mIsBounded = true;
@@ -800,7 +800,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mDsFactory = new MythHttpDataSource.Factory(userAgent, this);
         commBreakTable = new CommBreakTable();
         MyExtractorsFactory extFactory = new MyExtractorsFactory();
-        MyProgressiveMediaSource.Factory pmf = new MyProgressiveMediaSource.Factory
+        ProgressiveMediaSource.Factory pmf = new ProgressiveMediaSource.Factory
                 (mDsFactory,
                         extFactory);
         MediaItem item = MediaItem.fromUri(mediaSourceUri);
@@ -1521,8 +1521,8 @@ public class PlaybackFragment extends VideoSupportFragment
         public void onPlaybackStateChanged(int state) {
             if (state == Player.STATE_READY && !playWhenPrepared) {
                 if (frameRate < 0.0f) {
-                    MySampleQueue[] sampleQueues = mMediaSource.getSampleQueues();
-                    for (MySampleQueue sampleQueue : sampleQueues) {
+                    SampleQueue[] sampleQueues = mMediaSource.getSampleQueues();
+                    for (SampleQueue sampleQueue : sampleQueues) {
                         if (MimeTypes.isVideo(sampleQueue.getUpstreamFormat().sampleMimeType)) {
                             long[] timesUs = sampleQueue.getTimesUs();
                             int leng = sampleQueue.getWriteIndex();

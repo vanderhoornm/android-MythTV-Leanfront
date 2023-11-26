@@ -3,8 +3,8 @@
 # Copyright (C) 2019 The Android Open Source Project
 # Copyright (c) 2019-2020 Peter Bennett
 #
-# Code from "Exoplayer"
-# <https://github.com/android/Exoplayer>
+# Code from androidx/media
+# <https:https://github.com/androidx/media>
 # Modified by Peter Bennett
 #
 # This file is part of MythTV-leanfront.
@@ -26,7 +26,24 @@
 scriptname=`readlink -e "$0"`
 scriptpath=`dirname "$scriptname"`
 scriptname=`basename "$scriptname" .sh`
+set -e
 
 cd "$scriptpath"
 
-(git -C ffmpeg pull || git clone git@github.com:FFmpeg/FFmpeg.git ffmpeg)
+# Clear old builds
+#~ rm -rf ffmpeg/android-libs/*
+FFMPEG_PATH="$(pwd)/../ffmpeg"
+
+cd ../media
+FFMPEG_MODULE_PATH="$(pwd)/libraries/decoder_ffmpeg/src/main"
+NDK_PATH=$HOME/Android/android-ndk
+HOST_PLATFORM="linux-x86_64"
+ENABLED_DECODERS=(mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw)
+cd "${FFMPEG_MODULE_PATH}/jni"
+rm ffmpeg
+ln -fs "$FFMPEG_PATH" ffmpeg
+
+./build_ffmpeg.sh \
+  "${FFMPEG_MODULE_PATH}" "${NDK_PATH}" "${HOST_PLATFORM}" "${ENABLED_DECODERS[@]}"
+
+echo "ffmpeg build successfully completed"

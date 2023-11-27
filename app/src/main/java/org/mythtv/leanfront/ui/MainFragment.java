@@ -653,15 +653,16 @@ public class MainFragment extends BrowseSupportFragment
         video.type = TYPE_INFO;
         toolsRowAdapter.add(video);
 
-        video = new Video.VideoBuilder()
-                .id(-1).title(getString(R.string.button_manage_recordings))
-                .subtitle("")
-                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
-                .progflags("0")
-                .build();
-        video.type = TYPE_MANAGE;
-        toolsRowAdapter.add(video);
-
+        if (loader.haveChannels) {
+            video = new Video.VideoBuilder()
+                    .id(-1).title(getString(R.string.button_manage_recordings))
+                    .subtitle("")
+                    .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                    .progflags("0")
+                    .build();
+            video.type = TYPE_MANAGE;
+            toolsRowAdapter.add(video);
+        }
         SelectionSetter setter = new SelectionSetter(selection[0], selection[1]);
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(setter, 100);

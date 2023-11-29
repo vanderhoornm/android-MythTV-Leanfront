@@ -1,4 +1,4 @@
-# MythTV leanfront: Android TV frontend for MythTV
+# MythTV Leanback Frontend (leanfront): Android TV frontend for MythTV
 
 Leanfront is a frontend for MythTV that runs on Android TV and Amazon Fire TV devices.
 Leanfront supports playback of recordings and videos from MythTV. It can also schedule recordings using voice search or a program guide, and search for recordings or videos using voice.
@@ -246,6 +246,31 @@ You can use TheTVDB, TVmaze or TMDB, as long as you have a recent backend that s
 
 ## Installing leanfront
 You need an Android TV device, which can be a [Nvidia Shield](https://www.nvidia.com/shield), [Amazon Fire TV stick](https://www.amazon.com/dp/B08XVYZ1Y5/), [Amazon Fire TV](https://www.amazon.com/dp/B08SVZ775L), or other name brand or generic Android TV device.
+
+### Amazon Fire TV
+If you have an Amazon Fire TV, Fire Stick or Fire Cube, you can install from Amazon App store.
+For a new installation, just press the microphone button on your remote and say "MythTV". Then install.
+
+If you already have leanfront installed by downloading from orangedox, to install from the app store you will have to first uninstall it.
+
+If you uninstall it you will lose your settings and recently viewed list. To avoid that you can save and restore your settings and recently viewed list with the acopy.sh script from https://github.com/bennettpeter/android-MythTV-Leanfront/blob/master/extras/acopy.sh as follows:
+
+install sqlite3. Then run this:
+
+```
+acopy.sh -f <ip-address> --db --settings
+```
+The database and settings will download into /var/tmp/acopy
+
+Uninstall, press microphone and say "MythTV" and install it. Then run this:
+
+```
+acopy.sh -t <ip-address> --db --settings
+```
+The database and settings will restore from /var/tmp/acopy.
+
+### Non Amazon devices
+At this time, leanfront is not yet in the google app store.
 
 - Download the latest apk from https://dl.orangedox.com/pCBmBm.
 - Enable developer mode on your android device. For Fire TV, go to Settings, My Fire TV , Developer Options. For other Android TV devices, go to My Device, find the build version number, click on that several times until a message notifies you that you have developer mode.

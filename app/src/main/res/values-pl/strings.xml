@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Bieżące i poprzednie nagrania</string>
   <string name="sched_dup_curr">Tylko aktualne nagrania</string>
   <string name="sched_dup_prev">Tylko poprzednie nagrania</string>
+  <string name="sched_autoextend">Automatyczne przedłużanie</string>
+  <string name="sched_extend_none">Nic</string>
   <string name="sched_filters">Opcje filtrów</string>
   <string name="sched_rec_profile">Profil nagrywania</string>
   <string name="sched_recprof_default">Domyślny</string>

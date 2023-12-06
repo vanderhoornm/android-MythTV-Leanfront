@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Registrazioni attuali e precedenti</string>
   <string name="sched_dup_curr">Solo registrazioni correnti</string>
   <string name="sched_dup_prev">Solo registrazioni precedenti</string>
+  <string name="sched_autoextend">Estensione automatica</string>
+  <string name="sched_extend_none">Nessuno</string>
   <string name="sched_filters">Opzioni filtro</string>
   <string name="sched_rec_profile">Profilo di registrazione</string>
   <string name="sched_recprof_default">Predefinito</string>

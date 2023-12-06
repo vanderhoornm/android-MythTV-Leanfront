@@ -81,6 +81,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     private ActionGroup mGpPreferredInput;
     private ActionGroup mGpDupMethod;
     private ActionGroup mGpDupIn;
+    private ActionGroup mAutoExtend;
     private ActionGroup mGpFilter;
     private ActionGroup mGpRecProfile;
     private ActionGroup mGpStorageGroup;
@@ -299,6 +300,10 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
     static final String [] sDupScopeValues = {
             "All Recordings", "Current Recordings",
             "Previous Recordings" };
+    static final int [] sExtendPrompts = {
+            R.string.sched_extend_none, R.string.sched_extend_espn, R.string.sched_extend_mlb };
+    static final String [] sExtendValues = {
+            "None", "ESPN", "MLB" };
     static final int [] sRecProfilePrompts = {
             R.string.sched_recprof_default, R.string.sched_recprof_livetv,
             R.string.sched_recprof_highq, R.string.sched_recprof_lowq };
@@ -458,6 +463,12 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mainActions.add(mGpDupIn.mGuidedAction);
         mGroupList.add(mGpDupIn);
 
+        // Auto Extend
+        mAutoExtend = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_autoextend,
+                sExtendPrompts, sExtendValues, mRecordRule.autoExtend, false);
+        mainActions.add(mAutoExtend.mGuidedAction);
+        mGroupList.add(mAutoExtend);
+
         // Filters
         stringPrompts = new String[mRecRuleFilterList.size()];
         stringPrompts = mRecRuleFilterList.toArray(stringPrompts);
@@ -616,6 +627,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mRecordRule.preferredInput = mGpPreferredInput.mIntResult;
         mRecordRule.dupMethod = mGpDupMethod.mStringResult;
         mRecordRule.dupIn = mGpDupIn.mStringResult;
+        mRecordRule.autoExtend = mAutoExtend.mStringResult;
         mRecordRule.filter = mGpFilter.mIntResult;
         mRecordRule.recProfile = mGpRecProfile.mStringResult;
         mRecordRule.storageGroup = mGpStorageGroup.mStringResult;
@@ -679,6 +691,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mGpEndOffset.setValue(template.endOffset);
         mGpDupMethod.setValue(template.dupMethod);
         mGpDupIn.setValue((template.dupIn));
+        mAutoExtend.setValue((template.autoExtend));
         mGpNewEpisOnly.setValue(template.newEpisOnly);
         mGpFilter.setValue(template.filter);
         mGpRecProfile.setValue(template.recProfile);

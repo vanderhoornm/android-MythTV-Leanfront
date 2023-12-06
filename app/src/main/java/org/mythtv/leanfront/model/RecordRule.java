@@ -45,6 +45,7 @@ public class RecordRule {
     public int     endOffset;
     public String  dupMethod;
     public String  dupIn;
+    public String autoExtend;
     public boolean newEpisOnly;
     public int     filter;
     public String  recProfile;
@@ -159,6 +160,7 @@ public class RecordRule {
             // do not set this because we cannot update it with bug.
 //            newEpisOnly = true;
         }
+        autoExtend = scheduleNode.getString("AutoExtend");
         XmlNode node = scheduleNode.getNode("NewEpisOnly");
         if (node != null)
             newEpisOnly = node.getBoolean();
@@ -213,6 +215,7 @@ public class RecordRule {
             endOffset = template.endOffset;
             dupMethod = template.dupMethod;
             dupIn = template.dupIn;
+            autoExtend = template.autoExtend;
             newEpisOnly = template.newEpisOnly;
             filter = template.filter;
             recProfile = template.recProfile;

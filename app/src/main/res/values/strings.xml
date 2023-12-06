@@ -322,6 +322,10 @@
     <string name="sched_dup_both">Current and Previous Recordings</string>
     <string name="sched_dup_curr">Current Recordings Only</string>
     <string name="sched_dup_prev">Previous Recordings Only</string>
+    <string name="sched_autoextend">Auto Extend</string>
+    <string name="sched_extend_none">None</string>
+    <string name="sched_extend_espn" translatable="false">ESPN</string>
+    <string name="sched_extend_mlb" translatable="false">MLB</string>
     <string name="sched_filters">Filter Options</string>
     <string name="sched_rec_profile">Recording Profile</string>
     <string name="sched_recprof_default">Default</string>

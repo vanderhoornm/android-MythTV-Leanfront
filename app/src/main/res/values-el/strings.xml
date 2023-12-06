@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Τρέχουσες και Προηγούμενες Ηχογραφήσεις</string>
   <string name="sched_dup_curr">Μόνο τρέχουσες εγγραφές</string>
   <string name="sched_dup_prev">Μόνο προηγούμενες ηχογραφήσεις</string>
+  <string name="sched_autoextend">Αυτόματη επέκταση</string>
+  <string name="sched_extend_none">Κανένας</string>
   <string name="sched_filters">Επιλογές φίλτρου</string>
   <string name="sched_rec_profile">Προφίλ εγγραφής</string>
   <string name="sched_recprof_default">Προκαθορισμένο</string>

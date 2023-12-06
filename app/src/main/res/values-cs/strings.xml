@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Aktuální a předchozí nahrávky</string>
   <string name="sched_dup_curr">Pouze aktuální nahrávky</string>
   <string name="sched_dup_prev">Pouze předchozí nahrávky</string>
+  <string name="sched_autoextend">Automatické prodloužení</string>
+  <string name="sched_extend_none">Žádný</string>
   <string name="sched_filters">Možnosti filtru</string>
   <string name="sched_rec_profile">Záznamový profil</string>
   <string name="sched_recprof_default">Výchozí</string>

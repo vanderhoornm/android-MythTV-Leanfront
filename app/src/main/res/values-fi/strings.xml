@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Nykyiset ja aiemmat tallenteet</string>
   <string name="sched_dup_curr">Vain nykyiset tallenteet</string>
   <string name="sched_dup_prev">Vain aiemmat tallenteet</string>
+  <string name="sched_autoextend">Automaattinen laajennus</string>
+  <string name="sched_extend_none">Ei mitään</string>
   <string name="sched_filters">Suodatinvalinnat</string>
   <string name="sched_rec_profile">Tallennusprofiili</string>
   <string name="sched_recprof_default">Oletus</string>

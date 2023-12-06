@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Huidige en eerdere opnames</string>
   <string name="sched_dup_curr">Alleen huidige opnames</string>
   <string name="sched_dup_prev">Alleen eerdere opnames</string>
+  <string name="sched_autoextend">Automatisch verlengen</string>
+  <string name="sched_extend_none">Geen</string>
   <string name="sched_filters">Filteropties</string>
   <string name="sched_rec_profile">Opnameprofiel</string>
   <string name="sched_recprof_default">Standaard</string>

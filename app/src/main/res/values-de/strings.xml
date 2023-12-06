@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Aktuelle und frühere Aufnahmen</string>
   <string name="sched_dup_curr">Nur aktuelle Aufnahmen</string>
   <string name="sched_dup_prev">Nur vorherige Aufnahmen</string>
+  <string name="sched_autoextend">Automatische Verlängerung</string>
+  <string name="sched_extend_none">Keiner</string>
   <string name="sched_filters">Filteroptionen</string>
   <string name="sched_rec_profile">Aufnahmeprofil</string>
   <string name="sched_recprof_default">Standard</string>

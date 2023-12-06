@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Enregistrements actuels et précédents</string>
   <string name="sched_dup_curr">Enregistrements actuels uniquement</string>
   <string name="sched_dup_prev">Enregistrements précédents uniquement</string>
+  <string name="sched_autoextend">Extension automatique</string>
+  <string name="sched_extend_none">Aucun</string>
   <string name="sched_filters">Options de filtre</string>
   <string name="sched_rec_profile">Profil d\'enregistrement</string>
   <string name="sched_recprof_default">Défaut</string>

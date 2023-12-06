@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Nuværende og tidligere optagelser</string>
   <string name="sched_dup_curr">Kun aktuelle optagelser</string>
   <string name="sched_dup_prev">Kun tidligere optagelser</string>
+  <string name="sched_autoextend">Automatisk forlængelse</string>
+  <string name="sched_extend_none">Ingen</string>
   <string name="sched_filters">Filterindstillinger</string>
   <string name="sched_rec_profile">Optagelsesprofil</string>
   <string name="sched_recprof_default">Standard</string>

@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Gravações atuais e anteriores</string>
   <string name="sched_dup_curr">Somente gravações atuais</string>
   <string name="sched_dup_prev">Apenas gravações anteriores</string>
+  <string name="sched_autoextend">Extensão automática</string>
+  <string name="sched_extend_none">Nenhum</string>
   <string name="sched_filters">Opções de filtro</string>
   <string name="sched_rec_profile">Perfil de Gravação</string>
   <string name="sched_recprof_default">Padrão</string>

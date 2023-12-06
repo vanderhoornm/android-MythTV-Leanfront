@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Nåværende og tidligere opptak</string>
   <string name="sched_dup_curr">Kun gjeldende opptak</string>
   <string name="sched_dup_prev">Kun tidligere opptak</string>
+  <string name="sched_autoextend">Autoutvid</string>
+  <string name="sched_extend_none">Ingen</string>
   <string name="sched_filters">Filteralternativer</string>
   <string name="sched_rec_profile">Opptaksprofil</string>
   <string name="sched_recprof_default">Misligholde</string>

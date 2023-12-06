@@ -987,6 +987,7 @@ public class AsyncBackendCall implements Runnable {
                                 .append("&EndOffset=").append(mRecordRule.endOffset)
                                 .append("&DupMethod=").append(URLEncoder.encode(nvl(mRecordRule.dupMethod),"UTF-8"))
                                 .append("&DupIn=").append(URLEncoder.encode(nvl(mRecordRule.dupIn),"UTF-8"))
+                                .append("&AutoExtend=").append(URLEncoder.encode(nvl(mRecordRule.autoExtend),"UTF-8"))
                                 .append("&NewEpisOnly=").append(mRecordRule.newEpisOnly)
                                 .append("&Filter=").append(mRecordRule.filter)
                                 .append("&RecProfile=").append(URLEncoder.encode(mRecordRule.recProfile,"UTF-8"))

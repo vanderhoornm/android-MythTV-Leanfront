@@ -272,6 +272,8 @@
   <string name="sched_dup_both">Aktuella och tidigare inspelningar</string>
   <string name="sched_dup_curr">Endast aktuella inspelningar</string>
   <string name="sched_dup_prev">Endast tidigare inspelningar</string>
+  <string name="sched_autoextend">Automatisk förlängning</string>
+  <string name="sched_extend_none">Ingen</string>
   <string name="sched_filters">Filteralternativ</string>
   <string name="sched_rec_profile">Inspelningsprofil</string>
   <string name="sched_recprof_default">Standard</string>

@@ -692,7 +692,7 @@ public class AsyncBackendCall implements Runnable {
                                 + "&TitleRegEx=" + URLEncoder.encode("^"+title+"$", "UTF-8"));
                         found = false;
                         int ixFound = -1;
-                        for (int icount = 0; icount < 15 && !found; icount ++) {
+                        for (int icount = 0; icount < 30 && !found; icount ++) {
                             xmlResult = XmlNode.fetch(urlString,null);
                             Log.d(TAG, CLASS + " Found " + xmlResult.getString("Count") +" recordings");
                             XmlNode programNode = null;

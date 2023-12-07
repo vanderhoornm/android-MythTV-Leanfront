@@ -123,6 +123,7 @@
   <string name="video_filename">Tiedoston nimi</string>
   <string name="video_filesize">Tiedoston koko</string>
   <string name="video_url">Videon URL-osoite</string>
+  <string name="video_props">Videon ominaisuudet</string>
   <string name="button_other_1">Muut</string>
   <string name="button_other_2">Toiminnot</string>
   <string name="menu_undelete">Peruuta</string>

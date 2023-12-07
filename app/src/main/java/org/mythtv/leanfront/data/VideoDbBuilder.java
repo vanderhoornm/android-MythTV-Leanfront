@@ -77,6 +77,7 @@ public class VideoDbBuilder {
     public static final String XMLTAG_ENDTS = "EndTs";
     public static final String XMLTAG_PROGFLAGS = "ProgramFlags";
     public static final String XMLTAG_VIDEOPROPS = "VideoProps";
+    public static final String XMLTAG_VIDEOPROPNAMES = "VideoPropNames";
     public static final String XMLTAG_HOSTNAME = "HostName";
 
     // Specific to video list
@@ -201,6 +202,7 @@ public class VideoDbBuilder {
             long duration = 0;
             String progflags = "0";
             String videoProps = "0";
+            String videoPropNames = null;
             long fileSize = 0;
             if (phase == 0) { // Recordings
                 rectype = VideoContract.VideoEntry.RECTYPE_RECORDING;
@@ -239,6 +241,7 @@ public class VideoDbBuilder {
                 }
                 progflags = programNode.getString(XMLTAG_PROGFLAGS);
                 videoProps = programNode.getString(XMLTAG_VIDEOPROPS);
+                videoPropNames = programNode.getString(XMLTAG_VIDEOPROPNAMES);
             }
             if (phase == 1) { // Videos
                 if (ixSingle < 0) {
@@ -404,6 +407,7 @@ public class VideoDbBuilder {
             }
             videoValues.put(VideoContract.VideoEntry.COLUMN_PROGFLAGS, progflags);
             videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEOPROPS, videoProps);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_VIDEOPROPNAMES, videoPropNames);
 
             videosToInsert.add(videoValues);
             if (ixSingle >= 0)

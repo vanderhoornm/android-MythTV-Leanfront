@@ -73,6 +73,7 @@ public final class Video implements Parcelable, ListItem {
     // These values changed between V31 and V32 of MythTV
     public static final int V31_VID_DAMAGED = 0x00000020;
     public static final int V32_VID_DAMAGED = 0x00000400;
+    public String videoPropNames;
     // Channel values
     public final String chanid;
     public final String channum;
@@ -171,6 +172,7 @@ public final class Video implements Parcelable, ListItem {
             final String hostname,
             final String progflags,
             final String videoProps,
+            final String videoPropNames,
             final String chanid,
             final String channum,
             final String callsign,
@@ -203,6 +205,7 @@ public final class Video implements Parcelable, ListItem {
         this.hostname = hostname;
         this.progflags = progflags;
         this.videoProps = videoProps;
+        this.videoPropNames = videoPropNames;
         this.chanid = chanid;
         this.channum = channum;
         this.callsign = callsign;
@@ -238,6 +241,7 @@ public final class Video implements Parcelable, ListItem {
         hostname = in.readString();
         progflags = in.readString();
         videoProps = in.readString();
+        videoPropNames = in.readString();
         chanid = in.readString();
         channum = in.readString();
         callsign = in.readString();
@@ -295,6 +299,7 @@ public final class Video implements Parcelable, ListItem {
         dest.writeString(hostname);
         dest.writeString(progflags);
         dest.writeString(videoProps);
+        dest.writeString(videoPropNames);
         dest.writeString(chanid);
         dest.writeString(channum);
         dest.writeString(callsign);
@@ -402,6 +407,7 @@ public final class Video implements Parcelable, ListItem {
         private String hostname;
         private String progflags;
         private String videoProps;
+        private String videoPropNames;
         private String chanid;
         private String channum;
         private String callsign;
@@ -539,6 +545,11 @@ public final class Video implements Parcelable, ListItem {
             return this;
         }
 
+        public VideoBuilder videoPropNames(String videoPropNames) {
+            this.videoPropNames = videoPropNames;
+            return this;
+        }
+
         public VideoBuilder chanid(String chanid) {
             this.chanid = chanid;
             return this;
@@ -618,6 +629,7 @@ public final class Video implements Parcelable, ListItem {
                      hostname,
                      progflags,
                     videoProps,
+                    videoPropNames,
                     chanid,
                     channum,
                     callsign,

@@ -132,16 +132,26 @@ public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPrese
                     description.append("\n")
                             .append(context.getString(R.string.video_filesize)).append(": ")
                             .append(fmt.format(((double) mVideo.filesize) / 1000000.0))
-                            .append(" MB")
-                            .append("\n")
-                            .append(context.getString(R.string.sched_storage_grp)).append(": ")
-                            .append(mVideo.storageGroup)
-                            .append("\n")
+                            .append(" MB");
+                if (mVideo.videoPropNames != null && mVideo.videoPropNames.length() > 0
+                    && !mVideo.videoPropNames.equals("UNKNOWN")) {
+                    description.append("\n")
+                            .append(context.getString(R.string.video_props)).append(": ")
+                            .append(mVideo.videoPropNames.replace("|",", "));
+                }
+                description.append("\n")
+                        .append(context.getString(R.string.sched_storage_grp)).append(": ")
+                        .append(mVideo.storageGroup);
+                if (mVideo.recGroup != null) {
+                    description.append("\n")
                             .append(context.getString(R.string.sched_rec_group)).append(": ")
-                            .append(mVideo.recGroup)
-                            .append("\n")
+                            .append(mVideo.recGroup);
+                }
+                if (mVideo.playGroup != null) {
+                    description.append("\n")
                             .append(context.getString(R.string.sched_play_group)).append(": ")
                             .append(mVideo.playGroup);
+                }
                 description.append("\n")
                         .append(context.getString(R.string.video_url)).append(": ")
                         .append(mVideo.videoUrl);

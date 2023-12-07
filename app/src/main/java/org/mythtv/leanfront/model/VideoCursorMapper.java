@@ -62,6 +62,7 @@ public final class VideoCursorMapper extends CursorMapper {
     private static int hostnameIndex;
     private static int progflagsIndex;
     private static int videoPropsIndex;
+    private static int videoPropNamesIndex;
     private static int chanidIndex;
     private static int channumIndex;
     private static int callsignIndex;
@@ -97,6 +98,7 @@ public final class VideoCursorMapper extends CursorMapper {
         hostnameIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_HOSTNAME);
         progflagsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_PROGFLAGS);
         videoPropsIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEOPROPS);
+        videoPropNamesIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_VIDEOPROPNAMES);
         chanidIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
         channumIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
         callsignIndex = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CALLSIGN);
@@ -140,6 +142,7 @@ public final class VideoCursorMapper extends CursorMapper {
         String hostname = cursor.getString(hostnameIndex);
         String progflags = cursor.getString(progflagsIndex);
         String videoProps = cursor.getString(videoPropsIndex);
+        String videoPropNames = cursor.getString(videoPropNamesIndex);
         String chanid = cursor.getString(chanidIndex);
         String channum = cursor.getString(channumIndex);
         String callsign = cursor.getString(callsignIndex);
@@ -178,6 +181,7 @@ public final class VideoCursorMapper extends CursorMapper {
                 .hostname(hostname)
                 .progflags(progflags)
                 .videoProps(videoProps)
+                .videoPropNames(videoPropNames)
                 .chanid(chanid)
                 .channum(channum)
                 .callsign(callsign)

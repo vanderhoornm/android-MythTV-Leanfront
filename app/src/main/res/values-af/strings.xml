@@ -123,6 +123,7 @@
   <string name="video_filename">Lêernaam</string>
   <string name="video_filesize">Lêergrootte</string>
   <string name="video_url">Video URL</string>
+  <string name="video_props">Video-eienskappe</string>
   <string name="button_other_1">Ander</string>
   <string name="button_other_2">Aksies</string>
   <string name="menu_undelete">Herhaal uitvee</string>

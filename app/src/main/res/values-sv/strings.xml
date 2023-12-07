@@ -123,6 +123,7 @@
   <string name="video_filename">Filnamn</string>
   <string name="video_filesize">Filstorlek</string>
   <string name="video_url">Videons URL</string>
+  <string name="video_props">Videoegenskaper</string>
   <string name="button_other_1">Övrig</string>
   <string name="button_other_2">Handlingar</string>
   <string name="menu_undelete">Ångra radering</string>

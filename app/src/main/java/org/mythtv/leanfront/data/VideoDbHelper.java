@@ -43,7 +43,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     private static VideoDbHelper mInstance = null;
 
     // Change this when you change the database schema.
-    private static final int DATABASE_VERSION = 18;
+    private static final int DATABASE_VERSION = 19;
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
 
@@ -103,6 +103,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_EPISODE + " TEXT," +
                     VideoEntry.COLUMN_PROGFLAGS + " TEXT," +
                     VideoEntry.COLUMN_VIDEOPROPS + " TEXT," +
+                    VideoEntry.COLUMN_VIDEOPROPNAMES + " TEXT," +
                     VideoEntry.COLUMN_CHANID   + " TEXT," +
                     VideoEntry.COLUMN_CHANNUM  + " TEXT," +
                     VideoEntry.COLUMN_CALLSIGN + " TEXT" +
@@ -208,6 +209,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                         VideoEntry.COLUMN_EPISODE + " ," +
                         VideoEntry.COLUMN_PROGFLAGS + " ," +
                         VideoEntry.COLUMN_VIDEOPROPS + " ," +
+                        VideoEntry.COLUMN_VIDEOPROPNAMES + " ," +
                         VideoEntry.COLUMN_CHANID + " ," +
                         VideoEntry.COLUMN_CHANNUM + " ," +
                         VideoEntry.COLUMN_CALLSIGN + " , " +
@@ -243,6 +245,7 @@ public class VideoDbHelper extends SQLiteOpenHelper {
                     VideoEntry.COLUMN_EPISODE + " ," +
                     VideoEntry.COLUMN_PROGFLAGS + " ," +
                     VideoEntry.COLUMN_VIDEOPROPS + " ," +
+                    VideoEntry.COLUMN_VIDEOPROPNAMES + " ," +
                     VideoEntry.COLUMN_CHANID + " ," +
                     VideoEntry.COLUMN_CHANNUM + " ," +
                     VideoEntry.COLUMN_CALLSIGN + " , " +

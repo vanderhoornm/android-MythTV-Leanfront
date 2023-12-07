@@ -123,6 +123,7 @@
   <string name="video_filename">Bestandsnaam</string>
   <string name="video_filesize">Bestandsgrootte</string>
   <string name="video_url">Video URL</string>
+  <string name="video_props">Video-eigenschappen</string>
   <string name="button_other_1">Ander</string>
   <string name="button_other_2">Acties</string>
   <string name="menu_undelete">Verwijdering ongedaan maken</string>

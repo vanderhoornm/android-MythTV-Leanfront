@@ -123,6 +123,7 @@
   <string name="video_filename">Ονομα αρχείου</string>
   <string name="video_filesize">Μέγεθος αρχείου</string>
   <string name="video_url">URL βίντεο</string>
+  <string name="video_props">Ιδιότητες βίντεο</string>
   <string name="button_other_1">Αλλα</string>
   <string name="button_other_2">Ενέργειες</string>
   <string name="menu_undelete">Αναίρεση διαγραφής</string>

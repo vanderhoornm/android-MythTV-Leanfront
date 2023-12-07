@@ -123,6 +123,7 @@
   <string name="video_filename">Nazwa pliku</string>
   <string name="video_filesize">Rozmiar pliku</string>
   <string name="video_url">URL wideo</string>
+  <string name="video_props">Właściwości wideo</string>
   <string name="button_other_1">Inny</string>
   <string name="button_other_2">działania</string>
   <string name="menu_undelete">Przywróć usunięcie</string>

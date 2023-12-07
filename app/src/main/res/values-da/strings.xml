@@ -123,6 +123,7 @@
   <string name="video_filename">Filnavn</string>
   <string name="video_filesize">Filstørrelse</string>
   <string name="video_url">Video URL</string>
+  <string name="video_props">Video egenskaber</string>
   <string name="button_other_1">Andet</string>
   <string name="button_other_2">Handlinger</string>
   <string name="menu_undelete">Fortryd sletning</string>

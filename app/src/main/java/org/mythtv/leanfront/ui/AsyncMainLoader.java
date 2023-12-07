@@ -99,8 +99,6 @@ public class AsyncMainLoader implements Runnable {
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncMainLoader";
 
-    boolean haveChannels = false;
-
     public AsyncMainLoader(@NonNull Activity activity) {
         this.activity = activity;
     }
@@ -544,7 +542,6 @@ public class AsyncMainLoader implements Runnable {
                             .progflags("0")
                             .build();
                     tVideo.type = TYPE_CHANNEL_ALL;
-                    haveChannels = true;
                 }
                 rowList.add(tVideo);
             }

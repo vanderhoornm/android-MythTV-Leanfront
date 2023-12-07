@@ -521,7 +521,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 } catch (ParseException e) {
                     Log.e(TAG, CLASS + " Exception parsing endtime.", e);
                 }
-                if (mSelectedVideo.rectype == RECTYPE_RECORDING) {
+                if (mSelectedVideo.rectype == RECTYPE_RECORDING && !busyRecording) {
                     if ("Deleted".equals(mSelectedVideo.recGroup)) {
                         prompts.add(getString(R.string.menu_undelete));
                         actions.add(new Action(Video.ACTION_UNDELETE));

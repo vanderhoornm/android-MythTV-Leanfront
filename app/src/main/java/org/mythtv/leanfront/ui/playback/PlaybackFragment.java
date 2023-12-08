@@ -57,6 +57,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
@@ -98,6 +99,7 @@ import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.TrackGroup;
 import androidx.media3.common.text.Cue;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.common.util.Util;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlaybackException;
@@ -129,6 +131,7 @@ import java.util.concurrent.TimeUnit;
  * Plays selected video, loads playlist and related videos, and delegates playback to {@link
  * VideoPlayerGlue}.
  */
+@OptIn(markerClass = UnstableApi.class)
 public class PlaybackFragment extends VideoSupportFragment
         implements AsyncBackendCall.OnBackendCallListener {
 
@@ -538,6 +541,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void play(Video video) {
 
         mVideo = video;
@@ -792,6 +796,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void prepareMediaForPlaying(Uri mediaSourceUri) {
         mFileLength = -1;
         mIsPlayResumable = false;
@@ -983,8 +988,9 @@ public class PlaybackFragment extends VideoSupportFragment
     // doChange = true : select a new track, false = leave same track
     // Return = new track selection.
 
+    @OptIn(markerClass = UnstableApi.class)
     int trackSelector(int trackType, int trackSelection,
-            int msgOn, int msgOff, boolean disable, boolean doChange) {
+                                                              int msgOn, int msgOff, boolean disable, boolean doChange) {
         boolean isPlaying = mPlayerGlue.isPlaying();
         TrackInfo tracks = new TrackInfo(this, trackType);
         StringBuilder msg = new StringBuilder();
@@ -1253,6 +1259,7 @@ public class PlaybackFragment extends VideoSupportFragment
         ArrayList <Integer> renderList;
         ArrayList <TrackEntry> trackList;
 
+        @OptIn(markerClass = UnstableApi.class)
         TrackInfo(PlaybackFragment pb, int trackType) {
             trackList = new ArrayList<>();
             renderList = new ArrayList<>();
@@ -1501,6 +1508,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private static final long[] FPS_INTERVALS = {
             15000, 18000,  30000, 35000,  40800, 43000, Long.MAX_VALUE};
 
+    @UnstableApi
     class PlayerEventListener implements Player.Listener {
         private int mDialogStatus = 0;
         private static final int DIALOG_NONE   = 0;

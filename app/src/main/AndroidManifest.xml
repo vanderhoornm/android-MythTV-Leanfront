@@ -33,11 +33,10 @@
         android:required="false" />
     <uses-feature
         android:name="android.software.leanback"
-        android:required="false" />
+        android:required="true" />
 
     <application
         android:name="org.mythtv.leanfront.MyApplication"
-        android:debuggable="true"
         android:allowBackup="false"
         android:banner="@drawable/banner_lean"
         android:icon="@drawable/ic_launcher_lean"

@@ -14,6 +14,7 @@ bin/
 gen/
 app/debug/
 app/release/
+app/google/
 
 # Local configuration file (sdk path, etc)
 local.properties

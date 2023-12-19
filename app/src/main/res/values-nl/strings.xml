@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Links</string>
   <string name="msg_pin_right">Rechts</string>
   <string name="msg_cannot_move">Het beeld vult het scherm en kan niet worden verplaatst.</string>
+  <string name="msg_need_ipaddress">Deze functie is pas beschikbaar als u een geldig MythTV-backend-IP-adres invoert.</string>
   <string name="title_select_speed">Stel de afspeelsnelheid in</string>
   <string name="title_select_caption">Selecteer Ondertitels</string>
   <string name="title_select_audio">Selecteer Audiotrack</string>

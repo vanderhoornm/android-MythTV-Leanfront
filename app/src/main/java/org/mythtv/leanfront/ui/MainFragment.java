@@ -760,7 +760,13 @@ public class MainFragment extends BrowseSupportFragment
                     startFetch(recType, null, recGroup);
                     break;
                 case TYPE_INFO:
-                    new AsyncBackendCall(getActivity(),
+                    if (!XmlNode.isSetupDone()) {
+                        Toast.makeText(getContext(),
+                                R.string.msg_need_ipaddress,
+                                Toast.LENGTH_LONG).show();
+                    }
+                    else
+                        new AsyncBackendCall(getActivity(),
                             MainFragment.this).execute(Video.ACTION_BACKEND_INFO_HTML);
                     break;
                 case TYPE_MANAGE:

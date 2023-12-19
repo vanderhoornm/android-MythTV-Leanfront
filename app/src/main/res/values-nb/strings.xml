@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Venstre</string>
   <string name="msg_pin_right">Ikke sant</string>
   <string name="msg_cannot_move">Bildet fyller skjermen slik at det ikke kan flyttes.</string>
+  <string name="msg_need_ipaddress">Denne funksjonen er utilgjengelig før du angir en gyldig MythTV backend IP-adresse.</string>
   <string name="title_select_speed">Still inn avspillingshastighet</string>
   <string name="title_select_caption">Velg Undertekster</string>
   <string name="title_select_audio">Velg Lydspor</string>

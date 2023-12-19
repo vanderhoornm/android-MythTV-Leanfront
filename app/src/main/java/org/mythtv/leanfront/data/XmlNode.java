@@ -336,7 +336,7 @@ public class XmlNode {
 
     public static String mythApiUrl(String hostName, String params) throws IOException, XmlPullParserException {
         String ipAndPort = getIpAndPort(hostName);
-        if (ipAndPort.length() == 0)
+        if (ipAndPort == null || ipAndPort.length() == 0)
             return "";
         String url = "http://" + ipAndPort;
         if (params != null)

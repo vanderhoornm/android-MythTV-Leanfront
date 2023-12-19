@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Links</string>
   <string name="msg_pin_right">Reg</string>
   <string name="msg_cannot_move">Die prentjie vul die skerm sodat dit nie geskuif kan word nie.</string>
+  <string name="msg_need_ipaddress">Hierdie kenmerk is nie beskikbaar totdat jy \'n geldige MythTV backend IP-adres invoer nie.</string>
   <string name="title_select_speed">Stel afspeelspoed in</string>
   <string name="title_select_caption">Kies Onderskrifte</string>
   <string name="title_select_audio">Kies oudiosnit</string>

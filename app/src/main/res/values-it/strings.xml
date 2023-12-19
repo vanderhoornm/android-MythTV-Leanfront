@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Sinistra</string>
   <string name="msg_pin_right">Giusto</string>
   <string name="msg_cannot_move">L\'immagine riempie lo schermo e non può essere spostata.</string>
+  <string name="msg_need_ipaddress">Questa funzione non è disponibile finché non inserisci un indirizzo IP backend MythTV valido.</string>
   <string name="title_select_speed">Imposta la velocità di riproduzione</string>
   <string name="title_select_caption">Seleziona Sottotitoli</string>
   <string name="title_select_audio">Seleziona Traccia audio</string>

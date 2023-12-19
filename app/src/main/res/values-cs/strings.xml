@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Vlevo, odjet</string>
   <string name="msg_pin_right">Že jo</string>
   <string name="msg_cannot_move">Obrázek vyplní obrazovku, takže jej nelze přesunout.</string>
+  <string name="msg_need_ipaddress">Tato funkce je nedostupná, dokud nezadáte platnou koncovou IP adresu MythTV.</string>
   <string name="title_select_speed">Nastavte rychlost přehrávání</string>
   <string name="title_select_caption">Vyberte možnost Titulky</string>
   <string name="title_select_audio">Vyberte Zvukovou stopu</string>

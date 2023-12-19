@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Vasen</string>
   <string name="msg_pin_right">Oikein</string>
   <string name="msg_cannot_move">Kuva täyttää näytön, joten sitä ei voi siirtää.</string>
+  <string name="msg_need_ipaddress">Tämä ominaisuus ei ole käytettävissä, ennen kuin annat kelvollisen MythTV-taustajärjestelmän IP-osoitteen.</string>
   <string name="title_select_speed">Aseta toistonopeus</string>
   <string name="title_select_caption">Valitse Tekstitykset</string>
   <string name="title_select_audio">Valitse Ääniraita</string>

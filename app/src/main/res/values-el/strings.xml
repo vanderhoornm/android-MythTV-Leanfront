@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Αριστερά</string>
   <string name="msg_pin_right">σωστά</string>
   <string name="msg_cannot_move">Η εικόνα γεμίζει την οθόνη και δεν μπορεί να μετακινηθεί.</string>
+  <string name="msg_need_ipaddress">Αυτή η δυνατότητα δεν είναι διαθέσιμη μέχρι να εισαγάγετε μια έγκυρη διεύθυνση IP υποστήριξης MythTV.</string>
   <string name="title_select_speed">Ρυθμίστε την ταχύτητα αναπαραγωγής</string>
   <string name="title_select_caption">Επιλέξτε Υπότιτλοι</string>
   <string name="title_select_audio">Επιλέξτε Κομμάτι ήχου</string>

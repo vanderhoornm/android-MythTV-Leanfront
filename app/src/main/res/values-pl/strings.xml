@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Lewy</string>
   <string name="msg_pin_right">Prawidłowy</string>
   <string name="msg_cannot_move">Obraz wypełnia cały ekran i nie można go przesuwać.</string>
+  <string name="msg_need_ipaddress">Ta funkcja jest niedostępna, dopóki nie wprowadzisz prawidłowego adresu IP zaplecza MythTV.</string>
   <string name="title_select_speed">Ustaw prędkość odtwarzania</string>
   <string name="title_select_caption">Wybierz Napisy</string>
   <string name="title_select_audio">Wybierz opcję Ścieżka audio</string>

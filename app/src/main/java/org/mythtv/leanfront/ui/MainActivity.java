@@ -35,7 +35,7 @@ import android.view.KeyEvent;
 
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
-import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.data.XmlNode;
 
 import java.util.Locale;
 
@@ -59,7 +59,7 @@ public class MainActivity extends LeanbackActivity {
 
         // to test another language uncomment this
         //        setAppLocale("es");
-        if (Settings.getString("pref_backend").length() == 0) {
+        if (!XmlNode.isSetupDone()) {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
         }

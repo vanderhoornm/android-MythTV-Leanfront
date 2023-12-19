@@ -201,6 +201,7 @@
     <string name="msg_pin_left">Left</string>
     <string name="msg_pin_right">Right</string>
     <string name="msg_cannot_move">The picture fills the screen so it cannot be moved.</string>
+    <string name="msg_need_ipaddress">This feature is unavailable until you enter a valid MythTV backend IP Address.</string>
     <string name="title_select_speed">Set Playback Speed</string>
     <string name="title_select_caption">Select Subtitles</string>
     <string name="title_select_audio">Select Audio Track</string>

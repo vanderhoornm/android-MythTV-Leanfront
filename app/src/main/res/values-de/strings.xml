@@ -160,6 +160,7 @@
   <string name="msg_pin_left">Links</string>
   <string name="msg_pin_right">Rechts</string>
   <string name="msg_cannot_move">Das Bild füllt den Bildschirm aus, sodass es nicht verschoben werden kann.</string>
+  <string name="msg_need_ipaddress">Diese Funktion ist erst verfügbar, wenn Sie eine gültige MythTV-Backend-IP-Adresse eingeben.</string>
   <string name="title_select_speed">Stellen Sie die Wiedergabegeschwindigkeit ein</string>
   <string name="title_select_caption">Wählen Sie Untertitel</string>
   <string name="title_select_audio">Wählen Sie Audiospur</string>

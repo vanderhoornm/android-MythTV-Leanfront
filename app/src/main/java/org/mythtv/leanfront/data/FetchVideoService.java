@@ -49,7 +49,7 @@ public class FetchVideoService extends IntentService {
     public static final String RECORDEDID = "RecordedId";
     public static final String RECTYPE = "RecType";
     public static final String RECGROUP = "RecGroup";
-
+    public static final String ISPROGRESSBAR = "IsProgressBar";
     /**
      * Creates an IntentService with a default name for the worker thread.
      */
@@ -62,6 +62,7 @@ public class FetchVideoService extends IntentService {
         int recType = workIntent.getIntExtra(RECTYPE, -1);
         String recordedId = workIntent.getStringExtra(RECORDEDID);
         String recGroup = workIntent.getStringExtra(RECGROUP);
+        boolean isProgressBar = workIntent.getBooleanExtra(ISPROGRESSBAR, false);
 
         if (recType != VideoContract.VideoEntry.RECTYPE_RECORDING)
             recGroup = null;
@@ -128,12 +129,14 @@ public class FetchVideoService extends IntentService {
             }
             getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
                     downloadedVideoContentValues);
-            MainFragment main = MainFragment.getActiveFragment();
-            if (main != null)
-                main.getActivity().runOnUiThread(main::startAsyncLoader);
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);
+        } finally {
+            MainFragment main = MainFragment.getActiveFragment();
+            if (main != null)
+                main.getActivity().runOnUiThread(
+                    () -> main.fetchComplete(isProgressBar));
         }
     }
 }

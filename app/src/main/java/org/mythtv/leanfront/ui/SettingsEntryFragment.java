@@ -979,7 +979,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             || !Objects.equals(mPriorHttpPort, Settings.getString("pref_http_port"))
             || !Objects.equals(mPriorRowsize, Settings.getString("pref_livetv_rowsize"))
             || !Objects.equals(mPriorParental, Settings.getString("pref_video_parental")))
-            MainFragment.startFetch(-1, null, null);
+            MainFragment.startFetch(-1, null, null, true);
         mPriorBackend = null;
         mPriorHttpPort = null;
         mPriorRowsize = null;

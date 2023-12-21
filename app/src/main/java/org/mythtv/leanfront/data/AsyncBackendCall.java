@@ -383,7 +383,7 @@ public class AsyncBackendCall implements Runnable {
                             if (context != null && !Objects.equals(mVideo.endtime, newEndtime)) {
                                 mVideo.endtime = newEndtime;
                                 MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
-                                        mVideo.recordedid, null);
+                                        mVideo.recordedid, null, false);
                             }
                         }
                         else {
@@ -399,7 +399,7 @@ public class AsyncBackendCall implements Runnable {
                             mVideo.progflags = watched;
                             if (context != null) {
                                 MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_VIDEO,
-                                        mVideo.recordedid, null);
+                                        mVideo.recordedid, null, false);
                             }
                         }
                     } catch(IOException | XmlPullParserException e){
@@ -423,7 +423,7 @@ public class AsyncBackendCall implements Runnable {
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         if (context != null)
                             MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
-                                    mVideo.recordedid, null);
+                                    mVideo.recordedid, null, false);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -439,7 +439,7 @@ public class AsyncBackendCall implements Runnable {
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         if (context != null)
                             MainFragment.startFetch(VideoContract.VideoEntry.RECTYPE_RECORDING,
-                                    mVideo.recordedid, null);
+                                    mVideo.recordedid, null, false);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -540,7 +540,7 @@ public class AsyncBackendCall implements Runnable {
                         }
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         if (context != null)
-                            MainFragment.startFetch(type, mVideo.recordedid, null);
+                            MainFragment.startFetch(type, mVideo.recordedid, null, false);
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -555,7 +555,7 @@ public class AsyncBackendCall implements Runnable {
                             type = VideoContract.VideoEntry.RECTYPE_RECORDING;
                             xmlResult = XmlNode.fetch(urlString, "POST");
                             if (context != null)
-                                MainFragment.startFetch(type, mVideo.recordedid, null);
+                                MainFragment.startFetch(type, mVideo.recordedid, null, false);
                         }
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
@@ -580,7 +580,7 @@ public class AsyncBackendCall implements Runnable {
                             selectionArgs);
 
                     if (context != null)
-                        MainFragment.startFetch(mVideo.rectype, mVideo.recordedid, null);
+                        MainFragment.startFetch(mVideo.rectype, mVideo.recordedid, null, false);
                     // Fake out an xml node with true to pass back success status
                     xmlResult = new XmlNode();
                     xmlResult.setString("true");

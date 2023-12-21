@@ -258,9 +258,12 @@ public class MainFragment extends BrowseSupportFragment
      * @param recGroup   Set to a recordimng group if only that one is to
      *                   be refreshed
      */
-    static public void startFetch(int rectype, String recordedId, String recGroup) {
+    static public void startFetch(int rectype, String recordedId, String recGroup,
+              boolean isProgressBar) {
         if (rectype == -1)
             mFetchTime = System.currentTimeMillis();
+        if (isProgressBar && mActiveFragment != null)
+            mActiveFragment.setProgressBar(true);
         // Clear ip address cache on a full refresh
         if (recordedId == null)
             BackendCache.flush();
@@ -269,14 +272,22 @@ public class MainFragment extends BrowseSupportFragment
         serviceIntent.putExtra(FetchVideoService.RECTYPE, rectype);
         serviceIntent.putExtra(FetchVideoService.RECORDEDID, recordedId);
         serviceIntent.putExtra(FetchVideoService.RECGROUP, recGroup);
+        serviceIntent.putExtra(FetchVideoService.ISPROGRESSBAR, isProgressBar);
         MyApplication.getAppContext().startService(serviceIntent);
     }
 
     // Replacement for StartLoader. This needs to be called after any database update.
     // Must be called on UI Thread
-    public void startAsyncLoader() {
-        if (!isLoaderRunning) {
-            new AsyncMainLoader(getActivity()).execute(this);
+    public void fetchComplete(boolean isProgressBar) {
+        startAsyncLoader(isProgressBar);
+    }
+    public void startAsyncLoader(boolean isProgressBar) {
+        if (isLoaderRunning) {
+            if (isProgressBar)
+                setProgressBar(false);
+        }
+        else {
+            new AsyncMainLoader(getActivity(), isProgressBar).execute(this);
             isLoaderRunning = true;
         }
     }
@@ -315,10 +326,10 @@ public class MainFragment extends BrowseSupportFragment
             restartMythTask();
         mWasInBackground = false;
         // If it's been more than an hour, refresh
-        if (mFetchTime > 0 && mFetchTime < System.currentTimeMillis() - 60*60*1000) {
-            startFetch(-1, null, null);
-        }
-        startAsyncLoader();
+        if (mFetchTime > 0 && mFetchTime < System.currentTimeMillis() - 60*60*1000)
+            startFetch(-1, null, null, false);
+        else
+            startAsyncLoader(false);
     }
 
     // Notes dialog that comes up when you start for the first time.
@@ -360,7 +371,6 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onPause() {
-        mActiveFragment = null;
         super.onPause();
     }
 
@@ -594,7 +604,8 @@ public class MainFragment extends BrowseSupportFragment
 
     public void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
         isLoaderRunning = false;
-        setProgressBar(false);
+        if (loader.isProgressBar)
+            setProgressBar(false);
         if (list == null)
             list = new ArrayList<>();
 
@@ -757,7 +768,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                     if (mType == TYPE_VIDEODIR)
                         recType = VideoContract.VideoEntry.RECTYPE_VIDEO;
-                    startFetch(recType, null, recGroup);
+                    startFetch(recType, null, recGroup, true);
                     break;
                 case TYPE_INFO:
                     if (!XmlNode.isSetupDone()) {
@@ -1018,7 +1029,6 @@ public class MainFragment extends BrowseSupportFragment
                         builder.setMessage(msg);
                         builder.show();
                     }
-                    setProgressBar(false);
                 });
         call.setBookmark(0);
         call.setPosBookmark(0);
@@ -1043,7 +1053,6 @@ public class MainFragment extends BrowseSupportFragment
                 break;
         }
         call.execute(tasks);
-        setProgressBar(true);
     }
 
     private void promptForNewValue(int msgid, int nextId, Row row) {
@@ -1140,7 +1149,7 @@ public class MainFragment extends BrowseSupportFragment
                     }
                 }
                 if (mFetchTime < System.currentTimeMillis() - 60 * 60 * 1000) {
-                    MainFragment.startFetch(-1, null, null);
+                    MainFragment.startFetch(-1, null, null,false);
                 }
             } finally {
                 scheduledTaskRunning = false;

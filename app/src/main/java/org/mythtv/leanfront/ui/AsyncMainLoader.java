@@ -95,11 +95,13 @@ public class AsyncMainLoader implements Runnable {
     //   [0] is a MyHeaderItem
     //   [1] onwards are each a Video
     ArrayList<ArrayList<ListItem>> categoryList;
+    boolean isProgressBar;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncMainLoader";
 
-    public AsyncMainLoader(@NonNull Activity activity) {
+    public AsyncMainLoader(@NonNull Activity activity, boolean isProgressBar) {
+        this.isProgressBar = isProgressBar;
         this.activity = activity;
     }
 

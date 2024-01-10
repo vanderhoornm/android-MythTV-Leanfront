@@ -26,6 +26,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.annotation.OptIn;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.BaseDataSource;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DataSpec;
@@ -97,7 +99,7 @@ public class MythHttpDataSource extends BaseDataSource implements DataSource {
         return leng;
     }
 
-    @Override
+    @OptIn(markerClass = UnstableApi.class) @Override
     public int read(@NonNull byte[] buffer, int offset, int readLength) throws IOException {
         if (readLength <= 0)
             return 0;

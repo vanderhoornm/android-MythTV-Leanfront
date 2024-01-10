@@ -24,6 +24,7 @@
 
 package org.mythtv.leanfront.data;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -134,9 +135,12 @@ public class FetchVideoService extends IntentService {
             Log.e(TAG, "Error occurred in downloading videos", e);
         } finally {
             MainFragment main = MainFragment.getActiveFragment();
-            if (main != null)
-                main.getActivity().runOnUiThread(
-                    () -> main.fetchComplete(isProgressBar));
+            if (main != null) {
+                Activity activity = main.getActivity();
+                if (activity != null)
+                    activity.runOnUiThread(
+                        () -> main.fetchComplete(isProgressBar));
+            }
         }
     }
 }

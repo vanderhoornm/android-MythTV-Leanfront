@@ -464,11 +464,13 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mGroupList.add(mGpDupIn);
 
         // Auto Extend
-        mAutoExtend = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_autoextend,
-                sExtendPrompts, sExtendValues, mRecordRule.autoExtend, false);
-        mainActions.add(mAutoExtend.mGuidedAction);
-        mGroupList.add(mAutoExtend);
-
+        // Only add this if not null, i.e. if the version of nythbackend supports it
+        if (mRecordRule.autoExtend != null) {
+            mAutoExtend = new ActionGroup(ACTIONTYPE_RADIOBNS, R.string.sched_autoextend,
+                    sExtendPrompts, sExtendValues, mRecordRule.autoExtend, false);
+            mainActions.add(mAutoExtend.mGuidedAction);
+            mGroupList.add(mAutoExtend);
+        }
         // Filters
         stringPrompts = new String[mRecRuleFilterList.size()];
         stringPrompts = mRecRuleFilterList.toArray(stringPrompts);
@@ -627,7 +629,8 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
         mRecordRule.preferredInput = mGpPreferredInput.mIntResult;
         mRecordRule.dupMethod = mGpDupMethod.mStringResult;
         mRecordRule.dupIn = mGpDupIn.mStringResult;
-        mRecordRule.autoExtend = mAutoExtend.mStringResult;
+        if (mAutoExtend != null)
+            mRecordRule.autoExtend = mAutoExtend.mStringResult;
         mRecordRule.filter = mGpFilter.mIntResult;
         mRecordRule.recProfile = mGpRecProfile.mStringResult;
         mRecordRule.storageGroup = mGpStorageGroup.mStringResult;

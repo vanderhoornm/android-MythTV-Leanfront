@@ -1040,7 +1040,7 @@ public class AsyncBackendCall implements Runnable {
                     try {
                         String url = XmlNode.mythApiUrl(null,
                                 "/Dvr/wsdl");
-                        xmlResult = XmlNode.fetch(url, "POST");
+                        xmlResult = XmlNode.fetch(url, null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception getting Dvr wsdl.", e);
                     }

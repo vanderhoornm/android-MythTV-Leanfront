@@ -3,6 +3,8 @@
 Leanfront is a frontend for MythTV that runs on Android TV and Amazon Fire TV devices.
 Leanfront supports playback of recordings and videos from MythTV. It can also schedule recordings using voice search or a program guide, and search for recordings or videos using voice.
 
+Leanfront can be installed from the Google play store or the Amazon store, depending on your device. 
+
 <details><summary>Table of Contents</summary>
 
 - [Main Screen](#main-screen)
@@ -249,28 +251,15 @@ You need an Android TV device, which can be a [Nvidia Shield](https://www.nvidia
 
 ### Amazon Fire TV
 If you have an Amazon Fire TV, Fire Stick or Fire Cube, you can install from Amazon App store.
-For a new installation, just press the microphone button on your remote and say "MythTV". Then install.
+For a new installation, just press the microphone button on your remote and say "MythTV". Alternatively, log on to amazon.com, serach for MythTV or leanfronte, and request it to be installed to your device.
 
 If you already have leanfront installed by downloading from orangedox, to install from the app store you will have to first uninstall it.
 
-If you uninstall it you will lose your settings and recently viewed list. To avoid that you can save and restore your settings and recently viewed list with the acopy.sh script from https://github.com/bennettpeter/android-MythTV-Leanfront/blob/master/extras/acopy.sh as follows:
-
-install sqlite3. Then run this:
-
-```
-acopy.sh -f <ip-address> --db --settings
-```
-The database and settings will download into /var/tmp/acopy
-
-Uninstall, press microphone and say "MythTV" and install it. Then run this:
-
-```
-acopy.sh -t <ip-address> --db --settings
-```
-The database and settings will restore from /var/tmp/acopy.
-
 ### Non Amazon devices
-At this time, leanfront is not yet in the google app store.
+Leanfront is available in the Google Play Store, for TV devices. Either go to play.google.com or use the play store from the android device and search for MythTV or leanfront. If you have previously installed an apk from orangedox.com, you do not need to uninstall, the play store will upgrade it.
+
+### Side Load
+I recommend you use the play store for installation. That way you will automatically get updates. If you want to sideload the application you can do that as follows:
 
 - Download the latest apk from https://dl.orangedox.com/pCBmBm.
 - Enable developer mode on your android device. For Fire TV, go to Settings, My Fire TV , Developer Options. For other Android TV devices, go to My Device, find the build version number, click on that several times until a message notifies you that you have developer mode.
@@ -286,6 +275,7 @@ Alternatively, if you have a browser on your android device you can avoid using 
 - Enable installation of apps from unknown source in Android settings.
 - Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
 
+### After Installation
 The first time you run the app it will prompt you for the MythTV Backend settings. Supply the IP address or DNS name of the master backend. If you have MythTV V32 or V33, change the [status port](#status-port) from 6544 to 6744. (Note that 6544 still works but does not support the latest features). In V34, port 6544 now has full support. In future port 6744 may be removed.
 
 ## History
@@ -639,7 +629,7 @@ After installing [Android Studio][studio], use SDK Manager to install the emulat
 ## Building
 
 - Clone from github.com two repositories bennettpeter/android-MythTV-Leanfront.git and bennettpeter/media.git. These must both be cloned into the same directory on your file system.
-- In the media directory, checkout the correct media branch. That can be found in the android-MythTV-Leanfront directory in file app/build.gradle approximately line 16. Currently this is 1.2.0-lf. That is the leanfron customized vereion of 1.2.0 of android media 3.
+- In the media directory, checkout the correct media branch. That can be found in the android-MythTV-Leanfront directory in file app/build.gradle approximately line 16. Currently this is 1.2.0-lf. That is the leanfront customized vereion of 1.2.0 of android media 3.
 - Download and install [Android Studio][studio]. Also download the latest ndk and Cmake from within android studio. Look in the "Build" tab for a message about this. If you encounter this, switch to the requested NDK version.
 - Note the ndk version is referenced in the app/build.gradle file. You need to either download the version that is specified there or else update there to match the version you downloaded.
 - In the $HOME/Android directory create a link to the ndk, for example android-ndk -> Sdk/ndk/20.0.5594570
@@ -652,7 +642,8 @@ After installing [Android Studio][studio], use SDK Manager to install the emulat
 
 ## Internationalization
 
-The source code will support multiple languages. Currently only the default language, English, is included. If anybody reading this is fluent in another language and would like volunteer to translate the strings and messages, please contact me. To get an idea of the amount of work, the list of strings is at https://github.com/bennettpeter/android-MythTV-Leanfront/blob/master/app/src/main/res/values/strings.xml . These would need to be translated, except for the ones marked translatable="false". You can email me or create an issue from https://github.com/bennettpeter/android-MythTV-Leanfront/issues . I will put together instructions on how to update the translations.
+The source code supports multiple languages. 
+There is a python script that translates strings into several languages using Google Translate. The results are likely not optimal, but may be better than nothing. The system does allow for manual fixing of translation errors. If anybody wants to volunteer to correct translations for a language please email me or create an issue in https://github.com/bennettpeter/android-MythTV-Leanfront/issues .  The list of strings is at https://github.com/bennettpeter/android-MythTV-Leanfront/blob/master/app/src/main/res/values/strings.xml . The translations are in various directories under https://github.com/bennettpeter/android-MythTV-Leanfront/tree/master/app/src/main/res , named vales-xx where xx is the language code.
 
 ## License
 

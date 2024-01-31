@@ -1,20 +1,13 @@
 apply plugin: 'com.android.application'
 
 task gitinfo {
-    new ByteArrayOutputStream().withStream { os ->
-        exec {
-            executable = 'git'
-            args = ['describe','--dirty']
-            standardOutput = os
-        }
-        ext.describe = os.toString().trim()
-        def split = ext.describe.split("-")
-        ext.version = Integer.parseInt(split[0].substring(1)) * 1000 + Integer.parseInt(split[1])
-        ext.mediaver = 'git -C ../media describe --dirty'.execute().text.trim()
-        println "Version Name: " + ext.describe + ", Version Code: " + ext.version
-    }
     println 'This version of leanfront should use media branch 1.2.0-lf'
-    println 'Media Version: ' + ext.mediaver
+    ext.describe = 'git describe --dirty'.execute().text.trim()
+    def split = ext.describe.split("-")
+    ext.version = Integer.parseInt(split[0].substring(1)) * 1000 + Integer.parseInt(split[1])
+    ext.mediadesc = 'git -C ../media describe --dirty'.execute().text.trim()
+    ext.versionName = ext.describe + '-m' + ext.mediadesc
+    println "Version Name: " + ext.versionName + ", Version Code: " + ext.version
 }
 
 android {
@@ -27,7 +20,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
         versionCode gitinfo.ext.version
-        versionName gitinfo.ext.describe
+        versionName gitinfo.ext.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -55,7 +48,7 @@ android {
 //            path file('src/main/jni/CMakeLists.txt')
 //        }
 //    }
-    ndkVersion '21.3.6528147'
+    ndkVersion '25.1.8937393'
     namespace 'org.mythtv.leanfront'
 
     dexOptions {

@@ -33,6 +33,9 @@ cd "$scriptpath"
 # Clear old builds
 #~ rm -rf ffmpeg/android-libs/*
 FFMPEG_PATH="$(pwd)/../ffmpeg"
+git -C $FFMPEG_PATH pull
+git -C $FFMPEG_PATH checkout release/6.0
+git -C $FFMPEG_PATH pull
 
 cd ../media
 FFMPEG_MODULE_PATH="$(pwd)/libraries/decoder_ffmpeg/src/main"
@@ -40,10 +43,10 @@ NDK_PATH=$HOME/Android/android-ndk
 HOST_PLATFORM="linux-x86_64"
 ENABLED_DECODERS=(mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw)
 cd "${FFMPEG_MODULE_PATH}/jni"
-rm ffmpeg
+rm -rf ffmpeg
 ln -fs "$FFMPEG_PATH" ffmpeg
 
 ./build_ffmpeg.sh \
-  "${FFMPEG_MODULE_PATH}" "${NDK_PATH}" "${HOST_PLATFORM}" "${ENABLED_DECODERS[@]}"
+  "${FFMPEG_MODULE_PATH}" "${NDK_PATH}" "${HOST_PLATFORM}" 21 "${ENABLED_DECODERS[@]}"
 
 echo "ffmpeg build successfully completed"

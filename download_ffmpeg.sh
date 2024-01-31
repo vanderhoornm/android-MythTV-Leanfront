@@ -33,4 +33,4 @@ cd ..
 rm -rf ffmpeg
 git clone git@github.com:FFmpeg/FFmpeg.git ffmpeg
 cd ffmpeg
-git checkout release/4.2
+git checkout release/6.0

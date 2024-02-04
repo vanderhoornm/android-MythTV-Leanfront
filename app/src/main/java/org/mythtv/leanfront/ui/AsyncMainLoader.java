@@ -79,6 +79,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressLint("SimpleDateFormat")
 public class AsyncMainLoader implements Runnable {
@@ -99,6 +100,7 @@ public class AsyncMainLoader implements Runnable {
 
     private static final String TAG = "lfe";
     private static final String CLASS = "AsyncMainLoader";
+    public static ReentrantLock lock = new ReentrantLock();
 
     public AsyncMainLoader(@NonNull Activity activity, boolean isProgressBar) {
         this.isProgressBar = isProgressBar;
@@ -112,14 +114,18 @@ public class AsyncMainLoader implements Runnable {
 
     @Override
     public void run() {
-        try {
-            runTasks();
-        } catch (Throwable e) {
-            Log.e(TAG, CLASS + " AsyncMainLoader.run exception",e);
+        if (lock.tryLock()) {
+            try {
+                runTasks();
+            } catch (Throwable e) {
+                Log.e(TAG, CLASS + " AsyncMainLoader.run exception", e);
+            } finally {
+                lock.unlock();
+                activity.runOnUiThread(() -> mainFragment.onAsyncLoadFinished(this, categoryList));
+            }
         }
-        finally {
+        else
             activity.runOnUiThread(() -> mainFragment.onAsyncLoadFinished(this, categoryList));
-        }
     }
 
     protected void runTasks() {

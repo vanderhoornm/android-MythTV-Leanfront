@@ -31,6 +31,8 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import org.mythtv.leanfront.model.Settings;
+import org.mythtv.leanfront.ui.AsyncMainLoader;
 import org.mythtv.leanfront.ui.MainFragment;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.mythtv.leanfront.data.XmlNode.mythApiUrl;
 
@@ -51,6 +54,7 @@ public class FetchVideoService extends IntentService {
     public static final String RECTYPE = "RecType";
     public static final String RECGROUP = "RecGroup";
     public static final String ISPROGRESSBAR = "IsProgressBar";
+    public ReentrantLock fullRunLock = new ReentrantLock();
     /**
      * Creates an IntentService with a default name for the worker thread.
      */
@@ -65,75 +69,113 @@ public class FetchVideoService extends IntentService {
         String recGroup = workIntent.getStringExtra(RECGROUP);
         boolean isProgressBar = workIntent.getBooleanExtra(ISPROGRESSBAR, false);
 
-        if (recType != VideoContract.VideoEntry.RECTYPE_RECORDING)
-            recGroup = null;
-
-        VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
-
+        if (recType == -1 || recordedId == null) {
+            // Do not allow two full downloads at the same time
+            if (!fullRunLock.tryLock())
+                return;
+        }
         try {
-            String[] urls = new String[3];
-            if (recType == -1) {
-                // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
-                // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
-                urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList?IncCast=false");
-                urls[1] = mythApiUrl(null, "/Video/GetVideoList");
-                urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
-            }
-            else if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING) {
-                if (recordedId != null)
-                    urls[0] = mythApiUrl(null, "/Dvr/GetRecorded?RecordedId=" + recordedId);
-                else if (recGroup != null) {
-                    urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList?RecGroup="
-                            + URLEncoder.encode(recGroup, "UTF-8"));
-                    if ("LiveTV".equals(recGroup))
+            if (recType != VideoContract.VideoEntry.RECTYPE_RECORDING)
+                recGroup = null;
+            VideoDbBuilder builder = new VideoDbBuilder(getApplicationContext());
+
+            // recordings are 0, videos are 1, channels are 2
+            int [] start = {0,0,0};
+            int [] maxAvailable = {1000000,1000000,1000000};
+            int maxLoad = Settings.getInt("pref_max_vids");
+            int actual = 0;
+            int pagesize = 5000;
+
+            boolean firstLoop  = true;
+            while (start[0] < maxAvailable[0] || start[1] < maxAvailable[1]) {
+                if (actual >= maxLoad)
+                    break;
+                if (maxLoad - actual < pagesize)
+                    pagesize = maxLoad - actual;
+                String[] urls = new String[3];
+                if (recType == -1) {
+                    // MythTV recording list URL: http://andromeda:6544/Dvr/GetRecordedList
+                    // MythTV video list URL: http://andromeda:6544/Video/GetVideoList
+                    urls[0] = mythApiUrl(null,
+                            "/Dvr/GetRecordedList?IncCast=false&Descending=true&Count=" + pagesize + "&StartIndex=" + start[0]);
+                    urls[1] = mythApiUrl(null,
+                            "/Video/GetVideoList?Descending=true&Count=" + pagesize + "&StartIndex=" + start[1]);
+                    if (firstLoop)
                         urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
+                } else if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                    if (recordedId != null)
+                        urls[0] = mythApiUrl(null, "/Dvr/GetRecorded?RecordedId=" + recordedId);
+                    else if (recGroup != null) {
+                        urls[0] = mythApiUrl(null,
+                                "/Dvr/GetRecordedList?IncCast=false&Descending=true&Count=" + pagesize + "&StartIndex=" + start[0]
+                                        + "RecGroup=" + URLEncoder.encode(recGroup, "UTF-8"));
+                        if ("LiveTV".equals(recGroup) && start[0] ==  0)
+                            urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
+                    } else
+                        urls[0] = mythApiUrl(null,
+                                "/Dvr/GetRecordedList?IncCast=false&Descending=true&Count=" + pagesize + "&StartIndex=" + start[0]);
+                } else if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                    if (recordedId != null)
+                        urls[1] = mythApiUrl(null, "/Video/GetVideo?Id=" + recordedId);
+                    else
+                        urls[1] = mythApiUrl(null,
+                                "/Video/GetVideoList?Descending=true&Count=" + pagesize + "&StartIndex=" + start[1]);
                 }
-                else
-                    urls[0] = mythApiUrl(null, "/Dvr/GetRecordedList");
-            }
-            else if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                List<ContentValues> contentValuesList = new ArrayList<>();
+                for (int i = 0; i < urls.length; i++) {
+                    String url = urls[i];
+                    if (url != null && start[i] < maxAvailable[i]) {
+                        // This call expects recordings to be 0, videos to be 1, channels to be 2
+                        maxAvailable[i] = builder.fetch(url, i, contentValuesList);
+                        start[i] += pagesize;
+                    }
+                }
+                ContentValues[] downloadedVideoContentValues =
+                        contentValuesList.toArray(new ContentValues[0]);
+                contentValuesList = null; // This is to free the storage used
+                if (firstLoop) {
+                    AsyncMainLoader.lock.lock();
+                    try {
+                        VideoDbHelper dbh = VideoDbHelper.getInstance(this);
+                        SQLiteDatabase db = dbh.getWritableDatabase();
+                        if (recType == -1)
+                            db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
+                        else {
+                            if (recordedId == null && recGroup == null)
+                                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                                        + " WHERE RECTYPE = '" + recType + "'");
+                            else if (recordedId != null)
+                                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                                        + " WHERE RECORDEDID = '" + recordedId
+                                        + "' AND RECTYPE = '" + recType + "'");
+                            else if (recGroup != null) {
+                                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                                        + " WHERE RECGROUP = '" + recGroup.replace("'", "''")
+                                        + "' AND RECTYPE = '" + recType + "'");
+                                if ("LiveTV".equals(recGroup))
+                                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
+                                            + " WHERE RECTYPE = '" + VideoContract.VideoEntry.RECTYPE_CHANNEL + "'");
+                            }
+                        }
+                    } finally {
+                        AsyncMainLoader.lock.unlock();
+                    }
+                }
+                getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
+                        downloadedVideoContentValues);
+                actual += downloadedVideoContentValues.length;
+                Log.i(TAG, "Number of downloaded records: " + actual);
+
                 if (recordedId != null)
-                    urls[1] = mythApiUrl(null, "/Video/GetVideo?Id=" + recordedId);
-                else
-                    urls[1] = mythApiUrl(null, "/Video/GetVideoList");
+                    break;
+                firstLoop = false;
             }
-            List<ContentValues> contentValuesList = new ArrayList<>();
-            for (int i = 0; i < urls.length; i++) {
-                String url = urls[i];
-                if (url != null) {
-                    // This call expects recordings to be 0, videos to be 1, channels to be 2
-                    builder.fetch(url, i, contentValuesList);
-                }
-            }
-            ContentValues[] downloadedVideoContentValues =
-                    contentValuesList.toArray(new ContentValues[0]);
-            VideoDbHelper dbh = VideoDbHelper.getInstance(this);
-            SQLiteDatabase db = dbh.getWritableDatabase();
-            if (recType == -1)
-                db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
-            else {
-                if (recordedId == null && recGroup == null)
-                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
-                            + " WHERE RECTYPE = '" + recType + "'");
-                else if (recordedId != null)
-                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
-                            + " WHERE RECORDEDID = '" + recordedId
-                            + "' AND RECTYPE = '" + recType + "'");
-                else if (recGroup != null) {
-                    db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
-                            + " WHERE RECGROUP = '" + recGroup.replace("'", "''")
-                            + "' AND RECTYPE = '" + recType + "'");
-                    if ("LiveTV".equals(recGroup))
-                        db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME
-                                + " WHERE RECTYPE = '" + VideoContract.VideoEntry.RECTYPE_CHANNEL + "'");
-                }
-            }
-            getApplicationContext().getContentResolver().bulkInsert(VideoContract.VideoEntry.CONTENT_URI,
-                    downloadedVideoContentValues);
         } catch (IOException | XmlPullParserException e) {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);
         } finally {
+            if (recType == -1)
+                fullRunLock.unlock();
             MainFragment main = MainFragment.getActiveFragment();
             if (main != null) {
                 Activity activity = main.getActivity();

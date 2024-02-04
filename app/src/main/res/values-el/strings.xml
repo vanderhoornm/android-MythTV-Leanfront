@@ -112,6 +112,7 @@
   <string name="pref_rewff_rewff">Πλήκτρα Rew/FF: Skip Back / Forward</string>
   <string name="pref_rewff_jump">Πλήκτρα Rew/FF: Μετάβαση πίσω / εμπρός</string>
   <string name="pref_rewff_skipcom">Πλήκτρα Rew/FF: Skip Commercial</string>
+  <string name="pref_max_vids">Μέγιστες εγγραφές/βίντεο προς φόρτωση</string>
   <string name="msg_no_connection">Σφάλμα: Δεν υπάρχει σύνδεση στο MythTV Backend.</string>
   <string name="msg_no_delayshutdown">Προειδοποίηση: Δεν είναι δυνατή η αποτροπή του τερματισμού αδράνειας του backend.</string>
   <string name="all_title">Ολα</string>

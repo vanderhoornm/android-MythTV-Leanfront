@@ -112,6 +112,7 @@
   <string name="pref_rewff_rewff">Klawisze Rew/FF: przeskocz do tyłu/do przodu</string>
   <string name="pref_rewff_jump">Klawisze Rew/FF: skok do tyłu/do przodu</string>
   <string name="pref_rewff_skipcom">Klawisze Rew/FF: Pomiń reklamy</string>
+  <string name="pref_max_vids">Maksymalna liczba nagrań/filmów do załadowania</string>
   <string name="msg_no_connection">Błąd: brak połączenia z backendem MythTV.</string>
   <string name="msg_no_delayshutdown">Ostrzeżenie: nie można zapobiec wyłączeniu backendu w stanie bezczynności.</string>
   <string name="all_title">Wszystko</string>

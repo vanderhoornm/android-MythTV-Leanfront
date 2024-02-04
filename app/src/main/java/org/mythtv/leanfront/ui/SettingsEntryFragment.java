@@ -104,6 +104,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_REWFF_JUMP = 59;
     private static final int ID_REWFF_SKIPCOM = 60;
     private static final int ID_SPEED = 61;
+    private static final int ID_MAX_VIDS = 62;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -578,6 +579,14 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .title(R.string.pref_tweaks_title)
                 .subActions(subActions)
                 .build());
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_MAX_VIDS)
+                .title(R.string.pref_max_vids)
+                .description(Settings.getString("pref_max_vids"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
+
     }
 
     @Override
@@ -691,6 +700,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 Settings.putString(editor, "pref_speed",group,
                         validateNumber(action, 10, 800, 100));
                 break;
+            case ID_MAX_VIDS:
+                Settings.putString(editor, "pref_max_vids",
+                        validateNumber(action, 1000, 90000, 10000));
+                break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
         }
@@ -773,6 +786,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_SPEED:
                 action.setDescription(Settings.getString("pref_speed"));
+                break;
+            case ID_MAX_VIDS:
+                action.setDescription(Settings.getString("pref_max_vids"));
                 break;
         }
     }

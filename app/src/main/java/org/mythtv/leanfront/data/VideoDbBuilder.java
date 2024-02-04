@@ -137,12 +137,13 @@ public class VideoDbBuilder {
      *
      * @param url The location of the video list
      */
-    public void fetch(String url, int phase, List<ContentValues> videosToInsert)
+    public int fetch(String url, int phase, List<ContentValues> videosToInsert)
             throws IOException, XmlPullParserException {
         if (!XmlNode.isSetupDone())
-            return;
+            return 0;
         XmlNode videoData = XmlNode.fetch(url, null);
         buildMedia(videoData, phase, -1, videosToInsert);
+        return videoData.getInt("TotalAvailable", 0);
     }
 
     static final String[] articles = MyApplication.getAppContext().getResources().getStringArray(R.array.title_sort_articles);

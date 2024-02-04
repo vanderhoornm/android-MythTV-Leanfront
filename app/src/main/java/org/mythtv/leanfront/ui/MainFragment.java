@@ -604,6 +604,8 @@ public class MainFragment extends BrowseSupportFragment
 
     public void onAsyncLoadFinished(AsyncMainLoader loader, ArrayList<ArrayList<ListItem>> list) {
         isLoaderRunning = false;
+        if (getActivity() == null)
+            return;
         if (loader.isProgressBar)
             setProgressBar(false);
         if (list == null)

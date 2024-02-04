@@ -124,7 +124,12 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
         TextView countView = rootView.findViewById(R.id.header_count);
         if (countView != null && count > 0)
-            countView.setText(String.valueOf(count));
+            // The space is only big enough for 4 digits.
+            // If mmore than that display e.g. 10K
+            if (count < 10000)
+                countView.setText(String.valueOf(count));
+            else
+                countView.setText(String.valueOf(count/1000) + "K");
     }
 
     @Override

@@ -112,6 +112,7 @@
   <string name="pref_rewff_rewff">Rew/FF-sleutels: Slaan terug / vorentoe</string>
   <string name="pref_rewff_jump">Rew/FF-sleutels: Spring terug / vorentoe</string>
   <string name="pref_rewff_skipcom">Rew/FF Keys: Slaan Kommersieel oor</string>
+  <string name="pref_max_vids">Maksimum opnames/video\'s om te laai</string>
   <string name="msg_no_connection">Fout: Geen verbinding met MythTV Backend nie.</string>
   <string name="msg_no_delayshutdown">Waarskuwing: Kan nie die afskakeling van die agterkant nie verhoed nie.</string>
   <string name="all_title">Almal</string>

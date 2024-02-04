@@ -174,7 +174,7 @@ public class FetchVideoService extends IntentService {
             MainFragment.mFetchTime = 0;
             Log.e(TAG, "Error occurred in downloading videos", e);
         } finally {
-            if (recType == -1)
+            if (recType == -1 || recordedId == null)
                 fullRunLock.unlock();
             MainFragment main = MainFragment.getActiveFragment();
             if (main != null) {

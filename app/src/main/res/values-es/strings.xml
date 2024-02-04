@@ -113,6 +113,7 @@
   <string name="pref_rewff_jump">Teclas Rew/FF: saltar hacia atrás/adelante</string>
   <string name="pref_rewff_skipcom">Teclas Rew/FF: Saltar comercial</string>
   <string name="pref_max_vids">Máximo de grabaciones/vídeos para cargar</string>
+  <string name="pref_refresh_mins">Número de minutos entre actualizaciones de backend</string>
   <string name="msg_no_connection">Error: No hay conexión con el backend de MythTV.</string>
   <string name="msg_no_delayshutdown">Advertencia: No se puede evitar el apagado inactivo del backend.</string>
   <string name="all_title">Todo</string>

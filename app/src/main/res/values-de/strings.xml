@@ -113,6 +113,7 @@
   <string name="pref_rewff_jump">Rew/FF-Tasten: Zurück/Vorwärts springen</string>
   <string name="pref_rewff_skipcom">Rew/FF-Tasten: Werbung überspringen</string>
   <string name="pref_max_vids">Maximal zu ladende Aufnahmen/Videos</string>
+  <string name="pref_refresh_mins">Anzahl der Minuten zwischen Backend-Aktualisierungen</string>
   <string name="msg_no_connection">Fehler: Keine Verbindung zum MythTV-Backend.</string>
   <string name="msg_no_delayshutdown">Warnung: Das Herunterfahren des Backends im Leerlauf kann nicht verhindert werden.</string>
   <string name="all_title">Alle</string>

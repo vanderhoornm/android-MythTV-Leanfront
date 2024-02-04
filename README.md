@@ -186,6 +186,10 @@ The advanced section of settings includes a value that may need to be changed to
 
 - **TS Search Packets.** Increase this if when playing a recording or other TS file, the recording length does not show in the OSD, and you cannot use skips or bookmarks. The default value supplied with exoplayer is 600. I have set a default value of 2600 in leanfront. The value is limited to a range of 600 - 100,000. Increasing the value will cause the start of playback to take longer and use more memory. Also skips forwards and back will take longer. Thus it is best to make this the smallest value that works for you.
 
+- **Maximum Recordings/Videos to load.** Leanfront can handle an unlimited number of recordings and videos. However loading huge numbers of recordings and videos results in excessively long times to load the listing. WIth 60,000 recordings it takes about 3 minutes to load he list from the backend and another 3 to 4 minutes to format the display. To avoid this, the system defaults to loading the only the most recent 10,000. If you are happy with waiting minutes for the screen to refresh, you can increase the value. If you want a quicker refresh you can reduce the value.
+
+- **Number of Minutes Between Backend Refreshes.** The system refreshes the list periodically from the backend to pick up new recordings or changes. This setting must be a multiple of 4. If you need to see recordings in the list as soon as possible, set a low number. If you have a huge number of recordings it may take long to refresh so this setting may not help. In that case adjust the  **Maximum Recordings/Videos to load** setting. 
+
 </details>
 
 ## Backend Status
@@ -507,7 +511,7 @@ There is support for the MythTV parental level on videos. It does not support th
 
 ### Refresh Lists
 
-There is a "Refresh Lists" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend.
+There is a "Refresh Lists" icon on the tools row to refresh the list of recordings and videos from the backend. The list is also refreshed after using Settings if you change the backend ip address or port number. Refresh only refreshes what is on the current view. On the main screen (the one with the MythTV Icon at the top), it refreshes everything. The refresh does not perform a video rescan at the backend, currently you will have to do it from a normal frontend or run "mythutil \-\-scanvideos" on the backend. Refresh is also performed automatically in teh background every hour or other interval as specified in Settings, Advanced.
 
 If refresh takes a long time, it is likely caused by lookups on the recordedartwork table. This can be caused by the lack of a database index. This has been fixed in v32-Pre-642-ga0017739a0. If you are running an earlier version you can run the following command to create the index. You can do this on any version of MythTV. If you later upgrade to v32 it will detect if the index has already been created and will not create it again.
 
@@ -526,6 +530,8 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 
 If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. There is a script to copy from one to another.
 
+This only works on debuggable builds. The release builds of leanfront not debuggable, so it will not work on those.
+
 There is a script acopy.sh in the extras directory of the git repository. This has be be copied to a Linux system. It needs adb installed on the Linux system. acopy.sh can be used to copy settings and databases from one android device (e.g. fire stick) to another. Since the "Recently watched" list is stored locally it is different on each android device. Also local bookmarks are different per device. You can copy these from one device to another. The prior values on the receiving device are lost. There is no merging of databases.
 
 Run acopy.sh to see a list of options. 
@@ -533,7 +539,7 @@ Run acopy.sh to see a list of options.
 - Option --db to copy database. This copies the recently used list and local bookmarks (if you selected "Store Bookmarks in Android" in the Settngs).  
 - Option --settings to copy settings. This copies everything that was input from the Settings section.
 
-acopy.sh can be used for any application to copy any files, but it requires that the application be debuggable. The release builds of leanfront are debuggable, but most apps from the play store are not, so it will not work on those.
+acopy.sh can be used for any application to copy any files, but it requires that the application be debuggable.
 
 #### Important Notes
 
@@ -605,14 +611,6 @@ On a phone the Play and other action buttons may be too big and may not all disp
 - Skip forward and skip back are difficult to use with the playback controls on a touch screen, as the playback controls disappear soon after a skip. There is an alternative for touch screens. Tap the top right corner or top left corner to skip forward or back. Press and hold for repeat-action to skip repeatedly until you reach the required position.
 - In playback, leanfront operates full screen. To exit, you need the back button. Swipe from the top or bottom of the screen to see the system buttons. Press back before it disappears again. Note that to stop playback while the playback controls are showing, you have to press back twice, once to close the playback controls, and again to close playback, or else double tap to close playback controls and back to close playback.
 - You cannot get to the [Related Videos](#related-videos) during playback. However you can see them on the details page before starting or after ending playback.
-
-## Leanfront Restrictions / Limitations
-
-These may be addressed in a future release.
-
-- Moving recordings to new recording groups is not supported.
-- Metadata input and update are not supported.
-- Request of video file scan is not supported.
 
 ## Install on Laptop or Desktop
 

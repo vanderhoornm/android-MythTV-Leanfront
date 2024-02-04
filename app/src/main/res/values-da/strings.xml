@@ -113,6 +113,7 @@
   <string name="pref_rewff_jump">Rew/FF-taster: Hop tilbage / fremad</string>
   <string name="pref_rewff_skipcom">Rew/FF Keys: Spring over reklame</string>
   <string name="pref_max_vids">Maksimalt antal optagelser/videoer at indlæse</string>
+  <string name="pref_refresh_mins">Antal minutter mellem backend-opdateringer</string>
   <string name="msg_no_connection">Fejl: Ingen forbindelse til MythTV Backend.</string>
   <string name="msg_no_delayshutdown">Advarsel: Kan ikke forhindre nedlukning af inaktiv backend.</string>
   <string name="all_title">Alle</string>

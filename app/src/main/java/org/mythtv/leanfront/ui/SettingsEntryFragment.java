@@ -105,6 +105,7 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private static final int ID_REWFF_SKIPCOM = 60;
     private static final int ID_SPEED = 61;
     private static final int ID_MAX_VIDS = 62;
+    private static final int ID_REFRESH_MINS = 63;
 
     private static final String KEY_EXPAND = "EXPAND";
 
@@ -586,7 +587,13 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
-
+        subActions.add(new GuidedAction.Builder(getActivity())
+                .id(ID_REFRESH_MINS)
+                .title(R.string.pref_refresh_mins)
+                .description(Settings.getString("pref_refresh_mins"))
+                .descriptionEditable(true)
+                .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
+                .build());
     }
 
     @Override
@@ -630,9 +637,10 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         int actualId = id % 100;
         int groupId = id / 100;
         String group = mPlayGroupList.get(groupId);
+        String newVal;
         switch(actualId) {
             case ID_BACKEND_IP:
-                String newVal = action.getDescription().toString();
+                newVal = action.getDescription().toString();
                 Settings.putString(editor, "pref_backend",newVal);
                 mBackendAction.setDescription(newVal);
                 notifyActionChanged(findActionPositionById(ID_BACKEND));
@@ -703,6 +711,15 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
             case ID_MAX_VIDS:
                 Settings.putString(editor, "pref_max_vids",
                         validateNumber(action, 1000, 90000, 10000));
+                break;
+            case ID_REFRESH_MINS:
+                // Must be divisible by 4;
+                newVal = validateNumber(action, 4, 60, 60);
+                int i = Integer.parseInt(newVal);
+                i = (i/4)*4;
+                newVal = String.valueOf(i);
+                action.setDescription(newVal);
+                Settings.putString(editor, "pref_refresh_mins", newVal);
                 break;
             default:
                 return GuidedAction.ACTION_ID_CURRENT;
@@ -789,6 +806,9 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
                 break;
             case ID_MAX_VIDS:
                 action.setDescription(Settings.getString("pref_max_vids"));
+                break;
+            case ID_REFRESH_MINS:
+                action.setDescription(Settings.getString("pref_refresh_mins"));
                 break;
         }
     }

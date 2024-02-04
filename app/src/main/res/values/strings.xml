@@ -149,6 +149,7 @@
     <string name="pref_rewff_jump">Rew/FF Keys: Jump Back / Forward</string>
     <string name="pref_rewff_skipcom">Rew/FF Keys: Skip Commercial</string>
     <string name="pref_max_vids">Maximum Recordings/Videos to load</string>
+    <string name="pref_refresh_mins">Number of minutes between backend refreshes</string>
 
     <string name="msg_no_connection">Error: No Connection to MythTV Backend.</string>
     <string name="msg_no_delayshutdown">Warning: Unable to prevent backend idle shutdown.</string>
@@ -466,4 +467,5 @@
     <string name="sdef_rewff" translatable="false">rewff</string>
     <string name="sdef_speed" translatable="false">100</string>
     <string name="sdef_max_vids" translatable="false">10000</string>
+    <string name="sdef_refresh_mins" translatable="false">60</string>
 </resources>

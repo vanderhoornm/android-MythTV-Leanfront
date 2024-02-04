@@ -113,6 +113,7 @@
   <string name="pref_rewff_jump">Klávesy Rew/FF: Skok zpět / vpřed</string>
   <string name="pref_rewff_skipcom">Klávesy Rew/FF: Přeskočit reklamu</string>
   <string name="pref_max_vids">Maximální počet nahrávek/videí k načtení</string>
+  <string name="pref_refresh_mins">Počet minut mezi aktualizacemi backendu</string>
   <string name="msg_no_connection">Chyba: Žádné připojení k MythTV Backend.</string>
   <string name="msg_no_delayshutdown">Varování: Nelze zabránit nečinnosti backendu.</string>
   <string name="all_title">Všechno</string>

@@ -58,6 +58,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -75,6 +76,7 @@ import org.mythtv.leanfront.model.VideoCursorMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -298,6 +300,7 @@ public class AsyncMainLoader implements Runnable {
         boolean showRecentDeleted = "true".equals(Settings.getString("pref_recents_deleted"));
         boolean showRecentWatched = "true".equals(Settings.getString("pref_recents_watched"));
         recentsTrim = recentsTrim && (showRecentDeleted || showRecentWatched);
+        VideoComparator videoComparator = new VideoComparator(ascdesc);
 
         int allType = TYPE_RECGROUP_ALL;
         String allTitle = null;
@@ -519,6 +522,12 @@ public class AsyncMainLoader implements Runnable {
             // Change of row
             if (addToRow && category != null && !Objects.equals(categorymatch, currentCategoryMatch)) {
                 currentRowNum = categoryList.size();
+                // If videos, sort the row
+                if (rowList != null && (rowType == TYPE_VIDEODIR || rowType == TYPE_VIDEODIR_ALL) ) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        rowList.sort(videoComparator);
+                    }
+                }
                 rowList = new ArrayList<>();
                 header = new MyHeaderItem(category,
                         rowType, mBaseName);
@@ -664,6 +673,49 @@ public class AsyncMainLoader implements Runnable {
             for (int ix = 0; ix < allSparse.size(); ix++) {
                 allList.add(allSparse.get(allSparse.keyAt(ix)));
             }
+        }
+    }
+    class VideoComparator implements Comparator<ListItem> {
+        int sign = 1;
+        VideoComparator(String ascdesc) {
+            if ("desc".equals(ascdesc))
+                sign = -1;
+        }
+        @Override
+        public int compare(ListItem t1, ListItem t2) {
+            int result;
+            if (t1 instanceof MyHeaderItem) {
+                result = -1;
+                if (t2 instanceof  MyHeaderItem)
+                    result = 0;
+                return result;
+            }
+            if (t2 instanceof MyHeaderItem)
+                return 1;
+            String ttl1 = ((Video)t1).titlematch;
+            if (ttl1 == null)
+                ttl1 = ((Video)t1).title.toUpperCase();
+            String ttl2 = ((Video)t2).titlematch;
+            if (ttl2 == null)
+                ttl2 = ((Video)t2).title.toUpperCase();
+            result = ttl1.compareTo(ttl2);
+            if (result != 0)
+                return result * sign;
+            try {
+                result = Integer.parseInt(((Video)t1).season)
+                        - Integer.parseInt(((Video)t2).season);
+            } catch (Exception e) {
+                result = 0;
+            }
+            if (result != 0)
+                return result * sign;
+            try {
+                result = Integer.parseInt(((Video)t1).episode)
+                    - Integer.parseInt(((Video)t2).episode);
+            } catch (Exception e) {
+                result = 0;
+            }
+            return result * sign;
         }
     }
 }

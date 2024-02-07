@@ -218,9 +218,9 @@ public class VideoDetailsFragment extends DetailsSupportFragment
     }
 
     public void onSaveInstanceState (Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putLong("mBookmark", mBookmark);
         outState.putLong("posBookmark", mPosBookmark);
+        super.onSaveInstanceState(outState);
     }
 
     private void removeNotification(int notificationId) {

@@ -371,13 +371,16 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     @Override
-    public void onPause() {
+    public void onPause()
+    {
         super.onPause();
+        mActiveFragment = null;
     }
 
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+        mActiveFragment = null;
         int [] selection = getSelection();
         savedInstanceState.putIntArray("selection",selection);
         super.onSaveInstanceState(savedInstanceState);

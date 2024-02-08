@@ -71,12 +71,14 @@ Leanfront can be installed from the Google play store or the Amazon store, depen
 
 <details><summary>Recently Viewed List</summary>
 
-The top line of the main screen shows "Recently Viewed" items if that option is selected in Settings. This helps you keep track of what you are watching. Recommended Settings::
+The top line of the main screen shows "Recently Viewed" items if that option is selected in Settings. This helps you keep track of what you are watching.
+Recommended Settings:
+
 - Enable recently viewed list in settings.
 - Enable deleted and watched items in the recent list.
 - Enable "Trim recently viewed list" to only see the latest episode of each series you are watching.
 - Disable deleted and watched items in the "related" list.
-- In mythfrontend, set the deletion delay for deleted shows to 7 days.
+- In mythfrontend, set the deletion delay for deleted shows to 7 days or longer.
 
 Now, for example, if you watched and deleted an episode yesterday, the deleted episode shows at the front of the recent list. Select that episode from the recent list. Go down in the details screen to the related list. You will see unwatched, undeleted episodes of the series and you can select one to play.
 
@@ -89,7 +91,7 @@ Now, for example, if you watched and deleted an episode yesterday, the deleted e
 - The LiveTV group shows recordings already made from Live TV as well as channels available to watch live.
 - On the top-level screen only, there is a list of recently viewed items. This can be customized in settings to select how far back it goes or to disable it entirely.
 - There is a row for "All" at the top.
-- If you have Videos in the Video storage group on the MythTV backend, There is a row at the bottom showing videos organized by directory. Selecting that row and pressing enter opens the [Videos Screen](#videos-screen)
+- If you have Videos in the Video storage group on the MythTV backend, there is a row at the bottom showing videos organized by directory. Selecting that row and pressing enter opens the [Videos Screen](#videos-screen)
 - There is a row labeled "Tools" at the bottom. There are various options available there.
 - Indicators next to recordings show 🗑 for deleted, 👁 for Watched, 💥 for damaged.
 
@@ -118,7 +120,7 @@ Now, for example, if you watched and deleted an episode yesterday, the deleted e
 ## Related Videos
 ![](ScreenShots/RelatedVideos.png)
 
-A horizontal list of other episodes of the series is shown, If you have selected a recording from the main page and you actually want to see a different episode of the series, you can find it here.
+See this by pressing Down on the Detail Screen. A horizontal list of other episodes of the series is shown, If you have selected a recording from the main page and you actually want to see a different episode of the series, you can find it here.
 
 ## Videos Screen
 ![](ScreenShots/Videos.png)
@@ -136,7 +138,7 @@ This operation is not recursive. If there are subdirectories in a video director
 ## Playback Screen
 ![](ScreenShots/Playback.png)
 
-- During playback you can use the Menu button or a long press on enter to show a menu of actions. A normal press of Enter shows [playback controls](#playback-controls) with icons for actions.
+- During playback you can use the Menu button to show a menu of actions. A normal press of Enter shows [playback controls](#playback-controls) with icons for actions. The menu can be selected from an icon here if you do not have a Menu button.
 - Commercial skip is supported if the recording or video has been flagged in MythTV. Skipping with arrow keys and fast forward/rewind keys is supported. These can be customized in [settings](#settings).
 - For more information see [Playback](#playback).
 
@@ -165,7 +167,7 @@ Select the magnifying glass at the top left hand side of most screens, and press
 At the bottom of each list screen is a row named "Tools", that provides application-wide tools.
 
 - [Settings](#settings) provides for customization of many features of leanfront.
-- [Refresh Lists](#refresh-lists) refreshes the recording and video lists from the backend. This is rarely needed, as leanfront automatically keeps up to date with the backend.
+- [Refresh Lists](#refresh-lists) refreshes the recording and video lists from the backend. This is rarely needed, as leanfront automatically keeps up to date with the backend. The frequency with which it is updated can be set in [Advanced Settings](#advanced).
 - [Backend Status](#backend-status) shows general information about the backend.
 - [Manage Recordings](#manage-recordings) Shows the program schedule and provides the ability to schedule recordings.
 
@@ -201,9 +203,20 @@ Backend status can be scrolled down using arrow keys.
 ![](ScreenShots/Manage.png)
 
 There are three rows available.
-- [Program Guide](#program-guide)
+- [Upcoming Recordings](#upcoming-recordings).
 - [Recording Rules](#recording-rules)
-- [Upcoming Recordings](#upcoming-recordings). 
+- [Program Guide](#program-guide)
+
+## Upcoming Recordings
+![](ScreenShots/Upcoming.png)
+
+[Edit](#schedule-recording) a recording rule by selecting an upcoming recording and pressing Enter.
+
+## Recording Rules
+![](ScreenShots/Rules.png)
+
+- [Edit](#schedule-recording) an existing rule by selecting it and pressing Enter.
+- Create a new manual recording by selecting *Schedule New Recording* and pressing Enter.
 
 ## Program Guide
 ![](ScreenShots/Guide.png)
@@ -212,17 +225,6 @@ There are three rows available.
 - Jump to a desired date and time by pressing enter on any of the date or time cells and selecting a date and time.
 - [Schedule](#schedule-recording) a recording by pressing enter on a program cell.
 - Move to the next or prior time slot of guide data by pressing enter on any of the arrow cells.
-
-## Recording Rules
-![](ScreenShots/Rules.png)
-
-- [Edit](#schedule-recording) an existing rule by selecting it and pressing Enter.
-- Create a new manual recording by selecting *Schedule New Recording* and pressing Enter.
-
-## Upcoming Recordings
-![](ScreenShots/Upcoming.png)
-
-[Edit](#schedule-recording) a recording rule by selecting an upcoming recording and pressing Enter. 
 
 ## Schedule Recording
 ![](ScreenShots/Schedule.png)
@@ -255,7 +257,7 @@ You need an Android TV device, which can be a [Nvidia Shield](https://www.nvidia
 
 ### Amazon Fire TV
 If you have an Amazon Fire TV, Fire Stick or Fire Cube, you can install from Amazon App store.
-For a new installation, just press the microphone button on your remote and say "MythTV". Alternatively, log on to amazon.com, serach for MythTV or leanfronte, and request it to be installed to your device.
+For a new installation, just press the microphone button on your remote and say "MythTV". Alternatively, log on to amazon.com, search for MythTV or leanfronte, and request it to be installed to your device.
 
 If you already have leanfront installed by downloading from orangedox, to install from the app store you will have to first uninstall it.
 
@@ -319,7 +321,7 @@ Leanfront is based on the sample [Videos By Google](https://github.com/android/t
 - The *Master Backend Override* MythTV setting is supported. Playback will be from the master backend even for recordings made on a slave. However the Preview image still uses the slave backend, so it will not show if the slave is down.
 - Adjustment of Audio Sync in case a recording has a lip-sync problem.
 - Support for touch screen devices is usable, although it is not perfect.
-- Metadata lookup when scheduling recordings supports tvmaze and tmdb.
+- Metadata lookup when scheduling recordings supports the tv db, tvmaze and tmdb.
 - Note that some phones do not support MPEG-2 playback. There may be some android TV devices that do not support MPEG-2. NVidia shield supports MPEG-2 although there is a pixelation bug on some channels. Fire stick models since 2018 support MPEG-2. See https://developer.amazon.com/docs/fire-tv/device-specifications-fire-tv-streaming-media-player.html?v=ftvstick4k and select your model for full details.
 - Supports playback groups, allowing different values per playback group.
 - Now supports MythTV commercial breaks and cut list.
@@ -334,6 +336,7 @@ You can see a list of changes in each version by looking at the commit list in g
 - Pressing Back dismisses the OSD controls. Pressing Up a couple of times will also dismiss them. This is better because you will not accidentally end playback if you press Up when they are already timing out.
 - Left and right arrow will skip back and forward. Holding down the arrow moves quickly through the video. The number of seconds for forward and back skip are customizable in Settings.
 - Up and down arrow can be used for bigger jumps by setting a jump interval in settings. I recommend against using this because it interferes with navigation in the OSD. You can move very quickly through playback by holding down left or right arrow, so jump is not really needed. Jumping can be disabled by setting blank or 0 in the jump interval in Settings. When jumping with up and down arrows, the arrow buttons are disabled for up/down use in the OSD, and this can cause confusion.
+- YOu can customize the up/down, left/right and ff/rew buttons to skip, jump or commercial skip.
 - If you are playing a recording that is in progress of being recorded or a LiveTV channel, the behavior will be as follows. When you start watching, the OSD will show the duration being as much as has been recorded at that time. This duration will remain at that figure as you continue watching. Once you get to that point in the recording, there is a slight pause, then playback continues, with duration shown as "---", which means unknown duration. While in this state, if you press forward or back skip, it will revert to showing the amount recorded to date, and perform the forward or back skip requested. When you eventually get to the end as it was when you did the skip operation, it will revert to duration showing as "---" while playback continues.
 
 ### Frame Rate Synchronization
@@ -370,7 +373,7 @@ You can skip forward and backward to the next or prior commercial break. This is
 
 - You can set left/right, up/down, or rew/ff to commercial skip instead of their normal usage.
 - The Playback Control Icons |< and >| will skip back and forward to the next commercial break. After the last break they skip to the prior or next episode in the series, as they have always done.
-- If you have an advanced remote, the "Skip back" and "Skip next" buttons perform a commercial skip, while the "Step back" and "STep forward" buttons perform the "jump" operation of 5 minutes at a time or whatever value you set.
+- If you have an advanced remote, the "Skip back" and "Skip next" buttons perform a commercial skip, while the "Step back" and "Step forward" buttons perform the "jump" operation of 5 minutes at a time or whatever value you set.
 
 In the settings there are adjustments to start and end position that can be set. Setting a negative value means that it will skip that number of seconds early, setting a positive value will skip that number of seconds late. To make sure that absolutely no commercial is shown, you can make the skip larger by setting a negative value for start adjustment and a positive value for end adjustment. However you could miss a second or two of actual show. In the opposite situation, if you are unsure whether commercial skip works correctly, you can make the skip shorter by setting a positive value in the start adjustment and a negative value in the end adjustment. Then you will see a few seconds of commercial at the start and end of the break, so that you can be sure it is only skipping commercial and not skipping part of the show.
 

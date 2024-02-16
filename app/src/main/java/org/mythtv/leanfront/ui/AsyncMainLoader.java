@@ -694,10 +694,10 @@ public class AsyncMainLoader implements Runnable {
                 return 1;
             String ttl1 = ((Video)t1).titlematch;
             if (ttl1 == null)
-                ttl1 = ((Video)t1).title.toUpperCase();
+                ttl1 = " ";
             String ttl2 = ((Video)t2).titlematch;
             if (ttl2 == null)
-                ttl2 = ((Video)t2).title.toUpperCase();
+                ttl2 = " ";
             result = ttl1.compareTo(ttl2);
             if (result != 0)
                 return result * sign;

@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">JAKIŚ</string>
   <string name="title_grid_time">Czas siatki:</string>
   <string name="note_program_continuation">(cd.)</string>
-  <string name="title_select_timeslot">Wybierz Przedział czasowy</string>
+  <string name="title_select_timeslot">Grupa kanałów i czas</string>
+  <string name="title_chan_group">Grupa kanałów:</string>
   <string name="title_manage_recordings">Zarządzaj nagraniami</string>
   <string name="title_program_guide">Przewodnik po programie</string>
   <string name="title_rec_rules">Zasady nagrywania</string>

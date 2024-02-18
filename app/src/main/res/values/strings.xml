@@ -270,7 +270,8 @@
     <string name="sort_exclude_3">AN</string>
     <string name="title_grid_time">Grid Time:</string>
     <string name="note_program_continuation">(cont)</string>
-    <string name="title_select_timeslot">Select Time Slot</string>
+    <string name="title_select_timeslot">Channel Group and Time</string>
+    <string name="title_chan_group">Channel Group:</string>
     <string name="title_manage_recordings">Manage Recordings</string>
     <string name="title_program_guide">Program Guide</string>
     <string name="title_rec_rules">Recording Rules</string>
@@ -468,4 +469,5 @@
     <string name="sdef_speed" translatable="false">100</string>
     <string name="sdef_max_vids" translatable="false">10000</string>
     <string name="sdef_refresh_mins" translatable="false">60</string>
+    <string name="sdef_chan_group" translatable="false"></string>
 </resources>

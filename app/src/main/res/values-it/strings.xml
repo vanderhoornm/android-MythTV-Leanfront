@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">UN</string>
   <string name="title_grid_time">Tempo di griglia:</string>
   <string name="note_program_continuation">(continua)</string>
-  <string name="title_select_timeslot">Seleziona fascia oraria</string>
+  <string name="title_select_timeslot">Gruppo di canali e ora</string>
+  <string name="title_chan_group">Gruppo di canali:</string>
   <string name="title_manage_recordings">Gestisci le registrazioni</string>
   <string name="title_program_guide">Guida al programma</string>
   <string name="title_rec_rules">Regole di registrazione</string>

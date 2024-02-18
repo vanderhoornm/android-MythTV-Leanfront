@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">AN</string>
   <string name="title_grid_time">Roostertyd:</string>
   <string name="note_program_continuation">(vervolg)</string>
-  <string name="title_select_timeslot">Kies Tydgleuf</string>
+  <string name="title_select_timeslot">Kanaalgroep en tyd</string>
+  <string name="title_chan_group">Kanaalgroep:</string>
   <string name="title_manage_recordings">Bestuur opnames</string>
   <string name="title_program_guide">Programgids</string>
   <string name="title_rec_rules">Opnamereëls</string>

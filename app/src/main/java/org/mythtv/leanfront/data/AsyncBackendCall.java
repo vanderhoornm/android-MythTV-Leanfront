@@ -909,10 +909,20 @@ public class AsyncBackendCall implements Runnable {
                         SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                         sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Guide/GetProgramList?StartTime="
+                                "/Guide/GetProgramGuide?ChannelGroupId=" + mId
+                                        + "&StartTime="
                                         + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8")
-                                        + "&EndTime=" + URLEncoder.encode(sdfUTC.format(mEndTime), "UTF-8")
-                                        + "&Details=1");
+                                        + "&EndTime=" + URLEncoder.encode(sdfUTC.format(mEndTime), "UTF-8") );
+                        xmlResult = XmlNode.fetch(urlString, null);
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception Getting Guide.", e);
+                    }
+                    break;
+
+                case Video.ACTION_CHAN_GROUPS:
+                    try {
+                        urlString = XmlNode.mythApiUrl(null,
+                                "/Guide/GetChannelGroupList?IncludeEmpty=false");
                         xmlResult = XmlNode.fetch(urlString, null);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Getting Guide.", e);

@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ObjectAdapter;
@@ -44,6 +45,8 @@ import androidx.leanback.widget.VerticalGridPresenter;
 
 import org.mythtv.leanfront.R;
 
+import java.util.Date;
+
 public class GridFragment extends Fragment implements BrowseSupportFragment.MainFragmentAdapterProvider {
     private static final String TAG = "GridFragment";
 
@@ -52,10 +55,25 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
     protected VerticalGridPresenter.ViewHolder mGridViewHolder;
     private OnItemViewSelectedListener mOnItemViewSelectedListener;
     private OnItemViewClickedListener mOnItemViewClickedListener;
-    private int mSelectedPosition = -1;
+    protected int mSelectedPosition = -1;
     protected boolean isStarted;
     private BrowseSupportFragment.MainFragmentAdapter mMainFragmentAdapter =
             new BrowseSupportFragment.MainFragmentAdapter(this);
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mSelectedPosition = savedInstanceState.getInt("mSelectedPosition", mSelectedPosition);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt("mSelectedPosition",mSelectedPosition);
+        super.onSaveInstanceState(outState);
+    }
+
     /**
      * Sets the grid presenter.
      */
@@ -121,7 +139,7 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
     }
 
     private void gridOnItemSelected(int position) {
-        if (position != mSelectedPosition) {
+        if (position != -1 && position != mSelectedPosition) {
             mSelectedPosition = position;
             showOrHideTitle();
         }
@@ -219,7 +237,7 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
         }
     }
 
-    private void updateAdapter() {
+    void updateAdapter() {
         if (mGridViewHolder != null) {
             mGridPresenter.onBindViewHolder(mGridViewHolder, mAdapter);
             if (mSelectedPosition != -1) {

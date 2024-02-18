@@ -18,6 +18,7 @@ public class GuideSlot {
     public int chanId = -1;
     public int chanNum = -1;
     public String chanDetails;
+    public String chanGroup;
     public Date timeSlot;       // Time of this grid position
     public Program program;
     public Program program2;    // In case of 15 minute programs
@@ -78,7 +79,8 @@ public class GuideSlot {
                     .append(dateFormatter.format(timeSlot)).append(' ')
                     .append(timeFormatter.format(timeSlot)).append('\n');
             if (timeSlot != null && cellType == CELL_TIMESELECTOR) {
-                build.append(context.getString(R.string.title_grid_time)).append('\n')
+                build.append(context.getString(R.string.title_chan_group))
+                  .append(" ").append(chanGroup).append('\n')
                   .append(dayFormatter.format(timeSlot))
                   .append(dateFormatter.format(timeSlot)).append(' ')
                   .append(timeFormatter.format(timeSlot)).append('\n');
@@ -144,9 +146,9 @@ public class GuideSlot {
         private static final String TAG = "lfe";
         private static final String CLASS = "Program";
 
-        public Program(XmlNode programNode) {
+        public Program(XmlNode programNode, XmlNode chanNode) {
             try {
-                chanId = Integer.parseInt(programNode.getNode("Channel").getString("ChanId"));
+                chanId = Integer.parseInt(chanNode.getString("ChanId"));
                 startTime = dateFormat.parse(programNode.getString("StartTime") + "+0000");
                 endTime = dateFormat.parse(programNode.getString("EndTime") + "+0000");
                 title = programNode.getString("Title");

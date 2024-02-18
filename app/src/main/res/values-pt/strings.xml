@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">UM</string>
   <string name="title_grid_time">Tempo de grade:</string>
   <string name="note_program_continuation">(cont.)</string>
-  <string name="title_select_timeslot">Selecione o intervalo de tempo</string>
+  <string name="title_select_timeslot">Grupo de canais e horário</string>
+  <string name="title_chan_group">Grupo de canais:</string>
   <string name="title_manage_recordings">Gerenciar gravações</string>
   <string name="title_program_guide">Guia do programa</string>
   <string name="title_rec_rules">Regras de Gravação</string>

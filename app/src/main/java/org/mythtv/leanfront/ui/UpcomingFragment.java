@@ -23,6 +23,7 @@ package org.mythtv.leanfront.ui;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.VerticalGridPresenter;
@@ -46,13 +47,22 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mDoingUpdate = savedInstanceState.getBoolean("mDoingUpdate", mDoingUpdate);
+        }
         setupAdapter();
     }
 
     @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putBoolean("mDoingUpdate",mDoingUpdate);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onResume() {
-        setupGridData();
         super.onResume();
+        setupGridData();
     }
 
     private void setupAdapter() {
@@ -126,6 +136,7 @@ public class UpcomingFragment extends GridFragment implements AsyncBackendCall.O
         }
         while (mGridAdapter.size() % NUMBER_COLUMNS != 0)
             mGridAdapter.add(null);
+        updateAdapter();
     }
 
 }

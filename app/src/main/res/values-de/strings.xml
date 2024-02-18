@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">EIN</string>
   <string name="title_grid_time">Startzeit:</string>
   <string name="note_program_continuation">(Fortsetzung)</string>
-  <string name="title_select_timeslot">Wählen Sie Zeitfenster</string>
+  <string name="title_select_timeslot">Kanalgruppe und Zeit</string>
+  <string name="title_chan_group">Kanalgruppe:</string>
   <string name="title_manage_recordings">Aufnahmen verwalten</string>
   <string name="title_program_guide">Programm</string>
   <string name="title_rec_rules">Aufnahmeregeln</string>

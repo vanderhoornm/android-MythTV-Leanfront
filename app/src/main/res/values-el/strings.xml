@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">ΕΝΑ</string>
   <string name="title_grid_time">Χρόνος πλέγματος:</string>
   <string name="note_program_continuation">(συνέχεια)</string>
-  <string name="title_select_timeslot">Επιλέξτε Time Slot</string>
+  <string name="title_select_timeslot">Ομάδα καναλιών και ώρα</string>
+  <string name="title_chan_group">Ομάδα καναλιών:</string>
   <string name="title_manage_recordings">Διαχείριση εγγραφών</string>
   <string name="title_program_guide">Οδηγός προγράμματος</string>
   <string name="title_rec_rules">Κανόνες εγγραφής</string>

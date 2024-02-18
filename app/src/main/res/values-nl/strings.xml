@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">EEN</string>
   <string name="title_grid_time">Rastertijd:</string>
   <string name="note_program_continuation">(vervolg)</string>
-  <string name="title_select_timeslot">Selecteer Tijdslot</string>
+  <string name="title_select_timeslot">Kanaalgroep en tijd</string>
+  <string name="title_chan_group">Kanaalgroep:</string>
   <string name="title_manage_recordings">Beheer opnamen</string>
   <string name="title_program_guide">Programmagids</string>
   <string name="title_rec_rules">Registratieregels</string>

@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">AN</string>
   <string name="title_grid_time">Rutenetttid:</string>
   <string name="note_program_continuation">(forts.)</string>
-  <string name="title_select_timeslot">Velg Time Slot</string>
+  <string name="title_select_timeslot">Kanalgruppe og tid</string>
+  <string name="title_chan_group">Kanalgruppe:</string>
   <string name="title_manage_recordings">Administrer opptak</string>
   <string name="title_program_guide">Programguide</string>
   <string name="title_rec_rules">Regler for opptak</string>

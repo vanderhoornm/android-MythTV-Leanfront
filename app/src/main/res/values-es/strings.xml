@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">UN</string>
   <string name="title_grid_time">Tiempo de cuadrícula:</string>
   <string name="note_program_continuation">(continuación)</string>
-  <string name="title_select_timeslot">Seleccionar franja horaria</string>
+  <string name="title_select_timeslot">Grupo de canales y hora</string>
+  <string name="title_chan_group">Grupo de canales:</string>
   <string name="title_manage_recordings">Administrar grabaciones</string>
   <string name="title_program_guide">Guía del programa</string>
   <string name="title_rec_rules">Reglas de grabación</string>

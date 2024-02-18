@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.VerticalGridPresenter;
@@ -46,12 +47,21 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mDoingUpdate = savedInstanceState.getBoolean("mDoingUpdate", mDoingUpdate);
+        }
         boolean isTelevision = getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
         if (isTelevision)
             numberColumns = 3;
         else
             numberColumns = 1;
         setupAdapter();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putBoolean("mDoingUpdate",mDoingUpdate);
+        super.onSaveInstanceState(outState);
     }
 
     private void setupAdapter() {
@@ -77,8 +87,8 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
 
     @Override
     public void onResume() {
-        setupGridData();
         super.onResume();
+        setupGridData();
     }
 
     private void recRuleClicked(RecordRule card) {
@@ -142,6 +152,7 @@ public class RecRulesFragment  extends GridFragment implements AsyncBackendCall.
         }
         while (mGridAdapter.size() % numberColumns != 0)
             mGridAdapter.add(null);
+        updateAdapter();
     }
 
 }

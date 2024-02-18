@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">AN</string>
   <string name="title_grid_time">Ruudukkoaika:</string>
   <string name="note_program_continuation">(jatkoa)</string>
-  <string name="title_select_timeslot">Valitse Aikaväli</string>
+  <string name="title_select_timeslot">Kanavaryhmä ja aika</string>
+  <string name="title_chan_group">Kanavaryhmä:</string>
   <string name="title_manage_recordings">Hallitse tallenteita</string>
   <string name="title_program_guide">Ohjelmaopas</string>
   <string name="title_rec_rules">Tallennussäännöt</string>

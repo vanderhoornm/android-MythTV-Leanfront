@@ -22,15 +22,17 @@ package org.mythtv.leanfront.ui;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.SparseIntArray;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
@@ -38,15 +40,15 @@ import androidx.leanback.widget.VerticalGridPresenter;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
-import org.mythtv.leanfront.data.VideoContract;
-import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.GuideSlot;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.GuidePresenterSelector;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -71,21 +73,40 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private static DateFormat mDayFormatter;
     private GregorianCalendar mTimeSelectCalendar;
     private AlertDialog mDialog;
-    private boolean mLoadInProgress;
+    private XmlNode mLoadInProcess;
     private boolean mDoingUpdate;
-
+    private ArrayList<String> mChanGroupNames;
+    private ArrayList<Integer> mChanGroupIDs;
+    private int mChanGroupIx = -1;
     private static final int ACTION_EDIT_1 = 1;
     private static final int ACTION_EDIT_2 = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        long now = System.currentTimeMillis();
-        // round down to 30 minute interval
-        long startTime = now / (TIMESLOT_SIZE * 60000);
-        startTime = startTime * TIMESLOT_SIZE * 60000;
-        mGridStartTime = new Date(startTime);
+        if (savedInstanceState != null) {
+            long newTime = savedInstanceState.getLong("mGridStartTime", 0);
+            if (newTime > 0)
+                mGridStartTime = new Date(newTime);
+            mChanGroupIx = savedInstanceState.getInt("mChanGroupIx", mChanGroupIx);
+            mDoingUpdate = savedInstanceState.getBoolean("mDoingUpdate", mDoingUpdate);
+        }
+        if (mGridStartTime == null) {
+            long now = System.currentTimeMillis();
+            // round down to 30 minute interval
+            long startTime = now / (TIMESLOT_SIZE * 60000);
+            startTime = startTime * TIMESLOT_SIZE * 60000;
+            mGridStartTime = new Date(startTime);
+        }
         setupAdapter();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putLong("mGridStartTime",mGridStartTime.getTime());
+        outState.putInt("mChanGroupIx",mChanGroupIx);
+        outState.putBoolean("mDoingUpdate",mDoingUpdate);
+        super.onSaveInstanceState(outState);
     }
 
     private void setupAdapter() {
@@ -98,8 +119,6 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         setAdapter(mGridAdapter);
 
         setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
-            if (mLoadInProgress)
-                return;
             GuideSlot card = (GuideSlot)item;
             if (card == null)
                 return;
@@ -128,8 +147,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
 
     @Override
     public void onResume() {
-        setupGridData();
         super.onResume();
+        setupGridData();
     }
 
     private void programClicked(GuideSlot card) {
@@ -213,13 +232,30 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                         + (long) dateSpin.getSelectedItemPosition() * 24*60*60*1000
                         + (long) timeSpin.getSelectedItemPosition() * TIMESLOT_SIZE * 60 * 1000;
                 mGridStartTime = new Date(newStartTime);
+                Spinner groupSpin = mDialog.findViewById(R.id.group_select);
+                int newIx = groupSpin.getSelectedItemPosition();
+                if (newIx != mChanGroupIx) {
+                    // Clear this to make sure grid is rebuilt
+                    mPriorGridStartTime = 0;
+                    mSelectedPosition = 0;
+                    mChanGroupIx = newIx;
+                }
+                SharedPreferences.Editor editor = Settings.getEditor();
+                Settings.putString(editor,"chan_group", mChanGroupNames.get(mChanGroupIx));
+                editor.commit();
                 setupGridData();
             } );
         builder.setNegativeButton(android.R.string.cancel, null);
         mDialog = builder.create();
         mDialog.show();
+        Spinner groupSpin=mDialog.findViewById(R.id.group_select);
+        ArrayAdapter<String> adapter =new ArrayAdapter<>(context,android.R.layout.simple_spinner_item );
+        adapter.addAll(mChanGroupNames);
+        groupSpin.setAdapter(adapter);
+        if (mChanGroupIx > -1)
+            groupSpin.setSelection(mChanGroupIx,false);
         Spinner dateSpin=mDialog.findViewById(R.id.date_select);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context,android.R.layout.simple_spinner_item );
+        adapter = new ArrayAdapter<>(context,android.R.layout.simple_spinner_item );
         mTimeSelectCalendar = new GregorianCalendar();
         mTimeSelectCalendar.set(GregorianCalendar.HOUR_OF_DAY,0);
         mTimeSelectCalendar.set(GregorianCalendar.MINUTE,0);
@@ -299,19 +335,23 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     }
 
     private void setupGridData() {
-        if (mLoadInProgress)
-            return;
-        mLoadInProgress = true;
         Date gridEndTime = new Date(mGridStartTime.getTime() + TIMESLOT_SIZE * TIMESLOTS * 60000);
-        loadCells();
         AsyncBackendCall call = new AsyncBackendCall(getActivity(),this);
-        call.setStartTime(mGridStartTime);
-        call.setEndTime(gridEndTime);
-        if (mDoingUpdate)
-            call.execute(Video.ACTION_PAUSE, Video.ACTION_GUIDE);
-        else
-            call.execute(Video.ACTION_GUIDE);
-        mDoingUpdate = false;
+        if (mChanGroupIDs == null)
+            // Note that after ACTION_CHAN_GROUPS completes it will call ACTION_GUIDE
+            call.execute(Video.ACTION_CHAN_GROUPS);
+        else {
+            call.setStartTime(mGridStartTime);
+            call.setEndTime(gridEndTime);
+            call.setId(mChanGroupIDs.get(mChanGroupIx));
+            if (mDoingUpdate) {
+                call.execute(Video.ACTION_PAUSE, Video.ACTION_GUIDE);
+            }
+            else {
+                call.execute(Video.ACTION_GUIDE);
+            }
+            mDoingUpdate = false;
+        }
     }
 
     /**
@@ -319,42 +359,13 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
      * TIMESLOT_SIZE minutes for each cell.
      * 1 cell per timeslot plus 1 for channel and two for arrows
      */
-    private void loadCells() {
+    private void loadCells(XmlNode result) {
         if (mPriorGridStartTime > 0) {
             updateCells();
             return;
         }
+        mGridAdapter.clear();
         mPriorGridStartTime = mGridStartTime.getTime();
-        VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
-        SQLiteDatabase db = dbh.getReadableDatabase();
-
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
-        String[] projection = {
-                VideoContract.VideoEntry.COLUMN_SUBTITLE, // This is channel details
-                VideoContract.VideoEntry.COLUMN_CHANID,
-                VideoContract.VideoEntry.COLUMN_CHANNUM,
-        };
-
-        // Filter results
-        String selection = VideoContract.VideoEntry.COLUMN_RECTYPE + " = "
-                 + VideoContract.VideoEntry.RECTYPE_CHANNEL;
-
-        StringBuilder orderby = new StringBuilder();
-        orderby.append("CAST (").append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(" as real), ");
-        orderby.append(VideoContract.VideoEntry.COLUMN_CHANNUM).append(", ");
-        orderby.append(VideoContract.VideoEntry.COLUMN_SUBTITLE).append(", ");
-        orderby.append(VideoContract.VideoEntry.COLUMN_CHANID);
-
-        Cursor cursor = db.query(
-                VideoContract.VideoEntry.TABLE_NAME,   // The table to query
-                projection,             // The array of columns to return (pass null to get all)
-                selection,              // The columns for the WHERE clause
-                null,          // The values for the WHERE clause
-                null,                   // don't group the rows
-                null,                   // don't filter by row groups
-                orderby.toString()               // The sort order
-        );
 
         // arrow slots
         GuideSlot leftArrowSlot = new GuideSlot(GuideSlot.CELL_LEFTARROW);
@@ -364,17 +375,23 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         int tsRowCount = 0;
         setupTimeRow(leftArrowSlot, rightArrowSlot);
 
-        int colSubt = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_SUBTITLE);
-        int colChId = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANID);
-        int colChNum = cursor.getColumnIndex(VideoContract.VideoEntry.COLUMN_CHANNUM);
-        while (cursor.moveToNext()) {
+        XmlNode chanNode = null;
+        for (; ; ) {
+            if (chanNode == null)
+                chanNode = result.getNode("Channels").getNode("ChannelInfo");
+            else
+                chanNode = chanNode.getNextSibling();
+            if (chanNode == null)
+                break;
             if (tsRowCount == 0)
                 addTimeRow();
             if (++tsRowCount >= TIME_ROW_INTERVAL)
                 tsRowCount = 0;
-            String chanDetails = cursor.getString(colSubt);
-            int chanId = cursor.getInt(colChId);
-            String chanNumStr = cursor.getString(colChNum);
+            String chanDetails = chanNode.getString("ChanNum")
+                    + " " + chanNode.getString("ChannelName")
+                    + " " + chanNode.getString("CallSign");
+            int chanId = chanNode.getInt("ChanId", 0);
+            String chanNumStr = chanNode.getString("ChanNum");
             int chanNum = -1;
             if (chanNumStr != null) {
                 String[] chanNumSplit = chanNumStr.split("[^0123456789]");
@@ -404,26 +421,30 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             }
             mGridAdapter.add(rightArrowSlot);
         }
-        cursor.close();
+        // Make sure time cells are refreshed
+        updateAdapter();
     }
 
     private void updateCells() {
         // Update Time row
         mTimeRow[0].timeSlot = mGridStartTime;
+        mPriorGridStartTime = mGridStartTime.getTime();
         for (int ix = 0; ix< TIMESLOTS; ix++) {
             mTimeRow[ix+2].timeSlot =
                     new Date( mGridStartTime.getTime() + ix * TIMESLOT_SIZE * 60000);
         }
         // Clear out program cells
-        for (int ix = 0 ; ix < mGridAdapter.size(); ix++) {
-            GuideSlot slot = (GuideSlot)mGridAdapter.get(ix);
-            int iPos = ix % (TIMESLOTS+3);
+        for (int ix = 0; ix < mGridAdapter.size(); ix++) {
+            GuideSlot slot = (GuideSlot) mGridAdapter.get(ix);
+            int iPos = ix % (TIMESLOTS + 3);
             if (slot.cellType == GuideSlot.CELL_PROGRAM) {
                 slot.program = null;
                 slot.program2 = null;
                 slot.timeSlot = mTimeRow[iPos].timeSlot;
             }
         }
+        // Make sure time cells are refreshed
+        updateAdapter();
     }
 
     private void setupTimeRow(GuideSlot leftArrowSlot, GuideSlot rightArrowSlot) {
@@ -431,6 +452,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         // time selector slot at front
         mTimeRow[0] = new GuideSlot(GuideSlot.CELL_TIMESELECTOR);
         mTimeRow[0].timeSlot = mGridStartTime;
+        mTimeRow[0].chanGroup = mChanGroupNames.get(mChanGroupIx);
         mTimeRow[1] = leftArrowSlot;
         for (int ix = 0; ix< TIMESLOTS; ix++) {
             mTimeRow[ix+2] = new GuideSlot(GuideSlot.CELL_TIMESLOT,0,
@@ -448,73 +470,135 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     public void onPostExecute(AsyncBackendCall taskRunner) {
         int [] tasks = taskRunner.getTasks();
         switch (tasks[0]) {
+            case Video.ACTION_CHAN_GROUPS:
+                loadChanGroups(taskRunner.getXmlResult());
+                setupGridData();
+                break;
             case Video.ACTION_GUIDE:
-                loadGuideData(taskRunner.getXmlResult());
+                mLoadInProcess = taskRunner.getXmlResult();
+                loadGuideData(mLoadInProcess, 0);
                 break;
             case Video.ACTION_PAUSE:
-                loadGuideData(taskRunner.getXmlResults().get(1));
+                mLoadInProcess = taskRunner.getXmlResults().get(1);
+                loadGuideData(mLoadInProcess, 0);
         }
     }
 
-    void loadGuideData(XmlNode result) {
-        mLoadInProgress = false;
+    void loadChanGroups(XmlNode result) {
         if (result == null)
+            return;
+        mChanGroupIDs = new ArrayList<>();
+        mChanGroupIDs.add(0);
+        mChanGroupNames = new ArrayList<>();
+        mChanGroupNames.add(getContext().getString(R.string.all_title) + "\t");
+        XmlNode groupNode = null;
+        for (; ; ) {
+            if (groupNode == null)
+                groupNode = result.getNode("ChannelGroups").getNode("ChannelGroup");
+            else
+                groupNode = groupNode.getNextSibling();
+            if (groupNode == null)
+                break;
+            mChanGroupIDs.add(groupNode.getInt("GroupId",0));
+            mChanGroupNames.add(groupNode.getString("Name"));
+        }
+        String defGroupName = Settings.getString("chan_group");
+        mChanGroupIx = mChanGroupNames.indexOf(defGroupName);
+        if (mChanGroupIx < 0)
+            mChanGroupIx = 0;
+    }
+
+    // Number of rows to add before pausing to update display and allow
+    // user intraction.
+    static final int pageSize = 10;
+    // Number of milliseconds to pause after each page.
+    static final int pauseTime = 10;
+    void loadGuideData(XmlNode result, int start) {
+        // If the user has changed toime period or channel group,
+        // throw away furter use of the old group or time slot
+        if (result == null || result != mLoadInProcess)
             return;
         if (!isStarted)
             return;
-        XmlNode programNode = null;
+        if (start == 0)
+            loadCells(result);
+        XmlNode chanNode = null;
         for (; ; ) {
-            if (programNode == null)
-                programNode = result.getNode("Programs").getNode("Program");
+            if (chanNode == null)
+                chanNode = result.getNode("Channels").getNode("ChannelInfo", start);
             else
-                programNode = programNode.getNextSibling();
-            if (programNode == null)
+                chanNode = chanNode.getNextSibling();
+            if (chanNode == null)
                 break;
-            GuideSlot.Program program = new GuideSlot.Program(programNode);
-            int adapterPos = mChanArray.get(program.chanId,-1);
-            if (adapterPos == -1)
-                continue;
-            if (program.startTime == null || program.endTime == null)
-                continue;
+            XmlNode programNode = null;
+            for (; ; ) {
+                if (programNode == null)
+                    programNode = chanNode.getNode("Programs").getNode("Program");
+                else
+                    programNode = programNode.getNextSibling();
+                if (programNode == null)
+                    break;
+                GuideSlot.Program program = new GuideSlot.Program(programNode, chanNode);
+                int adapterPos = mChanArray.get(program.chanId, -1);
+                if (adapterPos == -1)
+                    continue;
+                if (program.startTime == null || program.endTime == null)
+                    continue;
 
-            long lPos = (program.startTime.getTime() - mGridStartTime.getTime())
-                    / (TIMESLOT_SIZE*60);
-            float fPos = (float)lPos / 1000.0f;
-            // Start position is the slot wherein the show starts.
-            int startPos = (int)(fPos);
-            if (startPos >= TIMESLOTS)
-                continue;
-            if (startPos < 0)
-                startPos = 0;
+                long lPos = (program.startTime.getTime() - mGridStartTime.getTime())
+                        / (TIMESLOT_SIZE * 60);
+                float fPos = (float) lPos / 1000.0f;
+                // Start position is the slot wherein the show starts.
+                int startPos = (int) (fPos);
+                if (startPos >= TIMESLOTS)
+                    continue;
+                if (startPos < 0)
+                    startPos = 0;
 
-            lPos = (program.endTime.getTime() - mGridStartTime.getTime())
-                    / (TIMESLOT_SIZE*60);
-            fPos = (float)lPos / 1000.0f;
-            // End position is the slot before the one where the show ends
-            // unless it ends in the same slot as it starts.
-            int endPos = (int)(fPos);
-            if (endPos <= 0)
-                continue;
-            if (endPos >= TIMESLOTS)
-                endPos = TIMESLOTS;
-            if (endPos == startPos)
-                ++endPos;
+                lPos = (program.endTime.getTime() - mGridStartTime.getTime())
+                        / (TIMESLOT_SIZE * 60);
+                fPos = (float) lPos / 1000.0f;
+                // End position is the slot before the one where the show ends
+                // unless it ends in the same slot as it starts.
+                int endPos = (int) (fPos);
+                if (endPos <= 0)
+                    continue;
+                if (endPos >= TIMESLOTS)
+                    endPos = TIMESLOTS;
+                if (endPos == startPos)
+                    ++endPos;
 
-            for (int ix = adapterPos+startPos; ix < adapterPos+endPos; ix++) {
-                GuideSlot slot = (GuideSlot)mGridAdapter.get(ix);
-                if (slot.program == null)
-                    slot.program = program;
-                else if (slot.program2 == null) {
-                    if (program.startTime.after(slot.program.startTime))
-                        slot.program2 = program;
-                    else {
-                        slot.program2 = slot.program;
+                for (int ix = adapterPos + startPos; ix < adapterPos + endPos; ix++) {
+                    GuideSlot slot = (GuideSlot) mGridAdapter.get(ix);
+                    if (slot.program == null)
                         slot.program = program;
+                    else if (slot.program2 == null) {
+                        if (program.startTime.after(slot.program.startTime))
+                            slot.program2 = program;
+                        else {
+                            slot.program2 = slot.program;
+                            slot.program = program;
+                        }
                     }
+                    mGridAdapter.notifyArrayItemRangeChanged(ix, 1);
+
                 }
             }
+            if (++start % pageSize == 0) {
+                final int nextstart = start;
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        GuideFragment.this.loadGuideData(result, nextstart);
+                    }
+                }, pauseTime);
+                return;
+            }
         }
-        mGridAdapter.notifyArrayItemRangeChanged(0, mGridAdapter.size()-1);
+        mLoadInProcess = null;
     }
+
+
 
 }

@@ -224,7 +224,8 @@
   <string name="sort_exclude_3">AN</string>
   <string name="title_grid_time">Čas mřížky:</string>
   <string name="note_program_continuation">(pokračování)</string>
-  <string name="title_select_timeslot">Vyberte časový úsek</string>
+  <string name="title_select_timeslot">Skupina kanálů a čas</string>
+  <string name="title_chan_group">Skupina kanálů:</string>
   <string name="title_manage_recordings">Správa nahrávek</string>
   <string name="title_program_guide">Programový průvodce</string>
   <string name="title_rec_rules">Pravidla nahrávání</string>

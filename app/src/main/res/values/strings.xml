@@ -467,7 +467,7 @@
     <string name="sdef_leftright" translatable="false">rewff</string>
     <string name="sdef_rewff" translatable="false">rewff</string>
     <string name="sdef_speed" translatable="false">100</string>
-    <string name="sdef_max_vids" translatable="false">10000</string>
+    <string name="sdef_max_vids" translatable="false">20000</string>
     <string name="sdef_refresh_mins" translatable="false">60</string>
     <string name="sdef_chan_group" translatable="false"></string>
 </resources>

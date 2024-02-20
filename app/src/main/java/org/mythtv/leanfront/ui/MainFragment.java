@@ -362,11 +362,13 @@ public class MainFragment extends BrowseSupportFragment
     }
 
     public static void restartMythTask() {
-        if (!scheduledTaskRunning) {
-            if (executor != null)
-                executor.shutdown();
-            executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleAtFixedRate(mythTask, 0, TASK_INTERVAL, TimeUnit.SECONDS);
+        synchronized (mythTask) {
+            if (!scheduledTaskRunning) {
+                if (executor != null)
+                    executor.shutdown();
+                executor = Executors.newScheduledThreadPool(1);
+                executor.scheduleAtFixedRate(mythTask, 0, TASK_INTERVAL, TimeUnit.SECONDS);
+            }
         }
     }
 
@@ -1083,20 +1085,11 @@ public class MainFragment extends BrowseSupportFragment
         boolean mVersionMessageShown = false;
 
         @Override
-        public void run() {
+        public synchronized void run() {
             try {
                 scheduledTaskRunning = true;
                 boolean connection = false;
                 boolean connectionfail = false;
-                if (ProcessLifecycleOwner.get().getLifecycle().getCurrentState()
-                        == Lifecycle.State.CREATED) {
-                    // process is now in the background
-                    mWasInBackground = true;
-                    if (executor != null)
-                        executor.shutdown();
-                    executor = null;
-                    return;
-                }
                 String backendIP = Settings.getString("pref_backend");
                 if (backendIP.length() == 0)
                     return;
@@ -1122,20 +1115,21 @@ public class MainFragment extends BrowseSupportFragment
                         XmlNode bkmrkData = XmlNode.fetch(url, "POST");
                         result = bkmrkData.getString();
                         connection = true;
-                    } catch (FileNotFoundException e) {
+                        if (!"true".equals(result))
+                            Log.e(TAG, CLASS + " MythTask Incorrect response from DelayShutdown: " + result);
+                    } catch (FileNotFoundException | XmlPullParserException ex) {
                         if (!mVersionMessageShown) {
                             toastMsg = R.string.msg_no_delayshutdown;
                             toastLeng = Toast.LENGTH_LONG;
                             mVersionMessageShown = true;
                         }
                         connection = true;
+                        Log.e(TAG, CLASS + " MythTask DelayShutdown Exception ", ex);
                     } catch (IOException e) {
                         toastMsg = R.string.msg_no_connection;
                         toastLeng = Toast.LENGTH_LONG;
                         connectionfail = true;
                         mFetchTime = 0; // Force a fetch when it comes back
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
                     }
                     if (connectionfail)
                         if (wakeBackend())
@@ -1156,8 +1150,10 @@ public class MainFragment extends BrowseSupportFragment
                 }
                 if (mFetchTime <= System.currentTimeMillis()
                         - Settings.getInt("pref_refresh_mins") * 60 * 1000 + 100) {
-                    MainFragment.startFetch(-1, null, null,false);
+                    MainFragment.startFetch(-1, null, null, false);
                 }
+            } catch (Exception ex) {
+                Log.e(TAG, CLASS + " MythTask Exception ", ex);
             } finally {
                 scheduledTaskRunning = false;
             }

@@ -654,6 +654,13 @@ public class AsyncMainLoader implements Runnable {
             data.moveToNext();
         }
 
+        // If there is a video rootlist, sort it
+        if (rootList != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                rootList.sort(videoComparator);
+            }
+        }
+
         if (recentsSparse != null) {
             // Add sparse entries to arraylist
             for (int ix = 0; ix < recentsSparse.size(); ix++) {

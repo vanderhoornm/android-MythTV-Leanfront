@@ -103,6 +103,7 @@ public class FetchVideoService extends IntentService {
                     if (firstLoop)
                         urls[2] = mythApiUrl(null, "/Channel/GetChannelInfoList?OnlyVisible=true");
                 } else if (recType == VideoContract.VideoEntry.RECTYPE_RECORDING) {
+                    maxAvailable[1]  = 0;  // Prevent looping for videos
                     if (recordedId != null)
                         urls[0] = mythApiUrl(null, "/Dvr/GetRecorded?RecordedId=" + recordedId);
                     else if (recGroup != null) {
@@ -115,6 +116,7 @@ public class FetchVideoService extends IntentService {
                         urls[0] = mythApiUrl(null,
                                 "/Dvr/GetRecordedList?IncCast=false&Descending=true&Count=" + pagesize + "&StartIndex=" + start[0]);
                 } else if (recType == VideoContract.VideoEntry.RECTYPE_VIDEO) {
+                    maxAvailable[0]  = 0;  // Prevent looping for recordings
                     if (recordedId != null)
                         urls[1] = mythApiUrl(null, "/Video/GetVideo?Id=" + recordedId);
                     else

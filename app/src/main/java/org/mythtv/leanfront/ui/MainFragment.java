@@ -321,6 +321,7 @@ public class MainFragment extends BrowseSupportFragment
     public void onResume() {
         super.onResume();
         mActiveFragment = this;
+        setProgressBar(false);
         startBackgroundTimer();
         if (mWasInBackground || executor == null)
             restartMythTask();
@@ -382,7 +383,6 @@ public class MainFragment extends BrowseSupportFragment
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        mActiveFragment = null;
         int [] selection = getSelection();
         savedInstanceState.putIntArray("selection",selection);
         super.onSaveInstanceState(savedInstanceState);

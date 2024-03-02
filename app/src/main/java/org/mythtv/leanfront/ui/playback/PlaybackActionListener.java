@@ -392,6 +392,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
                     seekValue.setText(value + "%");
                     playbackFragment.mSpeed = (float) value * 0.01f;
                     PlaybackParameters parms = new PlaybackParameters(playbackFragment.mSpeed);
+                    playbackFragment.mPlayerGlue.setEnableControls(false);
                     playbackFragment.mPlayer.setPlaybackParameters(parms);
                 }
                @Override

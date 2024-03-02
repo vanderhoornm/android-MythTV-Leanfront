@@ -259,7 +259,7 @@ public class PlaybackFragment extends VideoSupportFragment
     public void onStart() {
         super.onStart();
         if (Util.SDK_INT > 23) {
-            initializePlayer();
+            initializePlayer(true);
         }
     }
 
@@ -267,7 +267,7 @@ public class PlaybackFragment extends VideoSupportFragment
     public void onResume() {
         super.onResume();
         if ((Util.SDK_INT <= 23 || mPlayer == null)) {
-            initializePlayer();
+            initializePlayer(true);
         }
         hideNavigation();
         // To reduce dimming when showing controls.
@@ -323,6 +323,7 @@ public class PlaybackFragment extends VideoSupportFragment
      * @param action Value from Video ACTIONS Video.ACTION_SET_LASTPLAYPOS or Video.ACTION_SET_BOOKMARK
      */
     void setBookmark(int action) {
+        long bookmark;
         long pos = mPlayerGlue.getCurrentPosition();
         long leng = mPlayerGlue.myGetDuration();
         if (pos < 0)
@@ -330,11 +331,11 @@ public class PlaybackFragment extends VideoSupportFragment
         if (leng == -1 || isIncreasing
                 || (pos > 10000 && pos < leng - 10000)
                 || action == Video.ACTION_SET_BOOKMARK)
-            mBookmark = pos;
+            bookmark = pos;
         else
-            mBookmark = 0;
+            bookmark = 0;
         int action2 = Video.ACTION_DUMMY;
-        posBookmark = mBookmark * (long)(frameRate * 100.0f) / 100000;
+        posBookmark = bookmark * (long)(frameRate * 100.0f) / 100000;
         AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
         call.setVideo(mVideo);
         switch (action) {
@@ -344,11 +345,11 @@ public class PlaybackFragment extends VideoSupportFragment
                     action2 = Video.ACTION_SET_WATCHED;
                     call.setWatched(mWatched);
                 }
-                call.setLastPlay(mBookmark);
+                call.setLastPlay(bookmark);
                 call.setPosLastPlay(posBookmark);
                 break;
             case Video.ACTION_SET_BOOKMARK:
-                call.setBookmark(mBookmark);
+                call.setBookmark(bookmark);
                 call.setPosBookmark(posBookmark);
                 break;
             default:
@@ -395,7 +396,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
     }
 
-    private void initializePlayer() {
+    private void initializePlayer(boolean enableControls) {
         Log.i(TAG, CLASS + " Initializing Player for " + mVideo.title + " " + mVideo.videoUrl);
         mTrackSelector = new DefaultTrackSelector(getContext());
         DefaultRenderersFactory rFactory = new DefaultRenderersFactory(getContext());
@@ -429,6 +430,7 @@ public class PlaybackFragment extends VideoSupportFragment
         }
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
                 mPlaybackActionListener, mRecordid < 0);
+        mPlayerGlue.setEnableControls(enableControls); // xxxx
         mPlayerGlue.setAutoPlay("true".equals(Settings.getString("pref_autoplay",mVideo.playGroup)));
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         hideControlsOverlay(false);
@@ -1236,13 +1238,15 @@ public class PlaybackFragment extends VideoSupportFragment
             // If we cannot change speed, switch to ffmpeg audio.
             if (!"ffmpeg".equals(mAudio)) {
                 mAudio = "ffmpeg";
-                mBookmark = mPlayerGlue.getCurrentPosition();
+                if (mBookmark == 0)
+                    mBookmark = mPlayerGlue.getCurrentPosition();
                 mIsBounded = true;
                 mOffsetBytes = 0;
                 mPlayerGlue.setOffsetMillis(0);
                 mPlayer.stop();
                 mPlayer.clearMediaItems();
-                initializePlayer();
+                initializePlayer(false);
+//                mPlayerGlue.setEnableControls(false); // xxxx
                 return;
             }
             mSpeed = SPEED_START_VALUE;
@@ -1606,8 +1610,10 @@ public class PlaybackFragment extends VideoSupportFragment
                     mBookmark = posBookmark * 100000 / (long) (frameRate * 100.0f);
                     posBookmark = -1;
                 }
-                if (mBookmark > 0)
+                if (mBookmark > 0) {
                     mPlayerGlue.seekTo(mBookmark);
+                    mBookmark = 0;
+                }
                 if (mFrameMatch && frameRate > 1.0f)
                     setupRefreshRate();
                 else {
@@ -1746,7 +1752,7 @@ public class PlaybackFragment extends VideoSupportFragment
                             if (setPossibleEmptyTrack && !possibleEmptyTrack) {
                                 possibleEmptyTrack = true;
                                 mPlayer.stop();
-                                initializePlayer();
+                                initializePlayer(true);
                             }
                             else
                                 play(mVideo);

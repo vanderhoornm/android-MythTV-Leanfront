@@ -412,6 +412,16 @@
     <string name="menu_comm_skip">Skip</string>
     <string name="menu_comm_notskip">Do not Skip</string>
 
+    <string name="backup_button">Backup/Restore</string>
+    <string name="backup_menu">Backup to directory %1s.</string>
+    <string name="menu_backup_settings">Backup the Settings to %s</string>
+    <string name="menu_restore_settings">Restore the Settings from %s</string>
+    <string name="menu_backup_database">Backup the Database to %s</string>
+    <string name="menu_restore_database">Restore the Database from %s</string>
+    <string name="msg_success">Success</string>
+    <string name="msg_restart">Leanfront will restart</string>
+    <string name="msg_db_busy">Cannot perform the action because the database is busy.</string>
+
     <!--  Release Notes  -->
     <string name="notes_title">Notes</string>
     <string name="notes_seen">Do not show again</string>

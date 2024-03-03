@@ -47,6 +47,10 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     // The name of our database.
     private static final String DATABASE_NAME = "leanback.db";
 
+    private static int usageCount = 0;
+    private static boolean dbLocked = false;
+    private static Object sync = new Object();
+
     private VideoDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -64,6 +68,56 @@ public class VideoDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         onUpgrade(db,0,DATABASE_VERSION);
+    }
+
+    @Override
+    public SQLiteDatabase getReadableDatabase() {
+        SQLiteDatabase db = null;
+        synchronized (sync) {
+            if (dbLocked)
+                return null;
+            db = super.getReadableDatabase();
+            usageCount++;
+        }
+        return db;
+    }
+
+    @Override
+    public SQLiteDatabase getWritableDatabase() {
+        SQLiteDatabase db = null;
+        synchronized (sync) {
+            if (dbLocked)
+                return null;
+            db = super.getWritableDatabase();
+            usageCount++;
+        }
+        return db;
+    }
+
+    public static void releaseDatabase() {
+        synchronized (sync) {
+            usageCount--;
+        }
+    }
+
+    public boolean lockDatabase() {
+        synchronized (sync) {
+            if (usageCount != 0)
+                return false;
+            if (dbLocked)
+                return true;
+            SQLiteDatabase db = super.getWritableDatabase();
+            db.execSQL("vacuum");
+            close();
+            dbLocked = true;
+        }
+        return true;
+    }
+
+    public static void unlockDatabase() {
+        synchronized (sync) {
+            dbLocked = false;
+        }
     }
 
     @Override

@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Riproduzione commerciale o tagliata</string>
   <string name="menu_comm_skip">Saltare</string>
   <string name="menu_comm_notskip">Non saltare</string>
+  <string name="backup_button">Ripristinare il backup</string>
+  <string name="backup_menu">Backup nella directory %1s.</string>
+  <string name="menu_backup_settings">Effettua il backup delle impostazioni su %s</string>
+  <string name="menu_restore_settings">Ripristina le impostazioni da %s</string>
+  <string name="menu_backup_database">Eseguire il backup del database su %s</string>
+  <string name="menu_restore_database">Ripristina il database da %s</string>
+  <string name="msg_success">Successo</string>
+  <string name="msg_restart">Leanfront si riavvierà</string>
+  <string name="msg_db_busy">Impossibile eseguire l\'azione perché il database è occupato.</string>
   <string name="notes_title">Appunti</string>
   <string name="notes_seen">Non mostrare più</string>
 </resources>

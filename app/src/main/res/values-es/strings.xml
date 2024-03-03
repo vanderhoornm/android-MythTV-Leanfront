@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Reproducción comercial o cortada</string>
   <string name="menu_comm_skip">Saltar</string>
   <string name="menu_comm_notskip">No omitas</string>
+  <string name="backup_button">Copia de seguridad de restauracion</string>
+  <string name="backup_menu">Copia de seguridad en el directorio %1s.</string>
+  <string name="menu_backup_settings">Copia de seguridad de la configuración en %s</string>
+  <string name="menu_restore_settings">Restaurar la configuración de %s</string>
+  <string name="menu_backup_database">Copia de seguridad de la base de datos en %s</string>
+  <string name="menu_restore_database">Restaurar la base de datos desde %s</string>
+  <string name="msg_success">Éxito</string>
+  <string name="msg_restart">Leanfront se reiniciará</string>
+  <string name="msg_db_busy">No se puede realizar la acción porque la base de datos está ocupada.</string>
   <string name="notes_title">Notas</string>
   <string name="notes_seen">No mostrar de nuevo</string>
 </resources>

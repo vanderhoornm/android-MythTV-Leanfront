@@ -199,12 +199,15 @@ public class MainFragment extends BrowseSupportFragment
             BackendCache.flush();
             VideoDbHelper dbh = VideoDbHelper.getInstance(getContext());
             SQLiteDatabase db = dbh.getWritableDatabase();
-            // delete stale entries from bookmark table
-            String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
-            // 60 days in milliseconds
-            String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L * 24 * 60 * 60 * 1000)};
-            // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
-            db.delete(VideoContract.StatusEntry.TABLE_NAME, where, selectionArgs);
+            if (db != null) {
+                // delete stale entries from bookmark table
+                String where = VideoContract.StatusEntry.COLUMN_LAST_USED + " < ? ";
+                // 60 days in milliseconds
+                String[] selectionArgs = {String.valueOf(System.currentTimeMillis() - 60L * 24 * 60 * 60 * 1000)};
+                // https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html
+                db.delete(VideoContract.StatusEntry.TABLE_NAME, where, selectionArgs);
+                VideoDbHelper.releaseDatabase();
+            }
             // Initialize startup members
             mFetchTime = 0;
             mActiveFragment = null;

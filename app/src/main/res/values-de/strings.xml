@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Kommerzielle oder geschnittene Wiedergabe</string>
   <string name="menu_comm_skip">Überspringen</string>
   <string name="menu_comm_notskip">Nicht überspringen</string>
+  <string name="backup_button">Backup wiederherstellen</string>
+  <string name="backup_menu">Sicherung im Verzeichnis %1s.</string>
+  <string name="menu_backup_settings">Sichern Sie die Einstellungen auf %s</string>
+  <string name="menu_restore_settings">Stellen Sie die Einstellungen von %s wieder her</string>
+  <string name="menu_backup_database">Sichern Sie die Datenbank auf %s</string>
+  <string name="menu_restore_database">Stellen Sie die Datenbank von %s wieder her</string>
+  <string name="msg_success">Erfolg</string>
+  <string name="msg_restart">Leanfront wird neu gestartet</string>
+  <string name="msg_db_busy">Die Aktion kann nicht ausgeführt werden, da die Datenbank ausgelastet ist.</string>
   <string name="notes_title">Anmerkungen</string>
   <string name="notes_seen">Nicht mehr anzeigen</string>
 </resources>

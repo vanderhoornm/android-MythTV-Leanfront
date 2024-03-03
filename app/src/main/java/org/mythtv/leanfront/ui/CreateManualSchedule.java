@@ -172,6 +172,8 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
             Context context = getContext();
             VideoDbHelper dbh = VideoDbHelper.getInstance(context);
             SQLiteDatabase db = dbh.getReadableDatabase();
+            if (db == null)
+                return;
             final String[] columns = {COLUMN_SUBTITLE, COLUMN_CHANID, COLUMN_CALLSIGN};
             Cursor cursor = db.query(
                     VIEW_NAME,   // The table to query
@@ -188,15 +190,12 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
                 callSigns.add(cursor.getString(2));
             }
             cursor.close();
+            VideoDbHelper.releaseDatabase();
         }
 
-//        final ArrayList<Action> finalActions = actions; // needed because used in inner class
         // Theme_AppCompat_Light_Dialog_Alert or Theme_AppCompat_Dialog_Alert
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(),
                 R.style.Theme_AppCompat_Dialog_Alert);
-//        OnActionClickedListener parent = playbackFragment.mPlayerGlue;
-        //                            ArrayList<Action> mActions = finalActions;
-//                            OnActionClickedListener mParent = parent;
         AlertDialog dlg = builder
                 .setTitle(R.string.sched_channel)
                 .setItems(names.toArray(new String[0]),
@@ -237,12 +236,6 @@ public class CreateManualSchedule  extends GuidedStepSupportFragment {
     public void setManualParms(RecordRule rule) {
         rule.chanId = chanid;
         rule.station = station;
-//        SimpleDateFormat sdfDateUTC = new SimpleDateFormat("yyyy-MM-dd ");
-//        SimpleDateFormat sdfTimeUTC = new SimpleDateFormat("HH:mm:ss");
-//        sdfDateUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-//        sdfTimeUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-//        rule.startTime = sdfDateUTC.format(new Date(actionDate.getDate()))
-//            + sdfTimeUTC.format(new Date(actionTime.getTime()));
         // 86400000 is number of milliseconds in a day
         rule.startTime = new Date(actionDate.getDate()  / 86400000 * 86400000
                 + actionTime.getTime() % 86400000);

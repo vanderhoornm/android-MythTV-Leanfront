@@ -20,32 +20,41 @@
 package org.mythtv.leanfront.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
 import org.mythtv.leanfront.R;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.model.Settings;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class SettingsEntryFragment extends GuidedStepSupportFragment {
-//        implements AsyncBackendCall.OnBackendCallListener {
-
+private static final String TAG = "lfe";
+    private static final String CLASS = "SettingsEntryFragment";
     // For multiple occurrence items (e.g. playback groups),
     // add 100, 200, 300 etc to the number
     private static final int ID_BACKEND_IP = 1;
@@ -109,6 +118,11 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
 
     private static final String KEY_EXPAND = "EXPAND";
 
+    private static final int ACTION_BACKUP_DB = 1;
+    private static final int ACTION_BACKUP_SETTINGS = 2;
+    private static final int ACTION_RESTORE_DB = 3;
+    private static final int ACTION_RESTORE_SETTINGS = 4;
+
     private GuidedAction mBackendAction;
     private GuidedAction mAudioAction;
     private GuidedAction mCommskipAction;
@@ -118,6 +132,16 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
     private String mPriorRowsize;
     private String mPriorParental;
     private ArrayList<String> mPlayGroupList;
+
+    @Override
+    public GuidanceStylist onCreateGuidanceStylist() {
+        return new GuidanceStylist() {
+            @Override
+            public int onProvideLayoutId() {
+                return R.layout.settings_guidance;
+            }
+        };
+    }
 
     @NonNull
     @Override
@@ -988,6 +1012,137 @@ public class SettingsEntryFragment extends GuidedStepSupportFragment {
         mCommskipAction.setDescription(commskipdesc());
         notifyActionChanged(findActionPositionById(ID_COMMSKIP));
         return false;
+    }
+
+    public void onClickMenu(View view) {
+        final int [] promptIds = {
+                R.string.menu_backup_settings,
+                R.string.menu_backup_database,
+                R.string.menu_restore_settings,
+                R.string.menu_restore_database
+        };
+        final int [] actions = {
+                ACTION_BACKUP_SETTINGS, ACTION_BACKUP_DB, ACTION_RESTORE_SETTINGS, ACTION_RESTORE_DB
+        };
+        final String sBkupName = "leanfront_settings.xml";
+        final String dbBkupName = "leanfront.db";
+        // /storage/emulated/0
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        // /data/user/0/org.mythtv.leanfront/cache
+        File cacheDir = getContext().getCacheDir();
+        // /data/user/0/org.mythtv.leanfront
+        File appDir = cacheDir.getParentFile();
+        // /storage/emulated/0/leanfront
+        File bkupDir = new File(extStoreDir + "/" +Environment.DIRECTORY_DOCUMENTS);
+        File settings = new File(appDir + "/shared_prefs/org.mythtv.leanfront_preferences.xml");
+        File settingsBkup = new File(bkupDir + "/" + sBkupName);
+        File dbPath = getContext().getDatabasePath("leanback");
+        // /data/user/0/org.mythtv.leanfront/databases/leanback
+        File db = new File(dbPath + ".db");
+        File dbBkup = new File(bkupDir + "/" + dbBkupName);
+
+        String [] prompts = new String[promptIds.length];
+        for (int ix = 0 ; ix < promptIds.length; ix++)
+            prompts[ix] = getContext().getString(promptIds[ix], ix%2 == 0 ? sBkupName : dbBkupName);
+        String title = getContext().getString(R.string.backup_menu, bkupDir);
+        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity(),
+                R.style.Theme_AppCompat_Dialog_Alert);
+        alert
+                .setTitle(title)
+                .setItems(prompts,
+                        (dialog, which) -> {
+                            String result;
+                            String fName = "";
+                            final boolean isRestore = actions[which] == ACTION_RESTORE_SETTINGS || actions[which] == ACTION_RESTORE_DB;
+                            // The 'which' argument contains the index position
+                            // of the selected item
+                            switch (actions[which]) {
+                                case ACTION_BACKUP_SETTINGS:
+                                    fName = settingsBkup.toString();
+                                    result = copyFile(settings,settingsBkup);
+                                    break;
+                                case ACTION_BACKUP_DB:
+                                    fName = dbBkup.toString();
+                                    result = lockDatabase();
+                                    if (result==null) {
+                                        result = copyFile(db, dbBkup);
+                                        VideoDbHelper.unlockDatabase();
+                                    }
+                                    break;
+                                case ACTION_RESTORE_SETTINGS:
+                                    result = copyFile(settingsBkup,settings);
+                                    break;
+                                case ACTION_RESTORE_DB:
+                                    result = lockDatabase();
+                                    if (result==null) {
+                                        result = copyFile(dbBkup, db);
+                                        VideoDbHelper.unlockDatabase();
+                                    }
+                                    break;
+                                default:
+                                    result = null;
+                            }
+                            AlertDialog.Builder alert2 = new AlertDialog.Builder(getActivity(),
+                                    R.style.Theme_AppCompat_Dialog_Alert)
+                                    .setTitle(prompts[which]);
+                            if (result == null) {
+                                String msg = getContext()
+                                        .getString(R.string.msg_success);
+                                if (isRestore)
+                                    msg = msg +  "\n" + getContext()
+                                            .getString(R.string.msg_restart);
+                                else
+                                    msg = msg + "\n" + fName;
+
+                                alert2.setMessage(msg);
+                            }
+                            else
+                                alert2.setMessage(result);
+                            final String fResult = result;
+                            alert2.setOnDismissListener(
+                                    dialog2 -> {
+                                        if (isRestore && fResult == null)
+                                            restartApp();
+                                    });
+                            alert2.show();
+                        });
+        alert.show();
+    }
+
+    private void restartApp() {
+        Context context = getContext();
+        Intent intent = new Intent(context,MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra("LEANFRONT_SETTINGS",true);
+        context.startActivity(intent);
+        Runtime.getRuntime().exit(0);
+    }
+
+    private String lockDatabase() {
+        Context context = getContext();
+        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
+        if (dbh.lockDatabase())
+            return null;
+        return context.getString(R.string.msg_db_busy);
+    }
+
+    private String copyFile(File from, File to) {
+        FileChannel inChannel = null;
+        FileChannel outChannel = null;
+        String ret = null;
+        try {
+            FileInputStream in = new FileInputStream(from);
+            FileOutputStream out = new FileOutputStream(to);
+            inChannel = in.getChannel();
+            outChannel = out.getChannel();
+            inChannel.transferTo(0, inChannel.size(), outChannel);
+            inChannel.close();
+            outChannel.close();
+        } catch (Exception ex) {
+            ret = ex.getMessage();
+            Log.e(TAG, CLASS + " Exception: ",ex);
+        }
+        return ret;
     }
 
     private void restart(int key) {

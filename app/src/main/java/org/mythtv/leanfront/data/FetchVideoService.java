@@ -140,6 +140,8 @@ public class FetchVideoService extends IntentService {
                     try {
                         VideoDbHelper dbh = VideoDbHelper.getInstance(this);
                         SQLiteDatabase db = dbh.getWritableDatabase();
+                        if (db == null)
+                            return;
                         if (recType == -1)
                             db.execSQL("DELETE FROM " + VideoContract.VideoEntry.TABLE_NAME); //delete all rows in a table
                         else {
@@ -159,6 +161,7 @@ public class FetchVideoService extends IntentService {
                                             + " WHERE RECTYPE = '" + VideoContract.VideoEntry.RECTYPE_CHANNEL + "'");
                             }
                         }
+                        VideoDbHelper.releaseDatabase();
                     } finally {
                         AsyncMainLoader.lock.unlock();
                     }

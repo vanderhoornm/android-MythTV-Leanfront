@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Lecture commerciale ou coupée</string>
   <string name="menu_comm_skip">Sauter</string>
   <string name="menu_comm_notskip">Ne passe pas</string>
+  <string name="backup_button">Restauration de sauvegarde</string>
+  <string name="backup_menu">Sauvegarde dans le répertoire %1s.</string>
+  <string name="menu_backup_settings">Sauvegardez les paramètres sur %s</string>
+  <string name="menu_restore_settings">Restaurer les paramètres à partir de %s</string>
+  <string name="menu_backup_database">Sauvegarder la base de données sur %s</string>
+  <string name="menu_restore_database">Restaurer la base de données à partir de %s</string>
+  <string name="msg_success">Succès</string>
+  <string name="msg_restart">Leanfront va redémarrer</string>
+  <string name="msg_db_busy">Impossible d\'effectuer l\'action car la base de données est occupée.</string>
   <string name="notes_title">Remarques</string>
   <string name="notes_seen">Ne pas montrer de nouveau</string>
 </resources>

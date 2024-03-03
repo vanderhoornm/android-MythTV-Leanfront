@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Kommercielt eller klippespil</string>
   <string name="menu_comm_skip">Springe</string>
   <string name="menu_comm_notskip">Spring ikke over</string>
+  <string name="backup_button">Sikkerhedskopiering/gendannelse</string>
+  <string name="backup_menu">Sikkerhedskopier til mappe %1s.</string>
+  <string name="menu_backup_settings">Sikkerhedskopier indstillingerne til %s</string>
+  <string name="menu_restore_settings">Gendan indstillingerne fra %s</string>
+  <string name="menu_backup_database">Sikkerhedskopier databasen til %s</string>
+  <string name="menu_restore_database">Gendan databasen fra %s</string>
+  <string name="msg_success">Succes</string>
+  <string name="msg_restart">Leanfront genstarter</string>
+  <string name="msg_db_busy">Kan ikke udføre handlingen, fordi databasen er optaget.</string>
   <string name="notes_title">Noter</string>
   <string name="notes_seen">Vis ikke igen</string>
 </resources>

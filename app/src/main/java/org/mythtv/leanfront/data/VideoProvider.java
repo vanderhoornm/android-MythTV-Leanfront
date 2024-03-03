@@ -114,8 +114,11 @@ public class VideoProvider extends ContentProvider {
 
     private Cursor getSuggestions(String query) {
         query = query.toLowerCase();
+        SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+        if (db == null)
+            return null;
         return sVideosContainingQueryBuilder.query(
-                mOpenHelper.getReadableDatabase(),
+                db,
                 sVideosContainingQueryColumns,
                 VideoContract.VideoEntry.COLUMN_TITLE + " LIKE ? OR " +
                         VideoContract.VideoEntry.COLUMN_SUBTITLE + " LIKE ?",
@@ -190,7 +193,10 @@ public class VideoProvider extends ContentProvider {
                     if (selectionArgs[ix] == null)
                         selectionArgs[ix] = "";
                 }
-                retCursor = mOpenHelper.getReadableDatabase().query(
+                SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+                if (db == null)
+                    return null;
+                retCursor = db.query(
                         VideoContract.VideoEntry.VIEW_NAME,
                         projection,
                         selection,
@@ -205,7 +211,8 @@ public class VideoProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         }
-
+        // Release here becasue we have no control over when or if the cursor is used
+        VideoDbHelper.releaseDatabase();
         retCursor.setNotificationUri(mContentResolver, uri);
         return retCursor;
     }
@@ -238,7 +245,10 @@ public class VideoProvider extends ContentProvider {
 
         switch (match) {
             case VIDEO: {
-                long _id = mOpenHelper.getWritableDatabase().insert(
+                SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+                if (db == null)
+                    return null;
+                long _id = db.insert(
                         VideoContract.VideoEntry.TABLE_NAME, null, values);
                 if (_id > 0) {
                     returnUri = VideoContract.VideoEntry.buildVideoUri(_id);
@@ -251,7 +261,7 @@ public class VideoProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         }
-
+        VideoDbHelper.releaseDatabase();
         mContentResolver.notifyChange(uri, null);
         return returnUri;
     }
@@ -266,7 +276,11 @@ public class VideoProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case VIDEO: {
-                rowsDeleted = mOpenHelper.getWritableDatabase().delete(
+                SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+                if (db == null)
+                    return 0;
+
+                rowsDeleted = db.delete(
                         VideoContract.VideoEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
@@ -274,7 +288,7 @@ public class VideoProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         }
-
+        VideoDbHelper.releaseDatabase();
         if (rowsDeleted != 0) {
             mContentResolver.notifyChange(uri, null);
         }
@@ -289,7 +303,10 @@ public class VideoProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case VIDEO: {
-                rowsUpdated = mOpenHelper.getWritableDatabase().update(
+                SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+                if (db == null)
+                    return 0;
+                rowsUpdated = db.update(
                         VideoContract.VideoEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             }
@@ -297,7 +314,7 @@ public class VideoProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         }
-
+        VideoDbHelper.releaseDatabase();
         if (rowsUpdated != 0) {
             mContentResolver.notifyChange(uri, null);
         }
@@ -310,6 +327,8 @@ public class VideoProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case VIDEO: {
                 final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+                if (db == null)
+                    return 0;
                 int returnCount = 0;
 
                 db.beginTransaction();
@@ -325,7 +344,7 @@ public class VideoProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-
+                VideoDbHelper.releaseDatabase();
                 mContentResolver.notifyChange(uri, null);
                 return returnCount;
             }

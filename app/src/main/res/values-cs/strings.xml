@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Komerční nebo vystřižené hraní</string>
   <string name="menu_comm_skip">Přeskočit</string>
   <string name="menu_comm_notskip">Nepřeskočit</string>
+  <string name="backup_button">Obnova zálohy</string>
+  <string name="backup_menu">Záloha do adresáře %1s.</string>
+  <string name="menu_backup_settings">Zálohujte nastavení do %s</string>
+  <string name="menu_restore_settings">Obnovte nastavení z %s</string>
+  <string name="menu_backup_database">Zálohujte databázi na %s</string>
+  <string name="menu_restore_database">Obnovte databázi z %s</string>
+  <string name="msg_success">Úspěch</string>
+  <string name="msg_restart">Leanfront se restartuje</string>
+  <string name="msg_db_busy">Akci nelze provést, protože databáze je zaneprázdněna.</string>
   <string name="notes_title">Poznámky</string>
   <string name="notes_seen">Znovu se neukazuj</string>
 </resources>

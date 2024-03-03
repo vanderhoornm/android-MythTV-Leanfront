@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Kommersiellt eller Cut-spelande</string>
   <string name="menu_comm_skip">Hoppa</string>
   <string name="menu_comm_notskip">Hoppa inte över</string>
+  <string name="backup_button">Säkerhetskopiera/återställa</string>
+  <string name="backup_menu">Säkerhetskopiera till katalogen %1s.</string>
+  <string name="menu_backup_settings">Säkerhetskopiera inställningarna till %s</string>
+  <string name="menu_restore_settings">Återställ inställningarna från %s</string>
+  <string name="menu_backup_database">Säkerhetskopiera databasen till %s</string>
+  <string name="menu_restore_database">Återställ databasen från %s</string>
+  <string name="msg_success">Framgång</string>
+  <string name="msg_restart">Leanfront kommer att starta om</string>
+  <string name="msg_db_busy">Det går inte att utföra åtgärden eftersom databasen är upptagen.</string>
   <string name="notes_title">Anteckningar</string>
   <string name="notes_seen">Visa inte igen</string>
 </resources>

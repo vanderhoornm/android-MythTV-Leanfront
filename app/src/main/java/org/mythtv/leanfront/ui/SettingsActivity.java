@@ -25,6 +25,7 @@
 package org.mythtv.leanfront.ui;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.app.GuidedStepSupportFragment;
@@ -41,6 +42,7 @@ public class SettingsActivity extends FragmentActivity
         implements AsyncBackendCall.OnBackendCallListener {
 
     private ArrayList<String> mPlayGroupList;
+    private SettingsEntryFragment fragment;
 
     public ArrayList<String> getPlayGroupList() {
         return mPlayGroupList;
@@ -58,7 +60,7 @@ public class SettingsActivity extends FragmentActivity
                 mPlayGroupList = new ArrayList<>();
                 mPlayGroupList.add("Default");
                 GuidedStepSupportFragment.addAsRoot(this,
-                        new SettingsEntryFragment(), android.R.id.content);
+                        fragment = new SettingsEntryFragment(), android.R.id.content);
             }
         }
     }
@@ -66,6 +68,10 @@ public class SettingsActivity extends FragmentActivity
     public void onPostExecute(AsyncBackendCall taskRunner) {
         mPlayGroupList = XmlNode.getStringList(taskRunner.getXmlResult()); // ACTION_GETPLAYGROUPLIST
         GuidedStepSupportFragment.addAsRoot(this,
-                new SettingsEntryFragment(), android.R.id.content);
+                fragment = new SettingsEntryFragment(), android.R.id.content);
+    }
+
+    public void onClickMenu(View view) {
+        fragment.onClickMenu(view);
     }
 }

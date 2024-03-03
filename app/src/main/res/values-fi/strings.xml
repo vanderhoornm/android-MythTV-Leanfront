@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Kaupallinen tai leikattu soittaminen</string>
   <string name="menu_comm_skip">Ohita</string>
   <string name="menu_comm_notskip">Älä Ohita</string>
+  <string name="backup_button">Varmuuskopio</string>
+  <string name="backup_menu">Varmuuskopiointi hakemistoon %1s.</string>
+  <string name="menu_backup_settings">Varmuuskopioi asetukset kohteeseen %s</string>
+  <string name="menu_restore_settings">Palauta asetukset kohteesta %s</string>
+  <string name="menu_backup_database">Varmuuskopioi tietokanta kohteeseen %s</string>
+  <string name="menu_restore_database">Palauta tietokanta kohteesta %s</string>
+  <string name="msg_success">Menestys</string>
+  <string name="msg_restart">Leanfront käynnistyy uudelleen</string>
+  <string name="msg_db_busy">Toimintoa ei voi suorittaa, koska tietokanta on varattu.</string>
   <string name="notes_title">Huomautuksia</string>
   <string name="notes_seen">Älä näytä uudelleen</string>
 </resources>

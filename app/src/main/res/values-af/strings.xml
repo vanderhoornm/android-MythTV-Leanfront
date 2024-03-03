@@ -353,6 +353,15 @@
   <string name="title_comm_playing">Kommersieel of Cut Speel</string>
   <string name="menu_comm_skip">Huppel</string>
   <string name="menu_comm_notskip">Moenie oorslaan nie</string>
+  <string name="backup_button">Rugsteun / Herstel</string>
+  <string name="backup_menu">Rugsteun na gids %1s.</string>
+  <string name="menu_backup_settings">Rugsteun die instellings na %s</string>
+  <string name="menu_restore_settings">Herstel die instellings vanaf %s</string>
+  <string name="menu_backup_database">Rugsteun die databasis na %s</string>
+  <string name="menu_restore_database">Herstel die databasis vanaf %s</string>
+  <string name="msg_success">Sukses</string>
+  <string name="msg_restart">Leanfront sal herbegin</string>
+  <string name="msg_db_busy">Kan nie die handeling uitvoer nie, want die databasis is besig.</string>
   <string name="notes_title">Notas</string>
   <string name="notes_seen">Moet nie weer wys nie</string>
 </resources>

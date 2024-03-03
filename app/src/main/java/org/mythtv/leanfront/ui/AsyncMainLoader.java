@@ -134,10 +134,18 @@ public class AsyncMainLoader implements Runnable {
         try {
             mType = mainFragment.mType;
             mBaseName = mainFragment.mBaseName;
-            Cursor csr = queryDb();
+            Context context = MyApplication.getAppContext();
+            VideoDbHelper dbh = VideoDbHelper.getInstance(context);
+            SQLiteDatabase db = dbh.getReadableDatabase();
+            if (db == null)
+                return;
+            Cursor csr = queryDb(db);
+            if (csr == null)
+                return;
             // This fills categoryList
             buildRows(csr);
             csr.close();
+            VideoDbHelper.releaseDatabase();
         } catch (Exception ex) {
             Log.e(TAG, CLASS + " AsyncMainLoader.runTasks exception",ex);
         }
@@ -145,7 +153,7 @@ public class AsyncMainLoader implements Runnable {
 
     // This replaces Loader<Cursor> onCreateLoader(int id, Bundle args)
     // Query the database for all videos on tyhe main fragment
-    private Cursor queryDb() {
+    private Cursor queryDb(SQLiteDatabase db) {
         String seq = Settings.getString("pref_seq");
         String ascdesc = Settings.getString("pref_seq_ascdesc");
         boolean mergevideos = "true".equals(Settings.getString("pref_merge_videos"));
@@ -256,9 +264,6 @@ public class AsyncMainLoader implements Runnable {
         orderby.append(", ").append(COLUMN_RECORDEDID).append(" ")
                 .append(ascdesc);
 
-        Context context = MyApplication.getAppContext();
-        VideoDbHelper dbh = VideoDbHelper.getInstance(context);
-        SQLiteDatabase db = dbh.getReadableDatabase();
         Cursor cursor = db.query(
                 VIEW_NAME,   // The table to query
                 null,             // The array of columns to return (pass null to get all)

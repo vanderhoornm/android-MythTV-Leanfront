@@ -54,6 +54,7 @@ import org.mythtv.leanfront.BuildConfig;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
+import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Video;

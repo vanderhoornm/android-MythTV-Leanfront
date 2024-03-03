@@ -33,6 +33,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import androidx.annotation.NonNull;
+
 import org.mythtv.leanfront.MyApplication;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.XmlNode;
@@ -56,13 +58,24 @@ public class MainActivity extends LeanbackActivity {
         int memoryClass = am.getMemoryClass();
         int lMemoryClass = am.getLargeMemoryClass();
         Log.i(TAG, CLASS + " memoryClass:" + memoryClass +" lMemoryClass:" + lMemoryClass);
+        Intent intent = getIntent();
+        boolean settingsReq = intent.getBooleanExtra("LEANFRONT_SETTINGS",false);
+        if (savedInstanceState != null) {
+            settingsReq = savedInstanceState.getBoolean("settingsReq");
+        }
 
         // to test another language uncomment this
         //        setAppLocale("es");
-        if (!XmlNode.isSetupDone()) {
+        if (settingsReq || !XmlNode.isSetupDone()) {
             // This is the first time running the app, let's go to onboarding
             startActivity(new Intent(this, SettingsActivity.class));
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putBoolean("settingsReq",false);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

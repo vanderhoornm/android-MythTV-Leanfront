@@ -323,6 +323,8 @@ public class AsyncBackendCall implements Runnable {
                         // Look for a local bookmark
                         VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getReadableDatabase();
+                        if (db == null)
+                            break;
 
                         // Define a projection that specifies which columns from the database
                         // you will actually use after this query.
@@ -356,6 +358,7 @@ public class AsyncBackendCall implements Runnable {
                             mVideo.showRecent = cursor.getInt(colno) != 0;
                         }
                         cursor.close();
+                        VideoDbHelper.releaseDatabase();
 
                         // This is actually last play pos but stored as pref_bookmark
                         // for backward compatibility
@@ -491,6 +494,8 @@ public class AsyncBackendCall implements Runnable {
                         // Gets the data repository in write mode
                         VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getWritableDatabase();
+                        if (db == null)
+                            break;
 
                         // Create a new map of values, where column names are the keys
                         ContentValues values = new ContentValues();
@@ -515,6 +520,7 @@ public class AsyncBackendCall implements Runnable {
                             long newRowId = db.insert(VideoContract.StatusEntry.TABLE_NAME,
                                     null, values);
                         }
+                        VideoDbHelper.releaseDatabase();
                     } catch (IOException | XmlPullParserException e) {
                         e.printStackTrace();
                     }
@@ -565,6 +571,8 @@ public class AsyncBackendCall implements Runnable {
                     // Gets the data repository in write mode
                     VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                     SQLiteDatabase db = dbh.getWritableDatabase();
+                    if (db == null)
+                        break;
                     // Create a new map of values, where column names are the keys
                     ContentValues values = new ContentValues();
                     values.put(VideoContract.StatusEntry.COLUMN_SHOW_RECENT, 0);
@@ -578,6 +586,8 @@ public class AsyncBackendCall implements Runnable {
                             values,
                             selection,
                             selectionArgs);
+
+                    VideoDbHelper.releaseDatabase();
 
                     if (context != null)
                         MainFragment.startFetch(mVideo.rectype, mVideo.recordedid, null, false);
@@ -737,6 +747,8 @@ public class AsyncBackendCall implements Runnable {
                         // Get recording from DB
                         VideoDbHelper dbh = VideoDbHelper.getInstance(context);
                         SQLiteDatabase db = dbh.getReadableDatabase();
+                        if (db == null)
+                            break;
 
                         // Filter results
                         String selection = VideoContract.VideoEntry.COLUMN_RECORDEDID + " = " + mRecordedId
@@ -761,6 +773,7 @@ public class AsyncBackendCall implements Runnable {
                             Log.e(TAG, CLASS + " Failed to find recording on SQLite.");
 
                         cursor.close();
+                        VideoDbHelper.releaseDatabase();
                         Thread.sleep(5000);
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception setting up Live TV.", e);

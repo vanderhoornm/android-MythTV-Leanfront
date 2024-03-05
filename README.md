@@ -16,6 +16,7 @@ Leanfront can be installed from the Google play store or the Amazon store, depen
 - [Search](#search)
 - [Tools](#tools)
 - [Settings](#settings)
+  - [Backup / Restore](#backup--restore)
 - [Backend Status](#backend-status)
 - [Manage Recordings](#manage-recordings)
 - [Program Guide](#program-guide)
@@ -174,7 +175,15 @@ At the bottom of each list screen is a row named "Tools", that provides applicat
 ## Settings
 ![](ScreenShots/Settings.png)
 
-Set up the backend and many customizable options by drilling down into each of the sections shown.
+### Backup / Restore
+
+A button at the top of the page allows backup and restore of settings and the local SQLite database. These are backed up into the documents directory of your Android TV device. If you install a file explorer such as File Manager Plus or Cx File Explorer, you can use ftp to download the files on to a computer.
+
+Thi feature always backs up the settings to leanfront_settings.xml and the database to leanfront.db. If you do a second backup it overwrites the prior one. To save a prior backup, rename the backup file before taking a new backup.
+
+If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. The database backup can be restored to a different Android TV device to transfer your recently viewed list.
+
+The settings can be restored to a different Android TV device to avoid having to set them up on the new device. These backups can also be used to restore settings and database if you uninstall leanfront and then install it again.
 
 <details><summary>Notes</summary>
 
@@ -531,7 +540,11 @@ Creating this index changed the refresh time on my system from 38 seconds to 4 s
 
 ### Copy from one Android device to another
 
-If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list. There is a script to copy from one to another.
+If you use "Recently Viewed" to keep track of what you are watching, bear in mind it keeps the list locally on Android, so each Android TV device has its own list.
+
+See [Backup / Restore](#backup--restore) for the best way to copy these files. The script described below only works on debug builds, so it will not help with leanfront installed from the app store or play store. The [Backup / Restore](#backup--restore) feature works on both debug and production builds.
+
+There is a script to copy files to and from an android device debug application.
 
 This only works on debuggable builds. The release builds of leanfront not debuggable, so it will not work on those.
 

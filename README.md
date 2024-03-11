@@ -274,21 +274,9 @@ If you already have leanfront installed by downloading from orangedox, to instal
 Leanfront is available in the Google Play Store, for TV devices. Either go to play.google.com or use the play store from the android device and search for MythTV or leanfront. If you have previously installed an apk from orangedox.com, you do not need to uninstall, the play store will upgrade it.
 
 ### Side Load
-I recommend you use the play store for installation. That way you will automatically get updates. If you want to sideload the application you can do that as follows:
+Use the play store or app store for installation. I am no longer providing side load versions via orangedox. Orangedox no longer offers free accounts, so my account will be disabled at end of March 2024. If you need a side lod build for any reason please contact me or create an issue on github.
 
-- Download the latest apk from https://dl.orangedox.com/pCBmBm.
-- Enable developer mode on your android device. For Fire TV, go to Settings, My Fire TV , Developer Options. For other Android TV devices, go to My Device, find the build version number, click on that several times until a message notifies you that you have developer mode.
-- install adb on your computer
-- Run these
-
-```
-    adb connect <android-ip-address>
-    adb install -r <apk-name>
-```
-Alternatively, if you have a browser on your android device you can avoid using developer mode.
-
-- Enable installation of apps from unknown source in Android settings.
-- Navigate to the download site (https://dl.orangedox.com/pCBmBm), find the latest version, tap it and request the system to install it.
+Old versions that were distributed via orangedox are still available here: https://drive.google.com/drive/folders/1LMf7dTK_fD_e1S3S2HgB1NEPsWI0MdyB
 
 ### After Installation
 The first time you run the app it will prompt you for the MythTV Backend settings. Supply the IP address or DNS name of the master backend. If you have MythTV V32 or V33, change the [status port](#status-port) from 6544 to 6744. (Note that 6544 still works but does not support the latest features). In V34, port 6544 now has full support. In future port 6744 may be removed.
@@ -665,5 +653,3 @@ Licensed under the GNU GPL version 3 or later. See the [LICENSE file][license] f
 
 [studio]: https://developer.android.com/tools/studio/index.html
 [license]: LICENSE
-[bintray]: https://dl.bintray.com/bennettpeter/generic/mythtv_leanfront/android
-[downloads]: https://dl.orangedox.com/pCBmBm

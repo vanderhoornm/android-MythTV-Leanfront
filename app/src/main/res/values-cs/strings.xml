@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Uložte změny před ukončením</string>
   <string name="menu_continue_editing">Pokračovat v úpravách</string>
   <string name="menu_exit_nosave">Odejít bez uložení</string>
-  <string name="guide_jump_to_channel">Přejít na číslo kanálu</string>
+  <string name="guide_jump_to_channel">Přejít na číslo kanálu níže</string>
+  <string name="guide_channel_num">Číslo kanálu</string>
+  <string name="guide_play_livetv">Přehrát živou televizi</string>
   <string name="menu_commskip_off">Vypnuto</string>
   <string name="menu_commskip_notify">Oznámit</string>
   <string name="menu_commskip_skip">Automaticky přeskočit</string>

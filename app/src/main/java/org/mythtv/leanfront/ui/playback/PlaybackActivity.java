@@ -46,6 +46,14 @@ import org.mythtv.leanfront.ui.LeanbackActivity;
  * <a href="https://developer.android.com/training/game-controllers/controller-input.html">docs</href>.
  */
 public class PlaybackActivity extends LeanbackActivity {
+    public static final String SHARED_ELEMENT_NAME = "hero";
+    public static final String VIDEO = "Video";
+    public static final String NOTIFICATION_ID = "NotificationId";
+    public static final String BOOKMARK = "bookmark";
+    public static final String POSBOOKMARK = "posbookmark";
+    public static final String RECORDID = "recordid";
+    public static final String ENDTIME = "endtime";
+
     private static final float GAMEPAD_TRIGGER_INTENSITY_ON = 0.5f;
     // Off-condition slightly smaller for button debouncing.
     private static final float GAMEPAD_TRIGGER_INTENSITY_OFF = 0.45f;

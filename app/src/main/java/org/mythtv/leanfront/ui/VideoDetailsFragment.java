@@ -184,7 +184,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         mVideoCursorAdapter.setMapper(mVideoCursorMapper);
 
         mSelectedVideo = getActivity().getIntent()
-                .getParcelableExtra(VideoDetailsActivity.VIDEO);
+                .getParcelableExtra(PlaybackActivity.VIDEO);
 
         if (savedInstanceState != null) {
             mBookmark = savedInstanceState.getLong("mBookmark");
@@ -193,7 +193,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
 
         if (mSelectedVideo != null) {
             removeNotification(getActivity().getIntent()
-                    .getIntExtra(VideoDetailsActivity.NOTIFICATION_ID, NO_NOTIFICATION));
+                    .getIntExtra(PlaybackActivity.NOTIFICATION_ID, NO_NOTIFICATION));
             setupAdapter();
             setupDetailsOverviewRow();
             setupMovieListRow();
@@ -306,7 +306,7 @@ public class VideoDetailsFragment extends DetailsSupportFragment
         // Hook up transition element.
         mHelper = new FullWidthDetailsOverviewSharedElementHelper();
         mHelper.setSharedElementEnterTransition(activity,
-                VideoDetailsActivity.SHARED_ELEMENT_NAME);
+                PlaybackActivity.SHARED_ELEMENT_NAME);
         detailsPresenter.setListener(mHelper);
         detailsPresenter.setParticipatingEntranceTransition(false);
         prepareEntranceTransition();
@@ -350,16 +350,18 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                 }
             case Video.ACTION_PLAY:
                 Intent intent = new Intent(getActivity(), PlaybackActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, mSelectedVideo);
-                intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
-                intent.putExtra(VideoDetailsActivity.POSBOOKMARK, posbookmark);
+                intent.putExtra(PlaybackActivity.VIDEO, mSelectedVideo);
+                intent.putExtra(PlaybackActivity.BOOKMARK, bookmark);
+                intent.putExtra(PlaybackActivity.POSBOOKMARK, posbookmark);
                 startActivityForResult(intent, Video.ACTION_PLAY);
                 break;
             case Video.ACTION_LIVETV:
                 setProgressBar(true);
                 call = new AsyncBackendCall(getActivity(), this);
-                call.setVideo(mSelectedVideo);
-                call.execute(Video.ACTION_LIVETV);
+                call.setStartTime(null);
+                call.setChanid(Integer.parseInt(mSelectedVideo.chanid));
+                call.setCallSign(mSelectedVideo.callsign);
+                call.execute(Video.ACTION_LIVETV, Video.ACTION_ADD_OR_UPDATERECRULE, Video.ACTION_WAIT_RECORDING);
                 break;
             case Video.ACTION_DELETE:
                 call = new AsyncBackendCall(getActivity(), this);
@@ -933,12 +935,12 @@ public class VideoDetailsFragment extends DetailsSupportFragment
             if (item instanceof Video) {
                 Video video = (Video) item;
                 Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                intent.putExtra(PlaybackActivity.VIDEO, video);
 
                 Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                         getActivity(),
                         ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                        VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
+                        PlaybackActivity.SHARED_ELEMENT_NAME).toBundle();
                 getActivity().startActivity(intent, bundle);
             }
         }
@@ -999,9 +1001,10 @@ public class VideoDetailsFragment extends DetailsSupportFragment
                     break;
                 }
                 Intent intent = new Intent(context, PlaybackActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
-                intent.putExtra(VideoDetailsActivity.BOOKMARK, 0L);
-                intent.putExtra(VideoDetailsActivity.RECORDID, taskRunner.getRecordId());
+                intent.putExtra(PlaybackActivity.VIDEO, video);
+                intent.putExtra(PlaybackActivity.BOOKMARK, 0L);
+                intent.putExtra(PlaybackActivity.RECORDID, taskRunner.getRecordId());
+                intent.putExtra(PlaybackActivity.ENDTIME, taskRunner.getEndTime().getTime());
                 startActivity(intent);
                 break;
             case Video.ACTION_ALLOW_RERECORD:

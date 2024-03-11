@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Tallenna muutokset ennen poistumista</string>
   <string name="menu_continue_editing">Jatka muokkaamista</string>
   <string name="menu_exit_nosave">Poistu tallentamatta</string>
-  <string name="guide_jump_to_channel">Siirry kanavan numeroon</string>
+  <string name="guide_jump_to_channel">Siirry alla olevaan kanavanumeroon</string>
+  <string name="guide_channel_num">Kanavan numero</string>
+  <string name="guide_play_livetv">Toista Live TV</string>
   <string name="menu_commskip_off">Vinossa</string>
   <string name="menu_commskip_notify">Ilmoittaa</string>
   <string name="menu_commskip_skip">Ohita automaattisesti</string>

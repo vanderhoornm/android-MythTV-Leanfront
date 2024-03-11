@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Αποθήκευση αλλαγών πριν την έξοδο</string>
   <string name="menu_continue_editing">Συνέχεια Επεξεργασίας</string>
   <string name="menu_exit_nosave">Εξοδος χωρίς αποθήκευση</string>
-  <string name="guide_jump_to_channel">Μετάβαση στον αριθμό καναλιού</string>
+  <string name="guide_jump_to_channel">Μεταβείτε στον Αριθμό Καναλιού παρακάτω</string>
+  <string name="guide_channel_num">Αριθμός καναλιού</string>
+  <string name="guide_play_livetv">Παίξτε ζωντανή τηλεόραση</string>
   <string name="menu_commskip_off">Μακριά από</string>
   <string name="menu_commskip_notify">Κοινοποιώ</string>
   <string name="menu_commskip_skip">Αυτόματη παράλειψη</string>

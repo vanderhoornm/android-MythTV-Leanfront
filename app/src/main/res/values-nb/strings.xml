@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Lagre endringer før du avslutter</string>
   <string name="menu_continue_editing">Fortsett redigering</string>
   <string name="menu_exit_nosave">Avslutt uten å lagre</string>
-  <string name="guide_jump_to_channel">Gå til kanalnummer</string>
+  <string name="guide_jump_to_channel">Gå til kanalnummeret nedenfor</string>
+  <string name="guide_channel_num">Kanalnummer</string>
+  <string name="guide_play_livetv">Spill direktesendt TV</string>
   <string name="menu_commskip_off">Av</string>
   <string name="menu_commskip_notify">Gi beskjed</string>
   <string name="menu_commskip_skip">Hopp over automatisk</string>

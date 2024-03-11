@@ -90,6 +90,8 @@ public class AsyncBackendCall implements Runnable {
     private ObjectAdapter rowAdapter;
     private CommBreakTable commBreakTable;
     private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private int mChanid;
+    private String callSign;
 
     // Parsing results of GetRecorded
     private static final String[] XMLTAGS_RECGROUP = {"Recording","RecGroup"};
@@ -180,6 +182,10 @@ public class AsyncBackendCall implements Runnable {
         this.mStartTime = mStartTime;
     }
 
+    public Date getEndTime() {
+        return mEndTime;
+    }
+
     public void setEndTime(Date mEndTime) {
         this.mEndTime = mEndTime;
     }
@@ -231,6 +237,14 @@ public class AsyncBackendCall implements Runnable {
 
     public void setView(View view) {
         this.view = view;
+    }
+
+    public void setChanid(int mChanid) {
+        this.mChanid = mChanid;
+    }
+
+    public void setCallSign(String callSign) {
+        this.callSign = callSign;
     }
 
     public void execute(Integer ... tasks) {
@@ -644,69 +658,114 @@ public class AsyncBackendCall implements Runnable {
                     }
                     break;
                 case Video.ACTION_LIVETV:
-                    // Schedule a recording for 3 hours starting now
-                    // Wait for recording to be ready
-                    // Play recording, passing in the info needed for cancelling it on exit.
-
-                    // Replace the video (channel dummy video) in this object with the recording
-                    Video channel = mVideo;
+                    // Find the program in the guide from the supplied time (mStartTime) and channel
+                    // If it is ending in less than 2 minutes find the next program.
+                    // If there is no program assume a program that starts on the half
+                    // our and ends on the half hour.
+                    // Schedule recording
+                    // save recordid. Caller gets it with getRecordId()
                     mVideo = null;
                     try {
-                        // Get values needed to set up recording
-                        Date startTime = new Date(System.currentTimeMillis() + bCache.mTimeAdjustment);
-                        // 3 hours
-                        String pref = Settings.getString("pref_livetv_duration");
-                        int duration = 60;
-                        try {
-                            duration = Integer.parseInt(pref, 10);
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                            duration = 60;
-                        }
-                        if (duration < 15)
-                            duration = 15;
-                        else if (duration > 360)
-                            duration = 360;
-                        Date endTime = new Date(startTime.getTime()+duration*60*1000);
-                        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
-                        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
-                        String recDate = sdfDate.format(startTime);
-                        String recTime = sdfTime.format(startTime);
-                        String title = context.getString(R.string.title_livetv_recording)
-                                + " " + recDate;
-                        String subtitle = recTime + " ch " + channel.channum;
                         SimpleDateFormat sdfUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         sdfUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        // mStartTime is null means start now
+                        boolean startNow = false;
+                        if (mStartTime == null) {
+                            mStartTime = new Date(System.currentTimeMillis() + bCache.mTimeAdjustment);
+                            startNow = true;
+                        }
+                        // Access program guide. Programs for the next 5 minutes
+                        // endTime 5 mins after starttime
+                        Date endRange = new Date(mStartTime.getTime()+5*60*1000);
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/AddRecordSchedule?Title="
-                                        + URLEncoder.encode(title, "UTF-8")
-                                        + "&Subtitle=" + URLEncoder.encode(subtitle, "UTF-8")
-                                        + "&Chanid=" + channel.chanid
-                                        + "&Station=" + channel.callsign
-                                        + "&StartTime=" + URLEncoder.encode(sdfUTC.format(startTime), "UTF-8")
-                                        + "&EndTime=" + URLEncoder.encode(sdfUTC.format(endTime), "UTF-8")
-                                        + "&Type=Single+Record"
-                                        // Use a nonsense FindDay and FindTime because they are required by the API
-                                        // but not used for this type of recording.
-                                        + "&FindDay=1&FindTime=21%3A30%3A00"
-                                        + "&SearchType=Manual+Search&AutoExpire=true&RecPriority=-99"
-                                        + "&RecGroup=LiveTV&StorageGroup=LiveTV"
-                                        );
-                        xmlResult = XmlNode.fetch(urlString, "POST");
-                        String result = xmlResult.getString();
-                        Log.i(TAG, CLASS + " Live TV scheduled, RecordId:" + result);
-                        mRecordId = Integer.parseInt(result);
-                        // Now try to find the recording
+                                "/Guide/GetProgramList?ChanId=" + mChanid
+                                + "&StartTime=" + URLEncoder.encode(sdfUTC.format(mStartTime), "UTF-8")
+                                + "&EndTime=" + URLEncoder.encode(sdfUTC.format(endRange), "UTF-8"));
+                        xmlResult = XmlNode.fetch(urlString, null);
+                        XmlNode programs = xmlResult.getNode("Programs");
+                        XmlNode program = programs.getNode("Program");
+                        // Find a program which ends more than 2 minutes after start time
+                        while (program !=  null) {
+                            Date startTime = program.getNode("StartTime").getDate();
+                            Date endTime  = program.getNode("EndTime").getDate();
+                            // If program ends within the next 2 minutes, or has already ended, skip it
+                            if (endTime.getTime() < (mStartTime.getTime() + 2*60*1000))
+                                program = program.getNextSibling();
+                            // If program starts more than 2 minutes in the future, skip it
+                            else if (startTime.getTime() > (mStartTime.getTime() + 2*60*1000))
+                                program = program.getNextSibling();
+                            else
+                                break;
+                        }
+                        if (program !=  null) {
+                            // If starting now, make sure we are not too close to the end of a show.
+                            // If we are, recvord the following show with a start offset so recording starts now.
+                            mRecordRule = new RecordRule().fromProgram(program);
+                            mRecordRule.type = "Single Record";
+                            mRecordRule.searchType = "None";
+                            mRecordRule.recProfile = "Live TV";
+                            if (startNow) {
+                                Date now = new Date(System.currentTimeMillis() + bCache.mTimeAdjustment);
+                                long offsetMillis = mRecordRule.startTime.getTime() - now.getTime();
+                                mRecordRule.startOffset = (int) ( (offsetMillis + 30000) / 60000 );
+                                if (mRecordRule.startOffset < 0 || mRecordRule.startOffset > 6)
+                                    mRecordRule.startOffset = 0;
+                            }
+                            mRecordRule.recPriority = -90;
+                            mRecordRule.recGroup = "LiveTV";
+                            mRecordRule.storageGroup = "LiveTV";
+                            mRecordRule.playGroup = "";
+                            mRecordRule.filter = 1024;
+                        }
+                        else {
+                            // No Program found, Setup manual rule
+                            mRecordRule = new RecordRule();
+                            mRecordRule.title = context.getString(R.string.title_livetv_recording);
+                            mRecordRule.chanId = mChanid;
+                            mRecordRule.station = callSign;
+                            mRecordRule.startTime = mStartTime;
+                            // Next 30 moinute time
+
+                            long endTimeL = mStartTime.getTime() / (30*60*1000);
+                            endTimeL += 1;
+                            endTimeL *= 30*60*1000;
+                            // If program ends within the next 2 minutes, skip it
+                            if (endTimeL < (mStartTime.getTime() + 2*60*1000))
+                                endTimeL += 30*60*1000;
+                            mRecordRule.endTime = new Date(endTimeL);
+                            mRecordRule.type =  "Single Record";
+                            mRecordRule.findDay = 1;
+                            mRecordRule.findTime = "21:30:00";
+                            mRecordRule.searchType = "Manual Search";
+                            mRecordRule.recProfile = "Live TV";
+                            mRecordRule.autoExpire = true;
+                            mRecordRule.recPriority = -90;
+                            mRecordRule.recGroup = "LiveTV";
+                            mRecordRule.storageGroup = "LiveTV";
+                            mRecordRule.playGroup = "";
+                            mRecordRule.filter = 1024;
+                        }
+                        mEndTime = mRecordRule.endTime;
+                        // Next task should be Video.ACTION_ADD_OR_UPDATERECRULE to create the recording
+                        // followed by Video.ACTION_WAIT_RECORDING to wait for it to be ready for playing
+                    } catch (Exception e) {
+                        Log.e(TAG, CLASS + " Exception setting up Live TV.", e);
+                    }
+                    break;
+                case Video.ACTION_WAIT_RECORDING:
+                    // Find most recent recording in group LiveTV that matches the recordid
+                    // Refresh local database with the recording details
+                    // Return video instance
+                    try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/GetRecordedList?RecGroup=LiveTV"
-                                + "&TitleRegEx=" + URLEncoder.encode("^"+title+"$", "UTF-8"));
+                                "/Dvr/GetRecordedList?RecGroup=LiveTV&Descending=true&Count=5");
                         found = false;
                         int ixFound = -1;
-                        for (int icount = 0; icount < 30 && !found; icount ++) {
-                            xmlResult = XmlNode.fetch(urlString,null);
-                            Log.d(TAG, CLASS + " Found " + xmlResult.getString("Count") +" recordings");
+                        for (int icount = 0; icount < 30 && !found; icount++) {
+                            xmlResult = XmlNode.fetch(urlString, null);
+                            Log.d(TAG, CLASS + " Found " + xmlResult.getString("Count") + " recordings");
                             XmlNode programNode = null;
-                            for (ixFound = 0; ; ixFound++ ) {
+                            for (ixFound = 0; ; ixFound++) {
                                 if (programNode == null)
                                     programNode = xmlResult.getNode(VideoDbBuilder.XMLTAGS_PROGRAM, 0);
                                 else
@@ -753,7 +812,7 @@ public class AsyncBackendCall implements Runnable {
                         // Filter results
                         String selection = VideoContract.VideoEntry.COLUMN_RECORDEDID + " = " + mRecordedId
                                 + " AND " + VideoContract.VideoEntry.COLUMN_RECTYPE
-                                           + " = " + VideoContract.VideoEntry.RECTYPE_RECORDING;
+                                + " = " + VideoContract.VideoEntry.RECTYPE_RECORDING;
                         Cursor cursor = db.query(
                                 VideoContract.VideoEntry.TABLE_NAME,   // The table to query
                                 null,             // The array of columns to return (pass null to get all)
@@ -779,6 +838,7 @@ public class AsyncBackendCall implements Runnable {
                         Log.e(TAG, CLASS + " Exception setting up Live TV.", e);
                     }
                     break;
+
                 case Video.ACTION_STOP_RECORDING:
                     // Stop recording
                     if ("-1".equals(mVideo.recordedid))
@@ -1031,9 +1091,16 @@ public class AsyncBackendCall implements Runnable {
                         if (mRecordRule.lastRecorded != null)
                             urlBuilder.append("&LastRecorded=").append(URLEncoder.encode(sdfUTC.format(mRecordRule.lastRecorded), "UTF-8"));
                         xmlResult = XmlNode.fetch(urlBuilder.toString(), "POST");
+                        String result = xmlResult.getString();
+                        if (mRecordRule.recordId == 0) { // if a new rule is being created
+                            Log.i(TAG, CLASS + " Recording scheduled, RecordId:" + result);
+                            mRecordId = Integer.parseInt(result);
+                        }
                     } catch (Exception e) {
                         Log.e(TAG, CLASS + " Exception Updating Record Schedule.", e);
                     }
+                    // If this is a Live TV session it will be followed by Video.ACTION_WAIT_RECORDING
+                    // to wait for it to be ready for playing
                     break;
 
                 case Video.ACTION_SEARCHGUIDE:

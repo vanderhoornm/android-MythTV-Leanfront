@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Wijzigingen opslaan voordat u afsluit</string>
   <string name="menu_continue_editing">Ga door met bewerken</string>
   <string name="menu_exit_nosave">Afsluiten zonder op te slaan</string>
-  <string name="guide_jump_to_channel">Ga naar Kanaalnummer</string>
+  <string name="guide_jump_to_channel">Ga naar het kanaalnummer hieronder</string>
+  <string name="guide_channel_num">Kanaal nummer</string>
+  <string name="guide_play_livetv">Speel live-tv</string>
   <string name="menu_commskip_off">Uit</string>
   <string name="menu_commskip_notify">Informeer</string>
   <string name="menu_commskip_skip">Automatisch overslaan</string>

@@ -121,6 +121,7 @@ import androidx.media3.exoplayer.source.SampleQueue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
@@ -193,6 +194,8 @@ public class PlaybackFragment extends VideoSupportFragment
     private View mFocusView;
     private Action mCurrentAction;
     private long mRecordid = -1;
+    private Date endTime = null;
+    private boolean saveLiveRec = false;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "PlaybackFragment";
@@ -220,11 +223,14 @@ public class PlaybackFragment extends VideoSupportFragment
         UiModeManager uiModeManager = (UiModeManager) getContext().getSystemService(Context.UI_MODE_SERVICE);
         isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
-        mVideo = getActivity().getIntent().getParcelableExtra(VideoDetailsActivity.VIDEO);
+        mVideo = getActivity().getIntent().getParcelableExtra(PlaybackActivity.VIDEO);
         setPlaySettings(mVideo.playGroup);
-        mBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.BOOKMARK, 0);
-        posBookmark = getActivity().getIntent().getLongExtra(VideoDetailsActivity.POSBOOKMARK, -1);
-        mRecordid = getActivity().getIntent().getLongExtra(VideoDetailsActivity.RECORDID, -1);
+        mBookmark = getActivity().getIntent().getLongExtra(PlaybackActivity.BOOKMARK, 0);
+        posBookmark = getActivity().getIntent().getLongExtra(PlaybackActivity.POSBOOKMARK, -1);
+        mRecordid = getActivity().getIntent().getLongExtra(PlaybackActivity.RECORDID, -1);
+        long endTimeL = getActivity().getIntent().getLongExtra(PlaybackActivity.ENDTIME, -1);
+        if (endTimeL > 0)
+            endTime = new Date(endTimeL);
         mPlaylist = new Playlist();
         mWatched = (Integer.parseInt(mVideo.progflags, 10) & Video.FL_WATCHED) != 0;
 
@@ -1337,13 +1343,13 @@ public class PlaybackFragment extends VideoSupportFragment
                 Video video = (Video) item;
 
                 Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                intent.putExtra(PlaybackActivity.VIDEO, video);
 
                 Bundle bundle =
                         ActivityOptionsCompat.makeSceneTransitionAnimation(
                                 getActivity(),
                                 ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                                VideoDetailsActivity.SHARED_ELEMENT_NAME)
+                                PlaybackActivity.SHARED_ELEMENT_NAME)
                                 .toBundle();
                 getActivity().startActivity(intent, bundle);
             }

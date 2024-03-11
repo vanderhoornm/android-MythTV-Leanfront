@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Spara ändringar innan du avslutar</string>
   <string name="menu_continue_editing">Fortsätt redigera</string>
   <string name="menu_exit_nosave">Avsluta utan att spara</string>
-  <string name="guide_jump_to_channel">Hoppa till kanalnummer</string>
+  <string name="guide_jump_to_channel">Hoppa till kanalnummer nedan</string>
+  <string name="guide_channel_num">Kanalnummer</string>
+  <string name="guide_play_livetv">Spela live-tv</string>
   <string name="menu_commskip_off">Av</string>
   <string name="menu_commskip_notify">Meddela</string>
   <string name="menu_commskip_skip">Hoppa över automatiskt</string>

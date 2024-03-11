@@ -101,6 +101,7 @@ import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.IconHeaderItemPresenter;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -723,12 +724,12 @@ public class MainFragment extends BrowseSupportFragment
                 case TYPE_CHANNEL:
                     Video video = (Video) item;
                     Intent intent = new Intent(context, VideoDetailsActivity.class);
-                    intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                    intent.putExtra(PlaybackActivity.VIDEO, video);
 
                     bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                             context,
                             ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                            VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
+                            PlaybackActivity.SHARED_ELEMENT_NAME).toBundle();
                     context.startActivity(intent, bundle);
                     break;
                 case TYPE_SERIES:

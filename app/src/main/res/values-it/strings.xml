@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Salva le modifiche prima di uscire</string>
   <string name="menu_continue_editing">Continua a modificare</string>
   <string name="menu_exit_nosave">Uscire senza salvare</string>
-  <string name="guide_jump_to_channel">Passa al numero del canale</string>
+  <string name="guide_jump_to_channel">Vai al numero del canale qui sotto</string>
+  <string name="guide_channel_num">Numero del canale</string>
+  <string name="guide_play_livetv">Riproduci la TV in diretta</string>
   <string name="menu_commskip_off">Spento</string>
   <string name="menu_commskip_notify">Notificare</string>
   <string name="menu_commskip_skip">Salta automaticamente</string>

@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Enregistrer les modifications avant de quitter</string>
   <string name="menu_continue_editing">Continuer la modification</string>
   <string name="menu_exit_nosave">Quitter sans sauvegarder</string>
-  <string name="guide_jump_to_channel">Aller au numéro de chaîne</string>
+  <string name="guide_jump_to_channel">Aller au numéro de chaîne ci-dessous</string>
+  <string name="guide_channel_num">Le numéro de canal</string>
+  <string name="guide_play_livetv">Jouer à la télévision en direct</string>
   <string name="menu_commskip_off">Désactivé</string>
   <string name="menu_commskip_notify">Notifier</string>
   <string name="menu_commskip_skip">Ignorer automatiquement</string>

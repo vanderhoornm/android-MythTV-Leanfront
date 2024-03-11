@@ -199,7 +199,9 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
                     break;
             }
         }
-        if (mProgDetails != null && mRecordRule.searchType.equals("None"))
+        if (mProgDetails != null
+            && ("None".equals(mRecordRule.searchType)
+                || "Manual Search".equals(mRecordRule.searchType)))
             mRecordRule.mergeProgram(mProgDetails);
 
         // Lists
@@ -360,7 +362,7 @@ public class EditScheduleFragment extends GuidedStepSupportFragment
             final boolean isSearch = ! "None".equalsIgnoreCase(mRecordRule.searchType);
             typePrompts.add(R.string.sched_type_not);
             typeOptions.add("Not Recording");
-            if (hasChannel && !isSearch) {
+            if (hasChannel && isSearch || isManual) {
                 typePrompts.add(R.string.sched_type_this);
                 typeOptions.add("Single Record");
             }

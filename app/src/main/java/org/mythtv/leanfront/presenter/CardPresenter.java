@@ -50,7 +50,6 @@ import org.mythtv.leanfront.data.VideoContract;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.ui.MainFragment;
-import org.mythtv.leanfront.ui.VideoDetailsActivity;
 import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -278,9 +277,9 @@ public class CardPresenter extends Presenter {
                         posBookmark = posLastPlay;
                     }
                     intent = new Intent(context, PlaybackActivity.class);
-                    intent.putExtra(VideoDetailsActivity.VIDEO, taskRunner.getVideo());
-                    intent.putExtra(VideoDetailsActivity.BOOKMARK, bookmark);
-                    intent.putExtra(VideoDetailsActivity.POSBOOKMARK, posBookmark);
+                    intent.putExtra(PlaybackActivity.VIDEO, taskRunner.getVideo());
+                    intent.putExtra(PlaybackActivity.BOOKMARK, bookmark);
+                    intent.putExtra(PlaybackActivity.POSBOOKMARK, posBookmark);
                     context.startActivity(intent);
                     break;
             }

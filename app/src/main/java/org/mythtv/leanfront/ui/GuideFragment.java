@@ -19,6 +19,8 @@
 
 package org.mythtv.leanfront.ui;
 
+import static android.app.ProgressDialog.show;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -26,14 +28,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputType;
 import android.util.SparseIntArray;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.VerticalGridPresenter;
@@ -45,6 +50,7 @@ import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
 import org.mythtv.leanfront.presenter.GuidePresenterSelector;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -80,7 +86,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
     private int mChanGroupIx = -1;
     private static final int ACTION_EDIT_1 = 1;
     private static final int ACTION_EDIT_2 = 2;
-
+    private ProgressBarManager pbm;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,6 +105,13 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             mGridStartTime = new Date(startTime);
         }
         setupAdapter();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        pbm = new ProgressBarManager();
+        pbm.setRootView((ViewGroup)view);
     }
 
     @Override
@@ -128,7 +141,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     showTimeSelector();
                     break;
                 case GuideSlot.CELL_CHANNEL:
-                    showChannelSelector();
+                    showChannelSelector(card);
                     break;
                 case GuideSlot.CELL_LEFTARROW:
                     mGridStartTime = new Date(mGridStartTime.getTime() - TIMESLOTS * TIMESLOT_SIZE * 60000);
@@ -223,7 +236,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                 R.style.Theme_AppCompat_Dialog_Alert);
         builder.setTitle(R.string.title_select_timeslot)
-                .setView(R.layout.time_select_layout);
+                .setView(R.layout.guide_time_select_layout);
         builder.setPositiveButton(android.R.string.ok,
             (dialog, which) -> {
                 Spinner dateSpin = mDialog.findViewById(R.id.date_select);
@@ -298,40 +311,57 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
         timeSpin.setSelection(timeSelection);
     }
 
-    private void showChannelSelector() {
+    private void showChannelSelector(GuideSlot card) {
         Context context = getContext();
         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                 R.style.Theme_AppCompat_Dialog_Alert);
-        builder.setTitle(R.string.guide_jump_to_channel);
-
-        EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
-
-        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> goToChannel(input));
-        builder.show();
+        builder.setView(R.layout.guide_channel_select_layout);
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> goToChannel(card));
+        builder.setNegativeButton(android.R.string.cancel, null);
+        mDialog = builder.create();
+        mDialog.show();
+        RadioButton bnJump = mDialog.findViewById(R.id.jump_button);
+        EditText textChan = mDialog.findViewById(R.id.chan_num);
+        bnJump.setOnCheckedChangeListener( (buttonView, isChecked) -> {
+            textChan.setEnabled(isChecked);
+            textChan.setText("");
+        });
     }
 
-    private void goToChannel(EditText input) {
-        String text = input.getText().toString();
-        int chanNum = 0;
-        try {
-            chanNum = Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return;
-        }
-        int size = mGridAdapter.size();
-        boolean found = false;
-        for (int ix = 0; ix < size; ix += COLUMNS) {
-            GuideSlot slot = (GuideSlot) mGridAdapter.get(ix);
-            if (slot.chanNum >= chanNum) {
-                setSelectedPosition(ix, false);
-                found = true;
-                break;
+    private void goToChannel(GuideSlot card) {
+        RadioButton bnJump = mDialog.findViewById(R.id.jump_button);
+        RadioButton bnPlay = mDialog.findViewById(R.id.play_button);
+        if (bnJump.isChecked()) {
+            EditText textChan = mDialog.findViewById(R.id.chan_num);
+            String text = textChan.getText().toString();
+            int chanNum = 0;
+            try {
+                chanNum = Integer.parseInt(text);
+            } catch (NumberFormatException e) {
+                return;
             }
+            int size = mGridAdapter.size();
+            boolean found = false;
+            for (int ix = 0; ix < size; ix += COLUMNS) {
+                GuideSlot slot = (GuideSlot) mGridAdapter.get(ix);
+                if (slot.chanNum >= chanNum) {
+                    setSelectedPosition(ix, false);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                setSelectedPosition(size - COLUMNS, false);
         }
-        if (!found)
-            setSelectedPosition(size - COLUMNS,false);
+        else if (bnPlay.isChecked()) {
+            setProgressBar(true);
+            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+            // null StartTime means start now
+            call.setStartTime(null);
+            call.setChanid(card.chanId);
+            call.setCallSign(card.callSign);
+            call.execute(Video.ACTION_LIVETV, Video.ACTION_ADD_OR_UPDATERECRULE, Video.ACTION_WAIT_RECORDING);
+        }
     }
 
     private void setupGridData() {
@@ -387,9 +417,10 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                 addTimeRow();
             if (++tsRowCount >= TIME_ROW_INTERVAL)
                 tsRowCount = 0;
+            String callSign = chanNode.getString("CallSign");
             String chanDetails = chanNode.getString("ChanNum")
                     + " " + chanNode.getString("ChannelName")
-                    + " " + chanNode.getString("CallSign");
+                    + " " + callSign;
             int chanId = chanNode.getInt("ChanId", 0);
             String chanNumStr = chanNode.getString("ChanNum");
             int chanNum = -1;
@@ -400,7 +431,7 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                     chanNum = Integer.parseInt(chanNumSplit[0]);
             }
             // channel slot at front
-            GuideSlot slot = new GuideSlot(chanId, chanNum, chanDetails);
+            GuideSlot slot = new GuideSlot(chanId, chanNum, callSign, chanDetails);
             mGridAdapter.add(slot);
             mGridAdapter.add(leftArrowSlot);
             mChanArray.put(chanId,mGridAdapter.size());
@@ -481,7 +512,56 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
             case Video.ACTION_PAUSE:
                 mLoadInProcess = taskRunner.getXmlResults().get(1);
                 loadGuideData(mLoadInProcess, 0);
+                break;
+            case Video.ACTION_LIVETV:
+                setProgressBar(false);
+                Video video = taskRunner.getVideo();
+                Context context = getContext();
+                // video null means recording failed
+                // activity null means user pressed back button
+                if (video == null || context == null) {
+                    if (context != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.title_alert_livetv);
+                        builder.setMessage(R.string.alert_livetv_message);
+                        // add a button
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.show();
+                    }
+                    long recordId = taskRunner.getRecordId();
+                    long recordedId = taskRunner.getRecordedId();
+                    video = new Video.VideoBuilder()
+                            .recGroup("LiveTV")
+                            .recordedid(String.valueOf(recordedId))
+                            .build();
+                    if (recordId >= 0) {
+                        // Terminate Live TV
+                        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+                        call.setVideo(video);
+                        call.setmValue(recordId);
+                        call.execute(
+                                Video.ACTION_STOP_RECORDING,
+                                Video.ACTION_REMOVE_RECORD_RULE);
+                    }
+                    break;
+                }
+                Intent intent = new Intent(context, PlaybackActivity.class);
+                intent.putExtra(PlaybackActivity.VIDEO, video);
+                intent.putExtra(PlaybackActivity.BOOKMARK, 0L);
+                intent.putExtra(PlaybackActivity.RECORDID, taskRunner.getRecordId());
+                intent.putExtra(PlaybackActivity.ENDTIME, taskRunner.getEndTime().getTime());
+                startActivity(intent);
+                break;
         }
+    }
+
+    private void setProgressBar(boolean show) {
+        // Initial delay defaults to 1000 (1 second)
+        if (show)
+            pbm.show();
+        else
+            pbm.hide();
     }
 
     void loadChanGroups(XmlNode result) {

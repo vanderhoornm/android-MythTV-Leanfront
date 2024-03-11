@@ -336,7 +336,9 @@
   <string name="menu_save_changes">Gem ændringer, før du afslutter</string>
   <string name="menu_continue_editing">Fortsæt redigering</string>
   <string name="menu_exit_nosave">Forlad uden at gemme</string>
-  <string name="guide_jump_to_channel">Gå til kanalnummer</string>
+  <string name="guide_jump_to_channel">Hop til kanalnummer nedenfor</string>
+  <string name="guide_channel_num">Kanalnummer</string>
+  <string name="guide_play_livetv">Spil live-tv</string>
   <string name="menu_commskip_off">Af</string>
   <string name="menu_commskip_notify">Underrette</string>
   <string name="menu_commskip_skip">Spring automatisk over</string>

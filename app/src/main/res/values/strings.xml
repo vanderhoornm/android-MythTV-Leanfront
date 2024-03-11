@@ -389,7 +389,9 @@
     <string name="menu_save_changes">Save Changes Before Exiting</string>
     <string name="menu_continue_editing">Continue Editing</string>
     <string name="menu_exit_nosave">Exit Without Saving</string>
-    <string name="guide_jump_to_channel">Jump to Channel Number</string>
+    <string name="guide_jump_to_channel">Jump to Channel Number Below</string>
+    <string name="guide_channel_num">Channel Number</string>
+    <string name="guide_play_livetv">Play Live TV</string>
 
     <string name="menu_commskip_off">Off</string>
     <string name="menu_commskip_notify">Notify</string>

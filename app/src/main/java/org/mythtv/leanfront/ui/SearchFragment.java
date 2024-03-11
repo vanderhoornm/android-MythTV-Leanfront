@@ -54,7 +54,6 @@ import org.mythtv.leanfront.BuildConfig;
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
 import org.mythtv.leanfront.data.VideoContract;
-import org.mythtv.leanfront.data.VideoDbHelper;
 import org.mythtv.leanfront.data.XmlNode;
 import org.mythtv.leanfront.model.GuideSlot;
 import org.mythtv.leanfront.model.Video;
@@ -62,6 +61,7 @@ import org.mythtv.leanfront.model.VideoCursorMapper;
 import org.mythtv.leanfront.presenter.CardPresenter;
 import org.mythtv.leanfront.presenter.GuideCardPresenter;
 import org.mythtv.leanfront.presenter.GuideCardView;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 
 /*
  * This class demonstrates how to do in-app search
@@ -223,7 +223,7 @@ public class SearchFragment extends SearchSupportFragment
             String channelname = chanNode.getString("ChannelName");
             String callsign = chanNode.getString("CallSign");
             String chanDetails = channum + " " + channelname + " " + callsign;
-            GuideSlot slot = new GuideSlot(program.chanId, -1, chanDetails);
+            GuideSlot slot = new GuideSlot(program.chanId, -1, callsign, chanDetails);
             slot.cellType = GuideSlot.CELL_SEARCHRESULT;
             slot.timeSlot = program.startTime;
             slot.program = program;
@@ -252,12 +252,12 @@ public class SearchFragment extends SearchSupportFragment
             if (item instanceof Video) {
                 Video video = (Video) item;
                 Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
-                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+                intent.putExtra(PlaybackActivity.VIDEO, video);
 
                 Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                         getActivity(),
                         ((ImageCardView) itemViewHolder.view).getMainImageView(),
-                        VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
+                        PlaybackActivity.SHARED_ELEMENT_NAME).toBundle();
                 getActivity().startActivity(intent, bundle);
             } else if (item instanceof GuideSlot) {
                 GuideSlot card = (GuideSlot) item;

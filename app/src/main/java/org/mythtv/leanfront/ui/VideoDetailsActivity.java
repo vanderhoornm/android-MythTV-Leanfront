@@ -37,12 +37,6 @@ import org.mythtv.leanfront.model.Video;
  * Details activity class that loads VideoDetailsFragment class
  */
 public class VideoDetailsActivity extends LeanbackActivity {
-    public static final String SHARED_ELEMENT_NAME = "hero";
-    public static final String VIDEO = "Video";
-    public static final String NOTIFICATION_ID = "NotificationId";
-    public static final String BOOKMARK = "bookmark";
-    public static final String POSBOOKMARK = "posbookmark";
-    public static final String RECORDID = "recordid";
 
     private VideoDetailsFragment mFragment;
 

@@ -468,7 +468,7 @@
     <string name="sdef_tweak_ts_search_pkts" translatable="false">2600</string>
     <string name="sdef_livetv_rowsize" translatable="false">100</string>
     <string name="sdef_video_parental" translatable="false">4</string>
-    <string name="sdef_audio_pause" translatable="false">true</string>
+    <string name="sdef_audio_pause" translatable="false">false</string>
     <string name="sdef_autoplay" translatable="false">false</string>
     <string name="sdef_audio_sync" translatable="false">0</string>
     <string name="sdef_captions" translatable="false">0</string>

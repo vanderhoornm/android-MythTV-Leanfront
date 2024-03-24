@@ -73,7 +73,7 @@ private static final String TAG = "lfe";
     private static final int ID_AUDIO_AUTO = 17;
     private static final int ID_AUDIO_MEDIACODEC = 18;
     private static final int ID_AUDIO_FFMPEG = 19;
-    private static final int ID_LIVETV_DURATION = 21;
+    private static final int ID_IDLE_TIMEOUT = 21;
     private static final int ID_FRAMERATE_MATCH = 22;
     private static final int ID_SUBTITLE_SIZE = 23;
     private static final int ID_ERROR_TOAST = 24;
@@ -567,9 +567,9 @@ private static final String TAG = "lfe";
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
         subActions.add(new GuidedAction.Builder(getActivity())
-                .id(ID_LIVETV_DURATION)
-                .title(R.string.pref_title_livetv_duration)
-                .description(Settings.getString("pref_livetv_duration"))
+                .id(ID_IDLE_TIMEOUT)
+                .title(R.string.pref_title_idle_timeout)
+                .description(Settings.getString("pref_idle_timeout"))
                 .descriptionEditable(true)
                 .descriptionEditInputType(InputType.TYPE_CLASS_NUMBER)
                 .build());
@@ -688,9 +688,9 @@ private static final String TAG = "lfe";
                 Settings.putString(editor, "pref_jump",group,
                         action.getDescription().toString());
                 break;
-            case ID_LIVETV_DURATION:
-                Settings.putString(editor, "pref_livetv_duration",
-                        validateNumber(action, 30, 240, 60));
+            case ID_IDLE_TIMEOUT:
+                Settings.putString(editor, "pref_idle_timeout",
+                        validateNumber(action, 0, 720, 360));
                 break;
             case ID_SUBTITLE_SIZE:
                 Settings.putString(editor, "pref_subtitle_size",group,
@@ -795,8 +795,8 @@ private static final String TAG = "lfe";
             case ID_JUMP:
                 action.setDescription(Settings.getString("pref_jump",group));
                 break;
-            case ID_LIVETV_DURATION:
-                action.setDescription(Settings.getString("pref_livetv_duration"));
+            case ID_IDLE_TIMEOUT:
+                action.setDescription(Settings.getString("pref_idle_timeout"));
                 break;
             case ID_SUBTITLE_SIZE:
                 action.setDescription(Settings.getString("pref_subtitle_size",group));

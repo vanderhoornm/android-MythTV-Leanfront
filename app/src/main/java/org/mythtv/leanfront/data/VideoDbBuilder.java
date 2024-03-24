@@ -54,6 +54,8 @@ public class VideoDbBuilder {
     public static final String[] XMLTAGS_PROGRAM = {"Programs", "Program"};
     public static final String[] XMLTAGS_ARTINFO = {"Artwork", "ArtworkInfos", "ArtworkInfo"};
     public static final String[] XMLTAGS_CHANNELNAME = {"Channel", "ChannelName"};
+    public static final String[] XMLTAGS_CHANID = {"Channel", "ChanId"};
+    public static final String[] XMLTAGS_CALLSIGN = {"Channel", "CallSign"};
 
     public static final String XMLTAG_RECORDING = "Recording";
     public static final String XMLTAG_TITLE = "Title";
@@ -196,6 +198,8 @@ public class VideoDbBuilder {
             String playGroup = null;
             String storageGroup = null;
             String channel = null;
+            String chanid = null;
+            String callsign = null;
             String airdate = null;
             String starttime = null;
             String endtime = null;
@@ -219,6 +223,8 @@ public class VideoDbBuilder {
                 playGroup = recordingNode.getString(XMLTAG_PLAYGROUP);
                 storageGroup = recordingNode.getString(XMLTAG_STORAGEGROUP);
                 channel = programNode.getString(XMLTAGS_CHANNELNAME);
+                chanid = programNode.getString(XMLTAGS_CHANID);
+                callsign = programNode.getString(XMLTAGS_CALLSIGN);
                 airdate = programNode.getString(XMLTAG_AIRDATE);
                 starttime = programNode.getString(XMLTAG_STARTTIME);
 
@@ -388,6 +394,8 @@ public class VideoDbBuilder {
             videoValues.put(VideoContract.VideoEntry.COLUMN_CARD_IMG, cardImageURL);
             videoValues.put(VideoContract.VideoEntry.COLUMN_BG_IMAGE_URL, fanArtUrl);
             videoValues.put(VideoContract.VideoEntry.COLUMN_CHANNEL, channel);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_CHANID, chanid);
+            videoValues.put(VideoContract.VideoEntry.COLUMN_CALLSIGN, callsign);
             videoValues.put(VideoContract.VideoEntry.COLUMN_AIRDATE, airdate);
 
             videoValues.put(VideoContract.VideoEntry.COLUMN_STARTTIME, starttime);

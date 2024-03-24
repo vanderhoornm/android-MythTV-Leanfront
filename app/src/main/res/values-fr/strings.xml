@@ -77,7 +77,7 @@
         Paramètres Android.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">La plupart des types d\'audio, le son surround est lu en stéréo.</string>
-  <string name="pref_title_livetv_duration">Durée de la télévision en direct en minutes</string>
+  <string name="pref_title_idle_timeout">Délai d\'inactivité de lecture en minutes</string>
   <string name="pref_title_framerate_match">Faire correspondre la fréquence d\'images d\'origine</string>
   <string name="pref_letterbox_black">Boîte aux lettres Noir Mat</string>
   <string name="pref_letterbox_black_desc">Si cette case n\'est pas cochée, utilisez Grey Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">En direct</string>
   <string name="playback_speed">Vitesse de lecture</string>
   <string name="msg_unable_speed">Impossible de changer de vitesse. Désactivez le son surround ou sélectionnez l\'audio FFmpeg.</string>
+  <string name="msg_save_record">L\'enregistrement continuera à se terminer et sera ajouté au groupe par défaut.</string>
   <string name="button_zoom">Taille de l\'image</string>
   <string name="button_aspect">Étirer horizontalement</string>
   <string name="button_speedup">Modifier la vitesse de lecture</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Définir un signet</string>
   <string name="button_menu">Menu de lecture</string>
   <string name="button_commskip">Saut commercial ou coupé</string>
+  <string name="button_record">Enregistrez cette émission</string>
   <string name="row_header_videos">Vidéos</string>
   <string name="row_header_channels">Canaux</string>
   <string name="row_header_tools">Outils</string>
   <string name="title_alert_livetv">En direct</string>
-  <string name="alert_livetv_message">L\'enregistrement a échoué.</string>
+  <string name="alert_livetv_fail_message">Échec de la télévision en direct avec le statut : %1$s.</string>
   <string name="title_alert_rowresults">Résultats</string>
   <string name="alert_rowresults">%1$d Mise à jour\n%2$d Échec</string>
   <string name="title_are_you_sure">Es-tu sûr?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Lecture commerciale ou coupée</string>
   <string name="menu_comm_skip">Sauter</string>
   <string name="menu_comm_notskip">Ne passe pas</string>
+  <string name="msg_idle_timeout">Regardez-vous toujours ?\nCliquez sur le bouton Oui pour continuer.</string>
+  <string name="button_yes">Oui</string>
+  <string name="button_no">Non</string>
   <string name="backup_button">Restauration de sauvegarde</string>
   <string name="backup_menu">Sauvegarde dans le répertoire %1s.</string>
   <string name="menu_backup_settings">Sauvegardez les paramètres sur %s</string>

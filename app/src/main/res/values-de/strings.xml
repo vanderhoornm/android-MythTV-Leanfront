@@ -77,7 +77,7 @@
         Android-Einstellungen.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Bei den meisten Audioarten wird Surround-Sound in Stereo wiedergegeben.</string>
-  <string name="pref_title_livetv_duration">Live-TV-Dauer in Minuten</string>
+  <string name="pref_title_idle_timeout">Leerlauf-Timeout für die Wiedergabe in Minuten</string>
   <string name="pref_title_framerate_match">Passen Sie die ursprüngliche Bildrate an</string>
   <string name="pref_letterbox_black">Briefkasten Schwarz Matt</string>
   <string name="pref_letterbox_black_desc">Wenn die Option deaktiviert ist, verwenden Sie Grey Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Live Fernsehen</string>
   <string name="playback_speed">Wiedergabegeschwindigkeit</string>
   <string name="msg_unable_speed">Geschwindigkeit kann nicht geändert werden. Deaktivieren Sie den Surround-Sound oder wählen Sie FFmpeg-Audio.</string>
+  <string name="msg_save_record">Die Aufzeichnung wird weiterhin beendet und zur Standardgruppe hinzugefügt.</string>
   <string name="button_zoom">Bildgröße</string>
   <string name="button_aspect">Horizontal dehnen</string>
   <string name="button_speedup">Ändern Sie die Wiedergabegeschwindigkeit</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Lesezeichen setzen</string>
   <string name="button_menu">Wiedergabemenü</string>
   <string name="button_commskip">Kommerziell oder Schnitt überspringen</string>
+  <string name="button_record">Nehmen Sie diese Show auf</string>
   <string name="row_header_videos">Videos</string>
   <string name="row_header_channels">Kanäle</string>
   <string name="row_header_tools">Werkzeuge</string>
   <string name="title_alert_livetv">Live Fernsehen</string>
-  <string name="alert_livetv_message">Die Aufnahme ist fehlgeschlagen.</string>
+  <string name="alert_livetv_fail_message">Live-TV ist mit dem Status %1$s fehlgeschlagen.</string>
   <string name="title_alert_rowresults">Ergebnisse</string>
   <string name="alert_rowresults">%1$d Aktualisiert\n%2$d fehlgeschlagen</string>
   <string name="title_are_you_sure">Bist du sicher?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Kommerzielle oder geschnittene Wiedergabe</string>
   <string name="menu_comm_skip">Überspringen</string>
   <string name="menu_comm_notskip">Nicht überspringen</string>
+  <string name="msg_idle_timeout">Schauen Sie immer noch zu?\nKlicken Sie auf die Schaltfläche „Ja“, um fortzufahren.</string>
+  <string name="button_yes">Ja</string>
+  <string name="button_no">NEIN</string>
   <string name="backup_button">Backup wiederherstellen</string>
   <string name="backup_menu">Sicherung im Verzeichnis %1s.</string>
   <string name="menu_backup_settings">Sichern Sie die Einstellungen auf %s</string>

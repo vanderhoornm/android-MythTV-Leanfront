@@ -77,7 +77,7 @@
         Ustawienia Androida.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">W przypadku większości rodzajów dźwięku dźwięk przestrzenny jest odtwarzany w formacie stereo.</string>
-  <string name="pref_title_livetv_duration">Czas trwania telewizji na żywo w minutach</string>
+  <string name="pref_title_idle_timeout">Limit czasu bezczynności odtwarzania w minutach</string>
   <string name="pref_title_framerate_match">Dopasuj oryginalną liczbę klatek na sekundę</string>
   <string name="pref_letterbox_black">Skrzynka na listy w kolorze czarnym matowym</string>
   <string name="pref_letterbox_black_desc">Jeżeli nie jest zaznaczone, użyj Grey Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Telewizja na żywo</string>
   <string name="playback_speed">Szybkość odtwarzania</string>
   <string name="msg_unable_speed">Nie można zmienić prędkości. Wyłącz dźwięk przestrzenny lub wybierz dźwięk FFmpeg.</string>
+  <string name="msg_save_record">Nagrywanie będzie nadal się kończyć i zostanie dodane do grupy domyślnej.</string>
   <string name="button_zoom">Rozmiar obrazka</string>
   <string name="button_aspect">Rozciągnij poziomo</string>
   <string name="button_speedup">Zmień prędkość odtwarzania</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Ustaw zakładkę</string>
   <string name="button_menu">Menu odtwarzania</string>
   <string name="button_commskip">Pomiń komercyjny lub cięty</string>
+  <string name="button_record">Nagraj ten program</string>
   <string name="row_header_videos">Filmy</string>
   <string name="row_header_channels">Kanały</string>
   <string name="row_header_tools">Narzędzia</string>
   <string name="title_alert_livetv">Telewizja na żywo</string>
-  <string name="alert_livetv_message">Nagrywanie nie powiodło się.</string>
+  <string name="alert_livetv_fail_message">Telewizja na żywo nie powiodła się, stan: %1$s.</string>
   <string name="title_alert_rowresults">Wyniki</string>
   <string name="alert_rowresults">%1$d Aktualizacja\n%2$d nie powiodła się</string>
   <string name="title_are_you_sure">Jesteś pewny?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Odtwarzanie komercyjne lub wycinane</string>
   <string name="menu_comm_skip">Pominąć</string>
   <string name="menu_comm_notskip">Nie pomijaj</string>
+  <string name="msg_idle_timeout">Czy nadal oglądasz?\nKliknij przycisk Tak, aby kontynuować.</string>
+  <string name="button_yes">Tak</string>
+  <string name="button_no">NIE</string>
   <string name="backup_button">Przywracania kopii zapasowej</string>
   <string name="backup_menu">Utwórz kopię zapasową w katalogu %1s.</string>
   <string name="menu_backup_settings">Utwórz kopię zapasową ustawień w %s</string>

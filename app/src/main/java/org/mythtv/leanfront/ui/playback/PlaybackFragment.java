@@ -59,6 +59,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
+import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
 import androidx.leanback.widget.Action;
@@ -80,6 +81,7 @@ import androidx.loader.content.Loader;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.AsyncBackendCall;
+import org.mythtv.leanfront.data.BackendCache;
 import org.mythtv.leanfront.data.CommBreakTable;
 import org.mythtv.leanfront.data.MythHttpDataSource;
 import org.mythtv.leanfront.model.Playlist;
@@ -145,7 +147,7 @@ public class PlaybackFragment extends VideoSupportFragment
     PlaybackActionListener mPlaybackActionListener;
     private PlayerEventListener mPlayerEventListener;
 
-    private Video mVideo;
+    Video mVideo;
     private Playlist mPlaylist;
     private VideoLoaderCallbacks mVideoLoaderCallbacks;
     private CursorObjectAdapter mVideoCursorAdapter;
@@ -193,9 +195,14 @@ public class PlaybackFragment extends VideoSupportFragment
 
     private View mFocusView;
     private Action mCurrentAction;
+
+    // Support for Live TV
     private long mRecordid = -1;
+    private long mNextRecordid = -1;
     private Date endTime = null;
-    private boolean saveLiveRec = false;
+    private Date nextEndTime = null;
+    boolean saveLiveRec = false;
+    private ScheduledFuture<?> nextScheduler;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "PlaybackFragment";
@@ -205,7 +212,7 @@ public class PlaybackFragment extends VideoSupportFragment
     private boolean playWhenPrepared;
     private ScheduledFuture<?> audioFixTask;
     private boolean isTV;
-    private boolean isIncreasing;
+    boolean isIncreasing;
     CommBreakTable commBreakTable = new CommBreakTable();
     int commBreakOption =  Settings.getInt("pref_commskip");
     public static final int COMMBREAK_OFF = 0;
@@ -235,7 +242,7 @@ public class PlaybackFragment extends VideoSupportFragment
         mWatched = (Integer.parseInt(mVideo.progflags, 10) & Video.FL_WATCHED) != 0;
 
         // For live TV start off as unbounded
-        if (mRecordid >= 0)
+        if (mRecordid > 0)
             mIsBounded = false;
 
         mVideoLoaderCallbacks = new VideoLoaderCallbacks(mPlaylist);
@@ -266,6 +273,31 @@ public class PlaybackFragment extends VideoSupportFragment
         super.onStart();
         if (Util.SDK_INT > 23) {
             initializePlayer(true);
+        }
+        scheduleNext();
+    }
+
+    void scheduleNext () {
+        // Live TV - set a recording for the next program
+        // will create the schedule 5 minutes before the time due or now
+        // if there is less than 5 minutes.
+        // If the start time for the next episode is already past, do not schedule.
+        if (endTime != null && mRecordid > 0 && endTime.getTime() > System.currentTimeMillis()) {
+            ScheduledExecutorService executor = MainFragment.getExecutor();
+            if (executor != null) {
+                long millis = endTime.getTime() - System.currentTimeMillis() - 5L*60000;
+                if (millis < 1000)
+                    millis = 1000;
+                if (nextScheduler !=  null && !nextScheduler.isCancelled() && !nextScheduler.isDone())
+                    nextScheduler.cancel(true);
+                nextScheduler = executor.schedule(() -> {
+                    AsyncBackendCall call = new AsyncBackendCall(getActivity(), this );
+                    call.setStartTime(endTime);
+                    call.setChanid(Integer.parseInt(mVideo.chanid));
+                    call.setCallSign(mVideo.callsign);
+                    call.execute(Video.ACTION_LIVETV, Video.ACTION_ADD_OR_UPDATERECRULE);
+                }, millis, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
@@ -306,14 +338,30 @@ public class PlaybackFragment extends VideoSupportFragment
             isPlaying = true;
             mPlayerGlue.pause();
         }
-        if (mRecordid >= 0) {
+        if (mRecordid > 0) {
             // Terminate Live TV
-            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
-            call.setVideo(mVideo);
-            call.setmValue(mRecordid);
-            call.execute(
-                    Video.ACTION_STOP_RECORDING,
-                    Video.ACTION_REMOVE_RECORD_RULE);
+            AsyncBackendCall call;
+            if (!saveLiveRec) {
+                call = new AsyncBackendCall(getActivity(), null);
+                call.setRecordedId(Integer.parseInt(mVideo.recordedid));
+                call.setRecordId(mRecordid);
+                call.execute(
+                        Video.ACTION_STOP_RECORDING,
+                        Video.ACTION_REMOVE_RECORD_RULE);
+            }
+            if (nextScheduler != null && !nextScheduler.isCancelled()
+                    && !nextScheduler.isDone())
+                nextScheduler.cancel(true);
+            if (mNextRecordid > 0) {
+                call = new AsyncBackendCall(getActivity(), null);
+                call.setRecordId(mNextRecordid);
+                call.execute(
+                        Video.ACTION_GET_RECORDED,
+                        Video.ACTION_STOP_RECORDING,
+                        Video.ACTION_REMOVE_RECORD_RULE);
+            }
+            mRecordid = -1;
+            mNextRecordid = -1;
         }
         else if (isPlaying)
             setBookmark(Video.ACTION_SET_LASTPLAYPOS);
@@ -434,10 +482,14 @@ public class PlaybackFragment extends VideoSupportFragment
             if (sampleOffsetUs != 0)
                 mAudioPause = true;
         }
+        VideoPlayerGlue oldGlue = mPlayerGlue;
         mPlayerGlue = new VideoPlayerGlue(getActivity(), mPlayerAdapter,
-                mPlaybackActionListener, mRecordid < 0);
-        mPlayerGlue.setEnableControls(enableControls); // xxxx
-        mPlayerGlue.setAutoPlay("true".equals(Settings.getString("pref_autoplay",mVideo.playGroup)));
+                mPlaybackActionListener, mRecordid > 0);
+        mPlayerGlue.setEnableControls(enableControls);
+        if (oldGlue == null)
+            mPlayerGlue.setAutoPlay("true".equals(Settings.getString("pref_autoplay",mVideo.playGroup)));
+        else
+            mPlayerGlue.setAutoPlay(oldGlue.getAutoPlay());
         mPlayerGlue.setHost(new VideoSupportFragmentGlueHost(this));
         hideControlsOverlay(false);
         play(mVideo);
@@ -887,8 +939,14 @@ public class PlaybackFragment extends VideoSupportFragment
         if (v != null) {
             setBookmark(Video.ACTION_SET_LASTPLAYPOS);
             mBookmark = 0;
+            mIsBounded = true;
+            mOffsetBytes = 0;
+            mPlayerGlue.setOffsetMillis(0);
+            mPlayer.stop();
+            mPlayer.clearMediaItems();
+            saveLiveRec = false;
             mVideo = v;
-            play(mVideo);
+            initializePlayer(false);
         }
 
     }
@@ -997,8 +1055,8 @@ public class PlaybackFragment extends VideoSupportFragment
     // Return = new track selection.
 
     @OptIn(markerClass = UnstableApi.class)
-    int trackSelector(int trackType, int trackSelection,
-                                                              int msgOn, int msgOff, boolean disable, boolean doChange) {
+    int trackSelector(int trackType, int trackSelection, int msgOn,
+            int msgOff, boolean disable, boolean doChange) {
         boolean isPlaying = mPlayerGlue.isPlaying();
         TrackInfo tracks = new TrackInfo(this, trackType);
         StringBuilder msg = new StringBuilder();
@@ -1115,6 +1173,24 @@ public class PlaybackFragment extends VideoSupportFragment
         return false;
     }
 
+    public void onRecord() {
+        saveLiveRec = true;
+        if (mVideo.recordedid != null && BackendCache.getInstance().canUpdateRecGroup) {
+            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+            mVideo.recGroup = "Default";
+            call.setVideo(mVideo);
+            call.setStringParameter("false");  // Auto Expire set to false
+            call.execute(Video.ACTION_UPDATE_RECGROUP);
+            if (mToast != null)
+                mToast.cancel();
+            mToast = Toast.makeText(getActivity(),
+                    getActivity().getString(R.string.msg_save_record),
+                    Toast.LENGTH_LONG);
+            mToast.show();
+
+        }
+    }
+
     public void markWatched(boolean watched) {
         mWatched = watched;
         AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
@@ -1158,7 +1234,7 @@ public class PlaybackFragment extends VideoSupportFragment
                     mPlayerEventListener.handlePlayerError(null, R.string.pberror_file_length_fail);
                 }
                 if (mFileLength > -1 && fileLength > mFileLength)
-                    isIncreasing=true;
+                    isIncreasing = true;
                 if (mIsPlayResumable) {
                     if (fileLength > mFileLength) {
                         mFileLength = fileLength;
@@ -1170,11 +1246,17 @@ public class PlaybackFragment extends VideoSupportFragment
                         Log.i(TAG, CLASS + " Resuming Playback.");
                         play(mVideo);
                         hideControlsOverlay(false);
+                        mIsPlayResumable = false;
+                        break;
                     }
                     else Log.i(TAG, CLASS + " Playback ending at EOF.");
                 }
                 mFileLength = fileLength;
                 mIsPlayResumable = false;
+                // Now check for a subsequent show if in LiveTV mode
+                // or next show in autoplay mode
+                if (mPlayerGlue.isPlayCompleted())
+                    checkNextShow();
                 break;
             case Video.ACTION_SET_BOOKMARK:
                 if (mToast != null)
@@ -1188,8 +1270,92 @@ public class PlaybackFragment extends VideoSupportFragment
                 if (commBreakTable.entries.length > 0)
                     mPlaybackActionListener.setNextCommBreak(-1);
                 break;
+            case Video.ACTION_LIVETV:
+                mNextRecordid = taskRunner.getRecordId();
+                nextEndTime = taskRunner.getEndTime();
+                break;
+            case Video.ACTION_WAIT_RECORDING:
+                setProgressBar(false);
+                Video nextVid = taskRunner.getVideo();
+                Context context = getContext();
+                if (nextVid == null || context == null) {
+                    if (context != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context,
+                                R.style.Theme_AppCompat_Dialog_Alert);
+                        builder.setTitle(R.string.title_alert_livetv);
+                        String msg = context.getString(R.string.alert_livetv_fail_message,taskRunner.getStringParameter());
+                        builder.setMessage(msg);
+                        // add a button
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.show();
+                    }
+                    long recordId = taskRunner.getRecordId();
+                    long recordedId = taskRunner.getRecordedId();
+                    Video video = new Video.VideoBuilder()
+                            .recGroup("LiveTV")
+                            .recordedid(String.valueOf(recordedId))
+                            .build();
+                    if (recordId >= 0) {
+                        // Terminate Live TV
+                        AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+                        call.setVideo(video);
+                        call.setRecordId(recordId);
+                        call.setRecordedId(Integer.parseInt(video.recordedid));
+                        call.execute(
+                                Video.ACTION_STOP_RECORDING,
+                                Video.ACTION_REMOVE_RECORD_RULE);
+                    }
+                    break;
+                }
+                mRecordid = mNextRecordid;
+                mNextRecordid = 0;
+                endTime = nextEndTime;
+                nextEndTime = null;
+                mBookmark = 0;
+                mIsBounded = false;
+                mOffsetBytes = 0;
+                mPlayerGlue.setOffsetMillis(0);
+                mPlayer.stop();
+                mPlayer.clearMediaItems();
+                saveLiveRec = false;
+                mVideo = nextVid;
+                initializePlayer(false);
+                scheduleNext();
+                break;
         }
     }
+
+    // check for a subsequent show if in LiveTV mode
+    // or next show in autoplay mode.
+    void checkNextShow() {
+        if (mRecordid > 0 && mNextRecordid > 0) {
+            setProgressBar(true);
+            AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
+            call.setRecordId(mNextRecordid);
+            call.execute(Video.ACTION_WAIT_RECORDING);
+            // delete record rule for completed show
+            call = new AsyncBackendCall(getActivity(), null);
+            call.setRecordedId(Integer.parseInt(mVideo.recordedid));
+            call.setRecordId(mRecordid);
+            call.execute(
+                    Video.ACTION_PAUSE,
+                    Video.ACTION_REMOVE_RECORD_RULE);
+        }
+        else if (mPlayerGlue.getAutoPlay()) {
+            tickle();
+            skipToNext();
+        }
+    }
+
+    private void setProgressBar(boolean show) {
+        ProgressBarManager manager = getProgressBarManager();
+        // Initial delay defaults to 1000 (1 second)
+        if (show)
+            manager.show();
+        else
+            manager.hide();
+    }
+
 
     public void setDataSource(MythHttpDataSource mDataSource) {
         this.mDataSource = mDataSource;
@@ -1252,7 +1418,6 @@ public class PlaybackFragment extends VideoSupportFragment
                 mPlayer.stop();
                 mPlayer.clearMediaItems();
                 initializePlayer(false);
-//                mPlayerGlue.setEnableControls(false); // xxxx
                 return;
             }
             mSpeed = SPEED_START_VALUE;

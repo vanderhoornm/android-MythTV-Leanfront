@@ -5,7 +5,6 @@ import androidx.fragment.app.Fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
@@ -25,9 +24,12 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
 
     private ArrayObjectAdapter mRowsAdapter;
     private BackgroundManager mBackgroundManager;
+    private boolean isGuide;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Intent intent = getActivity().getIntent();
+        isGuide = "GUIDE".equals(intent.getCharSequenceExtra("TYPE"));
         super.onCreate(savedInstanceState);
         setupUi();
         loadData();
@@ -35,6 +37,15 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         mBackgroundManager.attach(getActivity().getWindow());
         getMainFragmentRegistry().registerFragment(PageRow.class,
                 new PageRowFragmentFactory(mBackgroundManager));
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isGuide) {
+            setHeadersState(HEADERS_DISABLED);
+        }
     }
 
     private void setupUi() {
@@ -43,7 +54,10 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
         setBrandColor(getResources().getColor(R.color.fastlane_background));
         // Set search icon color.
         setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
-        setTitle(getString(R.string.title_manage_recordings));
+        if (isGuide)
+            setTitle(getString(R.string.title_program_guide));
+        else
+            setTitle(getString(R.string.title_manage_recordings));
         setOnSearchClickedListener(view -> {
             Intent intent = new Intent(getActivity(), SearchActivity.class);
             startActivity(intent);
@@ -60,15 +74,19 @@ public class ManageRecordingsFragment extends BrowseSupportFragment {
     }
 
     private void createRows() {
-        HeaderItem headerItem3 = new HeaderItem(HEADER_ID_UPCOMING, getString(R.string.title_upcoming));
-        PageRow pageRow3 = new PageRow(headerItem3);
-        mRowsAdapter.add(pageRow3);
-        HeaderItem headerItem2 = new HeaderItem(HEADER_ID_RECRULES, getString(R.string.title_rec_rules));
-        PageRow pageRow2 = new PageRow(headerItem2);
-        mRowsAdapter.add(pageRow2);
+        if (!isGuide) {
+            HeaderItem headerItem3 = new HeaderItem(HEADER_ID_UPCOMING, getString(R.string.title_upcoming));
+            PageRow pageRow3 = new PageRow(headerItem3);
+            mRowsAdapter.add(pageRow3);
+            HeaderItem headerItem2 = new HeaderItem(HEADER_ID_RECRULES, getString(R.string.title_rec_rules));
+            PageRow pageRow2 = new PageRow(headerItem2);
+            mRowsAdapter.add(pageRow2);
+        }
         HeaderItem headerItem1 = new HeaderItem(HEADER_ID_GUIDE, getString(R.string.title_program_guide));
         PageRow pageRow1 = new PageRow(headerItem1);
         mRowsAdapter.add(pageRow1);
+        if (isGuide)
+            setHeadersState(HEADERS_HIDDEN);
     }
 
     private static class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactory {

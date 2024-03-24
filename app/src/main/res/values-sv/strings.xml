@@ -77,7 +77,7 @@
         Android-inställningar.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">De flesta typer av ljud, surroundljud spelar som stereo.</string>
-  <string name="pref_title_livetv_duration">Live TV-längd i minuter</string>
+  <string name="pref_title_idle_timeout">Timeout för inaktiv uppspelning i minuter</string>
   <string name="pref_title_framerate_match">Matcha originalbildhastighet</string>
   <string name="pref_letterbox_black">Brevlåda Svart Matt</string>
   <string name="pref_letterbox_black_desc">Använd Grey Matte om avmarkerat</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Live TV</string>
   <string name="playback_speed">Uppspelningshastighet</string>
   <string name="msg_unable_speed">Det går inte att ändra hastighet. Inaktivera surroundljud eller välj FFmpeg-ljud.</string>
+  <string name="msg_save_record">Inspelningen fortsätter att avslutas och läggs till i standardgruppen.</string>
   <string name="button_zoom">Bildstorlek</string>
   <string name="button_aspect">Sträck horisontellt</string>
   <string name="button_speedup">Ändra uppspelningshastighet</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Ställ in bokmärke</string>
   <string name="button_menu">Uppspelningsmeny</string>
   <string name="button_commskip">Kommersiell eller Cut Skip</string>
+  <string name="button_record">Spela in denna show</string>
   <string name="row_header_videos">videoklipp</string>
   <string name="row_header_channels">Kanaler</string>
   <string name="row_header_tools">Verktyg</string>
   <string name="title_alert_livetv">Live TV</string>
-  <string name="alert_livetv_message">Inspelningen misslyckades.</string>
+  <string name="alert_livetv_fail_message">Live-tv misslyckades med status: %1$s.</string>
   <string name="title_alert_rowresults">Resultat</string>
   <string name="alert_rowresults">%1$d Uppdaterad\n%2$d Misslyckades</string>
   <string name="title_are_you_sure">Är du säker?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Kommersiellt eller Cut-spelande</string>
   <string name="menu_comm_skip">Hoppa</string>
   <string name="menu_comm_notskip">Hoppa inte över</string>
+  <string name="msg_idle_timeout">Tittar du fortfarande?\nKlicka på Ja-knappen för att fortsätta.</string>
+  <string name="button_yes">Ja</string>
+  <string name="button_no">Nej</string>
   <string name="backup_button">Säkerhetskopiera/återställa</string>
   <string name="backup_menu">Säkerhetskopiera till katalogen %1s.</string>
   <string name="menu_backup_settings">Säkerhetskopiera inställningarna till %s</string>

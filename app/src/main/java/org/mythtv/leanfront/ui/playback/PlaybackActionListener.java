@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -35,6 +36,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -44,6 +46,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackParameters;
 
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.source.SampleQueue;
 
 import org.mythtv.leanfront.R;
@@ -72,6 +75,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     long priorSampleOffsetUs = 0;
     AlertDialog mDialog;
     private DialogDismiss dialogDismiss = new DialogDismiss();
+    private boolean yesPress;
 
     private static final String TAG = "lfe";
     private static final String CLASS = "PlaybackActionListener";
@@ -166,13 +170,13 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
     public void onPlayCompleted(VideoPlayerGlue.MyAction playlistPlayAction) {
         playbackFragment.setBookmark(Video.ACTION_SET_LASTPLAYPOS);
         dismissDialog();
-        if (playlistPlayAction.getIndex() == 1) // playlist selected
-            onNext();
-        else if (playbackFragment.mIsBounded) {
+        if (playbackFragment.mIsBounded) {
             Log.i(TAG, CLASS + " onPlayCompleted checking File Length.");
             playbackFragment.mIsPlayResumable = true;
             playbackFragment.getFileLength(true);
         }
+        else
+            playbackFragment.checkNextShow();
     }
 
     @Override
@@ -765,6 +769,7 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
         );
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     public void setAudioSync() {
         boolean found = false;
         SampleQueue[] sampleQueues = playbackFragment.mMediaSource.getSampleQueues();
@@ -1095,6 +1100,45 @@ class PlaybackActionListener implements VideoPlayerGlue.OnActionClickedListener 
 //        playbackFragment.hideControlsOverlay(true);
         // Comment this To Hide controls while skipping commercials
         playbackFragment.setControlsOverlayAutoHideEnabled(true);
+    }
+
+    public void onRecord() {
+        playbackFragment.onRecord();
+    }
+
+    @Override
+    public void onIdleTimeout() {
+        ((PlaybackActivity)playbackFragment.getActivity()).updateTouchTime();
+        dismissDialog();
+        playbackFragment.hideControlsOverlay(false);
+        yesPress = false;
+        AlertDialog.Builder builder = new AlertDialog.Builder(playbackFragment.getContext(),
+                R.style.Theme_AppCompat_Dialog_Alert)
+                .setTitle(playbackFragment.mVideo.title)
+                .setMessage(R.string.msg_idle_timeout)
+                .setPositiveButton(R.string.button_yes, (dialog, which) -> {
+                    ((PlaybackActivity)playbackFragment.getActivity()).updateTouchTime();
+                    yesPress = true;
+                 })
+                .setNegativeButton(R.string.button_no,null)
+                .setOnDismissListener( (dialog) -> {
+                    if (yesPress)
+                        dialogDismiss.onDismiss(dialog);
+                    else {
+                        dialogDismiss.onDismiss(dialog);
+                        playbackFragment.getActivity().finish();
+                    }
+                });
+        dialogDismiss.enableControls = false;
+        mDialog = builder.create();
+        mDialog.show();
+        WindowManager.LayoutParams lp = mDialog.getWindow().getAttributes();
+        lp.dimAmount = 0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+        mDialog.getWindow().setAttributes(lp);
+        new Handler().postDelayed( () -> {
+            if (mDialog != null)
+                mDialog.dismiss();
+         }, 120000);
     }
 
     // Gestures

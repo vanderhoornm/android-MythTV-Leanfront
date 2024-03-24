@@ -77,7 +77,7 @@
         Configurações do Android.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Na maioria dos tipos de áudio, o som surround é reproduzido como estéreo.</string>
-  <string name="pref_title_livetv_duration">Duração da TV ao vivo em minutos</string>
+  <string name="pref_title_idle_timeout">Tempo limite de inatividade da reprodução em minutos</string>
   <string name="pref_title_framerate_match">Corresponder à taxa de quadros original</string>
   <string name="pref_letterbox_black">Caixa de correio preta fosca</string>
   <string name="pref_letterbox_black_desc">Se desmarcado, use Gray Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">TV ao vivo</string>
   <string name="playback_speed">Velocidade de reprodução</string>
   <string name="msg_unable_speed">Não é possível alterar a velocidade. Desative o som surround ou selecione áudio FFmpeg.</string>
+  <string name="msg_save_record">A gravação continuará até terminar e será adicionada ao grupo Padrão.</string>
   <string name="button_zoom">Tamanho da imagem</string>
   <string name="button_aspect">Esticar horizontalmente</string>
   <string name="button_speedup">Alterar velocidade de reprodução</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Definir marcador</string>
   <string name="button_menu">Menu de reprodução</string>
   <string name="button_commskip">Pular comercial ou cortado</string>
+  <string name="button_record">Grave este programa</string>
   <string name="row_header_videos">Vídeos</string>
   <string name="row_header_channels">Canais</string>
   <string name="row_header_tools">Ferramentas</string>
   <string name="title_alert_livetv">TV ao vivo</string>
-  <string name="alert_livetv_message">A gravação falhou.</string>
+  <string name="alert_livetv_fail_message">Falha na TV ao vivo com status: %1$s.</string>
   <string name="title_alert_rowresults">Resultados</string>
   <string name="alert_rowresults">%1$d Atualizado\n%2$d Falha</string>
   <string name="title_are_you_sure">Tem certeza?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Jogo comercial ou cortado</string>
   <string name="menu_comm_skip">Pular</string>
   <string name="menu_comm_notskip">Não pule</string>
+  <string name="msg_idle_timeout">Você ainda está assistindo?\nClique no botão Sim para continuar.</string>
+  <string name="button_yes">Sim</string>
+  <string name="button_no">Não</string>
   <string name="backup_button">Restauração de backup</string>
   <string name="backup_menu">Backup no diretório %1s.</string>
   <string name="menu_backup_settings">Faça backup das configurações para %s</string>

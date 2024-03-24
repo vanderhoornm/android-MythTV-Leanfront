@@ -24,6 +24,7 @@
 
 package org.mythtv.leanfront.player;
 
+import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -31,6 +32,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 
+import androidx.annotation.OptIn;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.leanback.media.PlaybackTransportControlGlue;
 import androidx.leanback.widget.Action;
@@ -40,11 +42,14 @@ import androidx.leanback.widget.PlaybackRowPresenter;
 import androidx.leanback.widget.PlaybackTransportRowPresenter;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.WidgetAccess;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.ui.leanback.LeanbackPlayerAdapter;
 
 import org.mythtv.leanfront.R;
 import org.mythtv.leanfront.data.BackendCache;
+import org.mythtv.leanfront.model.Settings;
 import org.mythtv.leanfront.model.Video;
+import org.mythtv.leanfront.ui.playback.PlaybackActivity;
 
 /**
  * Manages customizing the actions in the {@link PlaybackControlsRow}. Adds and manages the
@@ -86,11 +91,13 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         void onBookmark();
         boolean onMenu();
         void onCommSkip();
+        void onRecord();
         void onActionSelected(Action action);
         void onCommBreak(long nextCommBreakMs, long position);
         void onEndCommBreak();
         void onPlayStateChanged();
         void dismissDialog();
+        void onIdleTimeout();
     }
 
     private final OnActionClickedListener mActionListener;
@@ -111,11 +118,13 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private MyAction mBookmarkAction;
     public final MyAction mMenuAction;
     private MyAction mCommSkipAction;
+    private final MyAction mRecordAction;
     private boolean mActionsVisible;
     private long mOffsetMillis = 0;
     // Skip means go to next or previous track
     // Skip is disallowed when playing Live TV
     private boolean mAllowSkip;
+    private boolean mLiveTV;
     private long mSavedCurrentPosition = -1;
     private long mSavedDuration = -1;
     private final boolean isTV;
@@ -124,19 +133,23 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean enableControls = true;
     private long nextCommBreakMs = Long.MAX_VALUE;
     private long endCommBreakMs = Long.MAX_VALUE;
+    private PlaybackActivity activity;
+    private long idleTimeoutMillis;
 
     public VideoPlayerGlue(
-            Context context,
+            Activity context,
             LeanbackPlayerAdapter playerAdapter,
             OnActionClickedListener actionListener,
-            boolean allowSkip) {
+            boolean liveTV) {
         super(context, playerAdapter);
 
+        activity = (PlaybackActivity) context;
         UiModeManager uiModeManager = (UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
         isTV = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
 
         mActionListener = actionListener;
-        mAllowSkip = allowSkip;
+        mLiveTV = liveTV;
+        mAllowSkip = !liveTV;
 
         mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(context);
         mSkipNextAction = new PlaybackControlsRow.SkipNextAction(context);
@@ -159,6 +172,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         mBookmarkAction = new MyAction(context,Video.ACTION_SET_BOOKMARK, R.drawable.ic_bookmark_border,R.string.button_bookmark);
         mMenuAction = new MyAction(context,Video.ACTION_MENU, R.drawable.ic_menu,R.string.button_menu);
         mCommSkipAction = new MyAction(context,Video.ACTION_COMMSKIP, R.drawable.ic_bolt,R.string.button_commskip);
+        mRecordAction = new MyAction(context,Video.ACTION_RECORD,
+                new int[] {R.drawable.ic_record, R.drawable.ic_record_active},
+                new int[] {R.string.button_record, R.string.button_record});
+        idleTimeoutMillis = Settings.getInt("pref_idle_timeout") * 60000;
     }
 
     @Override
@@ -176,6 +193,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             adapter.add(mSkipNextAction);
         adapter.add(mSpeedAction);
         adapter.add(mMenuAction);
+        if (mLiveTV)
+            adapter.add(mRecordAction);
         if (BackendCache.getInstance().supportLastPlayPos)
             adapter.add(mBookmarkAction);
         adapter.add(mCommSkipAction);
@@ -190,17 +209,24 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         adapter.add(mPivotAction);
         adapter.add(mAudioTrackAction);
         adapter.add(mAudioSyncAction);
-        adapter.add(mAutoPlayAction);
+        if (mAllowSkip)
+            adapter.add(mAutoPlayAction);
         mActionsVisible = true;
     }
 
     public void setAutoPlay(boolean enable) {
+        if (!mAllowSkip)
+            enable = false;
         int value;
         if (enable)
             value=1;
         else
             value=0;
         mAutoPlayAction.setIndex(value);
+    }
+
+    public boolean getAutoPlay() {
+        return mAutoPlayAction.getIndex() == 1;
     }
 
     public void setActions(boolean showActions) {
@@ -256,6 +282,8 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
     private boolean shouldDispatchAction(Action action) {
         if (playerClosed)
             return false;
+        if (action == mAutoPlayAction && mAllowSkip)
+            return true;
         return action == mRewindAction
                 || action == mFastForwardAction
                 || action == mClosedCaptioningAction
@@ -266,9 +294,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 || action == mAudioTrackAction
                 || action == mAudioSyncAction
                 || action == mBookmarkAction
-                || action == mAutoPlayAction
                 || action == mMenuAction
-                || action == mCommSkipAction;
+                || action == mCommSkipAction
+                || action == mRecordAction;
     }
 
     private void dispatchAction(Action action) {
@@ -297,6 +325,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             mActionListener.onMenu();
         } else if (action == mCommSkipAction) {
             mActionListener.onCommSkip();
+        } else if (action == mRecordAction) {
+            mActionListener.onRecord();
+            mRecordAction.setIndex(1);
+            PlaybackControlsRow row =  getControlsRow();
+            ArrayObjectAdapter adapter = (ArrayObjectAdapter) row.getPrimaryActionsAdapter();
+            notifyActionChanged(mRecordAction, adapter);
         } else if (action instanceof PlaybackControlsRow.MultiAction) {
             PlaybackControlsRow.MultiAction multiAction = (PlaybackControlsRow.MultiAction) action;
             multiAction.nextIndex();
@@ -329,8 +363,12 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
             playCompleted = false;
     }
 
+    public boolean isPlayCompleted() {
+        return playCompleted;
+    }
+
     private void notifyActionChanged(
-            PlaybackControlsRow.MultiAction action, ArrayObjectAdapter adapter) {
+            Action action, ArrayObjectAdapter adapter) {
         if (adapter != null) {
             int index = adapter.indexOf(action);
             if (index >= 0) {
@@ -385,9 +423,10 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
         return mSavedCurrentPosition;
     }
 
-    @Override
     // This method was copied from PlaybackBaseControlGlue
     // so we can modify the duration
+    @OptIn(markerClass = UnstableApi.class)
+    @Override
     protected void onUpdateDuration() {
         PlaybackControlsRow controlsRow = getControlsRow();
         LeanbackPlayerAdapter adapter = getPlayerAdapter();
@@ -430,6 +469,9 @@ public class VideoPlayerGlue extends PlaybackTransportControlGlue<LeanbackPlayer
                 mActionListener.onCommBreak(next, currPos);
             }
         }
+        if (idleTimeoutMillis > 0
+                && System.currentTimeMillis() - activity.getTouchTime() > idleTimeoutMillis)
+            mActionListener.onIdleTimeout();
         super.onUpdateProgress();
     }
 

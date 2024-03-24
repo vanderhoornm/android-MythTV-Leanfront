@@ -26,7 +26,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.util.Xml;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -99,6 +98,7 @@ public class AsyncBackendCall implements Runnable {
     private static final String[] XMLTAGS_RECORDID = {"Recording", "RecordId"};
     private static final String[] XMLTAGS_RECORDEDID = {"Recording", "RecordedId"};
     private static final String[] XMLTAGS_ENDTIME = {"Recording", "EndTs"};
+    private static final String[] XMLTAGS_STATUSNAME = {"Programs", "Program", "Recording","StatusName"};
     private static final String XMLTAG_WATCHED = "Watched";
     private static final String VALUE_WATCHED = (Integer.valueOf(Video.FL_WATCHED)).toString();
 
@@ -158,8 +158,16 @@ public class AsyncBackendCall implements Runnable {
         return mRecordId;
     }
 
+    public void setRecordId(long mRecordId) {
+        this.mRecordId = mRecordId;
+    }
+
     public long getRecordedId() {
         return mRecordedId;
+    }
+
+    public void setRecordedId(long mRecordedId) {
+        this.mRecordedId = mRecordedId;
     }
 
     public String getStringResult() {
@@ -292,6 +300,7 @@ public class AsyncBackendCall implements Runnable {
         int videoIndex = 0;
         int taskIndex = -1;
         for(;;) {
+            boolean doGetOnly = false;
             // If there is a rowAdapter, take each video in the adapter and run
             // all tasks on it.
             taskIndex++;
@@ -568,10 +577,13 @@ public class AsyncBackendCall implements Runnable {
                 case Video.ACTION_UPDATE_RECGROUP:
                     try {
                         int type;
+                        if (mStringParameter == null)
+                            mStringParameter = "";
                         if (isRecording) {
                             urlString = XmlNode.mythApiUrl(mVideo.hostname,
                                     "/Dvr/UpdateRecordedMetadata?RecordedId="
-                                            + mVideo.recordedid + "&RecGroup=" + mStringParameter);
+                                            + mVideo.recordedid + "&RecGroup=" + mVideo.recGroup
+                                            + "&AutoExpire=" + mStringParameter);
                             type = VideoContract.VideoEntry.RECTYPE_RECORDING;
                             xmlResult = XmlNode.fetch(urlString, "POST");
                             if (context != null)
@@ -703,19 +715,46 @@ public class AsyncBackendCall implements Runnable {
                             mRecordRule = new RecordRule().fromProgram(program);
                             mRecordRule.type = "Single Record";
                             mRecordRule.searchType = "None";
-                            mRecordRule.recProfile = "Live TV";
-                            if (startNow) {
-                                Date now = new Date(System.currentTimeMillis() + bCache.mTimeAdjustment);
-                                long offsetMillis = mRecordRule.startTime.getTime() - now.getTime();
-                                mRecordRule.startOffset = (int) ( (offsetMillis + 30000) / 60000 );
-                                if (mRecordRule.startOffset < 0 || mRecordRule.startOffset > 6)
-                                    mRecordRule.startOffset = 0;
+                            String status = program.getString(new String[] {"Recording","StatusName"});
+                            if (status != null) {
+                                // If there was a prior recording, make this a manual search
+                                RecordRule newRule = new RecordRule();
+                                newRule.title = mRecordRule.title;
+                                newRule.subtitle = mRecordRule.subtitle;
+                                newRule.chanId = mRecordRule.chanId;
+                                newRule.station = mRecordRule.station;
+                                newRule.startTime = mRecordRule.startTime;
+                                newRule.endTime = mRecordRule.endTime;
+                                newRule.type =  "Single Record";
+                                newRule.findDay = 1;
+                                newRule.findTime = "21:30:00";
+                                newRule.searchType = "Manual Search";
+                                mRecordRule = newRule;
+                            }
+                            long now = System.currentTimeMillis() + bCache.mTimeAdjustment;
+                            if (status == null) { // No prior recording of this show
+                                if (startNow) {
+                                    long offsetMillis = mRecordRule.startTime.getTime() - now;
+                                    mRecordRule.startOffset = (int) ( (offsetMillis + 30000) / 60000 );
+                                    if (mRecordRule.startOffset < 0 || mRecordRule.startOffset > 6)
+                                        mRecordRule.startOffset = 0;
+                                }
+                            }
+                            else {
+                                long offset = 0;
+                                if (startNow) {
+                                    offset = (now - mRecordRule.startTime.getTime()) / 60000;
+                                    mRecordRule.startTime = new Date(now - 60000);
+                                }
+                                mRecordRule.title += " (" + offset + ")";
                             }
                             mRecordRule.recPriority = -90;
                             mRecordRule.recGroup = "LiveTV";
+                            mRecordRule.recProfile = "Live TV";
+                            mRecordRule.autoExpire = true;
                             mRecordRule.storageGroup = "LiveTV";
                             mRecordRule.playGroup = "";
-                            mRecordRule.filter = 1024;
+                            mRecordRule.filter = 1024;  // This Channel
                         }
                         else {
                             // No Program found, Setup manual rule
@@ -743,7 +782,6 @@ public class AsyncBackendCall implements Runnable {
                             mRecordRule.recGroup = "LiveTV";
                             mRecordRule.storageGroup = "LiveTV";
                             mRecordRule.playGroup = "";
-                            mRecordRule.filter = 1024;
                         }
                         mEndTime = mRecordRule.endTime;
                         // Next task should be Video.ACTION_ADD_OR_UPDATERECRULE to create the recording
@@ -752,11 +790,16 @@ public class AsyncBackendCall implements Runnable {
                         Log.e(TAG, CLASS + " Exception setting up Live TV.", e);
                     }
                     break;
+                case Video.ACTION_GET_RECORDED:
+                    doGetOnly = true;
+                    // Fall Through to next
                 case Video.ACTION_WAIT_RECORDING:
                     // Find most recent recording in group LiveTV that matches the recordid
                     // Refresh local database with the recording details
                     // Return video instance
                     try {
+                        mRecordedId = -1;
+                        mStringParameter = null;
                         urlString = XmlNode.mythApiUrl(null,
                                 "/Dvr/GetRecordedList?RecGroup=LiveTV&Descending=true&Count=5");
                         found = false;
@@ -774,10 +817,10 @@ public class AsyncBackendCall implements Runnable {
                                     break;
                                 String tmpRecordId = programNode.getString(XMLTAGS_RECORDID);
                                 if (tmpRecordId != null && Integer.parseInt(tmpRecordId) == mRecordId) {
-                                    String fileSizeStr = programNode.getString(VideoDbBuilder.XMLTAG_FILESIZE);
                                     String tmpRecordedId = programNode.getString(XMLTAGS_RECORDEDID);
                                     if (tmpRecordedId != null)
                                         mRecordedId = Integer.parseInt(tmpRecordedId);
+                                    String fileSizeStr = programNode.getString(VideoDbBuilder.XMLTAG_FILESIZE);
                                     long fileSize = 0;
                                     if (fileSizeStr != null)
                                         fileSize = Long.parseLong(fileSizeStr);
@@ -789,11 +832,24 @@ public class AsyncBackendCall implements Runnable {
                                     }
                                 }
                             }
+                            if (doGetOnly)
+                                break;  // break from retries of fetch
                             Thread.sleep(1000);
                         }
+                        if (doGetOnly)
+                            break; // break from switch on action
                         if (!found || ixFound < 0) {
                             Log.e(TAG, CLASS + " Failed to find matching recording.");
-                            return;
+                            // Look up reason for failure
+                            try {
+                                urlString = XmlNode.mythApiUrl(null,
+                                        "/Dvr/GetUpcomingList?RecordId=" + mRecordId);
+                                xmlResult = XmlNode.fetch(urlString, null);
+                                mStringParameter = xmlResult.getString(XMLTAGS_STATUSNAME);
+                            } catch (Exception e) {
+                                Log.e(TAG, CLASS + " Exception In GetUpcomingList", e);
+                            }
+                            break;
                         }
                         VideoDbBuilder builder = new VideoDbBuilder(context);
                         List<ContentValues> contentValuesList = new ArrayList<>();
@@ -841,15 +897,15 @@ public class AsyncBackendCall implements Runnable {
 
                 case Video.ACTION_STOP_RECORDING:
                     // Stop recording
-                    if ("-1".equals(mVideo.recordedid))
+                    if (mRecordedId <= 0)
                         break;
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/StopRecording?RecordedId=" + mVideo.recordedid);
+                                "/Dvr/StopRecording?RecordedId=" + mRecordedId);
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         String result = xmlResult.getString();
                         if ("true".equals(result))
-                            Log.i(TAG, CLASS + " Recording Stopped. RecordedId:" + mVideo.recordedid);
+                            Log.i(TAG, CLASS + " Recording Stopped. RecordedId:" + mRecordedId);
                         else
                             Log.e(TAG, CLASS + " Stop Recording Failed.");
                     } catch (Exception e) {
@@ -860,11 +916,11 @@ public class AsyncBackendCall implements Runnable {
                 case Video.ACTION_REMOVE_RECORD_RULE:
                     try {
                         urlString = XmlNode.mythApiUrl(null,
-                                "/Dvr/RemoveRecordSchedule?RecordId=" + mValue);
+                                "/Dvr/RemoveRecordSchedule?RecordId=" + mRecordId);
                         xmlResult = XmlNode.fetch(urlString, "POST");
                         String result = xmlResult.getString();
                         if ("true".equals(result))
-                            Log.i(TAG, CLASS + " Record Rule Removed. recordId:" + mValue);
+                            Log.i(TAG, CLASS + " Record Rule Removed. recordId:" + mRecordId);
                         else
                             Log.e(TAG, CLASS + " Remove Record Rule Failed.");
                     } catch (Exception e) {

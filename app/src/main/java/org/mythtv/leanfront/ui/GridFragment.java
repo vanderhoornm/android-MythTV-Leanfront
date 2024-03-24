@@ -200,7 +200,9 @@ public class GridFragment extends Fragment implements BrowseSupportFragment.Main
         gridDock.addView(mGridViewHolder.view);
         mGridViewHolder.getGridView().setOnChildLaidOutListener(mChildLaidOutListener);
 
-        getMainFragmentAdapter().getFragmentHost().notifyViewCreated(mMainFragmentAdapter);
+        BrowseSupportFragment.FragmentHost host = getMainFragmentAdapter().getFragmentHost();
+        if (host != null)
+            host.notifyViewCreated(mMainFragmentAdapter);
         updateAdapter();
 
     }

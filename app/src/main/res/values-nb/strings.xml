@@ -77,7 +77,7 @@
         Android-innstillinger.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">De fleste typer lyd, surroundlyd spilles som stereo.</string>
-  <string name="pref_title_livetv_duration">Live TV-varighet i minutter</string>
+  <string name="pref_title_idle_timeout">Tidsavbrudd for inaktiv avspilling i minutter</string>
   <string name="pref_title_framerate_match">Match original bildefrekvens</string>
   <string name="pref_letterbox_black">Postkasse Svart Matt</string>
   <string name="pref_letterbox_black_desc">Hvis avmerket, bruk Grey Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Direktesendt TV</string>
   <string name="playback_speed">Avspillingshastighet</string>
   <string name="msg_unable_speed">Kan ikke endre hastighet. Deaktiver surroundlyd eller velg FFmpeg-lyd.</string>
+  <string name="msg_save_record">Opptaket vil fortsette å avslutte og legges til i standardgruppen.</string>
   <string name="button_zoom">Bildestørrelse</string>
   <string name="button_aspect">Strekk horisontalt</string>
   <string name="button_speedup">Endre avspillingshastighet</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Sett bokmerke</string>
   <string name="button_menu">Avspillingsmeny</string>
   <string name="button_commskip">Kommersiell eller Cut Skip</string>
+  <string name="button_record">Ta opp dette showet</string>
   <string name="row_header_videos">Videoer</string>
   <string name="row_header_channels">Kanaler</string>
   <string name="row_header_tools">Verktøy</string>
   <string name="title_alert_livetv">Direktesendt TV</string>
-  <string name="alert_livetv_message">Opptaket mislyktes.</string>
+  <string name="alert_livetv_fail_message">Direkte TV mislyktes med status: %1$s.</string>
   <string name="title_alert_rowresults">Resultater</string>
   <string name="alert_rowresults">%1$d Oppdatert\n%2$d mislyktes</string>
   <string name="title_are_you_sure">Er du sikker?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Kommersielt eller Cut Playing</string>
   <string name="menu_comm_skip">Hopp over</string>
   <string name="menu_comm_notskip">Ikke hopp over</string>
+  <string name="msg_idle_timeout">Ser du fortsatt?\nKlikk på Ja-knappen for å fortsette.</string>
+  <string name="button_yes">Ja</string>
+  <string name="button_no">Nei</string>
   <string name="backup_button">Gjenopprette fra sikkerhetskopi</string>
   <string name="backup_menu">Sikkerhetskopier til katalogen %1s.</string>
   <string name="menu_backup_settings">Sikkerhetskopier innstillingene til %s</string>

@@ -144,6 +144,8 @@ public final class Video implements Parcelable, ListItem {
     public static final int ACTION_DVR_WSDL               = 58;
     public static final int ACTION_CHAN_GROUPS            = 59;
     public static final int ACTION_WAIT_RECORDING         = 60;
+    public static final int ACTION_GET_RECORDED           = 61;
+    public static final int ACTION_RECORD                 = 62;
 
 
 

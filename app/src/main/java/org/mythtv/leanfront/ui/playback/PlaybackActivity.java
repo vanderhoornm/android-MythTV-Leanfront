@@ -64,10 +64,13 @@ public class PlaybackActivity extends LeanbackActivity {
     private RepeatListener ffListener;
     private GestureDetector detector;
     private boolean isLongKeyPress;
+    private long touchTime;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        updateTouchTime();
         setContentView(R.layout.activity_playback);
         Fragment fragment =
                 getSupportFragmentManager().findFragmentByTag(getString(R.string.playback_tag));
@@ -102,6 +105,7 @@ public class PlaybackActivity extends LeanbackActivity {
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         // This method will handle gamepad events.
+        updateTouchTime();
         if (event.getAxisValue(MotionEvent.AXIS_LTRIGGER) > GAMEPAD_TRIGGER_INTENSITY_ON
                 && !gamepadTriggerPressed) {
             mPlaybackFragment.rewind();
@@ -120,6 +124,7 @@ public class PlaybackActivity extends LeanbackActivity {
     @Override
     // Note that onTouchEvent does not get dispatched so we need this
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        updateTouchTime();
         boolean ret = false;
         int w = mPlaybackFragment.getView().getWidth();
         int h = mPlaybackFragment.getView().getHeight();
@@ -161,6 +166,7 @@ public class PlaybackActivity extends LeanbackActivity {
     @SuppressLint("RestrictedApi")
     @Override
     public boolean dispatchKeyEvent(KeyEvent event){
+        updateTouchTime();
         int keycode = event.getKeyCode();
         int newKeyCode = -1;
         boolean overload = false;
@@ -374,6 +380,13 @@ public class PlaybackActivity extends LeanbackActivity {
         return false;
     }
 
+    public long getTouchTime() {
+        return touchTime;
+    }
+
+    public void updateTouchTime() {
+        touchTime = System.currentTimeMillis();
+    }
 
     class GestureTap extends GestureDetector.SimpleOnGestureListener {
         @Override

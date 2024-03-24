@@ -77,7 +77,7 @@
         Ρυθμίσεις Android.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Οι περισσότεροι τύποι ήχου, ήχου surround αναπαράγονται ως στερεοφωνικό.</string>
-  <string name="pref_title_livetv_duration">Διάρκεια ζωντανής τηλεόρασης σε λεπτά</string>
+  <string name="pref_title_idle_timeout">Λήξη αδράνειας αναπαραγωγής σε λεπτά</string>
   <string name="pref_title_framerate_match">Αντιστοιχίστε τον αρχικό ρυθμό καρέ</string>
   <string name="pref_letterbox_black">Γραμματοκιβώτιο Μαύρο Ματ</string>
   <string name="pref_letterbox_black_desc">Εάν δεν είναι επιλεγμένο, χρησιμοποιήστε Grey Matte</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Ζωντανή μετάδοση</string>
   <string name="playback_speed">Ταχύτητα αναπαραγωγής</string>
   <string name="msg_unable_speed">Δεν είναι δυνατή η αλλαγή ταχύτητας. Απενεργοποιήστε τον ήχο surround ή επιλέξτε ήχο FFmpeg.</string>
+  <string name="msg_save_record">Η εγγραφή θα συνεχίσει να τελειώνει και θα προστεθεί στην Προεπιλεγμένη ομάδα.</string>
   <string name="button_zoom">Μέγεθος εικόνας</string>
   <string name="button_aspect">Τεντώστε Οριζόντια</string>
   <string name="button_speedup">Αλλαγή ταχύτητας αναπαραγωγής</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Ορισμός σελιδοδείκτη</string>
   <string name="button_menu">Μενού αναπαραγωγής</string>
   <string name="button_commskip">Εμπορική ή Cut Skip</string>
+  <string name="button_record">Ηχογραφήστε αυτήν την εκπομπή</string>
   <string name="row_header_videos">Βίντεο</string>
   <string name="row_header_channels">Κανάλια</string>
   <string name="row_header_tools">Εργαλεία</string>
   <string name="title_alert_livetv">Ζωντανή μετάδοση</string>
-  <string name="alert_livetv_message">Η εγγραφή απέτυχε.</string>
+  <string name="alert_livetv_fail_message">Η ζωντανή τηλεόραση απέτυχε με κατάσταση: %1$s.</string>
   <string name="title_alert_rowresults">Αποτελέσματα</string>
   <string name="alert_rowresults">%1$d Ενημερώθηκε\n%2$d Απέτυχε</string>
   <string name="title_are_you_sure">Είσαι σίγουρος?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Εμπορική ή κομμένη αναπαραγωγή</string>
   <string name="menu_comm_skip">Παραλείπω</string>
   <string name="menu_comm_notskip">Μην παραλείψετε</string>
+  <string name="msg_idle_timeout">Εξακολουθείτε να παρακολουθείτε;\nΚάντε κλικ στο κουμπί Ναι για να συνεχίσετε.</string>
+  <string name="button_yes">Ναί</string>
+  <string name="button_no">Οχι</string>
   <string name="backup_button">Δημιουργία αντιγράφων ασφαλείας/Επαναφορά</string>
   <string name="backup_menu">Δημιουργία αντιγράφων ασφαλείας στον κατάλογο %1s.</string>
   <string name="menu_backup_settings">Δημιουργήστε αντίγραφα ασφαλείας των ρυθμίσεων στο %s</string>

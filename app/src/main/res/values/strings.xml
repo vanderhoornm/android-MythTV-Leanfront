@@ -111,7 +111,7 @@
         Android settings.</string>
     <string name="pref_audio_ffmpeg">FFmpeg</string>
     <string name="pref_audio_ffmpeg_desc">Most types of audio, surround sound plays as stereo.</string>
-    <string name="pref_title_livetv_duration">Live TV duration in minutes</string>
+    <string name="pref_title_idle_timeout">Playback idle timeout in minutes</string>
     <string name="pref_title_framerate_match">Match original frame rate</string>
     <string name="pref_letterbox_black">Letterbox Black Matte</string>
     <string name="pref_letterbox_black_desc">If unchecked use Gray Matte</string>
@@ -225,6 +225,7 @@
     <string name="title_livetv_recording">LiveTV</string>
     <string name="playback_speed">Playback Speed</string>
     <string name="msg_unable_speed">Unable to change speed. Disable surround sound or select FFmpeg audio.</string>
+    <string name="msg_save_record">Recording will continue to end and will be added to Default group.</string>
     <string name="button_zoom">Picture Size</string>
     <string name="button_aspect">Stretch Horizontally</string>
     <string name="button_speedup">Change Playback Speed</string>
@@ -237,11 +238,12 @@
     <string name="button_bookmark">Set Bookmark</string>
     <string name="button_menu">Playback Menu</string>
     <string name="button_commskip">Commercial or Cut Skip</string>
+    <string name="button_record">Record this Show</string>
     <string name="row_header_videos">Videos</string>
     <string name="row_header_channels">Channels</string>
     <string name="row_header_tools">Tools</string>
     <string name="title_alert_livetv">Live TV</string>
-    <string name="alert_livetv_message">Recording failed.</string>
+    <string name="alert_livetv_fail_message">Live TV failed with status: %1$s.</string>
     <string name="title_alert_rowresults">Results</string>
     <string name="alert_rowresults">%1$d Updated\n%2$d Failed</string>
     <string name="title_are_you_sure">Are you sure?</string>
@@ -414,6 +416,10 @@
     <string name="menu_comm_skip">Skip</string>
     <string name="menu_comm_notskip">Do not Skip</string>
 
+    <string name="msg_idle_timeout">Are you still watching?\nClick Yes button to continue.</string>
+    <string name="button_yes">Yes</string>
+    <string name="button_no">No</string>
+
     <string name="backup_button">Backup/Restore</string>
     <string name="backup_menu">Backup to directory %1s.</string>
     <string name="menu_backup_settings">Backup the Settings to %s</string>
@@ -482,4 +488,5 @@
     <string name="sdef_max_vids" translatable="false">20000</string>
     <string name="sdef_refresh_mins" translatable="false">60</string>
     <string name="sdef_chan_group" translatable="false"></string>
+    <string name="sdef_idle_timeout" translatable="false">360</string>
 </resources>

@@ -144,6 +144,9 @@ public class CardPresenter extends Presenter {
             case MainFragment.TYPE_MANAGE:
                 defaultIcon = R.drawable.ic_voicemail;
                 break;
+            case MainFragment.TYPE_GUIDE:
+                defaultIcon = R.drawable.ic_guide;
+                break;
             default:
                 switch (video.rectype) {
                     case VideoContract.VideoEntry.RECTYPE_CHANNEL:

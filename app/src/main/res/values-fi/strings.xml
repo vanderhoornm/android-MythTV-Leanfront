@@ -77,7 +77,7 @@
         Android-asetukset.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Useimmat äänityypit, surround-ääni toistetaan stereona.</string>
-  <string name="pref_title_livetv_duration">Live-TV:n kesto minuuteissa</string>
+  <string name="pref_title_idle_timeout">Toiston tyhjäkäynnin aikakatkaisu minuuteissa</string>
   <string name="pref_title_framerate_match">Vastaa alkuperäistä kuvanopeutta</string>
   <string name="pref_letterbox_black">Kirjelaatikko musta matta</string>
   <string name="pref_letterbox_black_desc">Jos ei ole valittuna, käytä Harmaa Mattea</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Suora lähetys</string>
   <string name="playback_speed">Toistonopeus</string>
   <string name="msg_unable_speed">Nopeutta ei voi muuttaa. Poista surround-ääni käytöstä tai valitse FFmpeg-ääni.</string>
+  <string name="msg_save_record">Tallennus päättyy edelleen ja lisätään oletusryhmään.</string>
   <string name="button_zoom">Kuvan koko</string>
   <string name="button_aspect">Venytä vaakatasossa</string>
   <string name="button_speedup">Muuta toistonopeutta</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Aseta kirjanmerkki</string>
   <string name="button_menu">Toistovalikko</string>
   <string name="button_commskip">Kaupallinen tai leikattu ohitus</string>
+  <string name="button_record">Nauhoita tämä esitys</string>
   <string name="row_header_videos">Videot</string>
   <string name="row_header_channels">Kanavat</string>
   <string name="row_header_tools">Työkalut</string>
   <string name="title_alert_livetv">Suora lähetys</string>
-  <string name="alert_livetv_message">Tallennus epäonnistui.</string>
+  <string name="alert_livetv_fail_message">Live-TV epäonnistui tilalla: %1$s.</string>
   <string name="title_alert_rowresults">Tulokset</string>
   <string name="alert_rowresults">%1$d päivitetty\n%2$d epäonnistui</string>
   <string name="title_are_you_sure">Oletko varma?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Kaupallinen tai leikattu soittaminen</string>
   <string name="menu_comm_skip">Ohita</string>
   <string name="menu_comm_notskip">Älä Ohita</string>
+  <string name="msg_idle_timeout">Katsotko edelleen?\nJatka napsauttamalla Kyllä-painiketta.</string>
+  <string name="button_yes">Joo</string>
+  <string name="button_no">Ei</string>
   <string name="backup_button">Varmuuskopio</string>
   <string name="backup_menu">Varmuuskopiointi hakemistoon %1s.</string>
   <string name="menu_backup_settings">Varmuuskopioi asetukset kohteeseen %s</string>

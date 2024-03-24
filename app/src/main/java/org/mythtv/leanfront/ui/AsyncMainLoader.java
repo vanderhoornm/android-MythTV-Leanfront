@@ -577,7 +577,8 @@ public class AsyncMainLoader implements Runnable {
             // Add video to "All" row
             if (addToRow && allSparse != null && rowType != TYPE_VIDEODIR_ALL
                     && rectype == RECTYPE_RECORDING
-                    && !(mType == TYPE_TOPLEVEL && "Deleted".equals(recgroup))) {
+                    && !(mType == TYPE_TOPLEVEL
+                          && ("Deleted".equals(recgroup) || "LiveTV".equals(recgroup)))) {
                 int position = 0;
                 String sortKeyStr = data.getString(sortkey);
                 if (sortKeyStr != null) {

@@ -77,7 +77,7 @@
         Android-instellingen.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Bij de meeste soorten audio wordt surroundgeluid in stereo afgespeeld.</string>
-  <string name="pref_title_livetv_duration">Duur live tv in minuten</string>
+  <string name="pref_title_idle_timeout">Time-out bij inactiviteit bij afspelen over minuten</string>
   <string name="pref_title_framerate_match">Overeenkomen met de originele framesnelheid</string>
   <string name="pref_letterbox_black">Brievenbus Zwart Mat</string>
   <string name="pref_letterbox_black_desc">Als dit niet is aangevinkt, gebruik dan Grijs Mat</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Live tv</string>
   <string name="playback_speed">Afspeelsnelheid</string>
   <string name="msg_unable_speed">Kan de snelheid niet wijzigen. Schakel surroundgeluid uit of selecteer FFmpeg-audio.</string>
+  <string name="msg_save_record">De opname blijft eindigen en wordt toegevoegd aan de standaardgroep.</string>
   <string name="button_zoom">Afbeeldingsgrootte</string>
   <string name="button_aspect">Horizontaal uitrekken</string>
   <string name="button_speedup">Wijzig de afspeelsnelheid</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Bladwijzer instellen</string>
   <string name="button_menu">Afspeelmenu</string>
   <string name="button_commskip">Commercieel of Cut Skip</string>
+  <string name="button_record">Neem deze show op</string>
   <string name="row_header_videos">Videos</string>
   <string name="row_header_channels">Kanalen</string>
   <string name="row_header_tools">Hulpmiddelen</string>
   <string name="title_alert_livetv">Live tv</string>
-  <string name="alert_livetv_message">Opname mislukt.</string>
+  <string name="alert_livetv_fail_message">Live tv mislukt met status: %1$s.</string>
   <string name="title_alert_rowresults">Resultaten</string>
   <string name="alert_rowresults">%1$d Bijgewerkt\n%2$d Mislukt</string>
   <string name="title_are_you_sure">Weet je het zeker?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Commercieel of cut-playing</string>
   <string name="menu_comm_skip">Overslaan</string>
   <string name="menu_comm_notskip">Niet overslaan</string>
+  <string name="msg_idle_timeout">Kijk je nog steeds?\nKlik op de knop Ja om door te gaan.</string>
+  <string name="button_yes">Ja</string>
+  <string name="button_no">Nee</string>
   <string name="backup_button">Back-up herstellen</string>
   <string name="backup_menu">Back-up naar map %1s.</string>
   <string name="menu_backup_settings">Maak een back-up van de instellingen naar %s</string>

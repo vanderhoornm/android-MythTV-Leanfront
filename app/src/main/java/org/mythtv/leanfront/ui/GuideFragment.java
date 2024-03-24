@@ -524,7 +524,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                         AlertDialog.Builder builder = new AlertDialog.Builder(context,
                                 R.style.Theme_AppCompat_Dialog_Alert);
                         builder.setTitle(R.string.title_alert_livetv);
-                        builder.setMessage(R.string.alert_livetv_message);
+                        String msg = context.getString(R.string.alert_livetv_fail_message,taskRunner.getStringParameter());
+                        builder.setMessage(msg);
                         // add a button
                         builder.setPositiveButton(android.R.string.ok, null);
                         builder.show();
@@ -539,7 +540,8 @@ public class GuideFragment extends GridFragment implements AsyncBackendCall.OnBa
                         // Terminate Live TV
                         AsyncBackendCall call = new AsyncBackendCall(getActivity(), this);
                         call.setVideo(video);
-                        call.setmValue(recordId);
+                        call.setRecordId(recordId);
+                        call.setRecordedId(Integer.parseInt(video.recordedid));
                         call.execute(
                                 Video.ACTION_STOP_RECORDING,
                                 Video.ACTION_REMOVE_RECORD_RULE);

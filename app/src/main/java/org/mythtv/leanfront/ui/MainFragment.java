@@ -160,6 +160,7 @@ public class MainFragment extends BrowseSupportFragment
     public static final int TYPE_REFRESH = 22;
     public static final int TYPE_INFO = 23;
     public static final int TYPE_MANAGE = 24;
+    public static final int TYPE_GUIDE = 25;
 
     public static final String KEY_BASENAME = "LEANFRONT_BASENAME";
     public static final String KEY_ROWNAME = "LEANFRONT_ROWNAME";
@@ -677,6 +678,15 @@ public class MainFragment extends BrowseSupportFragment
         toolsRowAdapter.add(video);
 
         video = new Video.VideoBuilder()
+                .id(-1).title(getString(R.string.title_program_guide))
+                .subtitle("")
+                .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
+                .progflags("0")
+                .build();
+        video.type = TYPE_GUIDE;
+        toolsRowAdapter.add(video);
+
+        video = new Video.VideoBuilder()
                 .id(-1).title(getString(R.string.button_manage_recordings))
                 .subtitle("")
                 .bgImageUrl("android.resource://org.mythtv.leanfront/" + R.drawable.background)
@@ -794,6 +804,11 @@ public class MainFragment extends BrowseSupportFragment
                     break;
                 case TYPE_MANAGE:
                     intent = new Intent(context, ManageRecordingsActivity.class);
+                    startActivity(intent);
+                    break;
+                case TYPE_GUIDE:
+                    intent = new Intent(context, ManageRecordingsActivity.class);
+                    intent.putExtra("TYPE","GUIDE");
                     startActivity(intent);
                     break;
             }

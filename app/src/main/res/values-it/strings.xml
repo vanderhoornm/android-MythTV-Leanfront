@@ -77,7 +77,7 @@
         Impostazioni Android.</string>
   <string name="pref_audio_ffmpeg">FFmpeg</string>
   <string name="pref_audio_ffmpeg_desc">Nella maggior parte dei tipi di audio, il suono surround viene riprodotto in stereo.</string>
-  <string name="pref_title_livetv_duration">Durata della TV in diretta in minuti</string>
+  <string name="pref_title_idle_timeout">Timeout di inattività della riproduzione in minuti</string>
   <string name="pref_title_framerate_match">Corrisponde al frame rate originale</string>
   <string name="pref_letterbox_black">Cassetta delle lettere nera opaca</string>
   <string name="pref_letterbox_black_desc">Se deselezionato, utilizzare Grigio opaco</string>
@@ -183,6 +183,7 @@
   <string name="title_livetv_recording">Tv dal vivo</string>
   <string name="playback_speed">Velocità di riproduzione</string>
   <string name="msg_unable_speed">Impossibile modificare la velocità. Disattiva l\'audio surround o seleziona l\'audio FFmpeg.</string>
+  <string name="msg_save_record">La registrazione continuerà a terminare e verrà aggiunta al gruppo predefinito.</string>
   <string name="button_zoom">Dimensioni immagine</string>
   <string name="button_aspect">Allunga orizzontalmente</string>
   <string name="button_speedup">Modifica la velocità di riproduzione</string>
@@ -195,11 +196,12 @@
   <string name="button_bookmark">Imposta segnalibro</string>
   <string name="button_menu">Menù di riproduzione</string>
   <string name="button_commskip">Salta commerciale o tagliato</string>
+  <string name="button_record">Registra questo spettacolo</string>
   <string name="row_header_videos">Video</string>
   <string name="row_header_channels">Canali</string>
   <string name="row_header_tools">Utensili</string>
   <string name="title_alert_livetv">Tv dal vivo</string>
-  <string name="alert_livetv_message">La registrazione non è riuscita.</string>
+  <string name="alert_livetv_fail_message">TV in diretta non riuscita con stato: %1$s.</string>
   <string name="title_alert_rowresults">Risultati</string>
   <string name="alert_rowresults">%1$d Aggiornamento\n%2$d Non riuscito</string>
   <string name="title_are_you_sure">Sei sicuro?</string>
@@ -355,6 +357,9 @@
   <string name="title_comm_playing">Riproduzione commerciale o tagliata</string>
   <string name="menu_comm_skip">Saltare</string>
   <string name="menu_comm_notskip">Non saltare</string>
+  <string name="msg_idle_timeout">Stai ancora guardando?\nFai clic sul pulsante Sì per continuare.</string>
+  <string name="button_yes">SÌ</string>
+  <string name="button_no">NO</string>
   <string name="backup_button">Ripristinare il backup</string>
   <string name="backup_menu">Backup nella directory %1s.</string>
   <string name="menu_backup_settings">Effettua il backup delle impostazioni su %s</string>

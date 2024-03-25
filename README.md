@@ -170,6 +170,7 @@ At the bottom of each list screen is a row named "Tools", that provides applicat
 - [Settings](#settings) provides for customization of many features of leanfront.
 - [Refresh Lists](#refresh-lists) refreshes the recording and video lists from the backend. This is rarely needed, as leanfront automatically keeps up to date with the backend. The frequency with which it is updated can be set in [Advanced Settings](#advanced).
 - [Backend Status](#backend-status) shows general information about the backend.
+- [Program Guide](#program-guide) Shows the program guide and provides the ability to watch Live TV and schedule recordings.
 - [Manage Recordings](#manage-recordings) Shows the program schedule and provides the ability to schedule recordings.
 
 ## Settings
@@ -230,6 +231,7 @@ There are three rows available.
 ## Program Guide
 ![](ScreenShots/Guide.png)
 
+- Play Live TV on a channel by selecting the channel, pressing enter and selection "Play Live TV". For more information see [Live TV](#live-tv).
 - Jump to a desired channel by selecting and pressing enter on one of the channel cells, and entering a channel number with the onscreen keyboard.
 - Jump to a desired date and time by pressing enter on any of the date or time cells and selecting a date and time.
 - [Schedule](#schedule-recording) a recording by pressing enter on a program cell.
@@ -380,22 +382,26 @@ Leanfront also supports skip and cut lists in Videos in the "Videos" storage gro
 
 ## Live TV
 
-In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will set up a recording of that channel, and once the recording is available it will start playing it. There is a difference between this and mythfrontend Live TV. In leanfront, the LiveTV recording will be named "LiveTV" with the date. The recording time and channel will be shown as the subtitle. The recording length defaults to 60 minutes. This default can be changed in Settings. When you exit from playback by any method, the recording is stopped and the recording rule is deleted.
+There are two way to start Live TV viewing.
 
-You can customize the display of rows. Instead of groups of 100 channels, if you are using broadcast TV where there are fewer channel numbers and there may be sub-channels, you can set the number per row to a smaller number, e.g. 1 or 10. This is in the Settings under "Program List Options", near the bottom.
+- In the LiveTV recording group are rows showing your TV channels, in groups of 100. If you navigate to a channel and press enter you will see a details page with the channel name and icon. There is a single button, "Play Live TV". Pressing this will start Live TV on that channel.
+- In the Program Guide all channels from a selected channel group are shown. Clicking on a channel name allows Live TV to be started.
+
+When Live TV is selected, either from the Live TV group or from the program guide, a recording is set up with the name and details of the current show in the program guide. When that program ends, it continues on to the next program in the guide, setting up a recording and playing it.
+
+During Live TV it shows a "Record" button and menu item. Clicking this converts the temporary Live TV recording to a permanent recording in the Default group, and ensures the program is recorded to the end, even if you exit Live TV watching.
+
+You can customize the display of rows in the Live TV group. Instead of groups of 100 channels, if you are using broadcast TV where there are fewer channel numbers and there may be sub-channels, you can set the number per row to a smaller number, e.g. 1 or 10. This is in the Settings under "Program List Options", near the bottom.
 
 Notes:
 
 - When starting Live TV playback, there is a delay of approximately 15 seconds while the channel is tuned and the recording is started. You will see a circling progress bar during this time.
-- Live TV recordings are named only with date, time and channel, unlike in mythfrontend where they are named with the actual program name from the guide.
 - Live TV recording rules are created with priority -99. This means they will not preempt any recordings you may have set up for the same time slot.
 - Live TV recordings made with leanfront will not honor the tuner LiveTV assignments in setup. They will use the tuners set up for recordings.
-- If you invoke Live TV when there is no tuner available or the channel cannot be recorded, there will be a message, after a delay of around 15 seconds, informing you that the recording failed. The message cannot distinguish why the recording failed.
-- You can set a default time for LiveTV in Settings. That is the maximum time you can watch. After that time the recording ends. You can exit from the recording and select to play LiveTV again for another period.
-- If you set the Live TV recording time too short you will have to keep restarting LiveTV. If you set it too long, your request may fail if there is another recording scheduled during that time and that causes a conflict.
+- If you invoke Live TV when there is no tuner available or the channel cannot be recorded, there will be a message, after a delay of around 30 seconds, informing you that the recording failed and giving a reason.
 - If you have playback problems that you have to fix with ffmpeg or mkvmerge (see section "Problems" below), then this LiveTV feature will not work for you.
-- LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age
-- If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the channel. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
+- LiveTV recordings are kept for the number of days specified in mythfrontend Setup->Video->General->Auto-Expire->Live TV Max Age, unless you use the "Record" button to make the recording permanent. 
+- If you exit LiveTV by disconnecting the android TV device, or the device crashes, the cancel of the recording will not happen and it will continue to record the program. You can reconnect the android device, go into the LiveTV group and find the recording there. If it is still recording you can use the "Stop Recording" option from the "Other Actions" button. If you want to watch it you can do so from there.
 - While watching Live TV, if the backend goes down and comes up again, it will resume the recording. You can go into the LiveTV group and stop it, or you can watch it from the LiveTV group.
 
 ## Playback controls

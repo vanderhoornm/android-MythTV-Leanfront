@@ -33,7 +33,7 @@ cd "$scriptpath"
 # Clear old builds
 #~ rm -rf ffmpeg/android-libs/*
 FFMPEG_PATH="$(pwd)/../ffmpeg"
-git -C $FFMPEG_PATH pull
+git -C $FFMPEG_PATH fetch
 git -C $FFMPEG_PATH checkout release/6.0
 git -C $FFMPEG_PATH pull
 

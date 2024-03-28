@@ -25,12 +25,16 @@ jobs:
         cache: gradle
 
     - uses: nttld/setup-ndk@v1
+      id: setup-ndk
       with:
         ndk-version: r25c
+        add-to-path: false
+
+    - run: ln -sf "$(pwd)/ffmpeg" "$(pwd)/media/libraries/decoder_ffmpeg/src/main/jni/"
 
     - name: Build FFmpeg
       working-directory: ./media/libraries/decoder_ffmpeg/src/main/jni
-      run: ./build_ffmpeg.sh ./media/libraries/decoder_ffmpeg/src/main "$ANDROID_NDK_HOME" "linux-x86_64" 21 "mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw"
+      run: ./build_ffmpeg.sh "$(pwd)/media/libraries/decoder_ffmpeg/src/main" "$ANDROID_NDK_HOME" "linux-x86_64" 21 "mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw"
       env:
         ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 

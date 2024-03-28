@@ -34,9 +34,10 @@ jobs:
 
     - name: Build FFmpeg
       working-directory: ./media/libraries/decoder_ffmpeg/src/main/jni
-      run: ./build_ffmpeg.sh "$(pwd)/media/libraries/decoder_ffmpeg/src/main" "$ANDROID_NDK_HOME" "linux-x86_64" 21 "mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw"
+      run: ./build_ffmpeg.sh "$(pwd)/.." "$ANDROID_NDK_HOME" "linux-x86_64" 21 "${ENABLED_DECODERS[@]}"
       env:
         ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        ENABLED_DECODERS: (mp3 aac ac3 eac3 dca truehd mlp vorbis opus flac alac pcm_mulaw pcm_alaw)
 
     - name: Build with Gradle
       working-directory: ./leanfront

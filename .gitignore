@@ -10,11 +10,11 @@
 *.class
 
 # generated files
-bin/
-gen/
-app/debug/
-app/release/
-app/google/
+leanfront/bin/
+leanfront/gen/
+leanfront/app/debug/
+leanfront/app/release/
+leanfront/app/google/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -35,4 +35,4 @@ Thumbs.db
 
 #.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
 .gradle
-build/
+leanfront/build/

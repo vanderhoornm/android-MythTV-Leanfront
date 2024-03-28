@@ -43,3 +43,4 @@ jobs:
       working-directory: ./leanfront
       run: ./gradlew build
 
+    - run: cat "$(pwd)/leanfront/app/build/intermediates/lint_intermediate_text_report/debug/lint-results-debug.txt"
